@@ -201,7 +201,7 @@
       + '</div>'
       + '<div class="gv-row" style="margin-bottom:18px">' + opsRozet(l.operasyonDurum) + rapRozet(l.raporDurum) + '</div>';
 
-    govde += '<h4 class="gc-title" style="margin-bottom:10px"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Hizmet Kapsamı</h4>';
+    govde += '<h2 class="gc-title" style="margin-bottom:10px"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Hizmet Kapsamı</h2>';
     if (hizmetler.length) {
       govde += '<div class="gv-tscroll"><table class="gtable gtable-sm gtable-cards">'
         + '<thead><tr><th scope="col">Poz</th><th scope="col">Hizmet</th>'
@@ -218,7 +218,7 @@
         + '<span>Bu lokasyon için hizmet kapsamı henüz tanımlanmadı; ekipman listesini gönderdiğinizde kapsam oluşturulur.</span></div>';
     }
 
-    govde += '<h4 class="gc-title" style="margin:20px 0 10px"><i class="fa-solid fa-user" aria-hidden="true"></i>Lokasyon Yetkilisi</h4>'
+    govde += '<h2 class="gc-title" style="margin:20px 0 10px"><i class="fa-solid fa-user" aria-hidden="true"></i>Lokasyon Yetkilisi</h2>'
       + '<dl class="info-rows">'
       + '<div class="info-row"><dt>Ad soyad</dt><dd>' + (l.yetkiliAd ? GV.esc(l.yetkiliAd)
           : GV.rozetOzel('warn','fa-triangle-exclamation','Tanımlı değil — bildirmenizi rica ederiz')) + '</dd></div>'

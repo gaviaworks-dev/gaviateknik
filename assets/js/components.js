@@ -153,7 +153,12 @@
         if (secenek.bosDurum) kap.innerHTML = window.gvEmpty(secenek.bosDurum);
         return;
       }
+      /* Ekran okuyucu tabloyu adıyla duyurabilsin: caption görsel olarak gizli,
+         sayfa başlığından ya da secenek.ad'dan türer. */
+      var tabloAd = secenek.ad || (document.querySelector('.ph-title, .gv-page-head h1, h1')
+        || {}).textContent || 'Kayıt listesi';
       kap.innerHTML = '<table class="gtable gtable-cards' + (secenek.sinif ? ' ' + secenek.sinif : '') + '">'
+        + '<caption class="gv-sr">' + esc(String(tabloAd).trim()) + ' — ' + veri.length + ' kayıt</caption>'
         + '<thead>' + basliklar() + '</thead><tbody>' + satirlar(veri) + '</tbody>'
         + (secenek.altToplam ? '<tfoot>' + secenek.altToplam(veri) + '</tfoot>' : '')
         + '</table>';
@@ -327,7 +332,9 @@
       var x = solPay + adim * i2 + (adim - kalinlik) / 2;
       var y2 = ustPay + cizimY - yuk;
       h += '<rect x="' + x + '" y="' + y2 + '" width="' + kalinlik + '" height="' + yuk + '" rx="4" fill="' + (TON[d.ton] || TON.acc) + '">'
-        + '<title>' + svgEsc(d.etiket) + ': ' + GV.n(d.deger) + (secenek.birim ? ' ' + secenek.birim : '') + '</title></rect>'
+        + '<title>' + svgEsc(d.etiket) + ': '
+        + (secenek.birim === '%' ? GV.pct(d.deger / 100, true, 1)
+           : GV.n(d.deger) + (secenek.birim ? ' ' + secenek.birim : '')) + '</title></rect>'
         + '<text x="' + (x + kalinlik / 2) + '" y="' + (y2 - 5) + '" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111528">' + GV.n(d.deger) + '</text>'
         + '<text x="' + (x + kalinlik / 2) + '" y="' + (Y - 10) + '" text-anchor="middle" font-size="10.5" fill="#69708A">' + svgEsc(d.etiket) + '</text>';
     });

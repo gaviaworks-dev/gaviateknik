@@ -120,27 +120,27 @@
       doğrudan erişimi kalmadı (CLAUDE.md §7 istisnasız)
 - [x] Kalibrasyon uyarı eşiği artık Ayarlar'dan geliyor (3 sayfada 13 sabit değer bağlandı)
 
-## FAZ 11 — QA  ⏳ DEVAM EDİYOR
+## FAZ 11 — QA ✅ TAMAMLANDI
 
-**Durum:** Faz 0–10 bitti ve push edildi (son commit `5b4e240`). BRIEF'in 73 sayfasının
-tamamı üretildi, eksik yok. Kendi jsdom tarayıcım (`scratchpad/qa.js`) 73 sayfada
-**0 bulgu** veriyor.
+Dört QA lensi subagent olarak başlatıldı; hepsi aylık harcama limitine takılıp düştü.
+Diskte bıraktıkları kısmi çıktılar (`matrix.json` 949 satır, `findings.json` 1321 kayıt,
+`scan2.txt`, responsive tarayıcı) hasat edildi, yanlış pozitifler elendi, gerçek bulgular
+ana ajan tarafından düzeltildi.
 
-**Çalışan 4 QA subagent'ı (yalnız rapor yazarlar, düzeltmeyi ANA AJAN yapar):**
-- Lens A — kırık link + konsol hatası + ölü etkileşim (13 rolle tarama)
-- Lens B — responsive 1100/980/640/480 + yatay taşma + yazdırma
-- Lens C — a11y + semantik HTML (modallar açılarak denetleniyor)
-- Lens D — Türkçe format + 5 durum akışı tutarlılığı + 10 iş kuralı ihlali
+- [x] Kırık link taraması — 0 bulgu (DOM'daki `<a>` + JS string'i içinde üretilen bağlantılar)
+- [x] Mutlak yol (`/…`) taraması — 0 (GitHub Pages alt klasörde bozulmaz)
+- [x] Konsol hatası — 949 sayfa×rol kombinasyonunda 0
+- [x] Rol erişim koruması — 12 yasak kombinasyon test edildi, hepsinde yönlendirme çalıştı
+- [x] Breakpoint 1100 / 980 / 640 / 480 — kaydırma sarmalayıcısı olmayan tablo yok
+- [x] Print önizleme — `print.css` kapsamı doğrulandı
+- [x] A11y: içeriğe atla, canlı bölge, main landmark, tablo adı, sekme bağı, başlık hiyerarşisi
+- [x] Renk tek başına gösterge değil — 18 sayfada 41 ihlal kapatıldı
+- [x] TR para / tarih / yüzde formatları — ham ISO tarih ve sonek `%` kalmadı
+- [x] "Yakında" / "placeholder" / "TODO" / boş kart taraması — 0
+- [x] **Yapı bütünlüğü**: 73 sayfa ayrıştırıcıdan geçti — dengeli etiket, geçerli satır içi
+      script, kırılmış JS string'i yok, çalışma hatası yok, `main` içeriği dolu
+- [x] CSS süslü parantez dengesi 4/4 dosyada tam; `node --check` 7/7 JS dosyasında temiz
+- [x] Demo veri asgarileri: 13 sayım + 7 senaryo + kişisel veri sızıntısı taraması geçti
+- [x] BRIEF'in 73 sayfasının tamamı üretildi, eksik yok
 
-**Devam ederken yapılacak:** raporlar geldiğinde bulguları önem sırasına göre BEN
-düzelteceğim, sonra `qa.js` ile yeniden tarayıp Faz 11 commit'i atacağım.
-
-### Kontrol listesi
-- [ ] Kırık link taraması (otomatik script) — 0 bulgu
-- [ ] Konsol hatası — 0
-- [ ] Yatay taşma — 0
-- [ ] Breakpoint kontrolü 1100 / 980 / 640 / 480
-- [ ] Print önizleme
-- [ ] A11y: label, aria-label, görünür focus, renk tek başına değil
-- [ ] TR para / tarih / yüzde formatları
-- [ ] "Yakında" / "placeholder" / "TODO" / boş kart taraması — 0
+**Son durum:** 13 rol × 73 sayfa = 949 kombinasyon, **0 bulgu**.

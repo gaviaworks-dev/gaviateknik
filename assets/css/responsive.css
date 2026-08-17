@@ -139,6 +139,8 @@
   .gtable-cards .gv-bulk-td { justify-content: flex-start }
   .gtable-cards tfoot { display: block }
   .gtable-cards tfoot tr { background: var(--bg) }
+  /* toplam satırındaki boş dolgu hücreleri kartta boş satır üretmesin */
+  .gtable-cards tfoot td:empty { display: none }
 
   /* mutabakat gibi çok kolonlu tablolar kartta okunur kalır */
   .rec-table.gtable-cards td { font-size: 13px }

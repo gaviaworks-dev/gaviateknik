@@ -107,7 +107,7 @@
 
       <div class="fw-ust" id="fwUst"></div>
       <div class="fw-adimlar" id="fwAdimlar" role="tablist" aria-label="Form adımları"></div>
-      <div id="fwIcerik"></div>
+      <div id="fwIcerik" role="tabpanel" tabindex="0"></div>
 
       <div class="fw-actionbar no-print" id="fwAksiyon"></div>
     </div>
@@ -241,13 +241,17 @@
         || (a.k === 'kontrol' && birimler.every(function(b){ return birimTamamMi(b.id); }))
         || (a.k === 'imza' && durum.imzaAlindi);
       return '<button type="button" role="tab" class="fw-adim' + (durum.adim === a.k ? ' is-on' : '') + (tamam ? ' tamam' : '') + '"'
-        + ' data-adim="' + a.k + '" aria-selected="' + (durum.adim === a.k) + '">'
+        + ' data-adim="' + a.k + '" id="fwSekme-' + a.k + '"'
+        + ' aria-controls="fwIcerik" aria-selected="' + (durum.adim === a.k) + '">'
         + '<span class="fw-adim-n">' + (tamam ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : (i + 1)) + '</span>'
         + GV.esc(a.ad) + '</button>';
     }).join('');
     document.querySelectorAll('[data-adim]').forEach(function(b){
       b.addEventListener('click', function(){ durum.adim = b.getAttribute('data-adim'); kaydet(); ciz(); });
     });
+    /* Panel hangi adıma ait olduğunu ekran okuyucuya bildirir. */
+    var panel = document.getElementById('fwIcerik');
+    if (panel) panel.setAttribute('aria-labelledby', 'fwSekme-' + durum.adim);
   }
 
   /* ---- içerik ---- */

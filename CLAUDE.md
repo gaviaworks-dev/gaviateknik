@@ -114,7 +114,19 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - `demo-api.js` → `window.demoApi`. **Tek erişim noktası.** Promise döner (gerçek API'ye geçişte
   yalnız bu dosyanın gövdesi `fetch`'e çevrilir). localStorage overlay'i burada uygulanır
   (`gv_tk_data` anahtarı) — kullanıcı eklediği/düzenlediği kayıtlar sayfa yenilense de kalır.
-- Sayfa kodu `DEMO`'yu doğrudan okumaz.
+- **Sayfa kodu `window.DEMO`'yu ASLA doğrudan okumaz — istisnasız.** Her koleksiyon türü için cephe var:
+
+| Ne okunuyor | Cephe |
+|---|---|
+| Dizi koleksiyon (`lokasyonlar`, `raporlar`, …) | `demoApi.liste(ad)` · tek kayıt `demoApi.kayit(ad, id)` |
+| Anahtarlı sözlük (`hizmetFiyatlari`, `kontrolMaddeleri`, `listeKatsayilari`, `lokasyonKapsamAyarlari`) | `demoApi.harita(ad)` |
+| Firma künyesi | `demoApi.firma()` — Ayarlar'da kaydedilen künye (`gv_tk_firma`) çekirdek veriyi örter, rapor kapağı ve fatura başlığı otomatik güncellenir |
+| Sistem ayarı (SLA, parti büyüklüğü, vade, uyarı eşikleri) | `GV.ayar(anahtar[, varsayilan])` — `gv_tk_ayar`'dan okur, yoksa varsayılana düşer |
+
+  Eşik değerleri sayfaya sabit yazılmaz: kalibrasyon uyarısı `GV.ayar('kalibrasyonEsik')`,
+  personel belgesi `GV.ayar('belgeEsik')`, sözleşme yenileme `GV.ayar('sozlesmeEsik')`.
+- Denetim izi `demoApi.kayitAt(...)` ile yazılır; modül adı orada tek biçime çevrilir
+  (koleksiyon anahtarı verilse de ekran adı kaydedilir).
 
 ## 8. Zorunlu iş kuralları (ihlal edilemez)
 
@@ -147,6 +159,18 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - Tablo `<th scope="col">`, sekmeler `role="tab"` + `aria-selected`.
 - Modal açıkken arka plan kilitli (`gvScrollLock`), Esc kapatır, Tab tuzağı vardır.
 - `prefers-reduced-motion` desteklenir.
+- Her sayfada **"İçeriğe atla"** bağlantısı vardır — `navigation.js` kabuğu enjekte ederken
+  gövdenin ilk odaklanabilir öğesi olarak basar (`.gv-skip`), sayfaya elle yazılmaz.
+- Canlı güncellenen sayaçlar `aria-live="polite"` taşır (bildirim zili).
+- `gvTable` her tabloya görsel olarak gizli `<caption>` basar; elle yazılan tablolarda
+  `<caption class="gv-sr">` veya `aria-label` gerekir.
+- `role="tab"` düğmesi `aria-controls` ile panelini gösterir; panel `role="tabpanel"` +
+  `aria-labelledby` taşır.
+- Başlık hiyerarşisi atlamasız: sayfa `h1` → kart başlıkları `h2 class="gc-title"` →
+  liste kalemi başlıkları `h3`. Kart başlığı asla `h3`/`h4` değildir.
+- **Renk tek başına gösterge olamaz** kuralı durum tonu taşıyan HER rozeti kapsar:
+  `.gstat` zaten ikon taşır; `.gtag` nötr etikettir ama `ok/warn/danger/info` tonu
+  aldığı anda ikon taşımak ZORUNDADIR.
 
 ## 11. Yasaklar
 

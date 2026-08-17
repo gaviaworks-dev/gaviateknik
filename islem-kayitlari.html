@@ -111,6 +111,15 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
+  /* Denetim izinde önceki/yeni değer ham saklanır; alan bir tarihse ISO
+     biçiminde görünür. Görüntülemede TR biçimine çevrilir, saklanan veri
+     değişmez (iz değiştirilemez olmalı). */
+  function izDeger(v) {
+    if (v == null || v === '') return null;
+    var m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? GV.d(v) : String(v);
+  }
+
   gvTabs('.gv-tabbar');
 
   /* ---------- işlem türü sözlüğü (renk TEK BAŞINA gösterge değil: ikon + metin) ---------- */
@@ -239,11 +248,11 @@
         return GV.rozetOzel(b[0], b[1], b[2]); } },
     { k:'onceki', ad:'Önceki Değer', ciz: function(k){
         if (k.onceki == null || k.onceki === '') return '<span class="muted">' + GV.bos + '</span>';
-        return '<span class="muted" style="text-decoration:line-through">' + GV.esc(k.onceki) + '</span>'; } },
+        return '<span class="muted" style="text-decoration:line-through">' + GV.esc(izDeger(k.onceki)) + '</span>'; } },
     { k:'yeni', ad:'Yeni Değer', ciz: function(k){
         if (k.yeni == null || k.yeni === '') return '<span class="muted">' + GV.bos + '</span>';
         return '<span class="nowrap"><i class="fa-solid fa-arrow-right-long" style="color:var(--gv-action);margin-right:6px" aria-hidden="true"></i>'
-          + '<b class="t-strong">' + GV.esc(k.yeni) + '</b></span>'; } },
+          + '<b class="t-strong">' + GV.esc(izDeger(k.yeni)) + '</b></span>'; } },
     { k:'aciklama', ad:'Açıklama', ciz: function(k){
         if (!k.aciklama) return '<span class="muted">' + GV.bos + '</span>';
         return '<span class="gv-ellip" style="display:inline-block;max-width:300px;vertical-align:bottom" title="'

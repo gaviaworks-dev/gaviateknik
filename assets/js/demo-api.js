@@ -191,7 +191,9 @@ window.demoApi = (function () {
   function personelAtanabilir(personelId, yetkinlikId) {
     var p = bul('personeller', personelId);
     if (!p) return { uygun: false, sebep: 'Personel bulunamadı.' };
-    if (p.durum === 'izinli') return { uygun: false, sebep: 'Personel izinli (' + (p.izinBitis || '—') + ' tarihine kadar).' };
+    if (p.durum === 'izinli') return { uygun: false, sebep: 'Personel izinli ('
+      + (p.izinBitis && window.GV ? window.GV.d(p.izinBitis) : (p.izinBitis || '—'))
+      + ' tarihine kadar).' };
     if (!yetkinlikId) return { uygun: true };
     if ((p.yetkinlikler || []).indexOf(yetkinlikId) === -1) {
       var y = bul('yetkinlikler', yetkinlikId);
