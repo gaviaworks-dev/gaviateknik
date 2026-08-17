@@ -211,6 +211,30 @@
   /* giriş sayfası kabuğu çizmez; yalnız rol motorunu kullanır */
   if (document.body.getAttribute('data-shell') === 'off') return;
 
+  /* ---- ERİŞİM KORUMASI ----
+     Rolün yetkisi olmayan bölüm veya ekrana doğrudan URL ile girilirse
+     kullanıcı kendi açılış sayfasına yönlendirilir (menü gizlemenin yanı sıra
+     adres çubuğundan erişim de kapatılır). */
+  (function erisimKontrolu() {
+    var izinli = yetki.bolumler.indexOf(bolum) !== -1;
+    var B0 = BOLUMLER[bolum];
+    if (izinli && B0 && ekran) {
+      var kalem = null;
+      B0.menu.forEach(function (m) { if (m.screen === ekran) kalem = m; });
+      /* menüde karşılığı olmayan alt ekranlar (detay/form) ana ekranı miraslar */
+      if (kalem && !ekranGorunur(bolum, kalem)) izinli = false;
+    }
+    if (izinli) return;
+    var hedef = yetki.acilis;
+    if (!hedef) {
+      var ilkBolum = yetki.bolumler[0];
+      var BX = BOLUMLER[ilkBolum];
+      var gorunen = BX ? BX.menu.filter(function (m) { return m.href && ekranGorunur(ilkBolum, m); }) : [];
+      hedef = gorunen.length ? gorunen[0].href : 'index.html';
+    }
+    location.replace(rolluHref(hedef) + '&yetkisiz=' + encodeURIComponent(bolum + (ekran ? '/' + ekran : '')));
+  })();
+
   /* ================= 1) RAIL ================= */
   var railEl = document.getElementById('gvRail');
   if (railEl) {

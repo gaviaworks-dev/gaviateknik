@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Bildirimler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.bld-row{display:flex;align-items:flex-start;gap:14px;padding:15px 22px;border-bottom:1px solid var(--line);transition:background .15s}
+.bld-row:last-child{border-bottom:none}
+.bld-row:hover{background:var(--bg)}
+.bld-row.okunmamis{background:rgba(63,213,173,.045)}
+.bld-row.okunmamis .bld-govde b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gv-action);margin-right:8px;vertical-align:middle}
+.bld-ico{width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:14px}
+.bld-govde{flex:1;min-width:0;line-height:1.5}
+.bld-govde b{display:block;font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.bld-govde p{font-size:12.5px;color:var(--muted)}
+.bld-son{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.bld-zaman{font-size:11.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.terc-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,74px);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.terc-row:last-child{border-bottom:none}
+.terc-row.bas{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--muted);text-align:center}
+.terc-row.bas span:first-child{text-align:left}
+.terc-ad{display:flex;align-items:center;gap:10px;min-width:0}
+.terc-ad i{width:28px;height:28px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:12px;background:var(--bg);color:var(--ink-2)}
+.terc-ad b{font-size:13px;font-weight:600;color:var(--ink)}
+.terc-hucre{display:flex;justify-content:center}
+@media(max-width:640px){
+  .terc-row{grid-template-columns:minmax(0,1fr) repeat(3,50px);gap:6px}
+  .bld-row{padding:15px 16px}
+}
+</style>
+</head>
+<body data-sec="panel" data-screen="bildirimler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ana Panel</div>
+        <h1>Bildirimler</h1>
+        <p class="ph-sub">Sistem uyarıları ve olay bildirimleri. Kanal tercihlerini bildirim türü bazında ayarlayabilirsiniz.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="bldHepsiOkundu"><i class="fa-solid fa-check-double" aria-hidden="true"></i>Tümünü okundu işaretle</button></div>
+    </div>
+    <div class="gv-tabbar" role="tablist" aria-label="Bildirim görünümleri">
+      <button class="gv-tab" role="tab" id="tbBld" aria-controls="pnBld" aria-selected="true">
+        <i class="fa-regular fa-bell" aria-hidden="true"></i>Bildirimler<span class="tb-cnt" id="bldSayac">0</span></button>
+      <button class="gv-tab" role="tab" id="tbTerc" aria-controls="pnTerc" aria-selected="false">
+        <i class="fa-solid fa-sliders" aria-hidden="true"></i>Kanal Tercihleri</button>
+    </div>
+
+    <div id="pnBld" role="tabpanel" aria-labelledby="tbBld">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Bildirimlerde ara…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div class="gc-body flush" id="bldListe"></div>
+        <div class="gv-pager" id="bldPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnTerc" role="tabpanel" aria-labelledby="tbTerc" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i>Bildirim Kanalı Tercihleri</h2>
+          <button class="btn btn-sm btn-acc" type="button" id="tercKaydet"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Tercihleri Kaydet</button>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note" style="margin-bottom:16px">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>Tercihler bu tarayıcıda saklanır. Kurumsal kurulumda kullanıcı profiline yazılır ve e-posta/SMS sağlayıcısına iletilir.</span>
+          </div>
+          <div id="tercListe"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+
+  var turHaritasi = {};
+  A.liste('bildirimTurleri').forEach(function(t){ turHaritasi[t.k] = t; });
+
+  var kaynak = A.liste('bildirimler')
+    .filter(function(b){ return !b.hedefRoller || b.hedefRoller.indexOf(GV.rol) !== -1; })
+    .map(function(b){
+      var t = turHaritasi[b.tur] || { ad:b.tur, ikon:'fa-bell', ton:'info' };
+      return Object.assign({}, b, { turAd: t.ad, ikon: t.ikon, ton: t.ton });
+    })
+    .sort(function(a,b){ return String(b.zaman).localeCompare(String(a.zaman)); });
+
+  var okunanlar = {};
+  try { okunanlar = JSON.parse(localStorage.getItem('gv_tk_okunan') || '{}'); } catch(e){}
+  kaynak.forEach(function(b){ if (okunanlar[b.id]) b.okundu = true; });
+
+  function sayacGuncelle(){
+    var n = kaynak.filter(function(b){ return !b.okundu; }).length;
+    document.getElementById('bldSayac').textContent = n;
+    var zil = document.getElementById('gvBellCount');
+    if (zil) { zil.textContent = n; zil.hidden = !n; }
+  }
+
+  var liste = document.getElementById('bldListe');
+  var pager = gvPager({ hedef:'#bldPager', boyut:12, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+
+  function ciz(veri){
+    son = veri;
+    pager.ayarla(veri.length);
+    var dilim = pager.dilim(veri);
+    liste.innerHTML = dilim.length ? dilim.map(function(b){
+      var renk = b.ton === 'danger' ? 'danger' : b.ton === 'warn' ? 'warning' : b.ton === 'ok' ? 'success' : 'info';
+      return '<div class="bld-row' + (b.okundu ? '' : ' okunmamis') + '" data-id="' + b.id + '">'
+        + '<span class="bld-ico" style="background:var(--' + renk + '-tint);color:var(--' + renk + ')">'
+        + '<i class="fa-solid ' + b.ikon + '" aria-hidden="true"></i></span>'
+        + '<span class="bld-govde"><b><a href="' + b.link + '">' + GV.esc(b.baslik) + '</a></b>'
+        + '<p>' + GV.esc(b.detay) + '</p>'
+        + '<span style="display:inline-block;margin-top:7px"><span class="gtag">' + GV.esc(b.turAd) + '</span></span></span>'
+        + '<span class="bld-son"><span class="bld-zaman">' + GV.dSaat(b.zaman) + '</span>'
+        + (b.okundu ? '' : '<button class="btn btn-sm btn-ghost" type="button" data-okundu="' + b.id + '">Okundu</button>')
+        + '</span></div>';
+    }).join('') : gvEmpty({ ikon:'fa-bell-slash', baslik:'Bildirim yok', metin:'Seçtiğiniz filtreye uyan bildirim bulunmuyor.' });
+
+    liste.querySelectorAll('[data-okundu]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-okundu');
+        okunanlar[id] = true;
+        try { localStorage.setItem('gv_tk_okunan', JSON.stringify(okunanlar)); } catch(e){}
+        kaynak.forEach(function(x){ if (x.id === id) x.okundu = true; });
+        b.closest('.bld-row').classList.remove('okunmamis');
+        b.remove();
+        sayacGuncelle();
+      });
+    });
+    GV.rolBaglantilariniIsle(liste);
+  }
+
+  document.getElementById('bldHepsiOkundu').addEventListener('click', function(){
+    kaynak.forEach(function(b){ b.okundu = true; okunanlar[b.id] = true; });
+    try { localStorage.setItem('gv_tk_okunan', JSON.stringify(okunanlar)); } catch(e){}
+    ciz(son); sayacGuncelle();
+    gvToast('Bütün bildirimler okundu olarak işaretlendi.', { ton:'ok' });
+  });
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['baslik','detay','turAd'],
+    cipler: { alan:'__okundu', suz: function(k, c){
+      if (c === 'okunmamis') return !k.okundu;
+      if (c === 'okundu') return !!k.okundu;
+      return true;
+    }, secenekler:[{ k:'okunmamis', ad:'Okunmamış', ikon:'fa-envelope' }, { k:'okundu', ad:'Okunmuş', ikon:'fa-envelope-open' }] },
+    alanlar: [
+      { k:'turAd', ad:'Bildirim türü', tur:'coklu', secenekler: A.liste('bildirimTurleri').map(function(t){ return { deger:t.ad, ad:t.ad }; }) },
+      { k:'ton', ad:'Önem', tur:'secim', secenekler:[
+        { deger:'danger', ad:'Kritik' }, { deger:'warn', ad:'Uyarı' },
+        { deger:'info', ad:'Bilgi' }, { deger:'ok', ad:'Olumlu' }] }
+    ],
+    degisti: function(sonuc){ pager.ayarla(sonuc.length, true); ciz(sonuc); }
+  });
+  sayacGuncelle();
+
+  /* ---- kanal tercihleri ---- */
+  var tercihler = {};
+  try { tercihler = JSON.parse(localStorage.getItem('gv_tk_bildirim_tercih') || '{}'); } catch(e){}
+  var kanallar = [{ k:'uygulama', ad:'Uygulama' }, { k:'eposta', ad:'E-posta' }, { k:'sms', ad:'SMS' }];
+
+  document.getElementById('tercListe').innerHTML =
+    '<div class="terc-row bas"><span>Bildirim türü</span>' + kanallar.map(function(k){ return '<span>' + k.ad + '</span>'; }).join('') + '</div>'
+    + A.liste('bildirimTurleri').map(function(t){
+        return '<div class="terc-row"><span class="terc-ad"><i class="fa-solid ' + t.ikon + '" aria-hidden="true"></i><b>' + GV.esc(t.ad) + '</b></span>'
+          + kanallar.map(function(k){
+              var acik = tercihler[t.k + '_' + k.k] != null ? tercihler[t.k + '_' + k.k] : (t.kanallar.indexOf(k.k) !== -1);
+              var id = 'terc_' + t.k + '_' + k.k;
+              return '<span class="terc-hucre"><label class="gv-sr" for="' + id + '">' + GV.esc(t.ad + ' — ' + k.ad) + '</label>'
+                + '<input type="checkbox" id="' + id + '" data-terc="' + t.k + '_' + k.k + '"' + (acik ? ' checked' : '')
+                + ' style="width:17px;height:17px;accent-color:var(--gv-action);cursor:pointer"></span>';
+            }).join('') + '</div>';
+      }).join('');
+
+  document.getElementById('tercKaydet').addEventListener('click', function(){
+    document.querySelectorAll('[data-terc]').forEach(function(i){ tercihler[i.getAttribute('data-terc')] = i.checked; });
+    try {
+      localStorage.setItem('gv_tk_bildirim_tercih', JSON.stringify(tercihler));
+      gvToast('Bildirim tercihleri kaydedildi.', { ton:'ok' });
+      A.kayitAt('guncelleme', 'Bildirim Tercihleri', GV.rol, null, Object.keys(tercihler).length + ' kanal ayarı');
+    } catch(e){ gvToast('Tercihler kaydedilemedi (tarayıcı depolaması kapalı).', { ton:'danger' }); }
+  });
+})();
+</script>
+</body>
+</html>

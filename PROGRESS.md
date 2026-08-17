@@ -36,13 +36,13 @@
 - [x] localStorage: menü tercihi + demo kayıt kalıcılığı
 
 ## FAZ 2 — Ana Panel
-- [ ] index.html (rol seçimli giriş kapısı)
-- [ ] panel.html
-- [ ] gunluk-ozet.html
-- [ ] aksiyon-merkezi.html
-- [ ] ajanda.html
-- [ ] onaylar.html
-- [ ] bildirimler.html
+- [x] index.html (rol seçimli giriş kapısı)
+- [x] panel.html
+- [x] gunluk-ozet.html
+- [x] aksiyon-merkezi.html
+- [x] ajanda.html
+- [x] onaylar.html
+- [x] bildirimler.html
 
 ## FAZ 3 — Müşteri ve Proje
 - [ ] musteriler / musteri-detay / musteri-form

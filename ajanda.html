@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ajanda — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.aj-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line)}
+.aj-nav{display:flex;align-items:center;gap:8px}
+.aj-donem{font-size:15.5px;font-weight:800;color:var(--ink);min-width:150px;text-align:center}
+.aj-lejant{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
+.aj-lejant span{display:inline-flex;align-items:center;gap:6px}
+.aj-lejant i{width:9px;height:9px;border-radius:3px;flex:none}
+.aj-gunliste{display:flex;flex-direction:column}
+.aj-gun{padding:14px 22px;border-bottom:1px solid var(--line)}
+.aj-gun:last-child{border-bottom:none}
+.aj-gun.bugun{background:rgba(63,213,173,.05)}
+.aj-gun-bas{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.aj-gun-bas b{font-size:14px;font-weight:800;color:var(--ink)}
+.aj-gun-bas span{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body data-sec="panel" data-screen="ajanda">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ana Panel</div>
+        <h1>Ajanda</h1>
+        <p class="ph-sub">Saha kontrolleri, yeniden kontroller, kalibrasyon terminleri, denetimler ve düzeltici faaliyet terminleri tek takvimde.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>
+      <a class="btn btn-acc" href="planlama.html"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>Planlamaya Git</a></div>
+    </div>
+    <div class="kpi-grid" id="ajKpi"></div>
+
+    <section class="gv-card">
+      <div class="aj-bar no-print">
+        <div class="aj-nav">
+          <button class="ia-btn" type="button" id="ajGeri" aria-label="Önceki ay"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <span class="aj-donem" id="ajDonem">—</span>
+          <button class="ia-btn" type="button" id="ajIleri" aria-label="Sonraki ay"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          <button class="btn btn-sm btn-ghost" type="button" id="ajBugun">Bugün</button>
+        </div>
+        <div class="gv-seg" role="group" aria-label="Görünüm seçimi">
+          <button type="button" class="is-on" data-gorunum="takvim">Takvim</button>
+          <button type="button" data-gorunum="liste">Liste</button>
+        </div>
+        <div class="aj-lejant">
+          <span><i style="background:var(--info)"></i>Saha kontrolü</span>
+          <span><i style="background:var(--warning)"></i>Yeniden kontrol</span>
+          <span><i style="background:var(--danger)"></i>Kritik / termin</span>
+          <span><i style="background:var(--line-2)"></i>Toplantı ve denetim</span>
+        </div>
+      </div>
+      <div class="gc-body" id="ajTakvim"></div>
+      <div class="gc-body flush" id="ajListe" hidden><div class="aj-gunliste" id="ajGunListe"></div></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var kayitlar = A.liste('ajanda');
+
+  var olaylar = {};
+  kayitlar.forEach(function(a){
+    (olaylar[a.tarih] = olaylar[a.tarih] || []).push({ baslik: a.saat + ' ' + a.baslik, detay: a.detay, ton: a.ton || 'info', link: a.link });
+  });
+
+  gvKpi('#ajKpi', [
+    { ikon:'fa-calendar-day', sayi: GV.n(kayitlar.filter(function(a){ return a.tarih === BUGUN; }).length), etiket:'Bugünkü kayıt' },
+    { ikon:'fa-calendar-week', sayi: GV.n(kayitlar.filter(function(a){ var g = GV.gun(BUGUN, a.tarih); return g >= 0 && g <= 7; }).length), etiket:'Bu hafta', ton:'info' },
+    { ikon:'fa-helmet-safety', sayi: GV.n(kayitlar.filter(function(a){ return a.tur === 'saha-kontrol'; }).length), etiket:'Planlı saha kontrolü' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.n(kayitlar.filter(function(a){ return a.ton === 'danger'; }).length), etiket:'Kritik kayıt', ton:'danger' }
+  ]);
+
+  var takvim = gvCalendar('#ajTakvim', { olaylar: olaylar, basligaYaz:'#ajDonem' });
+  document.getElementById('ajGeri').addEventListener('click', function(){ takvim.geri(); });
+  document.getElementById('ajIleri').addEventListener('click', function(){ takvim.ileri(); });
+  document.getElementById('ajBugun').addEventListener('click', function(){ takvim.bugune(); });
+
+  /* liste görünümü */
+  var gunler = Object.keys(olaylar).sort();
+  document.getElementById('ajGunListe').innerHTML = gunler.map(function(t){
+    return '<div class="aj-gun' + (t === BUGUN ? ' bugun' : '') + '">'
+      + '<div class="aj-gun-bas"><b>' + GV.dUzun(t) + '</b><span>' + GV.dTam(t).split(', ')[1] + ' · ' + olaylar[t].length + ' kayıt'
+      + (t === BUGUN ? ' · bugün' : '') + '</span></div>'
+      + olaylar[t].map(function(o){
+          return '<div class="ajd-item ' + (o.ton === 'info' ? '' : o.ton) + '"><span class="ajd-saat">' + o.baslik.substring(0,5) + '</span>'
+            + '<span class="ajd-govde"><b><a href="' + o.link + '">' + GV.esc(o.baslik.substring(6)) + '</a></b>'
+            + '<span>' + GV.esc(o.detay) + '</span></span></div>';
+        }).join('') + '</div>';
+  }).join('');
+  GV.rolBaglantilariniIsle(document.getElementById('ajGunListe'));
+
+  document.querySelectorAll('[data-gorunum]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-gorunum]').forEach(function(x){ x.classList.remove('is-on'); });
+      b.classList.add('is-on');
+      var takvimMi = b.getAttribute('data-gorunum') === 'takvim';
+      document.getElementById('ajTakvim').hidden = !takvimMi;
+      document.getElementById('ajListe').hidden = takvimMi;
+    });
+  });
+})();
+</script>
+</body>
+</html>

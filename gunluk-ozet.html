@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Günlük Özet — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.go-band{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:22px}
+.go-cell{background:var(--paper);padding:16px 18px}
+.go-cell b{display:block;font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.go-cell span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.go-cell .go-alt{margin-top:8px;font-size:11.5px;font-weight:700}
+.go-tl{display:flex;flex-direction:column}
+.go-tl-item{display:grid;grid-template-columns:62px 1fr;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.go-tl-item:last-child{border-bottom:none}
+.go-tl-saat{font-size:12.5px;font-weight:800;color:var(--gv-action);font-variant-numeric:tabular-nums}
+.go-tl-govde b{display:block;font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.go-tl-govde span{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
+.go-tl-govde .go-tl-etiket{margin-top:7px;display:flex;gap:7px;flex-wrap:wrap}
+@media(max-width:480px){ .go-tl-item{grid-template-columns:52px 1fr;gap:10px} }
+</style>
+</head>
+<body data-sec="panel" data-screen="gunluk-ozet">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ana Panel</div>
+        <h1>Günlük Özet</h1>
+        <p class="ph-sub">Bugünün saha planı, tamamlananlar, bekleyenler ve gün sonunda dikkat edilmesi gerekenler tek sayfada.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>
+      <a class="btn btn-acc" href="aksiyon-merkezi.html"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Aksiyon Merkezi</a></div>
+    </div>
+    <div class="gv-dark-note">
+      <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+      <span id="goTarih">—</span>
+      <a class="dn-link" href="ajanda.html">Ajandaya git <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+
+    <div class="go-band" id="goBand"></div>
+
+    <div class="gv-cols">
+      <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-timeline" aria-hidden="true"></i>Günün Akışı</h2></div>
+          <div class="gc-body"><div class="go-tl" id="goAkis"></div></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Bugün Tamamlananlar</h2></div>
+          <div class="gc-body flush" id="goTamam"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-forward" aria-hidden="true"></i>Yarına Devreden İşler</h2></div>
+          <div class="gc-body flush" id="goYarin"></div>
+        </section>
+      </div>
+
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-user-group" aria-hidden="true"></i>Ekip Durumu</h3></div>
+          <div class="gc-body" id="goEkip"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Cihaz Zimmetleri</h3></div>
+          <div class="gc-body" id="goCihaz"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>Bölge Dağılımı</h3></div>
+          <div class="gc-body" id="goBolge"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  document.getElementById('goTarih').innerHTML = '<b>' + GV.dTam(BUGUN) + '</b> — gün başlangıcı 08:00, gün sonu değerlendirmesi 18:00';
+
+  var isEmirleri = A.isEmirleri();
+  var bugunkuler = isEmirleri.filter(function(i){ return i.tarih === BUGUN; });
+  var raporlar = A.raporlar().filter(function(r){ return r.durum !== 'arsiv'; });
+  var ajanda = A.liste('ajanda').filter(function(a){ return a.tarih === BUGUN; });
+  var yarin = A.isoYaz(new Date(A.tariheCevir(BUGUN).getTime() + 86400000));
+
+  /* ---- şerit ---- */
+  document.getElementById('goBand').innerHTML = [
+    { b: bugunkuler.length, e: 'bugün planlı lokasyon', alt: bugunkuler.filter(function(i){return i.operasyonDurum==='sahada';}).length + ' tanesinde ekip sahada', ton:'var(--info)' },
+    { b: bugunkuler.reduce(function(t,i){ return t + (i.ekipId||[]).length; }, 0), e: 'sahadaki personel', alt: 'Toplam ' + A.liste('personeller').filter(function(p){return p.durum==='aktif';}).length + ' aktif personel', ton:'var(--gv-action)' },
+    { b: raporlar.filter(function(r){ return r.durum === 'teknik-incelemede'; }).length, e: 'teknik onay bekleyen rapor', alt: raporlar.filter(function(r){return r.slaDurum==='asildi';}).length + ' tanesinde SLA aşıldı', ton:'var(--warning)' },
+    { b: ajanda.length, e: 'ajanda kaydı', alt: ajanda.filter(function(a){return a.ton==='danger';}).length + ' tanesi kritik', ton:'var(--ink-2)' },
+    { b: A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi'; }).length, e: 'açık uygunsuzluk', alt: A.liste('uygunsuzluklar').filter(function(u){return u.durum==='gecikti';}).length + ' tanesi gecikti', ton:'var(--danger)' }
+  ].map(function(c){
+    return '<div class="go-cell"><b>' + GV.n(c.b) + '</b><span>' + c.e + '</span>'
+      + '<div class="go-alt" style="color:' + c.ton + '">' + GV.esc(c.alt) + '</div></div>';
+  }).join('');
+
+  /* ---- günün akışı ---- */
+  var akis = ajanda.slice().sort(function(a,b){ return a.saat.localeCompare(b.saat); });
+  document.getElementById('goAkis').innerHTML = akis.length ? akis.map(function(a){
+    return '<div class="go-tl-item"><div class="go-tl-saat">' + a.saat + '</div>'
+      + '<div class="go-tl-govde"><b><a href="' + a.link + '">' + GV.esc(a.baslik) + '</a></b>'
+      + '<span>' + GV.esc(a.detay) + '</span>'
+      + '<div class="go-tl-etiket"><span class="gtag">' + a.saat + ' – ' + a.bitis + '</span>'
+      + (a.ton === 'danger' ? GV.rozetOzel('danger','fa-triangle-exclamation','Kritik')
+        : a.ton === 'warn' ? GV.rozetOzel('warn','fa-clock','Dikkat')
+        : GV.rozetOzel('info','fa-circle-info','Planlı')) + '</div></div></div>';
+  }).join('') : gvEmpty({ ikon:'fa-calendar-day', baslik:'Bugün akış kaydı yok', metin:'Bugüne planlanmış kontrol veya toplantı bulunmuyor.' });
+
+  /* ---- bugün tamamlananlar ---- */
+  var tamamlanan = [];
+  isEmirleri.filter(function(i){ return i.bitis === BUGUN; }).forEach(function(i){
+    tamamlanan.push({ ikon:'fa-circle-check', ton:'ok', b:'Saha kontrolü tamamlandı', s: i.lokasyonAd + ' · ' + i.id, z: i.saat, link:'is-emri-detay.html?id=' + i.id });
+  });
+  raporlar.filter(function(r){ return r.raporTarihi === BUGUN || r.teslimTarihi === BUGUN; }).forEach(function(r){
+    tamamlanan.push({ ikon:'fa-file-lines', ton:'ok', b: r.teslimTarihi === BUGUN ? 'Rapor müşteriye teslim edildi' : 'Rapor hazırlandı',
+      s: r.no + ' · ' + r.lokasyonAd, z:'', link:'rapor-detay.html?id=' + r.id });
+  });
+  A.liste('islemKayitlari').filter(function(l){ return String(l.zaman).substring(0,10) === BUGUN; }).forEach(function(l){
+    tamamlanan.push({ ikon:'fa-clock-rotate-left', ton:'info', b: l.modul + ' · ' + l.islem.replace(/-/g,' '),
+      s: l.kayit + ' — ' + l.aciklama, z: String(l.zaman).substring(11,16), link:'islem-kayitlari.html' });
+  });
+  document.getElementById('goTamam').innerHTML = tamamlanan.length
+    ? '<div class="act-list">' + tamamlanan.map(function(t){
+        return '<a class="act-row" href="' + t.link + '"><span class="act-ico ' + t.ton + '"><i class="fa-solid ' + t.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="act-info"><b>' + GV.esc(t.b) + '</b><span>' + GV.esc(t.s) + '</span></span>'
+          + '<span class="act-time">' + (t.z || '—') + '</span></a>';
+      }).join('') + '</div>'
+    : gvEmpty({ ikon:'fa-list-check', baslik:'Bugün tamamlanan iş yok', metin:'Gün içinde kapanan kayıt bulunmuyor.' });
+
+  /* ---- yarına devredenler ---- */
+  var devreden = [];
+  isEmirleri.filter(function(i){ return i.tarih === yarin; }).forEach(function(i){
+    devreden.push({ ikon:'fa-clipboard-check', ton:'info', b:'Saha kontrolü planlı', s: i.lokasyonAd + ' · ' + i.saat + ' · ' + (i.taseronAd || 'GAVIA ekibi'), link:'is-emri-detay.html?id=' + i.id });
+  });
+  isEmirleri.filter(function(i){ return i.operasyonDurum === 'sahada'; }).forEach(function(i){
+    devreden.push({ ikon:'fa-person-walking', ton:'warn', b:'Kontrol devam ediyor, rapor yarın açılacak', s: i.lokasyonAd + ' · ' + i.id, link:'is-emri-detay.html?id=' + i.id });
+  });
+  raporlar.filter(function(r){ return r.durum === 'teknik-incelemede'; }).forEach(function(r){
+    devreden.push({ ikon:'fa-stamp', ton: r.slaDurum === 'asildi' ? 'danger':'warn', b:'Teknik onay bekliyor', s: r.no + ' · ' + r.lokasyonAd, link:'rapor-detay.html?id=' + r.id });
+  });
+  document.getElementById('goYarin').innerHTML = devreden.length
+    ? '<div class="act-list">' + devreden.map(function(t){
+        return '<a class="act-row" href="' + t.link + '"><span class="act-ico ' + t.ton + '"><i class="fa-solid ' + t.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="act-info"><b>' + GV.esc(t.b) + '</b><span>' + GV.esc(t.s) + '</span></span></a>';
+      }).join('') + '</div>'
+    : gvEmpty({ ikon:'fa-forward', baslik:'Devreden iş yok', metin:'Yarına aktarılan açık kayıt bulunmuyor.' });
+
+  /* ---- ekip durumu ---- */
+  var personeller = A.liste('personeller');
+  document.getElementById('goEkip').innerHTML = personeller.map(function(p){
+    var gorevli = isEmirleri.filter(function(i){ return (i.ekipId||[]).indexOf(p.id) !== -1 && i.tarih === BUGUN; })[0];
+    var ton = p.durum === 'izinli' ? 'off' : gorevli ? 'info' : 'ok';
+    var metin = p.durum === 'izinli' ? 'İzinli' : gorevli ? 'Sahada' : 'Ofiste';
+    return '<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)">'
+      + '<span class="gcell-mark" style="width:32px;height:32px;font-size:11px">' + GV.esc(p.ini) + '</span>'
+      + '<span style="flex:1;min-width:0;line-height:1.35"><b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+      + '<a href="personel-detay.html?id=' + p.id + '">' + GV.esc(p.ad) + '</a></b>'
+      + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(gorevli ? gorevli.lokasyonAd : p.gorev) + '</span></span>'
+      + GV.rozetOzel(ton, ton === 'off' ? 'fa-umbrella-beach' : ton === 'info' ? 'fa-person-walking' : 'fa-building', metin) + '</div>';
+  }).join('');
+
+  /* ---- cihaz zimmetleri ---- */
+  document.getElementById('goCihaz').innerHTML = A.liste('olcumCihazlari').map(function(c){
+    var k = A.cihazAtanabilir(c.id);
+    var p = A.kayit('personeller', c.zimmet);
+    return '<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)">'
+      + '<span style="flex:1;min-width:0;line-height:1.35"><b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+      + '<a href="cihaz-detay.html?id=' + c.id + '">' + GV.esc(c.ad) + '</a></b>'
+      + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(c.kod + ' · ' + (p ? p.ad : 'zimmetsiz')) + '</span></span>'
+      + (k.uygun ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.kalanGun + ' gün') : GV.rozetOzel('ok','fa-check','Geçerli'))
+                 : GV.rozetOzel('danger','fa-ban','Kullanılamaz')) + '</div>';
+  }).join('');
+
+  /* ---- bölge dağılımı ---- */
+  var bolgeSayac = {};
+  A.lokasyonlar().filter(function(l){ return l.projeId; }).forEach(function(l){ bolgeSayac[l.bolge] = (bolgeSayac[l.bolge]||0)+1; });
+  gvBarList('#goBolge', Object.keys(bolgeSayac).sort(function(a,b){ return bolgeSayac[b]-bolgeSayac[a]; }).map(function(b){
+    return { etiket: b, deger: bolgeSayac[b], gosterim: bolgeSayac[b] + ' lokasyon' };
+  }));
+})();
+</script>
+</body>
+</html>

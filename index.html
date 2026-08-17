@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Giriş — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+body{background:var(--gv-deep);min-height:100vh;display:flex;flex-direction:column;
+  background-image:radial-gradient(900px 620px at 12% -10%, rgba(63,213,173,.16), transparent 60%),
+                   radial-gradient(700px 520px at 100% 100%, rgba(59,111,212,.14), transparent 60%);}
+.gp-wrap{flex:1;display:flex;flex-direction:column;max-width:1180px;width:100%;margin:0 auto;padding:38px 24px 40px}
+.gp-brand{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.gp-mono{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;flex:none;
+  background:rgba(63,213,173,.13);border:1px solid rgba(63,213,173,.3);color:var(--gv-mint);font-size:24px;font-weight:800;letter-spacing:-.03em}
+.gp-brand b{display:block;font-size:18px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.gp-brand span{display:block;font-size:12.5px;color:var(--on-dark-mut)}
+.gp-hero{margin-bottom:34px;max-width:760px}
+.gp-hero h1{font-size:32px;color:#fff;letter-spacing:-.025em;margin-bottom:12px}
+.gp-hero p{font-size:14.5px;color:var(--on-dark);line-height:1.7}
+.gp-hero .gp-note{margin-top:16px;display:inline-flex;align-items:center;gap:9px;padding:8px 14px;border-radius:var(--radius-pill);
+  background:rgba(255,255,255,.06);border:1px solid var(--gv-border-dark);color:var(--on-dark);font-size:12.5px;font-weight:600}
+.gp-hero .gp-note i{color:var(--gv-mint)}
+.gp-sechead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.gp-sechead h2{font-size:15px;color:#fff;letter-spacing:.01em}
+.gp-sechead span{font-size:12.5px;color:var(--on-dark-mut)}
+.gp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.gp-card{display:flex;align-items:flex-start;gap:14px;padding:17px 18px;border-radius:var(--radius-md);
+  background:rgba(255,255,255,.045);border:1px solid var(--gv-border-dark);transition:.2s var(--ease);text-align:left}
+.gp-card:hover{background:rgba(63,213,173,.09);border-color:rgba(63,213,173,.42);transform:translateY(-3px)}
+.gp-card:focus-visible{outline:2px solid var(--gv-mint);outline-offset:3px}
+.gp-ico{width:42px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:16px;
+  background:rgba(63,213,173,.12);color:var(--gv-mint)}
+.gp-card.portal .gp-ico{background:rgba(59,111,212,.16);color:#8FB4FF}
+.gp-card.sistem .gp-ico{background:rgba(169,121,8,.18);color:#F0C64E}
+.gp-txt{min-width:0}
+.gp-txt b{display:block;font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+.gp-txt span{display:block;font-size:12px;color:var(--on-dark-mut);line-height:1.5}
+.gp-txt .gp-kisi{display:block;margin-top:7px;font-size:11.5px;color:var(--gv-mint);font-weight:700}
+.gp-foot{margin-top:auto;padding-top:34px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-top:1px solid var(--gv-border-dark);color:var(--on-dark-faint);font-size:11.5px}
+.gp-foot a{color:var(--on-dark-mut)}
+.gp-foot a:hover{color:var(--gv-mint)}
+.gp-stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:26px}
+.gp-stat b{display:block;font-size:21px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;line-height:1.1}
+.gp-stat span{display:block;font-size:11.5px;color:var(--on-dark-mut);margin-top:3px}
+@media(max-width:640px){
+  .gp-wrap{padding:26px 16px 30px}
+  .gp-hero h1{font-size:24px}
+  .gp-grid{grid-template-columns:minmax(0,1fr)}
+  .gp-stats{gap:16px}
+}
+</style>
+</head>
+<body data-shell="off">
+<div class="gp-wrap">
+  <div class="gp-brand">
+    <div class="gp-mono" aria-hidden="true">G</div>
+    <div><b>GAVIA</b><span>Periyodik Kontrol Yönetimi</span></div>
+  </div>
+
+  <div class="gp-hero">
+    <h1>Çok lokasyonlu periyodik kontrol operasyonunuzu tek platformda yönetin</h1>
+    <p>Müşteri ve lokasyon ağından ekipman envanterine, saha kontrolünden teknik raporlamaya,
+       miktar mutabakatından toplu faturalama ve taşeron ödemesine kadar bütün süreç tek akışta.</p>
+    <div class="gp-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      Demo arayüz — bütün kayıtlar kurgusaldır, gerçek kişi ve firma bilgisi içermez.</div>
+    <div class="gp-stats" id="gpStats"></div>
+  </div>
+
+  <div class="gp-sechead">
+    <h2>Rol seçerek panele girin</h2>
+    <span>Menüler, aksiyonlar ve veri kapsamı seçtiğiniz role göre değişir.</span>
+  </div>
+  <div class="gp-grid" id="gpRoller"></div>
+
+  <div class="gp-foot">
+    <span>GAVIA Teknik Muayene ve Belgelendirme A.Ş. (kurgusal) · Demo sürüm 1.0</span>
+    <span><a href="https://github.com/gaviaworks-dev/gaviateknik" target="_blank" rel="noopener">Kaynak kod</a></span>
+  </div>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, D = window.DEMO;
+
+  /* özet göstergeler — demo veriden hesaplanır */
+  var lokasyonlar = A.liste('lokasyonlar');
+  var istatistik = [
+    { s: A.liste('musteriler').length, e: 'kurumsal müşteri' },
+    { s: lokasyonlar.length, e: 'lokasyon' },
+    { s: A.liste('projeler').filter(function(p){return p.durum==='aktif';}).length, e: 'aktif kampanya' },
+    { s: A.liste('hizmetler').length, e: 'hizmet pozisyonu' },
+    { s: A.liste('isEmirleri').length, e: 'iş emri' },
+    { s: A.liste('raporlar').filter(function(r){return r.durum!=='arsiv';}).length, e: 'teknik rapor' }
+  ];
+  document.getElementById('gpStats').innerHTML = istatistik.map(function(i){
+    return '<div class="gp-stat"><b>' + GV.n(i.s) + '</b><span>' + i.e + '</span></div>';
+  }).join('');
+
+  /* rol kartları */
+  var kap = document.getElementById('gpRoller');
+  kap.innerHTML = D.roller.map(function(r){
+    var kisi = null;
+    if (r.personelId) D.personeller.forEach(function(p){ if(p.id===r.personelId) kisi = p; });
+    var sinif = r.id === 'musteri' ? ' portal' : r.id === 'sistem' ? ' sistem' : '';
+    var hedef = r.id === 'musteri' ? 'musteri-portali.html' : 'panel.html';
+    return '<a class="gp-card' + sinif + '" href="' + hedef + '?role=' + r.id + '">'
+      + '<span class="gp-ico"><i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i></span>'
+      + '<span class="gp-txt"><b>' + GV.esc(r.ad) + '</b><span>' + GV.esc(r.aciklama) + '</span>'
+      + (kisi ? '<span class="gp-kisi">' + GV.esc(kisi.ad) + '</span>'
+              : '<span class="gp-kisi">' + (r.taseronId ? 'Marmara Test Hizmetleri' : 'Beyaz Zambak Perakende') + '</span>')
+      + '</span></a>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

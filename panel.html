@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ana Panel — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.pnl-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.pnl-hero h1{font-size:26px;margin-bottom:6px}
+.pnl-hero .ph-sub{font-size:13.5px;color:var(--muted)}
+.pnl-quick{display:flex;gap:8px 20px;flex-wrap:wrap;margin-top:12px}
+.pnl-quick a{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.pnl-quick a:hover{color:var(--gv-action)}
+.pnl-quick b{font-variant-numeric:tabular-nums;color:var(--ink);font-size:14px}
+.pnl-quick i{font-size:11px;color:var(--muted)}
+.pnl-quick a.uyari b{color:var(--danger)}
+.pnl-quick a.uyari i{color:var(--danger)}
+
+.aksiyon-row{display:flex;align-items:center;gap:13px;padding:13px 22px;border-bottom:1px solid var(--line);transition:background .15s}
+.aksiyon-row:last-child{border-bottom:none}
+.aksiyon-row:hover{background:var(--bg)}
+.ak-ico{width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:14px}
+.ak-ico.danger{background:var(--danger-tint);color:var(--danger)}
+.ak-ico.warn{background:var(--warning-tint);color:var(--warning)}
+.ak-ico.info{background:var(--info-tint);color:var(--info)}
+.ak-ico.ok{background:var(--success-tint);color:var(--success)}
+.ak-body{flex:1;min-width:0;line-height:1.4}
+.ak-body .ak-kod{font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.ak-body b{display:block;font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ak-body b a:hover{color:var(--gv-action);text-decoration:underline}
+.ak-body span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ak-son{flex:none;display:flex;align-items:center;gap:10px}
+@media(max-width:640px){
+  .aksiyon-row{flex-wrap:wrap;padding:13px 16px}
+  .ak-son{width:100%;justify-content:space-between;margin-left:51px}
+}
+
+.saat-kart{padding:20px 22px;text-align:center;background:var(--gv-deep);border-radius:var(--radius-lg);color:var(--on-dark-strong);
+  background-image:radial-gradient(320px 220px at 50% -20%, rgba(63,213,173,.18), transparent 62%)}
+.saat-kart .sk-saat{font-size:34px;font-weight:800;letter-spacing:-.03em;color:#fff;font-variant-numeric:tabular-nums;line-height:1.05}
+.saat-kart .sk-tarih{margin-top:6px;font-size:13px;color:var(--on-dark)}
+.saat-kart .sk-alt{margin-top:14px;padding-top:13px;border-top:1px solid var(--gv-border-dark);display:flex;justify-content:space-between;gap:12px;font-size:11.5px;color:var(--on-dark-mut)}
+.saat-kart .sk-alt b{display:block;color:var(--gv-mint);font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+
+.ajd-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ajd-item:last-child{border-bottom:none}
+.ajd-saat{flex:none;width:46px;font-size:12px;font-weight:800;color:var(--gv-action);font-variant-numeric:tabular-nums;padding-top:1px}
+.ajd-govde{min-width:0;line-height:1.4}
+.ajd-govde b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.ajd-govde span{display:block;font-size:11.5px;color:var(--muted)}
+.ajd-item.danger .ajd-saat{color:var(--danger)}
+.ajd-item.warn .ajd-saat{color:var(--warning)}
+
+.not-alani{width:100%;min-height:104px;padding:12px;font-family:inherit;font-size:13px;line-height:1.6;color:var(--ink);
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);outline:none;resize:vertical}
+.not-alani:focus{border-color:var(--gv-mint);background:var(--paper);box-shadow:0 0 0 3px rgba(63,213,173,.12)}
+
+.risk-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.risk-item:last-child{border-bottom:none}
+.risk-ico{width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:12px}
+.risk-body{min-width:0;line-height:1.45}
+.risk-body b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.risk-body span{display:block;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body data-sec="panel" data-screen="panel">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="pnl-hero">
+      <div>
+        <h1 id="pnlSelam">Merhaba</h1>
+        <p class="ph-sub" id="pnlTarih">—</p>
+        <div class="pnl-quick" id="pnlHizli"></div>
+      </div>
+      <div class="ph-actions no-print">
+        <a class="btn btn-ghost" href="gunluk-ozet.html"><i class="fa-solid fa-sun" aria-hidden="true"></i>Günlük Özet</a>
+        <a class="btn btn-ghost" href="operasyon-takvimi.html"><i class="fa-solid fa-tv" aria-hidden="true"></i>Operasyon Ekranı</a>
+        <a class="btn btn-acc" href="is-emri-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni İş Emri</a>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="pnlKpi"></div>
+
+    <div class="dash-cols">
+      <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Bugün Aksiyon Gerektirenler</h2>
+            <a class="gc-link" href="aksiyon-merkezi.html">Aksiyon merkezi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush" id="pnlAksiyon"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-stamp" aria-hidden="true"></i>Bekleyen Onaylar</h2>
+            <a class="gc-link" href="onaylar.html">Tümü <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush" id="pnlOnay"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Proje İlerleme Durumu</h2>
+            <a class="gc-link" href="projeler.html">Projeler <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush"><div class="gv-tscroll"><table class="gtable gtable-cards" id="pnlProje"></table></div></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Aylık Lokasyon Planı</h2>
+            <span class="gc-title gct-sub" style="font-size:12px;color:var(--muted);font-weight:500">2026 · tamamlanan ve planlanan kontroller</span>
+          </div>
+          <div class="gc-body"><div class="chart-box" id="pnlAylik"></div></div>
+        </section>
+      </div>
+
+      <div class="gv-side-stack dash-side">
+        <div class="saat-kart">
+          <div class="sk-saat" id="pnlSaat">--:--</div>
+          <div class="sk-tarih" id="pnlSaatTarih">—</div>
+          <div class="sk-alt">
+            <span>Sahadaki ekip<b id="pnlEkip">0</b></span>
+            <span>Bugünkü kontrol<b id="pnlBugunKontrol">0</b></span>
+            <span>Açık iş emri<b id="pnlAcikIE">0</b></span>
+          </div>
+        </div>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i>Bugünün Ajandası</h2>
+            <a class="gc-link" href="ajanda.html">Ajanda <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="gc-body" id="pnlAjanda"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Yaklaşan Kontroller</h2></div>
+          <div class="gc-body gv-cap gv-cap-sm" id="pnlYaklasan"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>Rapor Teslim Takvimi</h2></div>
+          <div class="gc-body" id="pnlTeslim"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-note-sticky" aria-hidden="true"></i>Kısa Not</h2>
+            <button class="btn btn-sm btn-ghost no-print" type="button" id="pnlNotKaydet"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Kaydet</button></div>
+          <div class="gc-body">
+            <label class="gv-sr" for="pnlNot">Kişisel notunuz</label>
+            <textarea class="not-alani" id="pnlNot" placeholder="Kendinize not bırakın… Bu not yalnız bu tarayıcıda saklanır."></textarea>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-gauge" aria-hidden="true"></i>Süreç Göstergeleri
+        <span class="bs-sub">Rapor teslim, fatura grubu doluluğu ve taşeron ödeme durumu</span></h2>
+      <div class="gv-grid-3">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>Rapor SLA Durumu</h3></div>
+          <div class="gc-body" id="pnlSla"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Fatura Grubu Doluluğu</h3></div>
+          <div class="gc-body" id="pnlGrup"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeron Ödeme Durumu</h3></div>
+          <div class="gc-body" id="pnlTaseron"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Risk ve Saha
+        <span class="bs-sub">Yaklaşan kalibrasyonlar, proje riskleri ve son saha bildirimleri</span></h2>
+      <div class="gv-grid-3">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-vials" aria-hidden="true"></i>Yaklaşan Kalibrasyonlar</h3>
+            <a class="gc-link" href="kalibrasyonlar.html">Tümü <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="gc-body" id="pnlKalib"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Proje Riskleri</h3></div>
+          <div class="gc-body" id="pnlRisk"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-camera" aria-hidden="true"></i>Son Saha Bildirimleri</h3>
+            <a class="gc-link" href="saha-kontrol.html">Saha <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="gc-body" id="pnlSaha"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  /* ---------- karşılama ---------- */
+  var saatSimdi = new Date();
+  var s = saatSimdi.getHours();
+  var selam = s < 11 ? 'Günaydın' : s < 18 ? 'İyi günler' : 'İyi akşamlar';
+  var adSade = GV.kullanici.ad.split(' ')[0];
+  document.getElementById('pnlSelam').textContent = selam + ', ' + adSade;
+  document.getElementById('pnlTarih').textContent = GV.dTam(BUGUN) + ' · ' + GV.kullanici.rolAd;
+
+  /* ---------- veri hazırlığı ---------- */
+  var lokasyonlar = A.kapsamaGoreLokasyonlar(GV.rol).map(function(l){ return A.lokasyon(l.id); });
+  var lokIdSet = {}; lokasyonlar.forEach(function(l){ lokIdSet[l.id] = true; });
+  var isEmirleri = A.isEmirleri().filter(function(i){ return lokIdSet[i.lokasyonId]; });
+  var raporlar = A.raporlar().filter(function(r){ return lokIdSet[r.lokasyonId] && r.durum !== 'arsiv'; });
+  var uygunsuzluklar = A.liste('uygunsuzluklar').filter(function(u){ return lokIdSet[u.lokasyonId]; });
+  var cihazlar = A.liste('olcumCihazlari');
+  var gruplar = A.liste('faturaGruplari');
+  var thakedis = A.liste('taseronHakedisleri');
+  var faturalar = A.liste('faturalar');
+
+  var bugunIsler = isEmirleri.filter(function(i){ return i.tarih === BUGUN; });
+  var sahadakiler = isEmirleri.filter(function(i){ return i.operasyonDurum === 'sahada'; });
+  var yaklasan = isEmirleri.filter(function(i){
+    var g = GV.gun(BUGUN, i.tarih);
+    return g != null && g >= 0 && g <= 14 && i.operasyonDurum === 'planlandi';
+  }).sort(function(a,b){ return a.tarih.localeCompare(b.tarih); });
+  var onayBekleyen = raporlar.filter(function(r){ return r.durum === 'teknik-incelemede'; });
+  var faturayaHazir = lokasyonlar.filter(function(l){ return A.lokasyonFaturalanabilirMi(l.id).uygun; });
+
+  /* ---------- hızlı özet satırı ---------- */
+  document.getElementById('pnlHizli').innerHTML = [
+    { i:'fa-location-dot', b: bugunIsler.length, e:'lokasyon bugün planlı', h:'is-emirleri.html' },
+    { i:'fa-stamp', b: onayBekleyen.length, e:'rapor onayı bekliyor', h:'rapor-onaylari.html' },
+    { i:'fa-calendar-days', b: yaklasan.length, e:'yaklaşan kontrol (14 gün)', h:'planlama.html' },
+    { i:'fa-file-invoice-dollar', b: faturayaHazir.length, e:'iş faturaya hazır', h:'fatura-gruplari.html' },
+    { i:'fa-triangle-exclamation', b: uygunsuzluklar.filter(function(u){return u.durum==='gecikti';}).length, e:'gecikmiş uygunsuzluk', h:'uygunsuzluklar.html', uyari:true }
+  ].map(function(q){
+    return '<a href="' + q.h + '"' + (q.uyari && q.b ? ' class="uyari"' : '') + '><i class="fa-solid ' + q.i + '" aria-hidden="true"></i><b>' + GV.n(q.b) + '</b> ' + q.e + '</a>';
+  }).join('');
+
+  /* ---------- KPI kartları ---------- */
+  var aktifProje = A.liste('projeler').filter(function(p){ return p.durum === 'aktif'; });
+  var kalibUyari = cihazlar.filter(function(c){
+    var g = A.gunFarki(BUGUN, c.kalibrasyonBitis);
+    return g != null && g <= 30;
+  });
+  var bekleyenTahsilat = faturalar.reduce(function(t,f){ return t + (f.kalan || 0); }, 0);
+  var odemeyeUygun = thakedis.filter(function(t){ return t.durum === 'odemeye-uygun' || t.durum === 'kismen-odendi'; });
+
+  gvKpi('#pnlKpi', [
+    { ikon:'fa-diagram-project', sayi: GV.n(aktifProje.length), etiket:'Aktif proje / kampanya', link:'projeler.html',
+      delta:{ yon:'up', metin: A.liste('projeler').length + ' toplam kayıt' } },
+    { ikon:'fa-people-group', sayi: GV.n(sahadakiler.reduce(function(t,i){ return t + (i.ekipId||[]).length; }, 0)), etiket:'Bugün sahada olan personel', ton:'info', link:'saha-kontrol.html',
+      delta:{ yon:'flat', metin: sahadakiler.length + ' lokasyonda ekip çalışıyor' } },
+    { ikon:'fa-location-dot', sayi: GV.n(lokasyonlar.filter(function(l){return l.projeId;}).length), etiket:'Proje kapsamındaki lokasyon', link:'lokasyonlar.html',
+      delta:{ yon:'flat', metin: lokasyonlar.length + ' kayıt ana rehberde' } },
+    { ikon:'fa-stamp', sayi: GV.n(onayBekleyen.length), etiket:'Teknik onay bekleyen rapor', ton:'warn', link:'rapor-onaylari.html',
+      delta:{ yon: onayBekleyen.some(function(r){return r.slaDurum==='asildi';}) ? 'down' : 'flat',
+              metin: onayBekleyen.filter(function(r){return r.slaDurum==='asildi';}).length + ' tanesinde SLA aşıldı' } },
+    { ikon:'fa-file-circle-check', sayi: GV.n(faturayaHazir.length), etiket:'Faturaya hazır lokasyon', ton:'ok', link:'fatura-gruplari.html',
+      delta:{ yon:'up', metin: gruplar.length + ' aktif fatura grubu' } },
+    { ikon:'fa-money-bill-wave', sayi: GV.tlKisa(bekleyenTahsilat), etiket:'Bekleyen tahsilat', ton: bekleyenTahsilat > 300000 ? 'danger':'info', link:'tahsilatlar.html',
+      delta:{ yon:'down', metin: faturalar.filter(function(f){return f.tahsilatDurum==='vadesi-gecti';}).length + ' fatura vadesi geçti' } },
+    { ikon:'fa-handshake-angle', sayi: GV.tlKisa(odemeyeUygun.reduce(function(t,x){return t+x.tutar;},0)), etiket:'Ödemeye uygun taşeron hakedişi', link:'taseron-hakedisleri.html',
+      delta:{ yon:'flat', metin: odemeyeUygun.length + ' hakediş kaydı' } },
+    { ikon:'fa-vials', sayi: GV.n(kalibUyari.length), etiket:'Kalibrasyon uyarısı', ton: kalibUyari.some(function(c){return A.gunFarki(BUGUN,c.kalibrasyonBitis)<0;}) ? 'danger':'warn', link:'kalibrasyonlar.html',
+      delta:{ yon:'down', metin: cihazlar.filter(function(c){return c.durum==='kalibrasyon-gecmis';}).length + ' cihaz kullanım dışı' } }
+  ]);
+
+  /* ---------- bugün aksiyon gerektirenler ---------- */
+  var aksiyonlar = [];
+  /* 1) tarih onayı bekleyen */
+  isEmirleri.filter(function(i){ return !i.musteriTarihOnayi && i.operasyonDurum === 'planlandi'; }).forEach(function(i){
+    aksiyonlar.push({ ton:'warn', ikon:'fa-calendar-check', kod:i.id, baslik:'Kontrol tarihi müşteri tarafından onaylanmadı',
+      alt: i.lokasyonAd + ' · ' + i.musteriAd, rozet: GV.rozetOzel('warn','fa-hourglass-half', GV.gun(BUGUN, i.tarih) + ' gün kaldı'),
+      link:'is-emri-detay.html?id=' + i.id });
+  });
+  /* 2) rapor SLA */
+  raporlar.filter(function(r){ return r.slaDurum === 'asildi' && !r.teslimTarihi; }).forEach(function(r){
+    aksiyonlar.push({ ton:'danger', ikon:'fa-hourglass-end', kod:r.no, baslik:'Rapor teslim süresi (SLA) aşıldı',
+      alt: r.lokasyonAd + ' · ' + r.musteriAd, rozet: GV.rozetOzel('danger','fa-triangle-exclamation', Math.abs(r.sla.kalanGun) + ' gün gecikme'),
+      link:'rapor-detay.html?id=' + r.id });
+  });
+  /* 3) kalibrasyon */
+  cihazlar.forEach(function(c){
+    var g = A.gunFarki(BUGUN, c.kalibrasyonBitis);
+    if (g == null || g > 30) return;
+    aksiyonlar.push({ ton: g < 0 ? 'danger':'warn', ikon:'fa-vials', kod:c.kod,
+      baslik: g < 0 ? 'Ölçüm cihazının kalibrasyonu geçti' : 'Ölçüm cihazının kalibrasyonu bitmek üzere',
+      alt: c.ad + ' · ' + c.marka + ' ' + c.model,
+      rozet: g < 0 ? GV.rozetOzel('danger','fa-ban', Math.abs(g) + ' gün geçti') : GV.rozetOzel('warn','fa-clock', g + ' gün kaldı'),
+      link:'cihaz-detay.html?id=' + c.id });
+  });
+  /* 4) eksik envanter bilgisi */
+  lokasyonlar.filter(function(l){ return l.operasyonDurum === 'envanter-bekleniyor' || l.operasyonDurum === 'bilgi-bekleniyor'; }).slice(0,3).forEach(function(l){
+    aksiyonlar.push({ ton:'warn', ikon:'fa-clipboard-question', kod:l.kod, baslik:'Lokasyon bilgisi veya envanteri müşteriden bekleniyor',
+      alt: l.ad + ' · ' + l.musteriAd, rozet: GV.rozet('operasyon', l.operasyonDurum), link:'lokasyon-detay.html?id=' + l.id });
+  });
+  /* 5) mutabakat bekleyen */
+  lokasyonlar.filter(function(l){ return l.faturaDurum === 'mutabakat-bekleniyor'; }).forEach(function(l){
+    var satir = A.mutabakatSatirlari(l.id).filter(function(m){ return m.durum !== 'onayli'; }).length;
+    aksiyonlar.push({ ton:'warn', ikon:'fa-scale-balanced', kod:l.kod, baslik:'Ekipman miktarı mutabakat bekliyor',
+      alt: l.ad + ' · ' + satir + ' hizmet kaleminde fark var', rozet: GV.rozetOzel('warn','fa-scale-unbalanced', satir + ' kalem'),
+      link:'envanter-mutabakati.html?lokasyon=' + l.id });
+  });
+  /* 6) faturaya hazır ama gruba alınmamış */
+  var grupluLok = {}; gruplar.forEach(function(g){ g.lokasyonlar.forEach(function(l){ grupluLok[l] = true; }); });
+  faturayaHazir.filter(function(l){ return !grupluLok[l.id]; }).forEach(function(l){
+    aksiyonlar.push({ ton:'info', ikon:'fa-layer-group', kod:l.kod, baslik:'Lokasyon fatura grubuna eklenmeyi bekliyor',
+      alt: l.ad + ' · ' + l.musteriAd, rozet: GV.rozetOzel('info','fa-plus','Gruba ekle'), link:'fatura-gruplari.html' });
+  });
+  /* 7) geciken tahsilat */
+  faturalar.filter(function(f){ return f.tahsilatDurum === 'vadesi-gecti'; }).forEach(function(f){
+    var m = A.kayit('musteriler', f.musteriId);
+    aksiyonlar.push({ ton:'danger', ikon:'fa-file-invoice-dollar', kod:f.no, baslik:'Müşteri tahsilatı gecikti',
+      alt: (m ? m.kisaAd : '—') + ' · ' + GV.tl(f.kalan) + ' bakiye',
+      rozet: GV.rozetOzel('danger','fa-clock', Math.abs(GV.gun(BUGUN, f.vade)) + ' gün gecikme'), link:'tahsilatlar.html?id=' + f.id });
+  });
+  /* 8) müşteri tahsilatı nedeniyle bekleyen taşeron ödemesi */
+  thakedis.filter(function(t){ return t.durum === 'musteri-tahsilati-bekleniyor'; }).forEach(function(t){
+    var ts = A.kayit('taseronlar', t.taseronId);
+    aksiyonlar.push({ ton:'info', ikon:'fa-people-carry-box', kod:t.no, baslik:'Taşeron ödemesi müşteri tahsilatına bağlı olarak bekliyor',
+      alt: (ts ? ts.kisaAd : '—') + ' · ' + GV.tl(t.tutar), rozet: GV.rozet('taseronOdeme', t.durum),
+      link:'taseron-hakedisleri.html?id=' + t.id });
+  });
+  /* 9) personel belge süresi */
+  A.liste('personelBelgeleri').forEach(function(b){
+    var g = A.gunFarki(BUGUN, b.bitis);
+    if (g == null || g > 30 || g < 0) return;
+    var p = A.kayit('personeller', b.personelId), y = A.kayit('yetkinlikler', b.yetkinlikId);
+    aksiyonlar.push({ ton:'warn', ikon:'fa-certificate', kod:b.belgeNo, baslik:'Personel yetkinlik belgesinin süresi doluyor',
+      alt: (p?p.ad:'—') + ' · ' + (y?y.ad:'—'), rozet: GV.rozetOzel('warn','fa-clock', g + ' gün kaldı'),
+      link:'personel-detay.html?id=' + b.personelId });
+  });
+
+  var siraTon = { danger:0, warn:1, info:2, ok:3 };
+  aksiyonlar.sort(function(a,b){ return siraTon[a.ton] - siraTon[b.ton]; });
+
+  document.getElementById('pnlAksiyon').innerHTML = aksiyonlar.length
+    ? aksiyonlar.slice(0,12).map(function(a){
+        return '<div class="aksiyon-row"><span class="ak-ico ' + a.ton + '"><i class="fa-solid ' + a.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="ak-body"><span class="ak-kod">' + GV.esc(a.kod) + '</span>'
+          + '<b><a href="' + a.link + '">' + GV.esc(a.baslik) + '</a></b><span>' + GV.esc(a.alt) + '</span></span>'
+          + '<span class="ak-son">' + a.rozet
+          + '<a class="ia-btn" href="' + a.link + '" aria-label="' + GV.esc(a.kod) + ' detayına git"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-circle-check', baslik:'Bekleyen aksiyon yok', metin:'Bugün için sizden beklenen bir işlem bulunmuyor.' });
+
+  /* ---------- bekleyen onaylar ---------- */
+  var onaylar = [];
+  onayBekleyen.forEach(function(r){
+    onaylar.push({ ton:'warn', ikon:'fa-file-lines', kod:r.no, baslik:'Teknik rapor onayı', alt: r.lokasyonAd + ' · ' + r.personelAd,
+      zincir:['Saha','Teknik','Onay'], adim:1, link:'rapor-detay.html?id=' + r.id });
+  });
+  A.liste('hakedisler').filter(function(h){ return h.durum === 'onay-bekliyor'; }).forEach(function(h){
+    var m = A.kayit('musteriler', h.musteriId);
+    onaylar.push({ ton:'warn', ikon:'fa-calculator', kod:h.no, baslik:'Hakediş onayı', alt: (m?m.kisaAd:'—') + ' · ' + h.donem + ' dönemi',
+      zincir:['Hazırlık','Onay','Fatura'], adim:1, link:'hakedisler.html?id=' + h.id });
+  });
+  thakedis.filter(function(t){ return t.durum === 'odemeye-uygun'; }).forEach(function(t){
+    var ts = A.kayit('taseronlar', t.taseronId);
+    onaylar.push({ ton:'info', ikon:'fa-money-bill-transfer', kod:t.no, baslik:'Taşeron ödeme onayı', alt: (ts?ts.kisaAd:'—') + ' · ' + GV.tl(t.tutar),
+      zincir:['Hakediş','Fatura','Ödeme'], adim:2, link:'taseron-hakedisleri.html?id=' + t.id });
+  });
+  A.liste('yenidenKontroller').filter(function(y){ return y.durum === 'talep-edildi'; }).forEach(function(y){
+    var l = A.lokasyon(y.lokasyonId);
+    onaylar.push({ ton:'warn', ikon:'fa-rotate-right', kod:y.id, baslik:'Yeniden kontrol talebi', alt: (l?l.ad:'—') + (y.ucretli ? ' · ücretli' : ' · ücretsiz'),
+      zincir:['Talep','Onay','Plan'], adim:1, link:'yeniden-kontroller.html?id=' + y.id });
+  });
+
+  document.getElementById('pnlOnay').innerHTML = onaylar.length
+    ? onaylar.map(function(o){
+        var zincir = o.zincir.map(function(z,i){
+          return '<span class="flow-step ' + (i < o.adim ? 'done' : i === o.adim ? 'now' : '') + '">'
+            + '<i class="fa-solid ' + (i < o.adim ? 'fa-check' : i === o.adim ? 'fa-hourglass-half' : 'fa-circle') + '" aria-hidden="true"></i>' + z + '</span>';
+        }).join('<i class="fa-solid fa-chevron-right flow-sep" aria-hidden="true"></i>');
+        return '<div class="aksiyon-row"><span class="ak-ico ' + o.ton + '"><i class="fa-solid ' + o.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="ak-body"><span class="ak-kod">' + GV.esc(o.kod) + '</span><b><a href="' + o.link + '">' + GV.esc(o.baslik) + '</a></b>'
+          + '<span>' + GV.esc(o.alt) + '</span><span style="margin-top:6px"><span class="flow-steps" style="gap:4px">' + zincir + '</span></span></span>'
+          + '<span class="ak-son"><a class="btn btn-sm btn-ghost" href="' + o.link + '">İncele</a></span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-stamp', baslik:'Bekleyen onay yok', metin:'Onayınızı bekleyen bir kayıt bulunmuyor.' });
+
+  /* ---------- proje ilerleme tablosu ---------- */
+  var projeTablo = document.getElementById('pnlProje');
+  var projeler = A.liste('projeler').filter(function(p){ return p.durum !== 'tamamlandi'; });
+  projeTablo.innerHTML = '<thead><tr><th scope="col">Proje</th><th scope="col" class="num">Lokasyon</th>'
+    + '<th scope="col" class="num">Tamamlanan</th><th scope="col" class="num">Raporlanan</th>'
+    + '<th scope="col" class="num">Faturalanan</th><th scope="col">İlerleme</th></tr></thead><tbody>'
+    + projeler.map(function(p){
+        var o = A.projeOzet(p.id), m = A.kayit('musteriler', p.musteriId);
+        return '<tr><td data-lbl="Proje"><div class="gcell"><div class="gcell-mark">' + GV.esc(p.kod.substring(4,8)) + '</div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(m ? m.kisaAd : '—') + ' · ' + p.kod + '</div></div></div></td>'
+          + '<td data-lbl="Lokasyon" class="num">' + GV.n(o.toplam) + '</td>'
+          + '<td data-lbl="Tamamlanan" class="num">' + GV.n(o.tamamlanan) + '</td>'
+          + '<td data-lbl="Raporlanan" class="num">' + GV.n(o.raporlanan) + '</td>'
+          + '<td data-lbl="Faturalanan" class="num">' + GV.n(o.faturalanan) + '</td>'
+          + '<td data-lbl="İlerleme">' + GV.bar(o.ilerleme) + '</td></tr>';
+      }).join('') + '</tbody>';
+
+  /* ---------- aylık plan grafiği ---------- */
+  var aylikSayac = {};
+  for (var ay = 0; ay < 12; ay++) aylikSayac[ay] = 0;
+  isEmirleri.forEach(function(i){
+    if (!i.tarih) return;
+    var d = A.tariheCevir(i.tarih);
+    if (d && d.getFullYear() === 2026) aylikSayac[d.getMonth()]++;
+  });
+  gvBar('#pnlAylik', GV.ayKisa.map(function(a,i){
+    return { etiket: a, deger: aylikSayac[i], ton: i === 7 ? 'acc' : i < 7 ? 'ok' : 'info' };
+  }), { baslik:'Aylık lokasyon kontrol planı', birim:'iş emri', yukseklik: 210 });
+
+  /* ---------- saat kartı ---------- */
+  function saatGuncelle(){
+    var d = new Date();
+    document.getElementById('pnlSaat').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  saatGuncelle(); setInterval(saatGuncelle, 20000);
+  document.getElementById('pnlSaatTarih').textContent = GV.dTam(BUGUN);
+  document.getElementById('pnlEkip').textContent = GV.n(sahadakiler.reduce(function(t,i){ return t + (i.ekipId||[]).length; }, 0));
+  document.getElementById('pnlBugunKontrol').textContent = GV.n(bugunIsler.length);
+  document.getElementById('pnlAcikIE').textContent = GV.n(isEmirleri.filter(function(i){
+    return ['planlandi','sahada','tarih-onayi-bekleniyor'].indexOf(i.operasyonDurum) !== -1; }).length);
+
+  /* ---------- bugünün ajandası ---------- */
+  var bugunAjanda = A.liste('ajanda').filter(function(a){ return a.tarih === BUGUN; });
+  document.getElementById('pnlAjanda').innerHTML = bugunAjanda.length
+    ? bugunAjanda.map(function(a){
+        return '<div class="ajd-item ' + (a.ton || '') + '"><span class="ajd-saat">' + a.saat + '</span>'
+          + '<span class="ajd-govde"><b><a href="' + a.link + '">' + GV.esc(a.baslik) + '</a></b><span>' + GV.esc(a.detay) + '</span></span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-calendar-day', baslik:'Bugün ajanda kaydı yok', metin:'Bugüne planlanmış toplantı veya kontrol bulunmuyor.' });
+
+  /* ---------- yaklaşan kontroller ---------- */
+  document.getElementById('pnlYaklasan').innerHTML = yaklasan.length
+    ? yaklasan.slice(0,8).map(function(i){
+        var g = GV.gun(BUGUN, i.tarih);
+        return '<div class="ajd-item"><span class="ajd-saat" style="width:56px">' + (g === 0 ? 'bugün' : g + ' gün') + '</span>'
+          + '<span class="ajd-govde"><b><a href="is-emri-detay.html?id=' + i.id + '">' + GV.esc(i.lokasyonAd) + '</a></b>'
+          + '<span>' + GV.d(i.tarih) + ' · ' + GV.esc(i.musteriAd) + ' · ' + GV.esc(i.bolge) + '</span></span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-calendar-check', baslik:'Yaklaşan kontrol yok', metin:'Önümüzdeki 14 gün için planlanmış kontrol bulunmuyor.' });
+
+  /* ---------- rapor teslim takvimi ---------- */
+  var teslimBekleyen = raporlar.filter(function(r){ return !r.teslimTarihi && r.sla; })
+    .sort(function(a,b){ return a.sla.kalanGun - b.sla.kalanGun; });
+  document.getElementById('pnlTeslim').innerHTML = teslimBekleyen.length
+    ? teslimBekleyen.slice(0,6).map(function(r){
+        var ton = r.slaDurum === 'asildi' ? 'danger' : r.slaDurum === 'yaklasti' ? 'warn' : 'ok';
+        var metin = r.slaDurum === 'asildi' ? Math.abs(r.sla.kalanGun) + ' gün gecikme' : r.sla.kalanGun + ' gün kaldı';
+        return '<div class="ajd-item ' + (ton === 'ok' ? '' : ton) + '">'
+          + '<span class="ajd-govde" style="flex:1"><b><a href="rapor-detay.html?id=' + r.id + '">' + GV.esc(r.no) + '</a></b>'
+          + '<span>' + GV.esc(r.lokasyonAd) + ' · hedef ' + GV.d(r.sla.hedef) + '</span></span>'
+          + '<span style="flex:none">' + GV.rozetOzel(ton, ton === 'danger' ? 'fa-triangle-exclamation' : ton === 'warn' ? 'fa-clock' : 'fa-check', metin) + '</span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-file-circle-check', baslik:'Teslim bekleyen rapor yok', metin:'Bütün raporlar müşteriye teslim edilmiş durumda.' });
+
+  /* ---------- kısa not (localStorage) ---------- */
+  var notEl = document.getElementById('pnlNot');
+  try { notEl.value = localStorage.getItem('gv_tk_not_' + GV.rol) || ''; } catch(e){}
+  document.getElementById('pnlNotKaydet').addEventListener('click', function(){
+    try { localStorage.setItem('gv_tk_not_' + GV.rol, notEl.value); gvToast('Not kaydedildi. Bu tarayıcıda saklanır.', { ton:'ok' }); }
+    catch(e){ gvToast('Not kaydedilemedi (tarayıcı depolaması kapalı).', { ton:'danger' }); }
+  });
+
+  /* ---------- rapor SLA özeti ---------- */
+  var slaSayac = { uygun:0, yaklasti:0, asildi:0 };
+  raporlar.forEach(function(r){ if (slaSayac[r.slaDurum] != null) slaSayac[r.slaDurum]++; });
+  gvDonut('#pnlSla', [
+    { etiket:'Süresinde', deger: slaSayac.uygun, ton:'ok' },
+    { etiket:'Süre yaklaştı', deger: slaSayac.yaklasti, ton:'warn' },
+    { etiket:'Süre aşıldı', deger: slaSayac.asildi, ton:'danger' }
+  ], { merkez: raporlar.length, merkezEtiket:'rapor', baslik:'Rapor SLA dağılımı' });
+
+  /* ---------- fatura grubu doluluk ---------- */
+  document.getElementById('pnlGrup').innerHTML = gruplar.map(function(g){
+    var d = A.faturaGrubuDoluluk(g.id);
+    var ton = d.hedefeUlasti ? 'ok' : d.doluluk >= 0.5 ? '' : 'warn';
+    return '<div class="fill-meter" style="padding:11px 0;border-bottom:1px solid var(--line)">'
+      + '<div class="fill-meter-top"><b><a href="fatura-grubu-detay.html?id=' + g.id + '">' + GV.esc(g.ad) + '</a></b>'
+      + '<span>' + d.eklenen + ' / ' + d.hedef + ' lokasyon</span></div>'
+      + GV.bar(d.doluluk, { ton: ton, etiket: GV.pct(d.doluluk, true, 0) })
+      + '<div class="fill-meter-note">' + d.faturayaUygun + ' faturaya uygun · '
+      + d.mutabakatBekleyen + ' mutabakat · ' + d.eksikRapor + ' rapor bekliyor</div></div>';
+  }).join('');
+
+  /* ---------- taşeron ödeme durumu ---------- */
+  var odemeSayac = {};
+  thakedis.forEach(function(t){ odemeSayac[t.durum] = (odemeSayac[t.durum] || 0) + t.tutar; });
+  gvBarList('#pnlTaseron', A.durumListesi('taseronOdeme').filter(function(d){ return odemeSayac[d.k]; }).map(function(d){
+    return { etiket: d.ad, deger: odemeSayac[d.k], gosterim: GV.tl(odemeSayac[d.k]),
+             ton: d.ton === 'ok' ? 'ok' : d.ton === 'warn' ? 'warn' : d.ton === 'danger' ? 'danger' : '' };
+  }));
+
+  /* ---------- yaklaşan kalibrasyonlar ---------- */
+  var kalibListe = cihazlar.map(function(c){ return { c:c, g: A.gunFarki(BUGUN, c.kalibrasyonBitis) }; })
+    .filter(function(x){ return x.g != null && x.g <= 60; })
+    .sort(function(a,b){ return a.g - b.g; });
+  document.getElementById('pnlKalib').innerHTML = kalibListe.length
+    ? kalibListe.map(function(x){
+        var ton = x.g < 0 ? 'danger' : x.g <= 30 ? 'warn' : 'info';
+        return '<div class="risk-item"><span class="risk-ico ' + (ton === 'danger' ? '' : '') + '" style="background:var(--' + (ton === 'danger' ? 'danger' : ton === 'warn' ? 'warning' : 'info') + '-tint);color:var(--' + (ton === 'danger' ? 'danger' : ton === 'warn' ? 'warning' : 'info') + ')">'
+          + '<i class="fa-solid fa-vials" aria-hidden="true"></i></span>'
+          + '<span class="risk-body" style="flex:1"><b><a href="cihaz-detay.html?id=' + x.c.id + '">' + GV.esc(x.c.ad) + '</a></b>'
+          + '<span>' + GV.esc(x.c.kod + ' · ' + x.c.marka + ' ' + x.c.model) + '</span></span>'
+          + '<span style="flex:none">' + GV.rozetOzel(ton, x.g < 0 ? 'fa-ban' : 'fa-clock', x.g < 0 ? Math.abs(x.g) + ' gün geçti' : x.g + ' gün') + '</span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-vials', baslik:'Kalibrasyon uyarısı yok', metin:'Bütün ölçüm cihazlarının kalibrasyonu geçerli.' });
+
+  /* ---------- proje riskleri ---------- */
+  var riskler = [];
+  A.liste('projeler').filter(function(p){ return p.durum === 'aktif'; }).forEach(function(p){
+    var o = A.projeOzet(p.id);
+    var bekleyen = A.liste('lokasyonlar').filter(function(l){
+      return l.projeId === p.id && ['bilgi-bekleniyor','envanter-bekleniyor','tadilatta','tasiniyor'].indexOf(l.operasyonDurum) !== -1; });
+    if (bekleyen.length) {
+      riskler.push({ ton:'warn', ikon:'fa-clock', baslik: p.ad,
+        alt: bekleyen.length + ' lokasyon bilgi, envanter, tadilat veya taşınma nedeniyle bekliyor', link:'proje-detay.html?id=' + p.id });
+    }
+    if (o.ilerleme < 0.5 && A.gunFarki(BUGUN, p.bitis) < 150) {
+      riskler.push({ ton:'danger', ikon:'fa-gauge-high', baslik: p.ad,
+        alt: 'Bitişe ' + A.gunFarki(BUGUN, p.bitis) + ' gün kaldı, ilerleme ' + GV.pct(o.ilerleme, true, 0), link:'proje-detay.html?id=' + p.id });
+    }
+  });
+  var kritikUyg = uygunsuzluklar.filter(function(u){ return u.onem === 'kritik' && u.durum !== 'kapandi'; });
+  kritikUyg.forEach(function(u){
+    var l = A.lokasyon(u.lokasyonId);
+    riskler.push({ ton:'danger', ikon:'fa-circle-exclamation', baslik:'Kritik uygunsuzluk açık: ' + u.baslik,
+      alt: (l ? l.ad : '—') + ' · termin ' + GV.d(u.termin), link:'uygunsuzluk-detay.html?id=' + u.id });
+  });
+  document.getElementById('pnlRisk').innerHTML = riskler.length
+    ? riskler.slice(0,6).map(function(r){
+        var renk = r.ton === 'danger' ? 'danger' : 'warning';
+        return '<div class="risk-item"><span class="risk-ico" style="background:var(--' + renk + '-tint);color:var(--' + renk + ')">'
+          + '<i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="risk-body"><b><a href="' + r.link + '">' + GV.esc(r.baslik) + '</a></b><span>' + GV.esc(r.alt) + '</span></span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-shield-halved', baslik:'Açık risk yok', metin:'Projelerde takip gerektiren risk bulunmuyor.' });
+
+  /* ---------- son saha bildirimleri ---------- */
+  var sahaKayit = A.liste('sahaKontroller').slice().sort(function(a,b){ return String(b.baslangic).localeCompare(String(a.baslangic)); });
+  document.getElementById('pnlSaha').innerHTML = sahaKayit.length
+    ? sahaKayit.slice(0,5).map(function(k){
+        var l = A.lokasyon(k.lokasyonId), p = A.kayit('personeller', k.personelId);
+        var ton = k.durum === 'devam-ediyor' ? 'info' : k.durum === 'eksik-tamamlandi' ? 'warn' : 'ok';
+        return '<div class="risk-item"><span class="risk-ico" style="background:var(--' + (ton==='ok'?'success':ton==='warn'?'warning':'info') + '-tint);color:var(--' + (ton==='ok'?'success':ton==='warn'?'warning':'info') + ')">'
+          + '<i class="fa-solid ' + (k.cevrimdisi ? 'fa-wifi' : 'fa-camera') + '" aria-hidden="true"></i></span>'
+          + '<span class="risk-body" style="flex:1"><b><a href="saha-kontrol.html?id=' + k.id + '">' + GV.esc(l ? l.ad : k.lokasyonId) + '</a></b>'
+          + '<span>' + GV.esc(p ? p.ad : '—') + ' · ' + k.fotograf + ' fotoğraf · ' + k.uygunsuzluk + ' uygunsuzluk</span></span>'
+          + '<span style="flex:none;font-size:11.5px;color:var(--muted);white-space:nowrap">' + GV.d(k.baslangic) + '</span></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-camera', baslik:'Saha bildirimi yok', metin:'Henüz saha kontrol kaydı oluşturulmadı.' });
+})();
+</script>
+</body>
+</html>
