@@ -114,9 +114,9 @@
   var kat = A.kayit('hizmetKategorileri', h.kat);
   var y = h.yetkinlik ? A.kayit('yetkinlikler', h.yetkinlik) : null;
   var sablon = h.sablonId ? A.kayit('raporSablonlari', h.sablonId) : null;
-  var fiyat = window.DEMO.hizmetFiyatlari[h.id] || { satis:0, maliyet:0 };
+  var fiyat = A.harita('hizmetFiyatlari')[h.id] || { satis:0, maliyet:0 };
   var kullanim = A.liste('lokasyonHizmetleri').filter(function(x){ return x.hizmetId === h.id; });
-  var maddeler = window.DEMO.kontrolMaddeleri[h.kat] || [];
+  var maddeler = A.harita('kontrolMaddeleri')[h.kat] || [];
   var mutabakat = A.liste('mutabakat').filter(function(m){ return m.hizmetId === h.id; });
 
   document.getElementById('recHead').innerHTML =

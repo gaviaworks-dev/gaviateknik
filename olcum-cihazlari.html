@@ -85,6 +85,7 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
+  var ESIK = GV.ayar('kalibrasyonEsik');  /* Ayarlar > Operasyon Ayarları'ndan gelir */
 
   /* ---- kaynak: cihazlar + iş kuralı sonucu ---- */
   var kaynak = A.liste('olcumCihazlari').map(function(c){
@@ -118,8 +119,8 @@
     { ikon:'fa-ruler-combined', sayi: GV.n(kaynak.length), etiket:'Kayıtlı ölçüm cihazı',
       delta:{ yon:'flat', metin: GV.n(kuruluslar().length) + ' kalibrasyon kuruluşu ile çalışılıyor' } },
     { ikon:'fa-circle-check', sayi: GV.n(kaynak.filter(function(c){ return c.durum === 'kullanimda'; }).length), etiket:'Kullanımda', ton:'ok' },
-    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= 30; }).length),
-      etiket:'Kalibrasyonu 30 gün içinde dolacak', ton:'warn' },
+    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= ESIK; }).length),
+      etiket:'Kalibrasyonu ' + ESIK + ' gün içinde dolacak', ton:'warn' },
     { ikon:'fa-triangle-exclamation', sayi: GV.n(kaynak.filter(function(c){ return c.gecmis; }).length),
       etiket:'Kalibrasyonu geçmiş — atanamaz', ton:'danger' }
   ]);
@@ -244,9 +245,9 @@
     { k:'kalibrasyonBitis', ad:'Geçerlilik Bitişi', ciz: function(c){ return GV.d(c.kalibrasyonBitis); } },
     { k:'kalanGun', ad:'Kalan Gün', sinif:'num', ciz: function(c){
         if (c.kalanGun == null) return '<span class="muted">' + GV.bos + '</span>';
-        var t = c.kalanGun < 0 ? 'danger' : c.kalanGun <= 30 ? 'warn' : 'ok';
+        var t = c.kalanGun < 0 ? 'danger' : c.kalanGun <= ESIK ? 'warn' : 'ok';
         return '<span class="gtag ' + t + '">'
-          + '<i class="fa-solid ' + (c.kalanGun < 0 ? 'fa-calendar-xmark' : c.kalanGun <= 30 ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
+          + '<i class="fa-solid ' + (c.kalanGun < 0 ? 'fa-calendar-xmark' : c.kalanGun <= ESIK ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
           + (c.kalanGun < 0 ? GV.n(Math.abs(c.kalanGun)) + ' gün geçti' : GV.n(c.kalanGun) + ' gün') + '</span>'; } },
     { k:'durum', ad:'Kullanım Durumu', ciz: durumRozet },
     { k:'uygunlukMetin', ad:'Atama Uygunluğu', ciz: uygunlukRozet },
@@ -323,7 +324,7 @@
     return {
       etiket: c.kod + ' · ' + c.ad,
       deger: c.kalanGun == null ? 0 : Math.max(0, c.kalanGun),
-      ton: c.kalanGun == null ? 'warn' : c.kalanGun < 0 ? 'danger' : c.kalanGun <= 30 ? 'warn' : 'ok',
+      ton: c.kalanGun == null ? 'warn' : c.kalanGun < 0 ? 'danger' : c.kalanGun <= ESIK ? 'warn' : 'ok',
       gosterim: c.kalanGun == null ? 'Kalibrasyon bilgisi eksik'
         : c.kalanGun < 0 ? GV.n(Math.abs(c.kalanGun)) + ' gün geçti · ' + GV.d(c.kalibrasyonBitis)
         : GV.n(c.kalanGun) + ' gün · ' + GV.d(c.kalibrasyonBitis)
@@ -361,13 +362,13 @@
   });
 
   document.getElementById('ocPlan').addEventListener('click', function(){
-    var kritik = kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun <= 30; })
+    var kritik = kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun <= ESIK; })
       .sort(function(a,b){ return a.kalanGun - b.kalanGun; });
     gvModal({
       baslik:'Kalibrasyon planı', ikon:'fa-calendar-check', genislik:'gv-modal-lg',
       metin: kritik.length
         ? '<b>' + GV.n(kritik.length) + '</b> cihazın kalibrasyon geçerliliği dolmuş ya da 30 gün içinde doluyor.'
-        : 'Önümüzdeki 30 gün içinde kalibrasyon geçerliliği dolacak cihaz yok.',
+        : 'Önümüzdeki ' + ESIK + ' gün içinde kalibrasyon geçerliliği dolacak cihaz yok.',
       govde: kritik.length
         ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
           + '<th scope="col">Cihaz</th><th scope="col">Geçerlilik Bitişi</th><th scope="col">Durum</th></tr></thead><tbody>'

@@ -407,6 +407,31 @@ window.demoApi = (function () {
   }
 
   /* işlem kaydı (denetim izi) — kullanıcı işlemleri de loglanır */
+  /* Denetim izinde modül adı tek biçimlidir. ekle/guncelle/sil koleksiyon
+     anahtarı gönderir, sayfalar ekran adı gönderir; ikisi de burada Türkçe
+     ekran adına çevrilir ki İşlem Kayıtları listesi karışık görünmesin. */
+  var MODUL_ADI = {
+    roller: 'Rol', personeller: 'Personel', yetkinlikler: 'Yetkinlik',
+    personelBelgeleri: 'Personel Belgesi', musteriler: 'Müşteri', markalar: 'Marka',
+    iletisimKisileri: 'İletişim Kişisi', iletisimGecmisi: 'İletişim Kaydı',
+    hizmetKategorileri: 'Hizmet Kategorisi', hizmetler: 'Hizmet',
+    fiyatListeleri: 'Fiyat Listesi', projeler: 'Proje', lokasyonlar: 'Lokasyon',
+    envanterSablonlari: 'Envanter Şablonu', lokasyonHizmetleri: 'Lokasyon Hizmeti',
+    ekipmanlar: 'Ekipman', mutabakat: 'Envanter Mutabakatı', isEmirleri: 'İş Emri',
+    sahaKontroller: 'Saha Kontrol', raporSablonlari: 'Rapor Şablonu',
+    raporlar: 'Teknik Rapor', uygunsuzluklar: 'Uygunsuzluk',
+    yenidenKontroller: 'Yeniden Kontrol', eksikEkipmanlar: 'Eksik Ekipman',
+    teklifler: 'Teklif', sozlesmeler: 'Sözleşme', faturaGruplari: 'Fatura Grubu',
+    faturalar: 'Fatura', faturaSatirlari: 'Fatura Satırı', tahsilatlar: 'Tahsilat',
+    hakedisler: 'Hakediş', taseronlar: 'Taşeron', taseronPersonelleri: 'Taşeron Personeli',
+    taseronHakedisleri: 'Taşeron Hakedişi', olcumCihazlari: 'Ölçüm Cihazı',
+    kalibrasyonlar: 'Kalibrasyon', kaliteDokumanlari: 'Kalite Dokümanı',
+    denetimler: 'Denetim', duzelticiFaaliyetler: 'Düzeltici Faaliyet',
+    musteriSikayetleri: 'Müşteri Şikâyeti', bildirimler: 'Bildirim',
+    ajanda: 'Ajanda', veriAktarimlari: 'Veri Aktarımı', portalErisimleri: 'Portal Erişimi',
+    belgeler: 'Belge'
+  };
+
   function kayitAt(islem, modul, kayitId, onceki, yeni, aciklama) {
     if (!ortu.ekle.islemKayitlari) ortu.ekle.islemKayitlari = [];
     var aktif = (window.GV && window.GV.rol) || 'sahip';
@@ -416,7 +441,7 @@ window.demoApi = (function () {
       id: 'LOG-U' + String(ortu.ekle.islemKayitlari.length + 1).padStart(5, '0'),
       zaman: new Date().toISOString().substring(0, 19),
       kullaniciId: rolAd ? rolAd.personelId : null,
-      rol: aktif, modul: modul, kayit: kayitId, islem: islem,
+      rol: aktif, modul: MODUL_ADI[modul] || modul, kayit: kayitId, islem: islem,
       onceki: onceki == null ? null : String(onceki),
       yeni: yeni == null ? null : String(yeni),
       aciklama: aciklama || 'Demo arayüzünden yapıldı.',
@@ -469,11 +494,28 @@ window.demoApi = (function () {
   }
 
   /* ---------- dışa açılan cephe ---------- */
+
+  /* Firma künyesi tek cepheden okunur. Ayarlar ekranında kaydedilen künye
+     (gv_tk_firma) çekirdek veriyi örter; rapor kapağı ve fatura başlığı
+     otomatik olarak güncel künyeyi kullanır. */
+  function firma() {
+    var ortu = {};
+    try { ortu = JSON.parse(localStorage.getItem('gv_tk_firma') || '{}') || {}; } catch (e) {}
+    return Object.assign({}, D.firma, ortu);
+  }
+
+  /* Anahtarlı sözlükler (dizi olmayan koleksiyonlar) da tek cepheden okunur:
+     hizmetFiyatlari, listeKatsayilari, kontrolMaddeleri, lokasyonKapsamAyarlari.
+     Sayfaların window.DEMO'ya doğrudan erişmesine gerek kalmaz. */
+  function harita(ad) { return D[ad] || {}; }
+
   return {
     /* çekirdek */
     liste: koleksiyon,
     kayit: bul,
     bugun: bugun,
+    firma: firma,
+    harita: harita,
     veri: function (ad) { return koleksiyon(ad); },
 
     /* tarih ve periyot */

@@ -105,6 +105,7 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
+  var ESIK = GV.ayar('kalibrasyonEsik');  /* Ayarlar > Operasyon Ayarları'ndan gelir */
   var id = GV.q('id') || 'CHZ-001';
   var c = A.kayit('olcumCihazlari', id);
   if (!c) { gvNotFound({ kod:id, listeHref:'olcum-cihazlari.html', listeEtiket:'Ölçüm cihazları' }); return; }
@@ -234,7 +235,7 @@
     + bilgi('Zimmet Birimi', personel ? GV.esc(personel.birim) : null)
     + bilgi('Geçerlilik Süresi', toplamGun ? GV.n(toplamGun) + ' gün' : null)
     + '</dl>'
-    + '<div class="gv-note ' + (gecmis ? 'danger' : kalan != null && kalan <= 30 ? 'warn' : 'ok') + '" style="margin-top:16px">'
+    + '<div class="gv-note ' + (gecmis ? 'danger' : kalan != null && kalan <= ESIK ? 'warn' : 'ok') + '" style="margin-top:16px">'
     + '<i class="fa-solid fa-' + (gecmis ? 'calendar-xmark' : 'calendar-check') + '" aria-hidden="true"></i>'
     + '<span>Geçerlilik bitişi <b>' + GV.d(c.kalibrasyonBitis) + '</b> tarihi, son kalibrasyon tarihine ('
     + GV.d(c.kalibrasyonTarihi) + ') kuruluşun verdiği geçerlilik süresi eklenerek belirlenir; sabit 365 gün kabul edilmez.</span></div>';
@@ -295,7 +296,7 @@
 
   /* ================= SAĞ KOLON — KALİBRASYON DURUMU ================= */
   var oran = (toplamGun && kalan != null) ? Math.max(0, Math.min(1, kalan / toplamGun)) : 0;
-  var ton = kalan == null ? 'danger' : kalan < 0 ? 'danger' : kalan <= 30 ? 'warn' : 'ok';
+  var ton = kalan == null ? 'danger' : kalan < 0 ? 'danger' : kalan <= ESIK ? 'warn' : 'ok';
   document.getElementById('cdDurum').innerHTML =
     '<div class="fill-meter"><div class="fill-meter-top"><b>Geçerlilik kalan süresi</b>'
     + '<span>' + (kalan == null ? GV.bos : kalan < 0 ? GV.n(Math.abs(kalan)) + ' gün geçti' : GV.n(kalan) + ' / ' + GV.n(toplamGun) + ' gün') + '</span></div>'

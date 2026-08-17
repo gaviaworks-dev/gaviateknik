@@ -94,7 +94,7 @@ body{background:var(--gv-deep);min-height:100vh;display:flex;flex-direction:colu
 <script src="assets/js/app.js"></script>
 <script>
 (function(){
-  var A = window.demoApi, D = window.DEMO;
+  var A = window.demoApi;
 
   /* özet göstergeler — demo veriden hesaplanır */
   var lokasyonlar = A.liste('lokasyonlar');
@@ -112,9 +112,9 @@ body{background:var(--gv-deep);min-height:100vh;display:flex;flex-direction:colu
 
   /* rol kartları */
   var kap = document.getElementById('gpRoller');
-  kap.innerHTML = D.roller.map(function(r){
+  kap.innerHTML = A.liste('roller').map(function(r){
     var kisi = null;
-    if (r.personelId) D.personeller.forEach(function(p){ if(p.id===r.personelId) kisi = p; });
+    if (r.personelId) A.liste('personeller').forEach(function(p){ if(p.id===r.personelId) kisi = p; });
     var sinif = r.id === 'musteri' ? ' portal' : r.id === 'sistem' ? ' sistem' : '';
     var hedef = r.id === 'musteri' ? 'musteri-portali.html' : 'panel.html';
     return '<a class="gp-card' + sinif + '" href="' + hedef + '?role=' + r.id + '">'

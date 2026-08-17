@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Veri Aktarımı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.va-adimlar{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none;margin-bottom:20px}
+.va-adimlar::-webkit-scrollbar{display:none}
+.va-adim{flex:none;display:inline-flex;align-items:center;gap:9px;padding:10px 14px;border-radius:var(--radius-sm);
+  border:1px solid var(--line);background:var(--paper);font-family:inherit;font-size:12.5px;font-weight:600;
+  color:var(--muted);white-space:nowrap;cursor:pointer;transition:.18s var(--ease)}
+.va-adim .va-n{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;
+  font-size:10.5px;font-weight:800;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.va-adim.tamam{color:var(--success);border-color:rgba(46,158,107,.32);background:var(--success-tint)}
+.va-adim.tamam .va-n{background:var(--success);color:#fff;border-color:transparent}
+.va-adim.simdi{color:var(--gv-action);border-color:var(--gv-action);background:rgba(63,213,173,.08);font-weight:700}
+.va-adim.simdi .va-n{background:var(--gv-action);color:#fff;border-color:transparent}
+.va-adim:disabled{cursor:not-allowed;opacity:.55}
+.va-govde{min-height:280px}
+.va-esles{display:grid;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr) 118px;gap:12px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--line)}
+.va-esles:last-child{border-bottom:none}
+.va-esles-kaynak b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.va-esles-kaynak span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.va-ok{text-align:center;color:var(--muted);font-size:12px}
+.va-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:16px 22px;border-top:1px solid var(--line)}
+.va-foot-sag{display:flex;gap:9px;flex-wrap:wrap;margin-left:auto}
+.va-benzer{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.va-benzer:last-child{border-bottom:none}
+@media(max-width:640px){
+  .va-esles{grid-template-columns:minmax(0,1fr);gap:7px}
+  .va-ok{display:none}
+  .va-foot{padding:14px 16px}
+  .va-foot .btn{flex:1 1 auto;justify-content:center}
+}
+</style>
+</head>
+<body data-sec="sistem" data-screen="veri-aktarimi">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Sistem</div>
+        <h1>Veri Aktarımı</h1>
+        <p class="ph-sub">Excel ve CSV dosyalarından lokasyon, iletişim kişisi, hizmet pozisyonu, miktar, tarih, rapor ve fatura bilgilerini içe aktarma sihirbazı. Aktarım geri alınabilir kayıt olarak saklanır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="vaSablon"><i class="fa-solid fa-download" aria-hidden="true"></i>Şablon İndir</button>
+      <button class="btn btn-acc" type="button" id="vaYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Aktarım</button></div>
+    </div>
+    <div class="kpi-grid" id="vaKpi"></div>
+
+    <section class="gv-card" id="vaSihirbaz" style="margin-bottom:22px">
+      <div class="gc-head">
+        <h2 class="gc-title"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>Aktarım Sihirbazı</h2>
+        <span class="gtag" id="vaAdimEtiket">Adım 1 / 10</span>
+      </div>
+      <div class="gc-body">
+        <div class="va-adimlar" id="vaAdimlar" role="tablist" aria-label="Aktarım adımları"></div>
+        <div class="va-govde" id="vaGovde"></div>
+      </div>
+      <div class="va-foot no-print">
+        <button class="btn btn-ghost" type="button" id="vaSifirla"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Sihirbazı Sıfırla</button>
+        <div class="va-foot-sag">
+          <button class="btn btn-ghost" type="button" id="vaGeri"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Geri</button>
+          <button class="btn btn-acc" type="button" id="vaIleri">İleri<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="gv-card">
+      <div class="gc-head">
+        <h2 class="gc-title"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Aktarım Geçmişi</h2>
+        <span class="gc-title gct-sub" style="font-size:12px;color:var(--muted);font-weight:500">Geri alınabilir aktarım kayıtları</span>
+      </div>
+      <div class="gc-body flush" id="vaGecmis"></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var adimlar = A.liste('aktarimAdimlari');
+
+  /* ---- sihirbaz durumu (localStorage'da kalıcı) ---- */
+  var ANAHTAR = 'gv_tk_aktarim';
+  var d = { adim: 1, tur:'Lokasyon', dosya: null, satirSayisi: 0,
+    eslesme: {}, dogrulama: null, mukerrer: [], hatali: [], onaylandi: false, sonuc: null };
+  try { var k = JSON.parse(localStorage.getItem(ANAHTAR) || 'null'); if (k) d = Object.assign(d, k); } catch(e){}
+  function kaydet(){ try { localStorage.setItem(ANAHTAR, JSON.stringify(d)); } catch(e){} }
+
+  /* ---- aktarım türüne göre hedef alanlar ---- */
+  var HEDEF_ALANLAR = {
+    'Lokasyon': [
+      { k:'ad', ad:'Lokasyon Adı', zorunlu:true },
+      { k:'musteriKod', ad:'Müşteri Lokasyon Kodu', zorunlu:true },
+      { k:'il', ad:'İl', zorunlu:true },
+      { k:'ilce', ad:'İlçe', zorunlu:false },
+      { k:'bolge', ad:'Bölge', zorunlu:true },
+      { k:'tur', ad:'Lokasyon Türü', zorunlu:true },
+      { k:'m2', ad:'Kapalı Alan (m²)', zorunlu:false },
+      { k:'adres', ad:'Açık Adres', zorunlu:false }
+    ],
+    'İletişim Kişisi': [
+      { k:'ad', ad:'Ad Soyad', zorunlu:true },
+      { k:'unvan', ad:'Unvan', zorunlu:false },
+      { k:'iletisimRolu', ad:'İletişim Rolü', zorunlu:true },
+      { k:'telefon', ad:'Telefon', zorunlu:false },
+      { k:'eposta', ad:'E-posta', zorunlu:true },
+      { k:'lokasyonKod', ad:'Lokasyon Kodu', zorunlu:false }
+    ],
+    'Ön Envanter': [
+      { k:'lokasyonKod', ad:'Lokasyon Kodu', zorunlu:true },
+      { k:'poz', ad:'Hizmet Pozisyon Kodu', zorunlu:true },
+      { k:'miktar', ad:'Miktar', zorunlu:true },
+      { k:'birim', ad:'Birim', zorunlu:false },
+      { k:'kaynak', ad:'Bilgi Kaynağı', zorunlu:false }
+    ],
+    'Ekipman': [
+      { k:'lokasyonKod', ad:'Lokasyon Kodu', zorunlu:true },
+      { k:'ad', ad:'Ekipman Adı', zorunlu:true },
+      { k:'marka', ad:'Marka', zorunlu:false },
+      { k:'model', ad:'Model', zorunlu:false },
+      { k:'seri', ad:'Seri Numarası', zorunlu:false },
+      { k:'uretimYili', ad:'Üretim Yılı', zorunlu:false },
+      { k:'kapasite', ad:'Kapasite', zorunlu:false },
+      { k:'sonKontrol', ad:'Son Kontrol Tarihi', zorunlu:false }
+    ]
+  };
+
+  /* ---- demo dosya içeriği (tür bazlı, deterministik) ---- */
+  var DEMO_DOSYA = {
+    'Lokasyon': {
+      ad:'yeni-subeler.xlsx',
+      kolonlar:['Şube Adı','Şube Kodu','İl','İlçe','Bölge','Tip','Alan m2','Adres','Açılış Tarihi'],
+      satirlar:[
+        ['Zambak Market Pendik Şubesi','ZM-140','İstanbul','Pendik','Marmara','Market','1520','Örnek Mah. 15. Sok. No: 140','12.03.2025'],
+        ['Zambak Market Maltepe Şubesi','ZM-141','İstanbul','Maltepe','Marmara','Market','1680','Örnek Mah. 22. Cad. No: 141','04.06.2025'],
+        ['Zambak Market Bayraklı Şubesi','ZM-142','İzmir','Bayraklı','Ege','Market','1410','Örnek Mah. 8. Sok. No: 142','19.09.2025'],
+        ['Zambak Market Kartal Şubesi','ZM-034','İstanbul','Kartal','Marmara','Market','1850','Örnek Mah. 1. Cad. No: 34','—'],
+        ['Zambak Market Çiğli Şubesi','ZM-143','İzmir','Çiğli','Ege','Market','','Örnek Mah. 4. Cad. No: 143','02.01.2026'],
+        ['Zambak Market Etimesgut Şubesi','ZM-144','','Etimesgut','İç Anadolu','Market','1330','Örnek Mah. 11. Sok. No: 144','15.02.2026'],
+        ['Zambak Market Nilüfer Şubesi','ZM-102','Bursa','Nilüfer','Marmara','Market','1920','Örnek Mah. 18. Cad. No: 102','—']
+      ]
+    },
+    'İletişim Kişisi': {
+      ad:'sube-yetkilileri.csv',
+      kolonlar:['Ad Soyad','Görev','Rol','Telefon','E-posta','Şube Kodu'],
+      satirlar:[
+        ['Yeliz Karahan','Şube Müdürü','Lokasyon Müdürü','0 (216) 000 05 01','yeliz.karahan@zambak.test','ZM-140'],
+        ['Erdem Baykuş','Şube Müdürü','Lokasyon Müdürü','0 (216) 000 05 02','erdem.baykus@zambak.test','ZM-141'],
+        ['Nihan Sancak','Teknik Sorumlu','Teknik Yetkili','0 (232) 000 05 03','nihan.sancak@zambak.test','ZM-142'],
+        ['Yeliz Karahan','Şube Müdürü','Lokasyon Müdürü','0 (216) 000 05 01','yeliz.karahan@zambak.test','ZM-140'],
+        ['Serhat Tosun','Bölge Yöneticisi','Bölge Yöneticisi','','serhat.tosun@zambak','ZM-143']
+      ]
+    },
+    'Ön Envanter': {
+      ad:'sube-envanter.xlsx',
+      kolonlar:['Şube Kodu','Poz','Miktar','Birim','Kaynak'],
+      satirlar:[
+        ['ZM-140','PZ.05.01','1','sistem','Müşteri bildirimi'],
+        ['ZM-140','PZ.05.03','6','adet','Müşteri bildirimi'],
+        ['ZM-140','PZ.04.01','1','sistem','Müşteri bildirimi'],
+        ['ZM-140','PZ.09.01','24','adet','Müşteri bildirimi'],
+        ['ZM-140','PZ.06.04','680','metrekare','Müşteri bildirimi'],
+        ['ZM-141','PZ.05.01','1','sistem','Müşteri bildirimi'],
+        ['ZM-141','PZ.99.99','3','adet','Müşteri bildirimi'],
+        ['ZM-141','PZ.04.04','','adet','Müşteri bildirimi']
+      ]
+    },
+    'Ekipman': {
+      ad:'forklift-listesi.xlsx',
+      kolonlar:['Şube Kodu','Ekipman','Marka','Model','Seri No','Üretim Yılı','Kapasite','Son Kontrol'],
+      satirlar:[
+        ['LOK-0201','Akülü Forklift','Fortek','FA-18','FO-2021-4412','2021','1.800 kg','21.04.2026'],
+        ['LOK-0201','Akülü Forklift','Lifmak','LA-20','LI-2019-2210','2019','2.000 kg','21.04.2026'],
+        ['LOK-0202','Dizel Forklift','Fortek','FD-30','FO-2018-1180','2018','3.000 kg','09.06.2026'],
+        ['LOK-9999','Akülü Forklift','Fortek','FA-18','FO-2022-5510','2022','1.800 kg','']
+      ]
+    }
+  };
+
+  function dosya(){ return DEMO_DOSYA[d.tur] || DEMO_DOSYA['Lokasyon']; }
+  function hedefler(){ return HEDEF_ALANLAR[d.tur] || HEDEF_ALANLAR['Lokasyon']; }
+
+  /* ---- otomatik kolon eşleştirme önerisi ---- */
+  function otoEslestir(){
+    var f = dosya(), h = hedefler();
+    var oneri = {};
+    var sozluk = {
+      ad:['ad','şube adı','lokasyon','ekipman','ad soyad'],
+      musteriKod:['şube kodu','kod','lokasyon kodu'],
+      lokasyonKod:['şube kodu','lokasyon kodu'],
+      il:['il'], ilce:['ilçe'], bolge:['bölge'], tur:['tip','tür'],
+      m2:['alan','m2','metrekare'], adres:['adres'],
+      unvan:['görev','unvan'], iletisimRolu:['rol'], telefon:['telefon'], eposta:['e-posta','eposta','mail'],
+      poz:['poz','pozisyon'], miktar:['miktar','adet'], birim:['birim'], kaynak:['kaynak'],
+      marka:['marka'], model:['model'], seri:['seri'], uretimYili:['üretim','yıl'],
+      kapasite:['kapasite'], sonKontrol:['son kontrol','kontrol tarihi']
+    };
+    h.forEach(function(x){
+      var adaylar = sozluk[x.k] || [x.k];
+      var bulunan = f.kolonlar.filter(function(kol){
+        var kl = kol.toLocaleLowerCase('tr-TR');
+        return adaylar.some(function(a){ return kl.indexOf(a) !== -1; });
+      })[0];
+      oneri[x.k] = bulunan || '';
+    });
+    return oneri;
+  }
+
+  /* ---- doğrulama ---- */
+  function dogrula(){
+    var f = dosya(), h = hedefler();
+    var hatali = [], mukerrer = [], gorulen = {};
+    var anahtarAlan = d.tur === 'Lokasyon' ? 'musteriKod'
+      : d.tur === 'İletişim Kişisi' ? 'eposta'
+      : d.tur === 'Ön Envanter' ? null : 'seri';
+
+    f.satirlar.forEach(function(satir, i){
+      var kayit = {};
+      h.forEach(function(x){
+        var kol = d.eslesme[x.k];
+        var idx = kol ? f.kolonlar.indexOf(kol) : -1;
+        kayit[x.k] = idx >= 0 ? String(satir[idx] || '').trim() : '';
+      });
+      var sorunlar = [];
+      h.forEach(function(x){
+        if (x.zorunlu && (!kayit[x.k] || kayit[x.k] === '—')) sorunlar.push(x.ad + ' boş');
+      });
+      if (kayit.eposta && kayit.eposta.indexOf('@') !== -1 && kayit.eposta.split('@')[1].indexOf('.') === -1)
+        sorunlar.push('E-posta biçimi geçersiz');
+      if (kayit.miktar !== undefined && kayit.miktar !== '' && isNaN(Number(kayit.miktar)))
+        sorunlar.push('Miktar sayısal değil');
+      if (kayit.poz && !A.liste('hizmetler').some(function(x){ return x.poz === kayit.poz; }))
+        sorunlar.push('Hizmet pozisyonu katalogda yok: ' + kayit.poz);
+      if (kayit.lokasyonKod && !A.liste('lokasyonlar').some(function(l){
+          return l.kod === kayit.lokasyonKod || l.musteriKod === kayit.lokasyonKod; }))
+        sorunlar.push('Lokasyon bulunamadı: ' + kayit.lokasyonKod);
+
+      if (sorunlar.length) { hatali.push({ satir: i + 2, kayit: kayit, sorunlar: sorunlar }); return; }
+
+      /* mükerrer kontrolü — dosya içi ve sistemdeki kayıtlara karşı */
+      if (anahtarAlan && kayit[anahtarAlan]) {
+        var anahtar = kayit[anahtarAlan].toLocaleLowerCase('tr-TR');
+        var sistemde = null;
+        if (d.tur === 'Lokasyon') {
+          sistemde = A.liste('lokasyonlar').filter(function(l){
+            return String(l.musteriKod).toLocaleLowerCase('tr-TR') === anahtar; })[0];
+        } else if (d.tur === 'İletişim Kişisi') {
+          sistemde = A.liste('iletisimKisileri').filter(function(x){
+            return String(x.eposta).toLocaleLowerCase('tr-TR') === anahtar; })[0];
+        } else if (d.tur === 'Ekipman') {
+          sistemde = A.liste('ekipmanlar').filter(function(x){
+            return String(x.seri).toLocaleLowerCase('tr-TR') === anahtar; })[0];
+        }
+        if (gorulen[anahtar]) {
+          mukerrer.push({ satir: i + 2, kayit: kayit, tur:'dosya-ici',
+            eslesen:'Dosyada ' + gorulen[anahtar] + '. satırla aynı', karar:'atla' });
+          return;
+        }
+        gorulen[anahtar] = i + 2;
+        if (sistemde) {
+          mukerrer.push({ satir: i + 2, kayit: kayit, tur:'sistemde',
+            eslesen: (sistemde.ad || sistemde.kod || sistemde.eposta) + ' (' + (sistemde.id || '') + ')',
+            karar:'guncelle' });
+        }
+      }
+    });
+
+    var toplam = f.satirlar.length;
+    var mukerrerSatirlar = mukerrer.map(function(m){ return m.satir; });
+    var hataliSatirlar = hatali.map(function(x){ return x.satir; });
+    return {
+      toplam: toplam,
+      hatali: hatali, mukerrer: mukerrer,
+      temiz: toplam - hataliSatirlar.length - mukerrerSatirlar.length
+    };
+  }
+
+  /* ---- adım çizimi ---- */
+  function adimCubugu(){
+    document.getElementById('vaAdimlar').innerHTML = adimlar.map(function(a){
+      var sinif = a.n < d.adim ? ' tamam' : a.n === d.adim ? ' simdi' : '';
+      var kilitli = a.n > d.adim;
+      return '<button type="button" class="va-adim' + sinif + '" data-adim="' + a.n + '"'
+        + (kilitli ? ' disabled' : '') + ' aria-current="' + (a.n === d.adim ? 'step' : 'false') + '">'
+        + '<span class="va-n">' + (a.n < d.adim ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : a.n) + '</span>'
+        + GV.esc(a.ad) + '</button>';
+    }).join('');
+    document.getElementById('vaAdimEtiket').textContent = 'Adım ' + d.adim + ' / ' + adimlar.length;
+    document.querySelectorAll('[data-adim]').forEach(function(b){
+      if (b.disabled) return;
+      b.addEventListener('click', function(){ d.adim = Number(b.getAttribute('data-adim')); kaydet(); ciz(); });
+    });
+  }
+
+  function adimAciklama(){
+    var a = adimlar.filter(function(x){ return x.n === d.adim; })[0];
+    return '<div class="gv-note" style="margin-bottom:18px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span><b>' + GV.esc(a.ad) + '</b> — ' + GV.esc(a.aciklama) + '</span></div>';
+  }
+
+  function ciz(){
+    adimCubugu();
+    var g = document.getElementById('vaGovde');
+    var f = dosya(), h = hedefler();
+
+    if (d.adim === 1) {
+      g.innerHTML = adimAciklama()
+        + '<div class="gform" style="margin-bottom:18px">'
+        + '<div class="gfield"><label for="vaTur">Aktarım türü</label><select id="vaTur">'
+        + Object.keys(HEDEF_ALANLAR).map(function(t){
+            return '<option' + (t === d.tur ? ' selected' : '') + '>' + GV.esc(t) + '</option>'; }).join('')
+        + '</select><span class="gf-hint">Aktarılacak veri kümesini seçin. Hedef alanlar buna göre belirlenir.</span></div>'
+        + '<div class="gfield"><label for="vaKodlama">Dosya kodlaması</label><select id="vaKodlama">'
+        + '<option>UTF-8</option><option>Windows-1254 (Türkçe)</option></select>'
+        + '<span class="gf-hint">Türkçe karakter bozuluyorsa Windows-1254 deneyin.</span></div></div>'
+        + '<div id="vaDrop"></div>'
+        + (d.dosya
+          ? '<div class="gv-note ok" style="margin-top:16px"><i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>'
+            + '<span><b>' + GV.esc(d.dosya) + '</b> yüklendi · ' + GV.n(f.kolonlar.length) + ' kolon, '
+            + GV.n(f.satirlar.length) + ' veri satırı okundu.</span></div>'
+          : '');
+      gvDrop('#vaDrop', { baslik:'Excel veya CSV dosyası seçin', metin:'.xlsx, .xls veya .csv · en fazla 20 MB',
+        ikon:'fa-file-excel',
+        degisti: function(){ d.dosya = f.ad; d.satirSayisi = f.satirlar.length; kaydet(); ciz(); } });
+      var turSec = document.getElementById('vaTur');
+      turSec.addEventListener('change', function(){
+        d.tur = turSec.value; d.dosya = null; d.eslesme = {}; d.dogrulama = null; kaydet(); ciz();
+      });
+      if (!d.dosya) {
+        g.insertAdjacentHTML('beforeend',
+          '<div style="margin-top:16px"><button class="btn btn-ghost" type="button" id="vaOrnekYukle">'
+          + '<i class="fa-solid fa-file-import" aria-hidden="true"></i>Örnek dosyayı yükle (' + GV.esc(f.ad) + ')</button></div>');
+        document.getElementById('vaOrnekYukle').addEventListener('click', function(){
+          d.dosya = f.ad; d.satirSayisi = f.satirlar.length; kaydet(); ciz();
+          gvToast(f.ad + ' yüklendi (demo dosyası).', { ton:'ok' });
+        });
+      }
+
+    } else if (d.adim === 2) {
+      if (!Object.keys(d.eslesme).length) d.eslesme = otoEslestir();
+      g.innerHTML = adimAciklama()
+        + '<div id="vaEslesListe">' + h.map(function(x){
+            return '<div class="va-esles">'
+              + '<div class="va-esles-kaynak"><b>' + GV.esc(x.ad) + (x.zorunlu ? ' <span style="color:var(--danger)">*</span>' : '') + '</b>'
+              + '<span>Sistem alanı: ' + GV.esc(x.k) + '</span></div>'
+              + '<div class="va-ok"><i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i></div>'
+              + '<div><label class="gv-sr" for="va_' + x.k + '">' + GV.esc(x.ad) + ' için dosya kolonu</label>'
+              + '<select id="va_' + x.k + '" data-esles="' + x.k + '">'
+              + '<option value="">— eşleştirilmedi —</option>'
+              + f.kolonlar.map(function(kol){
+                  return '<option' + (d.eslesme[x.k] === kol ? ' selected' : '') + '>' + GV.esc(kol) + '</option>'; }).join('')
+              + '</select></div>'
+              + '<div>' + (d.eslesme[x.k]
+                  ? GV.rozetOzel('ok','fa-check','Eşleşti')
+                  : x.zorunlu ? GV.rozetOzel('danger','fa-triangle-exclamation','Zorunlu')
+                  : GV.rozetOzel('off','fa-minus','İsteğe bağlı')) + '</div></div>';
+          }).join('') + '</div>'
+        + '<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
+        + '<button class="btn btn-sm btn-ghost" type="button" id="vaOtoEsles">'
+        + '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>Otomatik Eşleştir</button>'
+        + '<button class="btn btn-sm btn-ghost" type="button" id="vaEslesTemizle">'
+        + '<i class="fa-solid fa-eraser" aria-hidden="true"></i>Eşleştirmeleri Temizle</button></div>'
+        + '<div style="margin-top:18px"><b style="display:block;font-size:13px;color:var(--ink);margin-bottom:9px">'
+        + 'Eşleştirilmeyen dosya kolonları</b><div class="chips">'
+        + f.kolonlar.filter(function(kol){
+            return Object.keys(d.eslesme).every(function(x){ return d.eslesme[x] !== kol; }); })
+          .map(function(kol){ return '<span class="chip" style="cursor:default">' + GV.esc(kol) + '</span>'; }).join('')
+        + '</div><p class="gf-hint" style="margin-top:9px">Eşleştirilmeyen kolonlar aktarılmaz; kayıt altına alınır.</p></div>';
+
+      g.querySelectorAll('[data-esles]').forEach(function(s){
+        s.addEventListener('change', function(){ d.eslesme[s.getAttribute('data-esles')] = s.value; kaydet(); ciz(); });
+      });
+      document.getElementById('vaOtoEsles').addEventListener('click', function(){
+        d.eslesme = otoEslestir(); kaydet(); ciz(); gvToast('Kolonlar otomatik eşleştirildi.', { ton:'ok' });
+      });
+      document.getElementById('vaEslesTemizle').addEventListener('click', function(){
+        d.eslesme = {}; kaydet(); ciz();
+      });
+
+    } else if (d.adim === 3) {
+      g.innerHTML = adimAciklama()
+        + '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Satır</th>'
+        + h.filter(function(x){ return d.eslesme[x.k]; }).map(function(x){
+            return '<th scope="col">' + GV.esc(x.ad) + '</th>'; }).join('')
+        + '</tr></thead><tbody>'
+        + f.satirlar.slice(0, 5).map(function(satir, i){
+            return '<tr><td><b>' + (i + 2) + '</b></td>'
+              + h.filter(function(x){ return d.eslesme[x.k]; }).map(function(x){
+                  var idx = f.kolonlar.indexOf(d.eslesme[x.k]);
+                  var v = idx >= 0 ? satir[idx] : '';
+                  return '<td>' + (v && v !== '—' ? GV.esc(v) : '<span class="muted">boş</span>') + '</td>';
+                }).join('') + '</tr>';
+          }).join('') + '</tbody></table></div>'
+        + '<p class="gf-hint" style="margin-top:12px">' + GV.n(f.satirlar.length)
+        + ' satırdan ilk 5 tanesi gösteriliyor. Eşleştirmeyi değiştirmek için önceki adıma dönebilirsiniz.</p>';
+
+    } else if (d.adim === 4) {
+      d.dogrulama = dogrula(); kaydet();
+      var v = d.dogrulama;
+      g.innerHTML = adimAciklama()
+        + '<div class="gv-grid-4" style="margin-bottom:18px">'
+        + [['fa-list-ol', GV.n(v.toplam), 'Toplam satır', ''],
+           ['fa-circle-check', GV.n(v.temiz), 'Sorunsuz satır', 'var(--success)'],
+           ['fa-clone', GV.n(v.mukerrer.length), 'Mükerrer aday', 'var(--warning)'],
+           ['fa-circle-xmark', GV.n(v.hatali.length), 'Hatalı satır', 'var(--danger)']]
+          .map(function(c){
+            return '<div style="padding:15px 17px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg)">'
+              + '<i class="fa-solid ' + c[0] + '" style="font-size:14px;margin-bottom:8px;display:block;color:'
+              + (c[3] || 'var(--gv-action)') + '" aria-hidden="true"></i>'
+              + '<b style="display:block;font-size:21px;font-weight:800;color:' + (c[3] || 'var(--ink)')
+              + ';font-variant-numeric:tabular-nums">' + c[1] + '</b>'
+              + '<span style="font-size:12px;color:var(--muted)">' + c[2] + '</span></div>';
+          }).join('') + '</div>'
+        + '<div style="margin-bottom:14px"><b style="display:block;font-size:13px;color:var(--ink);margin-bottom:9px">'
+        + 'Uygulanan doğrulama kuralları</b><ul style="padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.85">'
+        + '<li>Zorunlu alanların dolu olması (' + h.filter(function(x){ return x.zorunlu; }).map(function(x){ return x.ad; }).join(', ') + ')</li>'
+        + '<li>Sayısal alanların sayı olması</li>'
+        + '<li>E-posta biçim kontrolü</li>'
+        + '<li>Hizmet pozisyon kodunun katalogda bulunması</li>'
+        + '<li>Lokasyon kodunun ana rehberde bulunması</li>'
+        + '<li>Dosya içi ve sistemdeki kayıtlara karşı mükerrer kontrolü</li></ul></div>'
+        + (v.hatali.length
+          ? '<div class="gv-note danger"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>'
+            + '<span><b>' + v.hatali.length + ' satır doğrulamadan geçemedi.</b> Bu satırlar aktarılmayacak; '
+            + '6. adımda listelenir ve indirilebilir.</span></div>'
+          : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+            + '<span>Bütün satırlar doğrulamadan geçti.</span></div>');
+
+    } else if (d.adim === 5) {
+      if (!d.dogrulama) d.dogrulama = dogrula();
+      var mk = d.dogrulama.mukerrer;
+      g.innerHTML = adimAciklama()
+        + (mk.length
+          ? mk.map(function(m, i){
+              return '<div class="va-benzer">'
+                + '<span style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;'
+                + 'background:var(--warning-tint);color:var(--warning)"><i class="fa-solid fa-clone" aria-hidden="true"></i></span>'
+                + '<span style="flex:1;min-width:0;line-height:1.45">'
+                + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+                + GV.esc(m.kayit.ad || m.kayit.musteriKod || m.kayit.eposta || ('Satır ' + m.satir)) + '</b>'
+                + '<span style="display:block;font-size:11.5px;color:var(--muted)">Satır ' + m.satir + ' · '
+                + (m.tur === 'dosya-ici' ? 'Dosya içi tekrar' : 'Sistemde eşleşen kayıt') + ': ' + GV.esc(m.eslesen) + '</span></span>'
+                + '<span style="flex:none"><label class="gv-sr" for="vaMk' + i + '">Satır ' + m.satir + ' için karar</label>'
+                + '<select id="vaMk' + i + '" data-mukerrer="' + i + '" style="padding:7px 10px;font-size:12.5px;'
+                + 'border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg)">'
+                + '<option value="atla"' + (m.karar === 'atla' ? ' selected' : '') + '>Atla (aktarma)</option>'
+                + '<option value="guncelle"' + (m.karar === 'guncelle' ? ' selected' : '') + '>Mevcut kaydı güncelle</option>'
+                + '<option value="yeni">Yeni kayıt olarak ekle</option></select></span></div>';
+            }).join('')
+            + '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+            + '<span><b>Benzer isimli kayıtlar otomatik birleştirilmez.</b> Aynı lokasyonun farklı yazımları '
+            + 'eşleşme önerisiyle gösterilir; karar sizindir. Kullanıcı onayı olmadan birleştirme yapılmaz.</span></div>'
+          : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+            + '<span>Mükerrer kayıt adayı bulunamadı.</span></div>');
+      g.querySelectorAll('[data-mukerrer]').forEach(function(s){
+        s.addEventListener('click', function(e){ e.stopPropagation(); });
+        s.addEventListener('change', function(){
+          d.dogrulama.mukerrer[Number(s.getAttribute('data-mukerrer'))].karar = s.value; kaydet();
+        });
+      });
+
+    } else if (d.adim === 6) {
+      if (!d.dogrulama) d.dogrulama = dogrula();
+      var ht = d.dogrulama.hatali;
+      g.innerHTML = adimAciklama()
+        + (ht.length
+          ? '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+            + '<th scope="col">Satır</th><th scope="col">Kayıt</th><th scope="col">Tespit Edilen Sorunlar</th></tr></thead><tbody>'
+            + ht.map(function(x){
+                return '<tr><td><b>' + x.satir + '</b></td>'
+                  + '<td>' + GV.esc(x.kayit.ad || x.kayit.musteriKod || x.kayit.lokasyonKod || x.kayit.eposta || '—') + '</td>'
+                  + '<td>' + x.sorunlar.map(function(s){
+                      return '<span class="gtag danger" style="margin:2px 3px 2px 0">' + GV.esc(s) + '</span>'; }).join('') + '</td></tr>';
+              }).join('') + '</tbody></table></div>'
+            + '<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
+            + '<button class="btn btn-ghost" type="button" id="vaHataliIndir">'
+            + '<i class="fa-solid fa-download" aria-hidden="true"></i>Hatalı Satırları İndir</button></div>'
+            + '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+            + '<span>Hatalı satırlar aktarılmaz. Dosyayı indirip düzeltebilir ve ikinci bir aktarımla '
+            + 'yalnız bu satırları sisteme alabilirsiniz.</span></div>'
+          : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+            + '<span>Hatalı satır yok. Bütün kayıtlar aktarıma hazır.</span></div>');
+      var hi = document.getElementById('vaHataliIndir');
+      if (hi) hi.addEventListener('click', function(){
+        GV.disaAktar({ kayitSayisi: ht.length, dosyaAdi:'hatali-satirlar', modul:'Veri Aktarımı' });
+      });
+
+    } else if (d.adim === 7) {
+      if (!d.dogrulama) d.dogrulama = dogrula();
+      var v7 = d.dogrulama;
+      var eklenecek = v7.temiz + v7.mukerrer.filter(function(m){ return m.karar === 'yeni'; }).length;
+      var guncellenecek = v7.mukerrer.filter(function(m){ return m.karar === 'guncelle'; }).length;
+      var atlanacak = v7.mukerrer.filter(function(m){ return m.karar === 'atla'; }).length + v7.hatali.length;
+      g.innerHTML = adimAciklama()
+        + '<div class="sum-list" style="max-width:520px">'
+        + '<div class="sum-row"><span>Aktarım türü</span><b>' + GV.esc(d.tur) + '</b></div>'
+        + '<div class="sum-row"><span>Kaynak dosya</span><b>' + GV.esc(d.dosya || '—') + '</b></div>'
+        + '<div class="sum-row"><span>Toplam satır</span><b>' + GV.n(v7.toplam) + '</b></div>'
+        + '<div class="sum-row profit"><span>Yeni kayıt olarak eklenecek</span><b>' + GV.n(eklenecek) + '</b></div>'
+        + '<div class="sum-row"><span>Mevcut kayıt güncellenecek</span><b>' + GV.n(guncellenecek) + '</b></div>'
+        + '<div class="sum-row cost"><span>Atlanacak / hatalı</span><b>' + GV.n(atlanacak) + '</b></div>'
+        + '<div class="sum-row total"><span>İşlenecek toplam</span><b>' + GV.n(eklenecek + guncellenecek) + '</b></div></div>'
+        + '<div style="margin-top:20px"><label class="gfield-inline" for="vaOnayKutu">'
+        + '<input type="checkbox" id="vaOnayKutu"' + (d.onaylandi ? ' checked' : '') + '>'
+        + ' Yukarıdaki özeti okudum; aktarımı onaylıyorum.</label></div>'
+        + '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+        + '<span>Aktarım <b>geri alınabilir</b> bir kayıt oluşturur. Yine de üretim ortamında aktarım öncesi '
+        + 'yedek alınması önerilir.</span></div>';
+      document.getElementById('vaOnayKutu').addEventListener('change', function(){
+        d.onaylandi = this.checked; kaydet();
+      });
+
+    } else if (d.adim === 8) {
+      g.innerHTML = adimAciklama()
+        + '<div id="vaIlerleme">' + GV.bar(0, { buyuk:true, etiket:'0%' }) + '</div>'
+        + '<div id="vaLog" style="margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.9"></div>'
+        + '<div style="margin-top:18px"><button class="btn btn-acc" type="button" id="vaBasla">'
+        + '<i class="fa-solid fa-play" aria-hidden="true"></i>Aktarımı Başlat</button></div>';
+      document.getElementById('vaBasla').addEventListener('click', function(){
+        this.disabled = true;
+        aktarimiCalistir();
+      });
+
+    } else if (d.adim === 9) {
+      var s9 = d.sonuc;
+      g.innerHTML = adimAciklama()
+        + (s9
+          ? '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+            + '<th scope="col">Ölçüt</th><th scope="col" class="num">Aktarım Öncesi</th>'
+            + '<th scope="col" class="num">Aktarım Sonrası</th><th scope="col" class="num">Fark</th></tr></thead><tbody>'
+            + s9.mutabakat.map(function(m){
+                return '<tr><th scope="row">' + GV.esc(m.ad) + '</th>'
+                  + '<td class="num">' + GV.n(m.once) + '</td>'
+                  + '<td class="num">' + GV.n(m.sonra) + '</td>'
+                  + '<td class="num">' + (m.sonra - m.once > 0
+                      ? '<span class="diff plus"><i class="fa-solid fa-plus" aria-hidden="true"></i>' + GV.n(m.sonra - m.once) + '</span>'
+                      : '<span class="diff zero">0</span>') + '</td></tr>';
+              }).join('') + '</tbody></table></div>'
+            + '<div class="gv-note ok" style="margin-top:16px"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+            + '<span><b>' + GV.n(s9.basarili) + ' kayıt</b> aktarıldı, <b>' + GV.n(s9.guncellenen) + ' kayıt</b> güncellendi, '
+            + '<b>' + GV.n(s9.atlanan) + ' satır</b> atlandı.</span></div>'
+            + '<div style="margin-top:16px"><button class="btn btn-ghost" type="button" id="vaMutabakatIndir">'
+            + '<i class="fa-solid fa-download" aria-hidden="true"></i>Mutabakat Raporunu İndir</button></div>'
+          : '<div class="gv-note warn"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+            + '<span>Mutabakat raporu için önce 8. adımda aktarımı çalıştırın.</span></div>');
+      var mi = document.getElementById('vaMutabakatIndir');
+      if (mi) mi.addEventListener('click', function(){
+        GV.disaAktar({ kayitSayisi: s9.basarili + s9.guncellenen, dosyaAdi:'mutabakat-raporu', modul:'Veri Aktarımı' });
+      });
+
+    } else {
+      var s10 = d.sonuc;
+      g.innerHTML = adimAciklama()
+        + (s10
+          ? '<dl class="info-grid">'
+            + '<div class="info-item"><dt>Aktarım No</dt><dd><b>' + GV.esc(s10.id) + '</b></dd></div>'
+            + '<div class="info-item"><dt>Tür</dt><dd>' + GV.esc(d.tur) + '</dd></div>'
+            + '<div class="info-item"><dt>Kaynak dosya</dt><dd>' + GV.esc(d.dosya) + '</dd></div>'
+            + '<div class="info-item"><dt>Tarih</dt><dd>' + GV.dUzun(BUGUN) + '</dd></div>'
+            + '<div class="info-item"><dt>Toplam satır</dt><dd>' + GV.n(s10.toplam) + '</dd></div>'
+            + '<div class="info-item"><dt>Aktarılan</dt><dd>' + GV.n(s10.basarili) + '</dd></div>'
+            + '<div class="info-item"><dt>Güncellenen</dt><dd>' + GV.n(s10.guncellenen) + '</dd></div>'
+            + '<div class="info-item"><dt>Atlanan / hatalı</dt><dd>' + GV.n(s10.atlanan) + '</dd></div>'
+            + '<div class="info-item"><dt>Geri alınabilir</dt><dd>Evet</dd></div></dl>'
+            + '<div class="gv-note ok" style="margin-top:18px"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>'
+            + '<span><b>Aktarım kaydı oluşturuldu.</b> Bu aktarım tek işlemle geri alınabilir; '
+            + 'geri alma işlemi yalnız bu aktarımda eklenen kayıtları kaldırır, sonradan yapılan değişiklikleri korur.</span></div>'
+            + '<div style="margin-top:18px;display:flex;gap:9px;flex-wrap:wrap">'
+            + '<button class="btn btn-ghost" type="button" id="vaGeriAl">'
+            + '<i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Aktarımı Geri Al</button>'
+            + '<button class="btn btn-acc" type="button" id="vaBitir">'
+            + '<i class="fa-solid fa-check" aria-hidden="true"></i>Bitir ve Yeni Aktarım</button></div>'
+          : '<div class="gv-note warn"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+            + '<span>Aktarım kaydı için önce 8. adımda aktarımı çalıştırın.</span></div>');
+      var ga = document.getElementById('vaGeriAl');
+      if (ga) ga.addEventListener('click', function(){
+        gvConfirm({ baslik:'Aktarım geri alınsın mı?', ton:'danger',
+          metin:'<b>' + GV.esc(s10.id) + '</b> aktarımında eklenen <b>' + GV.n(s10.basarili)
+            + ' kayıt</b> sistemden kaldırılacak. Bu işlem denetim izine yazılır.',
+          onayEtiket:'Geri al', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
+          notYer:'Geri alma gerekçesi…' }).then(function(r){
+            if (!r.onay) return;
+            A.guncelle('veriAktarimlari', s10.id, { durum:'geri-alindi', geriAlinabilir:false }).then(function(){
+              A.kayitAt('geri-alma', 'Veri Aktarımı', s10.id, 'Tamamlandı', 'Geri alındı', r.not);
+              gvToast('Aktarım geri alındı.', { ton:'warn' });
+              d = { adim:1, tur:d.tur, dosya:null, satirSayisi:0, eslesme:{}, dogrulama:null,
+                mukerrer:[], hatali:[], onaylandi:false, sonuc:null };
+              kaydet(); setTimeout(function(){ location.reload(); }, 800);
+            });
+          });
+      });
+      var bt = document.getElementById('vaBitir');
+      if (bt) bt.addEventListener('click', function(){ sifirla(); });
+    }
+
+    /* alt butonlar */
+    document.getElementById('vaGeri').disabled = d.adim <= 1;
+    var ileri = document.getElementById('vaIleri');
+    ileri.disabled = d.adim >= adimlar.length;
+    ileri.innerHTML = d.adim === adimlar.length ? 'Tamamlandı'
+      : 'İleri<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+    GV.rolBaglantilariniIsle(g);
+  }
+
+  function ileriGecebilirMi(){
+    if (d.adim === 1 && !d.dosya) { gvToast('Devam etmek için bir dosya yükleyin.', { ton:'danger' }); return false; }
+    if (d.adim === 2) {
+      var eksik = hedefler().filter(function(x){ return x.zorunlu && !d.eslesme[x.k]; });
+      if (eksik.length) {
+        gvToast('Zorunlu alanlar eşleştirilmeden devam edilemez: ' + eksik.map(function(x){ return x.ad; }).join(', '),
+          { ton:'danger' });
+        return false;
+      }
+    }
+    if (d.adim === 7 && !d.onaylandi) { gvToast('Devam etmek için aktarım özetini onaylayın.', { ton:'danger' }); return false; }
+    if (d.adim === 8 && !d.sonuc) { gvToast('Devam etmek için aktarımı çalıştırın.', { ton:'danger' }); return false; }
+    return true;
+  }
+
+  function aktarimiCalistir(){
+    var v = d.dogrulama || dogrula();
+    var eklenecek = v.temiz + v.mukerrer.filter(function(m){ return m.karar === 'yeni'; }).length;
+    var guncellenecek = v.mukerrer.filter(function(m){ return m.karar === 'guncelle'; }).length;
+    var atlanacak = v.mukerrer.filter(function(m){ return m.karar === 'atla'; }).length + v.hatali.length;
+
+    var oncekiSayilar = {
+      'Lokasyon': A.liste('lokasyonlar').length,
+      'İletişim Kişisi': A.liste('iletisimKisileri').length,
+      'Ön Envanter': A.liste('lokasyonHizmetleri').length,
+      'Ekipman': A.liste('ekipmanlar').length
+    };
+
+    var log = document.getElementById('vaLog');
+    var il = document.getElementById('vaIlerleme');
+    var mesajlar = ['Dosya okunuyor…', 'Kolon eşleştirmesi uygulanıyor…',
+      GV.n(v.toplam) + ' satır işleniyor…', 'Mükerrer kararları uygulanıyor…',
+      GV.n(eklenecek) + ' yeni kayıt yazılıyor…', GV.n(guncellenecek) + ' kayıt güncelleniyor…',
+      'Mutabakat raporu hazırlanıyor…', 'Aktarım kaydı oluşturuluyor…', 'Tamamlandı'];
+    var n = 0;
+    var zaman = setInterval(function(){
+      n++;
+      il.innerHTML = GV.bar(n / mesajlar.length, { buyuk:true, etiket: GV.pct(n / mesajlar.length, true, 0) });
+      log.innerHTML += '<div><i class="fa-solid fa-check" style="color:var(--success)" aria-hidden="true"></i> '
+        + GV.esc(mesajlar[n - 1]) + '</div>';
+      if (n >= mesajlar.length) {
+        clearInterval(zaman);
+        var aid = 'IMP-2026-Y' + String(A.liste('veriAktarimlari').length + 1).padStart(2,'0');
+        A.ekle('veriAktarimlari', {
+          id: aid, tarih: BUGUN, kullaniciId: (GV.rolBilgi || {}).personelId || 'PRS-014',
+          tur: d.tur, dosya: d.dosya, satir: v.toplam,
+          basarili: eklenecek, hatali: v.hatali.length, mukerrer: v.mukerrer.length,
+          durum:'tamamlandi', geriAlinabilir: true,
+          aciklama: eklenecek + ' kayıt eklendi, ' + guncellenecek + ' kayıt güncellendi, ' + atlanacak + ' satır atlandı.'
+        }).then(function(){
+          d.sonuc = {
+            id: aid, toplam: v.toplam, basarili: eklenecek, guncellenen: guncellenecek, atlanan: atlanacak,
+            mutabakat: [
+              { ad:'Ana rehberdeki lokasyon', once: oncekiSayilar['Lokasyon'],
+                sonra: oncekiSayilar['Lokasyon'] + (d.tur === 'Lokasyon' ? eklenecek : 0) },
+              { ad:'İletişim kişisi', once: oncekiSayilar['İletişim Kişisi'],
+                sonra: oncekiSayilar['İletişim Kişisi'] + (d.tur === 'İletişim Kişisi' ? eklenecek : 0) },
+              { ad:'Ön envanter satırı', once: oncekiSayilar['Ön Envanter'],
+                sonra: oncekiSayilar['Ön Envanter'] + (d.tur === 'Ön Envanter' ? eklenecek : 0) },
+              { ad:'Ekipman kartı', once: oncekiSayilar['Ekipman'],
+                sonra: oncekiSayilar['Ekipman'] + (d.tur === 'Ekipman' ? eklenecek : 0) }
+            ]
+          };
+          d.adim = 9; kaydet();
+          A.kayitAt('veri-aktarimi', 'Veri Aktarımı', aid, null, d.tur + ' · ' + eklenecek + ' kayıt');
+          gvToast('Aktarım tamamlandı: ' + eklenecek + ' kayıt eklendi.', { ton:'ok' });
+          setTimeout(function(){ ciz(); gecmisCiz(); kpiCiz(); }, 600);
+        });
+      }
+    }, 480);
+  }
+
+  function sifirla(){
+    d = { adim:1, tur:d.tur, dosya:null, satirSayisi:0, eslesme:{}, dogrulama:null,
+      mukerrer:[], hatali:[], onaylandi:false, sonuc:null };
+    kaydet(); ciz();
+    window.scrollTo({ top: 0, behavior:'smooth' });
+  }
+
+  document.getElementById('vaIleri').addEventListener('click', function(){
+    if (!ileriGecebilirMi()) return;
+    d.adim = Math.min(adimlar.length, d.adim + 1); kaydet(); ciz();
+  });
+  document.getElementById('vaGeri').addEventListener('click', function(){
+    d.adim = Math.max(1, d.adim - 1); kaydet(); ciz();
+  });
+  document.getElementById('vaSifirla').addEventListener('click', function(){
+    gvConfirm({ baslik:'Sihirbaz sıfırlansın mı?', ton:'warn',
+      metin:'Girdiğiniz eşleştirme ve kararlar silinecek. Tamamlanmış aktarımlar etkilenmez.',
+      onayEtiket:'Sıfırla', onayIkon:'fa-rotate-left' }).then(function(r){ if (r.onay) sifirla(); });
+  });
+
+  document.getElementById('vaYeni').addEventListener('click', function(){ sifirla(); });
+  document.getElementById('vaSablon').addEventListener('click', function(){
+    gvModal({
+      baslik:'Aktarım şablonu indir', ikon:'fa-download',
+      metin:'Hangi veri kümesi için şablon indirmek istiyorsunuz? Şablon, zorunlu kolonları ve örnek satırı içerir.',
+      govde:'<div class="gfield"><label for="vaSablonTur">Veri kümesi</label><select id="vaSablonTur">'
+        + Object.keys(HEDEF_ALANLAR).map(function(t){ return '<option>' + GV.esc(t) + '</option>'; }).join('')
+        + '</select></div><div id="vaSablonAlan" style="margin-top:14px"></div>',
+      acildi: function(kap){
+        function ciz2(){
+          var t = kap.querySelector('#vaSablonTur').value;
+          kap.querySelector('#vaSablonAlan').innerHTML =
+            '<b style="display:block;font-size:12.5px;color:var(--ink);margin-bottom:8px">Şablon kolonları</b>'
+            + '<div class="chips">' + HEDEF_ALANLAR[t].map(function(x){
+                return '<span class="chip' + (x.zorunlu ? ' is-on' : '') + '" style="cursor:default">'
+                  + GV.esc(x.ad) + (x.zorunlu ? ' *' : '') + '</span>'; }).join('') + '</div>'
+            + '<p class="gf-hint" style="margin-top:9px">* işaretli kolonlar zorunludur.</p>';
+        }
+        kap.querySelector('#vaSablonTur').addEventListener('change', ciz2);
+        ciz2();
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'İndir', sinif:'btn-acc', ikon:'fa-download', tikla: function(kap){
+            var t = kap.querySelector('#vaSablonTur').value;
+            gvToast(t.toLocaleLowerCase('tr-TR').replace(/\s/g,'-') + '-sablon.xlsx hazırlandı (demo).', { ton:'ok' });
+          } }]
+    });
+  });
+
+  /* ---- KPI ve geçmiş ---- */
+  function kpiCiz(){
+    var g = A.liste('veriAktarimlari');
+    gvKpi('#vaKpi', [
+      { ikon:'fa-file-import', sayi: GV.n(g.length), etiket:'Toplam aktarım',
+        delta:{ yon:'flat', metin: g.filter(function(x){ return x.geriAlinabilir; }).length + ' tanesi geri alınabilir' } },
+      { ikon:'fa-circle-check', sayi: GV.n(g.reduce(function(t,x){ return t + x.basarili; }, 0)),
+        etiket:'Aktarılan kayıt', ton:'ok' },
+      { ikon:'fa-circle-xmark', sayi: GV.n(g.reduce(function(t,x){ return t + x.hatali; }, 0)),
+        etiket:'Hatalı satır', ton: g.some(function(x){ return x.hatali; }) ? 'danger' : '' },
+      { ikon:'fa-clone', sayi: GV.n(g.reduce(function(t,x){ return t + x.mukerrer; }, 0)),
+        etiket:'Mükerrer aday', ton:'warn' }
+    ]);
+  }
+  kpiCiz();
+
+  function gecmisCiz(){
+    var g = A.liste('veriAktarimlari').slice().sort(function(a,b){ return String(b.tarih).localeCompare(String(a.tarih)); });
+    document.getElementById('vaGecmis').innerHTML = g.length
+      ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+        + '<th scope="col">Aktarım No</th><th scope="col">Tarih</th><th scope="col">Tür</th>'
+        + '<th scope="col">Dosya</th><th scope="col">Kullanıcı</th><th scope="col" class="num">Satır</th>'
+        + '<th scope="col" class="num">Başarılı</th><th scope="col" class="num">Hatalı</th>'
+        + '<th scope="col" class="num">Mükerrer</th><th scope="col">Durum</th><th scope="col">İşlem</th></tr></thead><tbody>'
+        + g.map(function(x){
+            var p = A.kayit('personeller', x.kullaniciId);
+            return '<tr><td data-lbl="Aktarım No"><b class="t-strong">' + GV.esc(x.id) + '</b></td>'
+              + '<td data-lbl="Tarih">' + GV.d(x.tarih) + '</td>'
+              + '<td data-lbl="Tür"><span class="gtag">' + GV.esc(x.tur) + '</span></td>'
+              + '<td data-lbl="Dosya"><code style="font-size:11.5px">' + GV.esc(x.dosya) + '</code></td>'
+              + '<td data-lbl="Kullanıcı">' + GV.esc(p ? p.ad : '—') + '</td>'
+              + '<td data-lbl="Satır" class="num">' + GV.n(x.satir) + '</td>'
+              + '<td data-lbl="Başarılı" class="num">' + GV.n(x.basarili) + '</td>'
+              + '<td data-lbl="Hatalı" class="num">' + (x.hatali
+                  ? '<span class="diff minus">' + GV.n(x.hatali) + '</span>' : GV.n(0)) + '</td>'
+              + '<td data-lbl="Mükerrer" class="num">' + (x.mukerrer
+                  ? '<span class="diff hold">' + GV.n(x.mukerrer) + '</span>' : GV.n(0)) + '</td>'
+              + '<td data-lbl="Durum">' + (x.durum === 'tamamlandi' ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
+                  : x.durum === 'kismen' ? GV.rozetOzel('warn','fa-circle-half-stroke','Kısmen')
+                  : x.durum === 'geri-alindi' ? GV.rozetOzel('off','fa-rotate-left','Geri alındı')
+                  : GV.rozetOzel('warn','fa-hourglass-half','Onay bekliyor')) + '</td>'
+              + '<td data-lbl="İşlem"><div class="row-acts">'
+              + '<button class="ia-btn" type="button" data-akt-detay="' + x.id + '" aria-label="' + GV.esc(x.id) + ' detayı">'
+              + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+              + (x.geriAlinabilir
+                ? '<button class="ia-btn danger" type="button" data-akt-geri="' + x.id + '" aria-label="' + GV.esc(x.id) + ' geri al">'
+                  + '<i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>'
+                : '<button class="ia-btn" type="button" disabled title="Bu aktarım geri alınamaz"'
+                  + ' aria-label="' + GV.esc(x.id) + ' geri alınamaz"><i class="fa-solid fa-lock" aria-hidden="true"></i></button>')
+              + '</div></td></tr>';
+          }).join('') + '</tbody></table></div>'
+      : gvEmpty({ ikon:'fa-file-import', baslik:'Aktarım kaydı yok',
+          metin:'Henüz veri aktarımı yapılmadı. Sihirbazı kullanarak ilk aktarımınızı başlatabilirsiniz.' });
+
+    document.querySelectorAll('[data-akt-detay]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var x = A.kayit('veriAktarimlari', b.getAttribute('data-akt-detay'));
+        var p = A.kayit('personeller', x.kullaniciId);
+        gvModal({
+          baslik: x.id, ikon:'fa-file-import',
+          metin: GV.esc(x.tur + ' aktarımı · ' + x.dosya),
+          govde:'<dl class="info-rows">'
+            + '<div class="info-row"><dt>Tarih</dt><dd>' + GV.dUzun(x.tarih) + '</dd></div>'
+            + '<div class="info-row"><dt>Kullanıcı</dt><dd>' + GV.esc(p ? p.ad : '—') + '</dd></div>'
+            + '<div class="info-row"><dt>Toplam satır</dt><dd>' + GV.n(x.satir) + '</dd></div>'
+            + '<div class="info-row"><dt>Başarılı</dt><dd>' + GV.n(x.basarili) + '</dd></div>'
+            + '<div class="info-row"><dt>Hatalı</dt><dd>' + GV.n(x.hatali) + '</dd></div>'
+            + '<div class="info-row"><dt>Mükerrer</dt><dd>' + GV.n(x.mukerrer) + '</dd></div>'
+            + '<div class="info-row"><dt>Geri alınabilir</dt><dd>' + (x.geriAlinabilir ? 'Evet' : 'Hayır') + '</dd></div></dl>'
+            + '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-note-sticky" aria-hidden="true"></i>'
+            + '<span>' + GV.esc(x.aciklama) + '</span></div>',
+          butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+        });
+      });
+    });
+    document.querySelectorAll('[data-akt-geri]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var x = A.kayit('veriAktarimlari', b.getAttribute('data-akt-geri'));
+        gvConfirm({ baslik:'Aktarım geri alınsın mı?', ton:'danger',
+          metin:'<b>' + GV.esc(x.id) + '</b> aktarımında eklenen <b>' + GV.n(x.basarili)
+            + ' kayıt</b> sistemden kaldırılacak. Sonradan yapılan düzenlemeler korunur. Bu işlem denetim izine yazılır.',
+          onayEtiket:'Geri al', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
+          notYer:'Geri alma gerekçesi…' }).then(function(r){
+            if (!r.onay) return;
+            A.guncelle('veriAktarimlari', x.id, { durum:'geri-alindi', geriAlinabilir:false }).then(function(){
+              A.kayitAt('geri-alma', 'Veri Aktarımı', x.id, x.durum, 'Geri alındı', r.not);
+              gvToast(x.id + ' geri alındı.', { ton:'warn' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          });
+      });
+    });
+  }
+  gecmisCiz();
+  ciz();
+})();
+</script>
+</body>
+</html>

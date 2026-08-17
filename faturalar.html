@@ -186,7 +186,7 @@
     var f = A.kayit('faturalar', fid);
     var m = A.kayit('musteriler', f.musteriId);
     var satirlar = A.liste('faturaSatirlari').filter(function(s){ return s.faturaId === fid; });
-    var firma = window.DEMO.firma;
+    var firma = A.firma();
 
     var govde = '<div class="pr-doc" style="box-shadow:none;border:none;padding:0">'
       + '<div class="pr-head"><div class="pr-brand"><div class="pr-logo">G</div>'

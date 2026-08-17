@@ -194,7 +194,7 @@
       + '<th scope="col">Birim</th><th scope="col" class="num">Fiyat</th><th scope="col">Durum</th></tr></thead><tbody>'
       + benzer.map(function(k){
           return gruplar[k].map(function(h, i){
-            var f = window.DEMO.hizmetFiyatlari[h.id] || { satis:0 };
+            var f = A.harita('hizmetFiyatlari')[h.id] || { satis:0 };
             var ozel = (h.ad.match(/\((.*?)\)/) || [null, h.periyotAy + ' ay periyot'])[1];
             return '<tr' + (i === 0 ? ' style="border-top:2px solid var(--line-2)"' : '') + '>'
               + '<td data-lbl="Poz Kodu"><a href="hizmet-detay.html?id=' + h.id + '"><b class="t-strong">' + GV.esc(h.poz) + '</b></a></td>'

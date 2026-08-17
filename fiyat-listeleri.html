@@ -102,7 +102,7 @@
     { ikon:'fa-percent', sayi: (function(){
         var t = 0, n = 0;
         A.liste('hizmetler').forEach(function(h){
-          var f = window.DEMO.hizmetFiyatlari[h.id];
+          var f = A.harita('hizmetFiyatlari')[h.id];
           if (f && f.satis) { t += (f.satis - f.maliyet) / f.satis; n++; }
         });
         return GV.pct(n ? t / n : 0); })(), etiket:'Ortalama brüt marj', ton:'ok' }
@@ -120,7 +120,7 @@
           var sahip = satisMi
             ? (f.musteriId ? A.kayit('musteriler', f.musteriId) : null)
             : (f.taseronId ? A.kayit('taseronlar', f.taseronId) : null);
-          var kat = window.DEMO.listeKatsayilari[f.id];
+          var kat = A.harita('listeKatsayilari')[f.id];
           return '<tr><td data-lbl="Liste"><div class="gcell-info"><div class="gcell-name">' + GV.esc(f.ad) + '</div>'
             + '<div class="gcell-sub">' + GV.esc(f.id) + ' · ' + GV.esc(f.aciklama) + '</div></div></td>'
             + '<td data-lbl="' + (satisMi ? 'Müşteri' : 'Taşeron') + '">' + (sahip
@@ -252,7 +252,7 @@
             if (!ad || !bas || !bit) { gvToast('Liste adı ve geçerlilik tarihleri zorunludur.', { ton:'danger' }); return false; }
             if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
             var yeniId = 'FL-Y' + String(A.liste('fiyatListeleri').length + 1).padStart(2,'0');
-            window.DEMO.listeKatsayilari[yeniId] = Number(kap.querySelector('#fyKat').value || 1);
+            A.harita('listeKatsayilari')[yeniId] = Number(kap.querySelector('#fyKat').value || 1);
             A.ekle('fiyatListeleri', {
               id: yeniId, ad: ad, tur: kap.querySelector('#fyTur').value, versiyon:'v1',
               gecerli: bas, bitis: bit, paraBirimi:'TRY', durum:'aktif',

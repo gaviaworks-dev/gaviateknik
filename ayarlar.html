@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ayarlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+/* sayfaya özgü küçük düzen yardımcıları (ay- öneki) */
+.ay-tur{display:flex;align-items:center;gap:11px;min-width:0}
+.ay-tur i{width:30px;height:30px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:12px;background:var(--bg);color:var(--ink-2)}
+.ay-tur b{font-size:13px;font-weight:700;color:var(--ink)}
+.ay-kanallar,.ay-roller{display:flex;flex-wrap:wrap;gap:5px}
+.ay-sablon{font-size:11.5px;font-weight:700;color:var(--ink-2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.ay-ornek{font-size:12.5px;font-weight:800;color:var(--gv-action);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ay-inp .gfield{gap:0}
+.ay-inp input{max-width:190px}
+.ay-chk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 14px}
+@media(max-width:640px){
+  .ay-chk{grid-template-columns:minmax(0,1fr)}
+  .ay-inp input{max-width:none}
+  .ay-inp .gfield{flex:1;min-width:0}
+  .ay-kanallar,.ay-roller{justify-content:flex-end}
+  .ay-tur{justify-content:flex-end}
+}
+</style>
+</head>
+<body data-sec="sistem" data-screen="ayarlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Sistem Ayarları</div>
+        <h1>Ayarlar</h1>
+        <p class="ph-sub">Firma künyesi, operasyon varsayılanları, bildirim kuralları, belge numara şablonları ve bu tarayıcıda tutulan demo verisi. Her sekme kendi başına kaydedilir.</p>
+      </div>
+    </div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Ayar grupları">
+      <button class="gv-tab" role="tab" id="tbFirma" aria-controls="pnFirma" aria-selected="true">
+        <i class="fa-solid fa-building-shield" aria-hidden="true"></i>Firma Bilgileri</button>
+      <button class="gv-tab" role="tab" id="tbOps" aria-controls="pnOps" aria-selected="false">
+        <i class="fa-solid fa-gears" aria-hidden="true"></i>Operasyon Ayarları</button>
+      <button class="gv-tab" role="tab" id="tbBld" aria-controls="pnBld" aria-selected="false">
+        <i class="fa-regular fa-bell" aria-hidden="true"></i>Bildirim Kuralları<span class="tb-cnt" id="bldTurSayac">0</span></button>
+      <button class="gv-tab" role="tab" id="tbNum" aria-controls="pnNum" aria-selected="false">
+        <i class="fa-solid fa-hashtag" aria-hidden="true"></i>Numaralandırma</button>
+      <button class="gv-tab" role="tab" id="tbVeri" aria-controls="pnVeri" aria-selected="false">
+        <i class="fa-solid fa-database" aria-hidden="true"></i>Veri ve Gizlilik</button>
+    </div>
+
+    <!-- ============ 1) FİRMA BİLGİLERİ ============ -->
+    <div id="pnFirma" role="tabpanel" aria-labelledby="tbFirma">
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-building-shield" aria-hidden="true"></i>Firma Künyesi</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-ghost" type="button" id="fmSifirla">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Varsayılana dön</button>
+            <button class="btn btn-sm btn-acc" type="button" id="fmKaydet">
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Kaydet</button>
+          </div>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note" style="margin-bottom:18px">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>Bu alanlar <b>teklif ve sözleşme başlığında, teknik rapor kapağında, fatura künyesinde ve yazdırma çıktılarının üst bilgisinde</b> kullanılır.
+            Demo sürümünde değişiklikler bu tarayıcıda saklanır; kurumsal kurulumda firma ana kaydına yazılır.</span>
+          </div>
+          <div class="gform">
+            <div class="gfield full">
+              <label for="fmUnvan">Ticari Unvan <span class="req" aria-hidden="true">*</span></label>
+              <input type="text" id="fmUnvan" autocomplete="organization">
+              <span class="gf-hint">Resmi unvan — fatura, sözleşme ve rapor kapağında bu şekilde basılır.</span>
+            </div>
+            <div class="gfield">
+              <label for="fmKisaAd">Kısa Ad <span class="req" aria-hidden="true">*</span></label>
+              <input type="text" id="fmKisaAd">
+              <span class="gf-hint">Listelerde, panel başlıklarında ve dar alanlarda kullanılır.</span>
+            </div>
+            <div class="gfield">
+              <label for="fmWeb">Web Adresi</label>
+              <input type="text" id="fmWeb" inputmode="url">
+              <span class="gf-hint">Rapor ve teklif alt bilgisinde görünür.</span>
+            </div>
+            <div class="gfield full">
+              <label for="fmAkredite">Akreditasyon / Yetki Kapsamı</label>
+              <input type="text" id="fmAkredite">
+              <span class="gf-hint">Muayene kuruluşu tipi ve standart numarası. Rapor kapağındaki akreditasyon satırını besler.</span>
+            </div>
+            <div class="gfield full">
+              <label for="fmAdres">Adres</label>
+              <textarea id="fmAdres" rows="2"></textarea>
+              <span class="gf-hint">Fatura ve resmi yazışma adresi.</span>
+            </div>
+            <div class="gfield">
+              <label for="fmTelefon">Telefon</label>
+              <input type="tel" id="fmTelefon" autocomplete="tel">
+              <span class="gf-hint">Müşteriye giden bildirim ve rapor alt bilgisinde yer alır.</span>
+            </div>
+            <div class="gfield">
+              <label for="fmEposta">E-posta</label>
+              <input type="email" id="fmEposta" autocomplete="email">
+              <span class="gf-hint">Giden bildirimlerin "yanıt adresi" olarak kullanılır.</span>
+            </div>
+          </div>
+        </div>
+        <div class="gc-foot">
+          <span class="muted" id="fmDurum">Kayıtlı değişiklik yok — demo verisindeki firma künyesi görüntüleniyor.</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 2) OPERASYON AYARLARI ============ -->
+    <div id="pnOps" role="tabpanel" aria-labelledby="tbOps" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-gears" aria-hidden="true"></i>Operasyon Varsayılanları</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-ghost" type="button" id="opSifirla">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Varsayılana dön</button>
+            <button class="btn btn-sm btn-acc" type="button" id="opKaydet">
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Kaydet</button>
+          </div>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note warn" style="margin-bottom:18px">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>Buradaki değerler <b>yalnız varsayılandır</b>. Sözleşmede farklı SLA, parti büyüklüğü veya ödeme vadesi tanımlıysa
+            ilgili kayıtta <b>sözleşme değeri geçerlidir</b>; bu ayar geriye dönük kayıtları değiştirmez.</span>
+          </div>
+          <div class="gform">
+            <div class="gfield">
+              <label for="opSla">Varsayılan rapor teslim süresi (SLA)</label>
+              <input type="number" id="opSla" min="1" max="90" step="1" inputmode="numeric">
+              <span class="gf-hint">Kontrol tarihinden itibaren kaç <b>gün</b> içinde teknik raporun müşteriye teslim edileceği. Rapor listesinde SLA rozetini ve gecikme uyarısını besler.</span>
+            </div>
+            <div class="gfield">
+              <label for="opParti">Varsayılan fatura parti büyüklüğü</label>
+              <input type="number" id="opParti" min="1" max="200" step="1" inputmode="numeric">
+              <span class="gf-hint">Kaç <b>lokasyon</b> tamamlandığında fatura grubu hedefe ulaşmış sayılır. Yeni fatura grubu açılırken hedef parti bu değerle gelir.</span>
+            </div>
+            <div class="gfield">
+              <label for="opVade">Varsayılan ödeme vadesi</label>
+              <input type="number" id="opVade" min="0" max="180" step="1" inputmode="numeric">
+              <span class="gf-hint">Fatura tarihine eklenecek <b>gün</b> sayısı. Tahsilat ekranındaki vade takibi ve "vadesi geçti" uyarısı bu değere göre hesaplanır.</span>
+            </div>
+            <div class="gfield">
+              <label for="opKalib">Kalibrasyon uyarı eşiği</label>
+              <input type="number" id="opKalib" min="1" max="365" step="1" inputmode="numeric">
+              <span class="gf-hint">Ölçüm cihazının kalibrasyon geçerliliği bitmeden kaç <b>gün</b> önce uyarı üretileceği. <span id="opKalibEtki">—</span></span>
+            </div>
+            <div class="gfield">
+              <label for="opBelge">Personel belge uyarı eşiği</label>
+              <input type="number" id="opBelge" min="1" max="365" step="1" inputmode="numeric">
+              <span class="gf-hint">Personel yetkinlik belgesi dolmadan kaç <b>gün</b> önce hatırlatma gönderileceği. <span id="opBelgeEtki">—</span></span>
+            </div>
+            <div class="gfield">
+              <label for="opSozlesme">Sözleşme yenileme uyarı eşiği</label>
+              <input type="number" id="opSozlesme" min="1" max="365" step="1" inputmode="numeric">
+              <span class="gf-hint">Sözleşme bitişinden kaç <b>gün</b> önce yenileme görevinin açılacağı. <span id="opSozlesmeEtki">—</span></span>
+            </div>
+          </div>
+
+          <div class="gv-botsec">
+            <div class="gv-botsec-h"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i>Periyot ve Sonraki Kontrol Tarihi
+              <span class="bs-sub">Değiştirilemeyen iş kuralı</span></div>
+            <div class="gv-note">
+              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+              <span><b>Sonraki kontrol tarihi sabit 365 gün eklenerek hesaplanmaz; periyot hizmet ve ekipman bazında tanımlıdır.
+              Ana tarih boşsa sonraki tarih de boş kalır.</b>
+              Periyot her hizmetin <b>periyotAy</b> alanından, ekipman bazında ise ekipman kaydındaki periyottan okunur;
+              sözleşme, teknik gereklilik veya önceki kontrol sonucu daha kısa bir periyot gerektiriyorsa o değer geçerlidir.
+              Bu nedenle burada genel bir "periyot" ayarı yoktur ve boş tarihlerden sahte tarih üretilmez — boş alan <b>—</b> olarak gösterilir.</span>
+            </div>
+          </div>
+        </div>
+        <div class="gc-foot">
+          <span class="muted" id="opDurum">Kayıtlı değişiklik yok — varsayılanlar sözleşme ve müşteri kayıtlarındaki en sık kullanılan değerlerden türetildi.</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 3) BİLDİRİM KURALLARI ============ -->
+    <div id="pnBld" role="tabpanel" aria-labelledby="tbBld" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-regular fa-bell" aria-hidden="true"></i>Bildirim Kuralları</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-ghost" type="button" id="bldSifirla">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Varsayılana dön</button>
+          </div>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>Her olay için hangi kanalların açık olacağı ve bildirimin hangi rollere gideceği burada tanımlanır.
+            Kullanıcı kendi kanal tercihini <a href="bildirimler.html">Bildirimler → Kanal Tercihleri</a> ekranından daraltabilir; buradaki kural üst sınırdır.</span>
+          </div>
+        </div>
+        <div class="gc-body flush" id="bldTablo"></div>
+      </section>
+    </div>
+
+    <!-- ============ 4) NUMARALANDIRMA ============ -->
+    <div id="pnNum" role="tabpanel" aria-labelledby="tbNum" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-hashtag" aria-hidden="true"></i>Belge Numara Şablonları</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-ghost" type="button" id="numSifirla">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Varsayılana dön</button>
+            <button class="btn btn-sm btn-acc" type="button" id="numKaydet">
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Şablonları Kaydet</button>
+          </div>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span><b>YYYY</b> yıl, <b>#</b> sıra basamağıdır. Sıra numarası her yıl başında 1'e döner (ekipman kodu yıl taşımaz, sürekli artar).
+            Önek veya sıra değiştirildiğinde <b>mevcut kayıtların numarası değişmez</b>; yalnız bundan sonra üretilecek belgeler etkilenir.</span>
+          </div>
+        </div>
+        <div class="gc-body flush" id="numTablo"></div>
+        <div class="gc-foot">
+          <span class="muted" id="numDurum">Sıradaki numaralar demo verisindeki kayıt sayılarından türetildi.</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 5) VERİ VE GİZLİLİK ============ -->
+    <div id="pnVeri" role="tabpanel" aria-labelledby="tbVeri" hidden>
+      <div class="kpi-grid" id="vrKpi"></div>
+
+      <section class="gv-card" style="margin-bottom:16px">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Demo Verisi ve Gizlilik</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-danger" type="button" id="vrSifirla">
+              <i class="fa-solid fa-trash-can" aria-hidden="true"></i>Demo verilerini sıfırla</button>
+          </div>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note ok" style="margin-bottom:16px">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span>Bu demo <b>sunucusuz</b> çalışır. Hiçbir veri dışarı gönderilmez; yaptığınız bütün değişiklikler yalnızca
+            bu tarayıcının <b>localStorage</b> alanında tutulur ve aşağıdaki düğmelerle tamamen silinebilir.
+            Demo kayıtlarındaki firma, kişi, telefon ve e-posta bilgilerinin tamamı kurgusaldır.</span>
+          </div>
+          <dl class="info-rows" id="vrOzet"></dl>
+        </div>
+      </section>
+
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-database" aria-hidden="true"></i>Bu Tarayıcıda Saklanan Anahtarlar</h2>
+          <div class="gc-head-acts no-print">
+            <button class="btn btn-sm btn-ghost" type="button" id="vrHepsi">
+              <i class="fa-solid fa-broom" aria-hidden="true"></i>Tümünü temizle</button>
+          </div>
+        </div>
+        <div class="gc-body flush" id="vrTablo"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  gvTabs('.gv-tabbar');
+
+  /* ---- localStorage yardımcıları ---- */
+  function oku(anahtar, varsayilan){
+    try {
+      var ham = localStorage.getItem(anahtar);
+      return ham ? JSON.parse(ham) : varsayilan;
+    } catch(e){ return varsayilan; }
+  }
+  function yaz(anahtar, deger){
+    try { localStorage.setItem(anahtar, JSON.stringify(deger)); return true; }
+    catch(e){ gvToast('Kaydedilemedi — tarayıcı depolaması kapalı.', { ton:'danger' }); return false; }
+  }
+  function anahtariSil(anahtar){
+    try { localStorage.removeItem(anahtar); return true; } catch(e){ return false; }
+  }
+  /* bir dizideki en sık geçen değer (varsayılan türetimi veriden yapılır) */
+  function enSik(dizi){
+    var say = {}, enIyi = null, enCok = 0;
+    dizi.forEach(function(v){
+      if (v == null) return;
+      say[v] = (say[v] || 0) + 1;
+      if (say[v] > enCok) { enCok = say[v]; enIyi = Number(v); }
+    });
+    return enIyi;
+  }
+
+  /* =====================================================================
+     1) FİRMA BİLGİLERİ
+     ===================================================================== */
+  var FIRMA_ANAHTAR = 'gv_tk_firma';
+  var firmaAlanlari = [
+    { k:'unvan',    el:'fmUnvan',    ad:'Ticari Unvan', zorunlu:true },
+    { k:'kisaAd',   el:'fmKisaAd',   ad:'Kısa Ad',      zorunlu:true },
+    { k:'web',      el:'fmWeb',      ad:'Web Adresi' },
+    { k:'akredite', el:'fmAkredite', ad:'Akreditasyon' },
+    { k:'adres',    el:'fmAdres',    ad:'Adres' },
+    { k:'telefon',  el:'fmTelefon',  ad:'Telefon' },
+    { k:'eposta',   el:'fmEposta',   ad:'E-posta' }
+  ];
+
+  function firmaDoldur(){
+    var kayitli = oku(FIRMA_ANAHTAR, null);
+    var deger = Object.assign({}, A.firma(), kayitli || {});
+    firmaAlanlari.forEach(function(a){ document.getElementById(a.el).value = deger[a.k] || ''; });
+    document.getElementById('fmDurum').textContent = kayitli
+      ? 'Bu tarayıcıda kayıtlı firma künyesi kullanılıyor. "Varsayılana dön" ile demo değerlerine geri alınabilir.'
+      : 'Kayıtlı değişiklik yok — demo verisindeki firma künyesi görüntüleniyor.';
+  }
+  firmaDoldur();
+
+  document.getElementById('fmKaydet').addEventListener('click', function(){
+    var yeni = {}, hata = null;
+    firmaAlanlari.forEach(function(a){
+      var el = document.getElementById(a.el);
+      var v = el.value.trim();
+      el.closest('.gfield').classList.remove('is-err');
+      if (a.zorunlu && !v && !hata) { hata = a.ad + ' alanı zorunludur.'; el.closest('.gfield').classList.add('is-err'); el.focus(); }
+      yeni[a.k] = v;
+    });
+    if (!hata && yeni.eposta && yeni.eposta.indexOf('@') === -1) {
+      hata = 'E-posta adresi geçerli görünmüyor.';
+      document.getElementById('fmEposta').closest('.gfield').classList.add('is-err');
+    }
+    if (hata) { gvToast(hata, { ton:'danger' }); return; }
+    if (!yaz(FIRMA_ANAHTAR, yeni)) return;
+    A.kayitAt('guncelleme', 'Firma Künyesi', 'FIRMA', A.firma().unvan, yeni.unvan, 'Ayarlar → Firma Bilgileri');
+    gvToast('Firma bilgileri kaydedildi. Değişiklik bu tarayıcıda saklanır.', { ton:'ok' });
+    firmaDoldur();
+    veriSekmesiCiz();
+  });
+
+  document.getElementById('fmSifirla').addEventListener('click', function(){
+    gvConfirm({
+      baslik:'Firma bilgileri varsayılana dönsün mü?',
+      metin:'Bu tarayıcıda kayıtlı firma künyesi silinecek ve demo verisindeki değerler geri yüklenecek.',
+      onayEtiket:'Varsayılana dön', onayIkon:'fa-rotate-left'
+    }).then(function(s){
+      if (!s.onay) return;
+      anahtariSil(FIRMA_ANAHTAR);
+      firmaDoldur();
+      veriSekmesiCiz();
+      gvToast('Firma bilgileri varsayılana döndürüldü.', { ton:'ok' });
+    });
+  });
+
+  /* =====================================================================
+     2) OPERASYON AYARLARI
+     ===================================================================== */
+  var AYAR_ANAHTAR = 'gv_tk_ayar';
+  var sozlesmeler = A.liste('sozlesmeler');
+  var ayarVarsayilan = {
+    slaGun:      enSik(sozlesmeler.map(function(s){ return s.raporSlaGun; })) || 7,
+    partiBoyut:  enSik(sozlesmeler.map(function(s){ return s.partiBuyuklugu; })) || 6,
+    odemeVadesi: enSik(A.liste('musteriler').map(function(m){ return m.odemeVadesi; })) || 30,
+    kalibrasyonEsik: 30,
+    belgeEsik: 60,
+    sozlesmeEsik: 90
+  };
+  var ayarAlanlari = [
+    { k:'slaGun',          el:'opSla',       ad:'Rapor teslim süresi',        min:1, max:90 },
+    { k:'partiBoyut',      el:'opParti',     ad:'Fatura parti büyüklüğü',     min:1, max:200 },
+    { k:'odemeVadesi',     el:'opVade',      ad:'Ödeme vadesi',               min:0, max:180 },
+    { k:'kalibrasyonEsik', el:'opKalib',     ad:'Kalibrasyon uyarı eşiği',    min:1, max:365 },
+    { k:'belgeEsik',       el:'opBelge',     ad:'Personel belge uyarı eşiği', min:1, max:365 },
+    { k:'sozlesmeEsik',    el:'opSozlesme',  ad:'Sözleşme yenileme uyarı eşiği', min:1, max:365 }
+  ];
+
+  function esikEtkileri(){
+    var kalib = Number(document.getElementById('opKalib').value || 0);
+    var belge = Number(document.getElementById('opBelge').value || 0);
+    var sozl  = Number(document.getElementById('opSozlesme').value || 0);
+
+    var cihaz = A.liste('olcumCihazlari').filter(function(c){
+      var g = GV.gun(BUGUN, c.kalibrasyonBitis);
+      return g != null && g <= kalib;
+    }).length;
+    var belgeSay = A.liste('personelBelgeleri').filter(function(b){
+      var g = GV.gun(BUGUN, b.bitis);
+      return g != null && g <= belge;
+    }).length;
+    var sozSay = sozlesmeler.filter(function(s){
+      if (s.durum !== 'yururlukte') return false;
+      var g = GV.gun(BUGUN, s.bitis);
+      return g != null && g <= sozl;
+    }).length;
+
+    document.getElementById('opKalibEtki').textContent =
+      'Bu eşikle bugün ' + GV.n(cihaz) + ' ölçüm cihazı uyarı kapsamında.';
+    document.getElementById('opBelgeEtki').textContent =
+      'Bu eşikle bugün ' + GV.n(belgeSay) + ' yetkinlik belgesi uyarı kapsamında.';
+    document.getElementById('opSozlesmeEtki').textContent =
+      'Bu eşikle bugün ' + GV.n(sozSay) + ' yürürlükteki sözleşme yenileme kapsamında.';
+  }
+
+  function ayarDoldur(){
+    var kayitli = oku(AYAR_ANAHTAR, null);
+    var deger = Object.assign({}, ayarVarsayilan, kayitli || {});
+    ayarAlanlari.forEach(function(a){ document.getElementById(a.el).value = deger[a.k]; });
+    document.getElementById('opDurum').textContent = kayitli
+      ? 'Bu tarayıcıda kayıtlı operasyon ayarları kullanılıyor.'
+      : 'Kayıtlı değişiklik yok — varsayılanlar sözleşme ve müşteri kayıtlarındaki en sık kullanılan değerlerden türetildi '
+        + '(SLA ' + ayarVarsayilan.slaGun + ' gün · parti ' + ayarVarsayilan.partiBoyut + ' lokasyon · vade ' + ayarVarsayilan.odemeVadesi + ' gün).';
+    esikEtkileri();
+  }
+  ayarDoldur();
+  ['opKalib','opBelge','opSozlesme'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', esikEtkileri);
+  });
+
+  document.getElementById('opKaydet').addEventListener('click', function(){
+    var yeni = {}, hata = null;
+    ayarAlanlari.forEach(function(a){
+      var el = document.getElementById(a.el);
+      el.closest('.gfield').classList.remove('is-err');
+      var v = Number(el.value);
+      if (el.value === '' || isNaN(v) || v < a.min || v > a.max || v !== Math.round(v)) {
+        if (!hata) { hata = a.ad + ' alanı ' + a.min + '–' + a.max + ' arasında tam sayı olmalıdır.'; el.focus(); }
+        el.closest('.gfield').classList.add('is-err');
+      }
+      yeni[a.k] = v;
+    });
+    if (hata) { gvToast(hata, { ton:'danger' }); return; }
+    if (!yaz(AYAR_ANAHTAR, yeni)) return;
+    A.kayitAt('guncelleme', 'Operasyon Ayarları', 'AYAR', null,
+      'SLA ' + yeni.slaGun + ' gün · parti ' + yeni.partiBoyut + ' · vade ' + yeni.odemeVadesi + ' gün', 'Ayarlar → Operasyon Ayarları');
+    gvToast('Operasyon ayarları kaydedildi.', { ton:'ok' });
+    ayarDoldur();
+    veriSekmesiCiz();
+  });
+
+  document.getElementById('opSifirla').addEventListener('click', function(){
+    gvConfirm({
+      baslik:'Operasyon ayarları varsayılana dönsün mü?',
+      metin:'Kayıtlı eşik ve varsayılan değerler silinecek; sözleşme ve müşteri verisinden türetilen değerler geri yüklenecek.',
+      onayEtiket:'Varsayılana dön', onayIkon:'fa-rotate-left'
+    }).then(function(s){
+      if (!s.onay) return;
+      anahtariSil(AYAR_ANAHTAR);
+      ayarDoldur();
+      veriSekmesiCiz();
+      gvToast('Operasyon ayarları varsayılana döndürüldü.', { ton:'ok' });
+    });
+  });
+
+  /* =====================================================================
+     3) BİLDİRİM KURALLARI
+     ===================================================================== */
+  var KURAL_ANAHTAR = 'gv_tk_bildirim_kural';
+  var KANALLAR = [
+    { k:'uygulama', ad:'Uygulama içi', ikon:'fa-bell' },
+    { k:'eposta',   ad:'E-posta',      ikon:'fa-envelope' },
+    { k:'sms',      ad:'SMS',          ikon:'fa-comment-sms' }
+  ];
+  var roller = A.liste('roller');
+  var rolAdi = {};
+  roller.forEach(function(r){ rolAdi[r.id] = r.ad; });
+
+  /* Türe göre hedef roller: demo bildirim kayıtlarındaki hedefRoller birleşiminden türetilir. */
+  var gozlenenRoller = {};
+  A.liste('bildirimler').forEach(function(b){
+    if (!gozlenenRoller[b.tur]) gozlenenRoller[b.tur] = [];
+    (b.hedefRoller || []).forEach(function(r){
+      if (gozlenenRoller[b.tur].indexOf(r) === -1) gozlenenRoller[b.tur].push(r);
+    });
+  });
+  /* demo kaydı bulunmayan üç olay için tanımlı hedefler */
+  var yedekRoller = {
+    'is-emri':         ['operasyon','planlama','uzman','saha','taseron'],
+    'rapor-teslim':    ['operasyon','satis','musteri'],
+    'yeniden-kontrol': ['operasyon','planlama','teknik']
+  };
+
+  var turler = A.liste('bildirimTurleri');
+  document.getElementById('bldTurSayac').textContent = GV.n(turler.length);
+
+  function kuralVarsayilan(t){
+    var r = (gozlenenRoller[t.k] && gozlenenRoller[t.k].length) ? gozlenenRoller[t.k] : (yedekRoller[t.k] || []);
+    return { kanallar: t.kanallar.slice(), roller: r.slice() };
+  }
+  function kuralOku(t){
+    var hepsi = oku(KURAL_ANAHTAR, {}) || {};
+    var v = kuralVarsayilan(t);
+    var o = hepsi[t.k];
+    if (!o) return { kanallar: v.kanallar, roller: v.roller, ozel: false };
+    return {
+      kanallar: o.kanallar || v.kanallar,
+      roller: o.roller || v.roller,
+      ozel: true
+    };
+  }
+
+  function kanalRozet(liste){
+    if (!liste.length) return '<span class="muted">Kanal kapalı</span>';
+    return '<span class="ay-kanallar">' + KANALLAR.filter(function(k){ return liste.indexOf(k.k) !== -1; })
+      .map(function(k){ return '<span class="gtag mint"><i class="fa-solid ' + k.ikon + '" aria-hidden="true"></i>' + GV.esc(k.ad) + '</span>'; })
+      .join('') + '</span>';
+  }
+  function rolRozet(liste){
+    if (!liste.length) return '<span class="muted">Rol tanımlı değil</span>';
+    return '<span class="ay-roller">' + liste.map(function(r){
+      return '<span class="gtag">' + GV.esc(rolAdi[r] || r) + '</span>';
+    }).join('') + '</span>';
+  }
+
+  function bldCiz(){
+    var govde = turler.map(function(t){
+      var k = kuralOku(t);
+      var tonAd = t.ton === 'danger' ? 'Kritik' : t.ton === 'warn' ? 'Uyarı' : t.ton === 'ok' ? 'Olumlu' : 'Bilgi';
+      var tonSinif = t.ton === 'danger' ? 'danger' : t.ton === 'warn' ? 'warn' : t.ton === 'ok' ? 'ok' : 'info';
+      return '<tr>'
+        + '<td data-lbl="Bildirim türü"><span class="ay-tur"><i class="fa-solid ' + t.ikon + '" aria-hidden="true"></i>'
+        + '<b>' + GV.esc(t.ad) + '</b></span></td>'
+        + '<td data-lbl="Önem">' + GV.rozetOzel(tonSinif, t.ton === 'ok' ? 'fa-circle-check' : t.ton === 'info' ? 'fa-circle-info' : 'fa-triangle-exclamation', tonAd) + '</td>'
+        + '<td data-lbl="Varsayılan kanallar">' + kanalRozet(t.kanallar) + '</td>'
+        + '<td data-lbl="Etkin kanallar">' + kanalRozet(k.kanallar)
+        + (k.ozel ? ' <span class="gtag warn">Özelleştirildi</span>' : '') + '</td>'
+        + '<td data-lbl="Hedef roller">' + rolRozet(k.roller) + '</td>'
+        + '<td data-lbl="İşlem"><div class="row-acts">'
+        + '<button class="btn btn-sm btn-ghost" type="button" data-kural="' + GV.esc(t.k) + '">'
+        + '<i class="fa-solid fa-sliders" aria-hidden="true"></i>Kanalları Düzenle</button></div></td>'
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('bldTablo').innerHTML =
+      '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Bildirim türü</th><th scope="col">Önem</th><th scope="col">Varsayılan kanallar</th>'
+      + '<th scope="col">Etkin kanallar</th><th scope="col">Hedef roller</th><th scope="col">İşlem</th>'
+      + '</tr></thead><tbody>' + govde + '</tbody></table></div>';
+
+    document.getElementById('bldTablo').querySelectorAll('[data-kural]').forEach(function(b){
+      b.addEventListener('click', function(){ kuralModal(b.getAttribute('data-kural')); });
+    });
+  }
+
+  function kuralModal(turAnahtar){
+    var t = null;
+    turler.forEach(function(x){ if (x.k === turAnahtar) t = x; });
+    if (!t) { gvToast('Bildirim türü bulunamadı.', { ton:'danger' }); return; }
+    var mevcut = kuralOku(t);
+
+    gvModal({
+      baslik: 'Kanalları düzenle', ikon:'fa-sliders', genislik:'gv-modal-lg',
+      metin: '<b>' + GV.esc(t.ad) + '</b> olayında hangi kanalların açık olacağını ve bildirimin hangi rollere gideceğini belirleyin.',
+      govde:
+        '<div class="gv-botsec-h" style="margin-top:2px"><i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>Kanallar</div>'
+        + '<div class="ay-chk">' + KANALLAR.map(function(k){
+            return '<label class="gfield-inline" for="kr_' + k.k + '">'
+              + '<input type="checkbox" id="kr_' + k.k + '" data-kanal="' + k.k + '"'
+              + (mevcut.kanallar.indexOf(k.k) !== -1 ? ' checked' : '') + '>'
+              + '<i class="fa-solid ' + k.ikon + '" aria-hidden="true"></i>' + GV.esc(k.ad) + '</label>';
+          }).join('') + '</div>'
+        + '<div class="gv-botsec"><div class="gv-botsec-h"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Hedef roller'
+        + '<span class="bs-sub">Bildirimi görecek roller</span></div>'
+        + '<div class="ay-chk">' + roller.map(function(r){
+            return '<label class="gfield-inline" for="kr_rol_' + r.id + '">'
+              + '<input type="checkbox" id="kr_rol_' + r.id + '" data-rol="' + r.id + '"'
+              + (mevcut.roller.indexOf(r.id) !== -1 ? ' checked' : '') + '>'
+              + '<i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i>' + GV.esc(r.ad) + '</label>';
+          }).join('') + '</div></div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var kanallar = Array.prototype.slice.call(kap.querySelectorAll('[data-kanal]:checked'))
+              .map(function(i){ return i.getAttribute('data-kanal'); });
+            var secRoller = Array.prototype.slice.call(kap.querySelectorAll('[data-rol]:checked'))
+              .map(function(i){ return i.getAttribute('data-rol'); });
+            if (!kanallar.length) { gvToast('En az bir kanal açık olmalıdır.', { ton:'danger' }); return false; }
+            if (!secRoller.length) { gvToast('En az bir hedef rol seçilmelidir.', { ton:'danger' }); return false; }
+            var hepsi = oku(KURAL_ANAHTAR, {}) || {};
+            hepsi[t.k] = { kanallar: kanallar, roller: secRoller };
+            if (!yaz(KURAL_ANAHTAR, hepsi)) return false;
+            A.kayitAt('guncelleme', 'Bildirim Kuralı', t.k, mevcut.kanallar.join('+'), kanallar.join('+'),
+              GV.esc(t.ad) + ' · ' + secRoller.length + ' hedef rol');
+            gvToast(t.ad + ' kuralı kaydedildi.', { ton:'ok' });
+            bldCiz();
+            veriSekmesiCiz();
+          } }
+      ]
+    });
+  }
+  bldCiz();
+
+  document.getElementById('bldSifirla').addEventListener('click', function(){
+    if (!oku(KURAL_ANAHTAR, null)) { gvToast('Bildirim kurallarında özelleştirme yok.', { ton:'info' }); return; }
+    gvConfirm({
+      baslik:'Bildirim kuralları varsayılana dönsün mü?',
+      metin:'Bütün olaylar için kanal ve hedef rol özelleştirmeleri silinecek.',
+      onayEtiket:'Varsayılana dön', onayIkon:'fa-rotate-left'
+    }).then(function(s){
+      if (!s.onay) return;
+      anahtariSil(KURAL_ANAHTAR);
+      bldCiz(); veriSekmesiCiz();
+      gvToast('Bildirim kuralları varsayılana döndürüldü.', { ton:'ok' });
+    });
+  });
+
+  /* =====================================================================
+     4) NUMARALANDIRMA
+     ===================================================================== */
+  var NUM_ANAHTAR = 'gv_tk_numara';
+  var YIL = Number(String(BUGUN).substring(0, 4));
+  var sablonlar = [
+    { k:'is-emri',    ad:'İş emri',            onek:'IE',    yil:true,  basamak:4, koleksiyon:'isEmirleri',         ikon:'fa-clipboard-check' },
+    { k:'rapor',      ad:'Teknik rapor',       onek:'GVT',   yil:true,  basamak:4, koleksiyon:'raporlar',           ikon:'fa-file-lines' },
+    { k:'teklif',     ad:'Teklif',             onek:'TKL',   yil:true,  basamak:3, koleksiyon:'teklifler',          ikon:'fa-file-contract' },
+    { k:'sozlesme',   ad:'Sözleşme',           onek:'SZL',   yil:true,  basamak:3, koleksiyon:'sozlesmeler',        ikon:'fa-file-signature' },
+    { k:'fatura',     ad:'Fatura',             onek:'GVT-A', yil:true,  basamak:6, koleksiyon:'faturalar',          ikon:'fa-file-invoice-dollar' },
+    { k:'fatura-gr',  ad:'Fatura grubu',       onek:'FGR',   yil:true,  basamak:3, koleksiyon:'faturaGruplari',     ikon:'fa-layer-group' },
+    { k:'taseron-hk', ad:'Taşeron hakedişi',   onek:'TH',    yil:true,  basamak:3, koleksiyon:'taseronHakedisleri', ikon:'fa-hand-holding-dollar' },
+    { k:'uygunsuz',   ad:'Uygunsuzluk',        onek:'UYG',   yil:true,  basamak:3, koleksiyon:'uygunsuzluklar',     ikon:'fa-circle-exclamation' },
+    { k:'yeniden',    ad:'Yeniden kontrol',    onek:'YKN',   yil:true,  basamak:3, koleksiyon:'yenidenKontroller',  ikon:'fa-rotate-right' },
+    { k:'ekipman',    ad:'Ekipman',            onek:'EKP',   yil:false, basamak:4, koleksiyon:'ekipmanlar',         ikon:'fa-gears' }
+  ];
+
+  function sablonMetni(s, onek){
+    return (onek || s.onek) + '-' + (s.yil ? 'YYYY-' : '') + new Array(s.basamak + 1).join('#');
+  }
+  function ornekUret(s, onek, sonraki){
+    var n = String(Math.max(1, Number(sonraki) || 1));
+    while (n.length < s.basamak) n = '0' + n;
+    return (onek || s.onek) + '-' + (s.yil ? YIL + '-' : '') + n;
+  }
+  function numVarsayilan(s){
+    return { onek: s.onek, sonraki: A.liste(s.koleksiyon).length + 1 };
+  }
+  function numOku(){
+    var kayitli = oku(NUM_ANAHTAR, {}) || {};
+    var sonuc = {};
+    sablonlar.forEach(function(s){
+      var v = numVarsayilan(s);
+      var o = kayitli[s.k] || {};
+      sonuc[s.k] = {
+        onek: o.onek || v.onek,
+        sonraki: o.sonraki != null ? o.sonraki : v.sonraki,
+        ozel: !!kayitli[s.k]
+      };
+    });
+    return sonuc;
+  }
+
+  function numCiz(){
+    var deger = numOku();
+    var ozelVar = false;
+    var govde = sablonlar.map(function(s){
+      var d = deger[s.k];
+      if (d.ozel) ozelVar = true;
+      var kayitSayisi = A.liste(s.koleksiyon).length;
+      return '<tr>'
+        + '<td data-lbl="Belge türü"><span class="ay-tur"><i class="fa-solid ' + s.ikon + '" aria-hidden="true"></i>'
+        + '<b>' + GV.esc(s.ad) + '</b></span></td>'
+        + '<td data-lbl="Şablon"><span class="ay-sablon" id="nsb_' + s.k + '">' + GV.esc(sablonMetni(s, d.onek)) + '</span></td>'
+        + '<td data-lbl="Önek" class="ay-inp"><span class="gfield">'
+        + '<label class="gv-sr" for="non_' + s.k + '">' + GV.esc(s.ad) + ' öneki</label>'
+        + '<input type="text" id="non_' + s.k + '" data-onek="' + s.k + '" maxlength="8" value="' + GV.esc(d.onek) + '"></span></td>'
+        + '<td data-lbl="Sonraki numara" class="ay-inp num"><span class="gfield">'
+        + '<label class="gv-sr" for="nsr_' + s.k + '">' + GV.esc(s.ad) + ' sonraki sıra numarası</label>'
+        + '<input type="number" id="nsr_' + s.k + '" data-sonraki="' + s.k + '" min="1" max="999999" step="1" value="' + d.sonraki + '"></span></td>'
+        + '<td data-lbl="Örnek"><span class="ay-ornek" id="nor_' + s.k + '">' + GV.esc(ornekUret(s, d.onek, d.sonraki)) + '</span></td>'
+        + '<td data-lbl="Mevcut kayıt" class="num">' + GV.n(kayitSayisi) + '</td>'
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('numTablo').innerHTML =
+      '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Belge türü</th><th scope="col">Şablon</th><th scope="col">Önek</th>'
+      + '<th scope="col" class="num">Sonraki numara</th><th scope="col">Örnek</th><th scope="col" class="num">Mevcut kayıt</th>'
+      + '</tr></thead><tbody>' + govde + '</tbody></table></div>';
+
+    document.getElementById('numDurum').textContent = ozelVar
+      ? 'Bu tarayıcıda kayıtlı numara şablonları kullanılıyor.'
+      : 'Sıradaki numaralar demo verisindeki kayıt sayılarından türetildi (' + YIL + ' yılı).';
+
+    sablonlar.forEach(function(s){
+      function tazele(){
+        var onek = document.getElementById('non_' + s.k).value.trim() || s.onek;
+        var sonraki = document.getElementById('nsr_' + s.k).value;
+        document.getElementById('nsb_' + s.k).textContent = sablonMetni(s, onek);
+        document.getElementById('nor_' + s.k).textContent = ornekUret(s, onek, sonraki);
+      }
+      document.getElementById('non_' + s.k).addEventListener('input', tazele);
+      document.getElementById('nsr_' + s.k).addEventListener('input', tazele);
+    });
+  }
+  numCiz();
+
+  document.getElementById('numKaydet').addEventListener('click', function(){
+    var yeni = {}, hata = null;
+    sablonlar.forEach(function(s){
+      var onekEl = document.getElementById('non_' + s.k);
+      var sonEl = document.getElementById('nsr_' + s.k);
+      onekEl.closest('.gfield').classList.remove('is-err');
+      sonEl.closest('.gfield').classList.remove('is-err');
+      var onek = onekEl.value.trim().toLocaleUpperCase('tr-TR');
+      var sonraki = Number(sonEl.value);
+      if (!/^[A-Z0-9-]{1,8}$/.test(onek)) {
+        if (!hata) { hata = s.ad + ' öneki yalnız büyük harf, rakam ve tire içerebilir (en fazla 8 karakter).'; onekEl.focus(); }
+        onekEl.closest('.gfield').classList.add('is-err');
+      }
+      if (sonEl.value === '' || isNaN(sonraki) || sonraki < 1 || sonraki !== Math.round(sonraki)) {
+        if (!hata) { hata = s.ad + ' sonraki numarası 1 veya daha büyük tam sayı olmalıdır.'; sonEl.focus(); }
+        sonEl.closest('.gfield').classList.add('is-err');
+      }
+      yeni[s.k] = { onek: onek, sonraki: sonraki };
+    });
+    if (hata) { gvToast(hata, { ton:'danger' }); return; }
+    /* aynı öneğin iki belge türünde kullanılmasını engelle */
+    var kullanilan = {};
+    for (var i = 0; i < sablonlar.length; i++) {
+      var o = yeni[sablonlar[i].k].onek;
+      if (kullanilan[o]) { gvToast('"' + o + '" öneki birden fazla belge türünde kullanılamaz.', { ton:'danger' }); return; }
+      kullanilan[o] = true;
+    }
+    if (!yaz(NUM_ANAHTAR, yeni)) return;
+    A.kayitAt('guncelleme', 'Numara Şablonları', 'NUMARA', null, sablonlar.length + ' şablon güncellendi', 'Ayarlar → Numaralandırma');
+    gvToast('Numara şablonları kaydedildi. Mevcut kayıtların numarası değişmez.', { ton:'ok' });
+    numCiz(); veriSekmesiCiz();
+  });
+
+  document.getElementById('numSifirla').addEventListener('click', function(){
+    if (!oku(NUM_ANAHTAR, null)) { gvToast('Numara şablonlarında özelleştirme yok.', { ton:'info' }); return; }
+    gvConfirm({
+      baslik:'Numara şablonları varsayılana dönsün mü?',
+      metin:'Önek ve sıra numarası özelleştirmeleri silinecek; demo verisinden türetilen değerler geri yüklenecek.',
+      onayEtiket:'Varsayılana dön', onayIkon:'fa-rotate-left'
+    }).then(function(s){
+      if (!s.onay) return;
+      anahtariSil(NUM_ANAHTAR);
+      numCiz(); veriSekmesiCiz();
+      gvToast('Numara şablonları varsayılana döndürüldü.', { ton:'ok' });
+    });
+  });
+
+  /* =====================================================================
+     5) VERİ VE GİZLİLİK
+     ===================================================================== */
+  var ANAHTAR_SOZLUGU = [
+    { on:'gv_tk_data',            ad:'Demo veri değişiklikleri',   aciklama:'Eklediğiniz, düzenlediğiniz ve sildiğiniz kayıtlar ile işlem kayıtları.' },
+    { on:'gv_tk_rol',             ad:'Aktif rol',                  aciklama:'En son seçtiğiniz kullanıcı rolü; sayfalar arasında korunur.' },
+    { on:'gv_tk_menu',            ad:'Menü tercihi',               aciklama:'Modül menüsünün açık veya daraltılmış olduğu bilgisi.' },
+    { on:'gv_tk_okunan',          ad:'Okunan bildirimler',         aciklama:'Okundu işaretlediğiniz bildirimlerin listesi.' },
+    { on:'gv_tk_bildirim_tercih', ad:'Kişisel kanal tercihleri',   aciklama:'Bildirimler ekranındaki kullanıcı kanal tercihleri.' },
+    { on:'gv_tk_bildirim_kural',  ad:'Bildirim kuralları',         aciklama:'Bu ekrandaki olay bazlı kanal ve hedef rol tanımları.' },
+    { on:'gv_tk_firma',           ad:'Firma künyesi',              aciklama:'Bu ekranda düzenlenen firma bilgileri.' },
+    { on:'gv_tk_ayar',            ad:'Operasyon ayarları',         aciklama:'SLA, parti büyüklüğü, vade ve uyarı eşikleri.' },
+    { on:'gv_tk_numara',          ad:'Numara şablonları',          aciklama:'Belge önekleri ve sıradaki numaralar.' },
+    { on:'gv_tk_rol_yetki',       ad:'Rol yetki değişiklikleri',   aciklama:'Roller ve Yetkiler ekranında düzenlenen bölüm erişimleri.' },
+    { on:'gv_tk_kolon_',          ad:'Kolon tercihi',              aciklama:'Liste ekranlarında gizlediğiniz veya gösterdiğiniz kolonlar.' },
+    { on:'gv_tk_taslak_',         ad:'Form taslağı',               aciklama:'Kaydedilmeden bırakılan form taslakları.' },
+    { on:'gv_tk_saha_',           ad:'Saha kontrol formu taslağı', aciklama:'Mobil saha kontrol formunun çevrimdışı taslağı.' },
+    { on:'gv_tk_hazirlik_',       ad:'İş emri hazırlık listesi',   aciklama:'İş emri detayındaki saha öncesi hazırlık işaretleri.' },
+    { on:'gv_tk_not_',            ad:'Panel notu',                 aciklama:'Ana paneldeki kişisel not alanı.' }
+  ];
+
+  function anahtarBilgi(anahtar){
+    var eslesme = null;
+    ANAHTAR_SOZLUGU.forEach(function(s){
+      if (anahtar === s.on || (s.on.charAt(s.on.length - 1) === '_' && anahtar.indexOf(s.on) === 0)) {
+        if (!eslesme || s.on.length > eslesme.on.length) eslesme = s;
+      }
+    });
+    if (!eslesme) return { ad: anahtar, aciklama: 'Tanımlı olmayan demo anahtarı.' };
+    var ek = eslesme.on.charAt(eslesme.on.length - 1) === '_' ? anahtar.substring(eslesme.on.length) : '';
+    return { ad: eslesme.ad + (ek ? ' — ' + ek : ''), aciklama: eslesme.aciklama };
+  }
+
+  function anahtarlar(){
+    var liste = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var a = localStorage.key(i);
+        if (a && a.indexOf('gv_tk_') === 0) liste.push(a);
+      }
+    } catch(e){ return []; }
+    return liste.sort();
+  }
+
+  function veriSekmesiCiz(){
+    var liste = anahtarlar();
+    var toplamBayt = 0;
+    liste.forEach(function(a){
+      try { toplamBayt += (localStorage.getItem(a) || '').length + a.length; } catch(e){}
+    });
+    var degisiklik = A.degisiklikSayisi();
+    var loglar = A.liste('islemKayitlari').filter(function(l){ return l.ip === 'demo'; }).length;
+
+    gvKpi('#vrKpi', [
+      { ikon:'fa-pen-to-square', sayi: GV.n(degisiklik), etiket:'Bu tarayıcıdaki demo değişikliği',
+        ton: degisiklik ? 'info' : '',
+        delta:{ yon:'flat', metin: degisiklik ? 'Eklenen, düzenlenen ve silinen kayıtlar' : 'Demo verisi el değmemiş' } },
+      { ikon:'fa-key', sayi: GV.n(liste.length), etiket:'Saklanan ayar anahtarı' },
+      { ikon:'fa-hard-drive',
+        sayi: toplamBayt < 1024 ? GV.n(toplamBayt) + ' B' : GV.n(Math.round(toplamBayt / 1024 * 10) / 10, 1) + ' KB',
+        etiket:'Kapladığı alan' },
+      { ikon:'fa-clock-rotate-left', sayi: GV.n(loglar), etiket:'Arayüzden üretilen işlem kaydı' }
+    ]);
+
+    document.getElementById('vrOzet').innerHTML =
+        '<div class="info-row"><dt>Veri saklama yeri</dt><dd>Tarayıcı localStorage — sunucuya gönderilmez</dd></div>'
+      + '<div class="info-row"><dt>Demo bağlam tarihi</dt><dd>' + GV.dUzun(BUGUN) + '</dd></div>'
+      + '<div class="info-row"><dt>Aktif rol</dt><dd>' + GV.esc(GV.kullanici.rolAd) + '</dd></div>'
+      + '<div class="info-row"><dt>Demo değişiklik sayısı</dt><dd>' + GV.n(degisiklik) + '</dd></div>'
+      + '<div class="info-row"><dt>Çerez kullanımı</dt><dd>Yok</dd></div>'
+      + '<div class="info-row"><dt>Dış servis çağrısı</dt><dd>Yalnız yazı tipi ve ikon dosyaları</dd></div>';
+
+    if (!liste.length) {
+      document.getElementById('vrTablo').innerHTML = gvEmpty({
+        ikon:'fa-database', baslik:'Saklanan veri yok',
+        metin:'Bu tarayıcıda GAVIA demosuna ait hiçbir kayıt bulunmuyor. Bir ayar kaydettiğinizde burada listelenir.' });
+      return;
+    }
+
+    document.getElementById('vrTablo').innerHTML =
+      '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Anahtar</th><th scope="col">İçerik</th><th scope="col">Açıklama</th>'
+      + '<th scope="col" class="num">Boyut</th><th scope="col">İşlem</th>'
+      + '</tr></thead><tbody>'
+      + liste.map(function(a){
+          var bilgi = anahtarBilgi(a);
+          var bayt = 0;
+          try { bayt = (localStorage.getItem(a) || '').length; } catch(e){}
+          return '<tr>'
+            + '<td data-lbl="Anahtar"><code style="font-size:11.5px">' + GV.esc(a) + '</code></td>'
+            + '<td data-lbl="İçerik"><b class="t-strong">' + GV.esc(bilgi.ad) + '</b></td>'
+            + '<td data-lbl="Açıklama"><span class="muted">' + GV.esc(bilgi.aciklama) + '</span></td>'
+            + '<td data-lbl="Boyut" class="num">' + GV.n(bayt) + ' B</td>'
+            + '<td data-lbl="İşlem"><div class="row-acts">'
+            + '<button class="ia-btn danger" type="button" data-temizle="' + GV.esc(a) + '"'
+            + ' aria-label="' + GV.esc(bilgi.ad) + ' kaydını temizle">'
+            + '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></div></td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+
+    document.getElementById('vrTablo').querySelectorAll('[data-temizle]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var a = b.getAttribute('data-temizle');
+        var bilgi = anahtarBilgi(a);
+        gvConfirm({
+          baslik: bilgi.ad + ' silinsin mi?',
+          metin: '<code>' + GV.esc(a) + '</code> anahtarı bu tarayıcıdan kaldırılacak. ' + GV.esc(bilgi.aciklama)
+            + (a === 'gv_tk_data' ? ' <b>Eklediğiniz ve düzenlediğiniz bütün demo kayıtları da silinir.</b>' : ''),
+          ton:'danger', onayEtiket:'Sil', onayIkon:'fa-trash-can'
+        }).then(function(s){
+          if (!s.onay) return;
+          anahtariSil(a);
+          gvToast(bilgi.ad + ' temizlendi.', { ton:'ok' });
+          if (a === 'gv_tk_data' || a === 'gv_tk_rol' || a === 'gv_tk_firma' || a === 'gv_tk_ayar'
+              || a === 'gv_tk_numara' || a === 'gv_tk_bildirim_kural') {
+            setTimeout(function(){ location.reload(); }, 700);
+          } else {
+            veriSekmesiCiz();
+          }
+        });
+      });
+    });
+  }
+  veriSekmesiCiz();
+
+  document.getElementById('vrSifirla').addEventListener('click', function(){
+    var n = A.degisiklikSayisi();
+    gvConfirm({
+      baslik:'Demo verileri sıfırlansın mı?',
+      metin: n
+        ? 'Bu tarayıcıda yapılan <b>' + GV.n(n) + ' kayıt değişikliği</b> ve arayüzden üretilen işlem kayıtları silinecek. '
+          + 'Demo verisi ilk haline döner. Bu işlem geri alınamaz.'
+        : 'Kayıtlı bir değişiklik görünmüyor; yine de demo veri katmanı temizlenip ilk haline döndürülecek.',
+      ton:'danger', onayEtiket:'Sıfırla', onayIkon:'fa-trash-can'
+    }).then(function(s){
+      if (!s.onay) return;
+      A.sifirla().then(function(){
+        gvToast('Demo verileri sıfırlandı. Sayfa yenileniyor…', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 800);
+      });
+    });
+  });
+
+  document.getElementById('vrHepsi').addEventListener('click', function(){
+    var liste = anahtarlar();
+    if (!liste.length) { gvToast('Temizlenecek kayıt yok.', { ton:'info' }); return; }
+    gvConfirm({
+      baslik:'Bütün demo kayıtları silinsin mi?',
+      metin:'<b>' + GV.n(liste.length) + ' anahtar</b> bu tarayıcıdan kaldırılacak: veri değişiklikleri, ayarlar, '
+        + 'rol seçimi, menü tercihi, kolon tercihleri ve form taslakları. Bu işlem geri alınamaz.',
+      ton:'danger', onayEtiket:'Tümünü sil', onayIkon:'fa-broom'
+    }).then(function(s){
+      if (!s.onay) return;
+      liste.forEach(anahtariSil);
+      gvToast('Bütün demo kayıtları temizlendi. Sayfa yenileniyor…', { ton:'ok' });
+      setTimeout(function(){ location.reload(); }, 800);
+    });
+  });
+})();
+</script>
+</body>
+</html>

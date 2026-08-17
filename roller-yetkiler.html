@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Roller ve Yetkiler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+/* sayfaya özgü küçük düzen yardımcıları (ry- öneki) */
+.ry-mx{min-width:1080px}
+.ry-mx th[scope="row"]{position:sticky;left:0;z-index:1;text-align:left;white-space:nowrap;background:var(--bg)}
+.ry-mx th:last-child,.ry-mx td:last-child{text-align:left;padding-right:14px}
+.ry-mx td{text-align:center}
+.ry-mx thead th{text-align:center;vertical-align:bottom}
+.ry-mx thead th:first-child{text-align:left}
+.ry-mx .ry-bh{display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.3}
+.ry-mx .ry-bh i{font-size:13px;color:var(--ink-2)}
+.ry-rolh{display:flex;align-items:center;gap:9px;min-width:0}
+.ry-rolh i{width:26px;height:26px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11px;background:rgba(var(--mint-rgb),.11);color:var(--gv-action)}
+.ry-rolh b{font-size:12.5px;font-weight:700;color:var(--ink)}
+.ry-legend{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:12.5px;color:var(--muted)}
+.ry-scrlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px}
+.ry-scr{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);min-width:0}
+.ry-scr.kapali{background:var(--bg);opacity:.85}
+.ry-scr > i{width:26px;height:26px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11px;background:var(--bg);color:var(--ink-2)}
+.ry-scr.kapali > i{color:var(--muted)}
+.ry-scr b{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ry-scr.kapali b{color:var(--muted);font-weight:500}
+.ry-chk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 14px}
+@media(max-width:980px){ .ry-scrlist{grid-template-columns:minmax(0,1fr)} }
+@media(max-width:640px){ .ry-chk{grid-template-columns:minmax(0,1fr)} }
+</style>
+</head>
+<body data-sec="sistem" data-screen="roller-yetkiler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Sistem Ayarları</div>
+        <h1>Roller ve Yetkiler</h1>
+        <p class="ph-sub">Kullanıcı rollerinin bölüm ve ekran erişimleri. Matris, navigasyon motorundaki gerçek yetki tanımından okunur; bir bölümü kapatmak o bölümü hem menüden hem de adres çubuğundan erişilemez yapar.</p>
+      </div>
+      <div class="ph-actions no-print">
+        <button class="btn btn-ghost" type="button" id="ryDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+        <button class="btn btn-ghost" type="button" id="rySifirla"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Değişiklikleri Geri Al</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="ryKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Yetki görünümleri">
+      <button class="gv-tab" role="tab" id="tbRol" aria-controls="pnRol" aria-selected="true">
+        <i class="fa-solid fa-user-shield" aria-hidden="true"></i>Roller<span class="tb-cnt" id="rolSayac">0</span></button>
+      <button class="gv-tab" role="tab" id="tbMx" aria-controls="pnMx" aria-selected="false">
+        <i class="fa-solid fa-table-cells" aria-hidden="true"></i>Yetki Matrisi</button>
+      <button class="gv-tab" role="tab" id="tbEkr" aria-controls="pnEkr" aria-selected="false">
+        <i class="fa-solid fa-list-check" aria-hidden="true"></i>Ekran Yetkileri</button>
+    </div>
+
+    <!-- ============ 1) ROLLER ============ -->
+    <div id="pnRol" role="tabpanel" aria-labelledby="tbRol">
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Kullanıcı Rolleri</h2>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>"Rolle Görüntüle" bağlantısı paneli o rolün gözünden açar (<code>?role=&lt;rol&gt;</code>) ve rol seçimi sayfalar arasında korunur.
+            Taşeron ve müşteri rolleri ayrıca <b>veri kapsamıyla</b> sınırlıdır: yalnız kendi kayıtlarını görürler.</span>
+          </div>
+        </div>
+        <div class="gc-body flush" id="ryTablo"></div>
+      </section>
+    </div>
+
+    <!-- ============ 2) YETKİ MATRİSİ ============ -->
+    <div id="pnMx" role="tabpanel" aria-labelledby="tbMx" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-table-cells" aria-hidden="true"></i>Rol × Bölüm Yetki Matrisi</h2>
+        </div>
+        <div class="gc-body">
+          <div class="ry-legend" id="ryLegend"></div>
+        </div>
+        <div class="gc-body flush" id="ryMatris"></div>
+        <div class="gc-foot">
+          <span class="muted">Kısmi erişimde hücrenin başlığında görünen ekran sayısı yazar; ayrıntı için Ekran Yetkileri sekmesine bakın.</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 3) EKRAN YETKİLERİ ============ -->
+    <div id="pnEkr" role="tabpanel" aria-labelledby="tbEkr" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Ekran Bazlı Erişim</h2>
+          <div class="gc-head-acts no-print">
+            <div class="gfield" style="min-width:250px">
+              <label class="gv-sr" for="ryRolSec">Rol seçin</label>
+              <select id="ryRolSec"></select>
+            </div>
+          </div>
+        </div>
+        <div class="gc-body" id="ryEkranOzet"></div>
+        <div class="gc-body" id="ryEkranListe" style="padding-top:0"></div>
+      </section>
+    </div>
+
+    <div class="gv-botsec">
+      <div class="gv-botsec-h"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Erişim Koruması
+        <span class="bs-sub">Navigasyon motorunda uygulanan davranış</span></div>
+      <div class="gv-note">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <span><b>Yetkisiz bölüm veya ekrana doğrudan URL ile girildiğinde kullanıcı kendi açılış sayfasına yönlendirilir.</b>
+        Yetki yalnız menüyü gizlemekle kalmaz: rail simgesi, modül menüsü kalemi ve sayfanın kendisi birlikte kapanır.
+        Detay ve form sayfaları menüdeki liste ekranının yetkisini miras alır; yönlendirmede hangi adresin engellendiği
+        <code>?yetkisiz=</code> parametresiyle taşınır.</span>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var BOLUMLER = window.GV.BOLUMLER;        /* navigation.js → bölüm ve menü tanımı */
+  var ROL_YETKI = window.GV.ROL_YETKI;      /* navigation.js → rol yetki haritası   */
+  var BOLUM_ANAHTARLARI = Object.keys(BOLUMLER);   /* rail sırasıyla gelir */
+  var YETKI_ANAHTAR = 'gv_tk_rol_yetki';
+
+  gvTabs('.gv-tabbar');
+
+  function oku(anahtar, varsayilan){
+    try { var h = localStorage.getItem(anahtar); return h ? JSON.parse(h) : varsayilan; }
+    catch(e){ return varsayilan; }
+  }
+  function yaz(anahtar, deger){
+    try { localStorage.setItem(anahtar, JSON.stringify(deger)); return true; }
+    catch(e){ gvToast('Kaydedilemedi — tarayıcı depolaması kapalı.', { ton:'danger' }); return false; }
+  }
+
+  /* ---- rol ve yetki okuyucuları ---- */
+  var roller = A.liste('roller').filter(function(r){ return !!ROL_YETKI[r.id]; });
+
+  function ozelYetkiler(){ return oku(YETKI_ANAHTAR, {}) || {}; }
+
+  /* Etkin yetki = navigation.js tanımı + bu tarayıcıdaki bölüm düzenlemesi */
+  function yetkiAl(rolId){
+    var temel = ROL_YETKI[rolId] || { bolumler: [] };
+    var ozel = ozelYetkiler()[rolId];
+    var kaynak = (ozel && ozel.bolumler) ? ozel.bolumler : temel.bolumler;
+    return {
+      bolumler: BOLUM_ANAHTARLARI.filter(function(b){ return kaynak.indexOf(b) !== -1; }),
+      ekran: temel.ekran || null,
+      acilis: temel.acilis || null,
+      ozel: !!ozel
+    };
+  }
+
+  function bolumEkranlari(b){
+    return BOLUMLER[b].menu.filter(function(m){ return m.href; });
+  }
+  function ekranGorunurMu(y, b, kalem){
+    if (!y.ekran || !y.ekran[b]) return true;
+    if (!kalem.screen) return true;
+    return y.ekran[b].indexOf(kalem.screen) !== -1;
+  }
+  function gorunenEkranlar(y, b){
+    return bolumEkranlari(b).filter(function(m){ return ekranGorunurMu(y, b, m); });
+  }
+  /* 'tam' | 'kismi' | 'yok' */
+  function hucreDurum(y, b){
+    if (y.bolumler.indexOf(b) === -1) return 'yok';
+    return (y.ekran && y.ekran[b]) ? 'kismi' : 'tam';
+  }
+  /* navigation.js ile aynı açılış sayfası hesabı */
+  function acilisSayfasi(rolId){
+    var y = yetkiAl(rolId);
+    if (y.acilis) return y.acilis;
+    var ilk = y.bolumler[0];
+    if (!ilk) return 'index.html';
+    var g = gorunenEkranlar(y, ilk);
+    return g.length ? g[0].href : 'index.html';
+  }
+  function toplamEkran(){
+    var t = 0;
+    BOLUM_ANAHTARLARI.forEach(function(b){ t += bolumEkranlari(b).length; });
+    return t;
+  }
+  function rolEkranSayisi(rolId){
+    var y = yetkiAl(rolId), t = 0;
+    y.bolumler.forEach(function(b){ t += gorunenEkranlar(y, b).length; });
+    return t;
+  }
+  /* Tam yetkili = hiçbir bölümde ekran kısıtı yok ve müşteri portalı dışındaki
+     bütün iç yönetim bölümlerine erişiyor (portal yalnız müşteri rolüne açıktır). */
+  var IC_BOLUMLER = BOLUM_ANAHTARLARI.filter(function(b){ return b !== 'portal'; });
+  function tamYetkiliMi(rolId){
+    var y = yetkiAl(rolId);
+    if (y.ekran && Object.keys(y.ekran).length) return false;
+    for (var i = 0; i < IC_BOLUMLER.length; i++) {
+      if (y.bolumler.indexOf(IC_BOLUMLER[i]) === -1) return false;
+    }
+    return true;
+  }
+
+  /* rolün bağlı olduğu personel / taşeron / müşteri */
+  function bagliTaraf(r){
+    if (r.personelId) {
+      var p = A.kayit('personeller', r.personelId);
+      return { ad: p ? p.ad : r.personelId, alt: p ? p.gorev : 'Personel kaydı', link: 'personel-detay.html?id=' + r.personelId, ikon:'fa-user' };
+    }
+    if (r.taseronId) {
+      var t = A.kayit('taseronlar', r.taseronId);
+      return { ad: t ? t.kisaAd : r.taseronId, alt: 'Taşeron firma', link: 'taseron-detay.html?id=' + r.taseronId, ikon:'fa-people-carry-box' };
+    }
+    if (r.musteriId) {
+      var m = A.kayit('musteriler', r.musteriId);
+      return { ad: m ? m.kisaAd : r.musteriId, alt: 'Müşteri firma', link: 'musteri-detay.html?id=' + r.musteriId, ikon:'fa-building' };
+    }
+    return null;
+  }
+
+  /* =====================================================================
+     KPI
+     ===================================================================== */
+  function kpiCiz(){
+    var tamSayisi = roller.filter(function(r){ return tamYetkiliMi(r.id); }).length;
+    gvKpi('#ryKpi', [
+      { ikon:'fa-user-shield', sayi: GV.n(roller.length), etiket:'Tanımlı kullanıcı rolü',
+        delta:{ yon:'flat', metin: roller.filter(function(r){ return r.taseronId || r.musteriId; }).length + ' rol dış taraf (taşeron/müşteri)' } },
+      { ikon:'fa-layer-group', sayi: GV.n(BOLUM_ANAHTARLARI.length), etiket:'Toplam bölüm', ton:'info' },
+      { ikon:'fa-window-restore', sayi: GV.n(toplamEkran()), etiket:'Toplam ekran', ton:'info' },
+      { ikon:'fa-key', sayi: GV.n(tamSayisi), etiket:'Tam yetkili rol',
+        ton: tamSayisi > 3 ? 'warn' : '',
+        delta:{ yon:'flat', metin:'Portal dışındaki bütün bölümler, ekran kısıtı yok' } }
+    ]);
+  }
+
+  /* =====================================================================
+     1) ROLLER SEKMESİ
+     ===================================================================== */
+  document.getElementById('rolSayac').textContent = GV.n(roller.length);
+
+  var kolonlar = [
+    { k:'ad', ad:'Rol', ciz: function(r){
+        return '<div class="gcell"><div class="gcell-mark"><i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name">' + GV.esc(r.ad) + '</div>'
+          + '<div class="gcell-sub">' + GV.esc('?role=' + r.id) + '</div></div></div>'; } },
+    { k:'__bagli', ad:'Bağlı personel / taraf', ciz: function(r){
+        var b = bagliTaraf(r);
+        if (!b) return '<span class="muted">Bağlı kayıt yok</span>';
+        return '<a href="' + b.link + '"><b class="t-strong">' + GV.esc(b.ad) + '</b></a>'
+          + '<div class="gcell-sub">' + GV.esc(b.alt) + '</div>'; } },
+    { k:'__kapsam', ad:'Veri kapsamı', ciz: function(r){
+        var k = A.rolKapsami(r.id);
+        return k.tur === 'musteri' ? GV.rozetOzel('info','fa-building','Yalnız kendi müşterisi')
+          : k.tur === 'taseron' ? GV.rozetOzel('info','fa-people-carry-box','Yalnız kendi taşeronu')
+          : GV.rozetOzel('ok','fa-database','Bütün kayıtlar'); } },
+    { k:'__bolum', ad:'Bölüm', sinif:'num', ciz: function(r){
+        var y = yetkiAl(r.id);
+        return '<b>' + GV.n(y.bolumler.length) + '</b> <span class="muted">/ ' + GV.n(BOLUM_ANAHTARLARI.length) + '</span>'; } },
+    { k:'__ekran', ad:'Ekran', sinif:'num', ciz: function(r){
+        return '<b>' + GV.n(rolEkranSayisi(r.id)) + '</b> <span class="muted">/ ' + GV.n(toplamEkran()) + '</span>'; } },
+    { k:'__acilis', ad:'Açılış sayfası', ciz: function(r){
+        return '<code style="font-size:11.5px">' + GV.esc(acilisSayfasi(r.id)) + '</code>'; } },
+    { k:'aciklama', ad:'Açıklama', ciz: function(r){
+        return '<span class="muted">' + GV.esc(r.aciklama) + '</span>'
+          + (yetkiAl(r.id).ozel ? ' <span class="gtag warn">Yetkisi düzenlendi</span>' : ''); } },
+    { k:'__islem', ad:'İşlem', ciz: function(r){
+        return '<div class="row-acts">'
+          + '<a class="btn btn-sm btn-ghost" href="' + GV.esc(acilisSayfasi(r.id)) + '?role=' + GV.esc(r.id) + '">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i>Rolle Görüntüle</a>'
+          + '<button class="ia-btn" type="button" data-duzenle="' + GV.esc(r.id) + '"'
+          + ' aria-label="' + GV.esc(r.ad) + ' yetkilerini düzenle"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ryTablo', kolonlar:kolonlar, satirId: function(r){ return r.id; },
+    bosDurum:{ ikon:'fa-user-shield', baslik:'Rol bulunamadı', metin:'Navigasyon motorunda tanımlı bir kullanıcı rolü yok.' } });
+
+  function rolTablosuCiz(){
+    tablo.ciz(roller);
+    document.getElementById('ryTablo').querySelectorAll('[data-duzenle]').forEach(function(b){
+      b.addEventListener('click', function(){ yetkiModal(b.getAttribute('data-duzenle')); });
+    });
+  }
+
+  /* =====================================================================
+     2) YETKİ MATRİSİ
+     ===================================================================== */
+  var DURUM_BILGI = {
+    tam:   { sinif:'ok',   ikon:'fa-circle-check',       etiket:'Tam',   metin:'tam erişim' },
+    kismi: { sinif:'warn', ikon:'fa-circle-half-stroke', etiket:'Kısmi', metin:'kısmi erişim' },
+    yok:   { sinif:'off',  ikon:'fa-minus',              etiket:'Yok',   metin:'erişim yok' }
+  };
+
+  document.getElementById('ryLegend').innerHTML =
+    '<span><b>Gösterim:</b></span>'
+    + ['tam','kismi','yok'].map(function(d){
+        var b = DURUM_BILGI[d];
+        return '<span>' + GV.rozetOzel(b.sinif, b.ikon, b.etiket) + ' '
+          + (d === 'tam' ? 'bölümdeki bütün ekranlar açık'
+            : d === 'kismi' ? 'bölüm açık, ekranların bir kısmı kısıtlı'
+            : 'bölüm hiç görünmüyor') + '</span>';
+      }).join('');
+
+  function matrisCiz(){
+    var basliklar = '<tr><th scope="col">Rol</th>'
+      + BOLUM_ANAHTARLARI.map(function(b){
+          return '<th scope="col"><span class="ry-bh"><i class="fa-solid ' + BOLUMLER[b].ikon + '" aria-hidden="true"></i>'
+            + GV.esc(BOLUMLER[b].baslik) + '</span></th>';
+        }).join('')
+      + '</tr>';
+
+    var satirlar = roller.map(function(r){
+      var y = yetkiAl(r.id);
+      return '<tr><th scope="row"><span class="ry-rolh"><i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i>'
+        + '<b>' + GV.esc(r.ad) + '</b></span></th>'
+        + BOLUM_ANAHTARLARI.map(function(b){
+            var d = hucreDurum(y, b);
+            var bilgi = DURUM_BILGI[d];
+            var gorunen = gorunenEkranlar(y, b).length, tumu = bolumEkranlari(b).length;
+            var aciklama = 'Rol ' + r.ad + ', bölüm ' + BOLUMLER[b].baslik + ': ' + bilgi.metin
+              + (d === 'yok' ? '' : ' — ' + gorunen + ' / ' + tumu + ' ekran görünür');
+            return '<td aria-label="' + GV.esc(aciklama) + '" title="' + GV.esc(aciklama) + '">'
+              + GV.rozetOzel(bilgi.sinif, bilgi.ikon, bilgi.etiket) + '</td>';
+          }).join('')
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('ryMatris').innerHTML =
+      '<div class="gv-tscroll"><table class="gtable ry-mx"><thead>' + basliklar + '</thead><tbody>' + satirlar + '</tbody></table></div>';
+  }
+
+  /* =====================================================================
+     3) EKRAN YETKİLERİ
+     ===================================================================== */
+  var rolSec = document.getElementById('ryRolSec');
+  rolSec.innerHTML = roller.map(function(r){
+    return '<option value="' + GV.esc(r.id) + '">' + GV.esc(r.ad) + '</option>';
+  }).join('');
+
+  function ekranCiz(){
+    var rolId = rolSec.value || roller[0].id;
+    var r = null;
+    roller.forEach(function(x){ if (x.id === rolId) r = x; });
+    if (!r) return;
+    var y = yetkiAl(rolId);
+    var acikBolum = y.bolumler.length;
+    var acikEkran = rolEkranSayisi(rolId);
+
+    document.getElementById('ryEkranOzet').innerHTML =
+      '<div class="gv-note' + (y.ozel ? ' warn' : '') + '">'
+      + '<i class="fa-solid ' + (y.ozel ? 'fa-pen' : 'fa-user-shield') + '" aria-hidden="true"></i>'
+      + '<span><b>' + GV.esc(r.ad) + '</b> — ' + GV.esc(r.aciklama) + '<br>'
+      + 'Bu rol <b>' + GV.n(acikBolum) + ' / ' + GV.n(BOLUM_ANAHTARLARI.length) + ' bölüme</b> ve '
+      + '<b>' + GV.n(acikEkran) + ' / ' + GV.n(toplamEkran()) + ' ekrana</b> erişir. '
+      + 'Açılış sayfası: <code>' + GV.esc(acilisSayfasi(rolId)) + '</code>.'
+      + (y.ozel ? ' <b>Bölüm erişimi bu tarayıcıda düzenlendi.</b>' : '')
+      + '</span>'
+      + '<span class="gn-act"><button class="btn btn-sm btn-ghost no-print" type="button" data-duzenle-sec="' + GV.esc(rolId) + '">'
+      + '<i class="fa-solid fa-pen" aria-hidden="true"></i>Yetkileri Düzenle</button></span></div>';
+
+    document.getElementById('ryEkranOzet').querySelector('[data-duzenle-sec]')
+      .addEventListener('click', function(){ yetkiModal(rolId); });
+
+    document.getElementById('ryEkranListe').innerHTML = BOLUM_ANAHTARLARI.map(function(b){
+      var B = BOLUMLER[b];
+      var bolumAcik = y.bolumler.indexOf(b) !== -1;
+      var ekranlar = bolumEkranlari(b);
+      var gorunen = bolumAcik ? gorunenEkranlar(y, b) : [];
+      var gorunenSet = {};
+      gorunen.forEach(function(m){ gorunenSet[m.screen] = true; });
+      var d = hucreDurum(y, b);
+      var bilgi = DURUM_BILGI[d];
+
+      return '<div class="gv-botsec"' + (b === BOLUM_ANAHTARLARI[0] ? ' style="margin-top:8px;padding-top:0;border-top:none"' : '') + '>'
+        + '<div class="gv-botsec-h"><i class="fa-solid ' + B.ikon + '" aria-hidden="true"></i>' + GV.esc(B.baslik)
+        + '<span class="bs-sub">' + GV.esc(B.ustBaslik) + ' · ' + GV.n(gorunen.length) + ' / ' + GV.n(ekranlar.length) + ' ekran</span>'
+        + GV.rozetOzel(bilgi.sinif, bilgi.ikon, bilgi.etiket) + '</div>'
+        + '<div class="ry-scrlist">'
+        + ekranlar.map(function(m){
+            var acik = bolumAcik && !!gorunenSet[m.screen];
+            return '<div class="ry-scr' + (acik ? '' : ' kapali') + '">'
+              + '<i class="fa-solid ' + m.ikon + '" aria-hidden="true"></i>'
+              + '<b>' + GV.esc(m.etiket) + '</b>'
+              + (acik ? GV.rozetOzel('ok','fa-circle-check','Erişebilir')
+                      : GV.rozetOzel('off','fa-lock', bolumAcik ? 'Ekran kısıtlı' : 'Bölüm kapalı'))
+              + '</div>';
+          }).join('')
+        + '</div></div>';
+    }).join('');
+  }
+  rolSec.addEventListener('change', ekranCiz);
+
+  /* =====================================================================
+     YETKİ DÜZENLEME MODALI
+     ===================================================================== */
+  function yetkiModal(rolId){
+    var r = null;
+    roller.forEach(function(x){ if (x.id === rolId) r = x; });
+    if (!r) { gvToast('Rol bulunamadı.', { ton:'danger' }); return; }
+    var y = yetkiAl(rolId);
+    var temel = ROL_YETKI[rolId];
+
+    gvModal({
+      baslik: r.ad + ' — yetkileri düzenle', ikon:'fa-user-shield', genislik:'gv-modal-lg',
+      metin: 'Rolün <b>hangi bölümleri</b> göreceğini seçin. Bölüm kapatıldığında rail simgesi, modül menüsü ve o bölümdeki sayfalara doğrudan erişim birlikte kapanır.',
+      govde:
+        '<div class="ry-chk">' + BOLUM_ANAHTARLARI.map(function(b){
+            var ekranSay = bolumEkranlari(b).length;
+            var kisit = temel.ekran && temel.ekran[b] ? temel.ekran[b].length : null;
+            return '<label class="gfield-inline" for="ry_' + b + '">'
+              + '<input type="checkbox" id="ry_' + b + '" data-bolum="' + b + '"'
+              + (y.bolumler.indexOf(b) !== -1 ? ' checked' : '') + '>'
+              + '<i class="fa-solid ' + BOLUMLER[b].ikon + '" aria-hidden="true"></i>'
+              + GV.esc(BOLUMLER[b].baslik)
+              + '<span class="gtag">' + (kisit != null ? GV.n(kisit) + ' / ' + GV.n(ekranSay) : GV.n(ekranSay)) + ' ekran</span>'
+              + '</label>';
+          }).join('') + '</div>'
+        + '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+        + '<span><b>Değişiklik bu tarayıcıda saklanır, gerçek kurulumda sunucuya yazılır.</b> '
+        + 'Bölüm içi <b>ekran kısıtları</b> rolün tanımından gelir ve burada değişmez — kısıtlı bölümler yukarıda '
+        + '"görünen / toplam ekran" olarak işaretlendi.</span></div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Varsayılana dön', sinif:'btn-ghost', ikon:'fa-rotate-left', tikla: function(){
+            var hepsi = ozelYetkiler();
+            if (!hepsi[rolId]) { gvToast(r.ad + ' rolünde özelleştirme yok.', { ton:'info' }); return false; }
+            delete hepsi[rolId];
+            if (!yaz(YETKI_ANAHTAR, hepsi)) return false;
+            gvToast(r.ad + ' yetkileri varsayılana döndürüldü.', { ton:'ok' });
+            hepsiniCiz();
+          } },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var secili = Array.prototype.slice.call(kap.querySelectorAll('[data-bolum]:checked'))
+              .map(function(i){ return i.getAttribute('data-bolum'); });
+            if (!secili.length) { gvToast('Rol en az bir bölüme erişmelidir.', { ton:'danger' }); return false; }
+            var hepsi = ozelYetkiler();
+            hepsi[rolId] = { bolumler: BOLUM_ANAHTARLARI.filter(function(b){ return secili.indexOf(b) !== -1; }) };
+            if (!yaz(YETKI_ANAHTAR, hepsi)) return false;
+            A.kayitAt('guncelleme', 'Rol Yetkisi', rolId, temel.bolumler.join(', '), secili.join(', '),
+              r.ad + ' bölüm erişimi güncellendi');
+            gvToast(r.ad + ' yetkileri kaydedildi. Değişiklik bu tarayıcıda saklanır.', { ton:'ok' });
+            hepsiniCiz();
+          } }
+      ]
+    });
+  }
+
+  /* =====================================================================
+     SAYFA AKSİYONLARI
+     ===================================================================== */
+  document.getElementById('rySifirla').addEventListener('click', function(){
+    var hepsi = ozelYetkiler();
+    var n = Object.keys(hepsi).length;
+    if (!n) { gvToast('Rol yetkilerinde bu tarayıcıda kayıtlı değişiklik yok.', { ton:'info' }); return; }
+    gvConfirm({
+      baslik:'Yetki değişiklikleri geri alınsın mı?',
+      metin:'<b>' + GV.n(n) + ' rolde</b> yapılan bölüm erişimi düzenlemesi silinecek ve navigasyon motorundaki tanımlı yetkiler geri yüklenecek.',
+      ton:'danger', onayEtiket:'Geri al', onayIkon:'fa-rotate-left'
+    }).then(function(s){
+      if (!s.onay) return;
+      try { localStorage.removeItem(YETKI_ANAHTAR); } catch(e){}
+      gvToast('Rol yetkileri varsayılana döndürüldü.', { ton:'ok' });
+      hepsiniCiz();
+    });
+  });
+
+  document.getElementById('ryDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: roller.length, dosyaAdi:'roller-yetkiler', modul:'Roller ve Yetkiler' });
+  });
+
+  function hepsiniCiz(){
+    kpiCiz();
+    rolTablosuCiz();
+    matrisCiz();
+    ekranCiz();
+  }
+  hepsiniCiz();
+})();
+</script>
+</body>
+</html>

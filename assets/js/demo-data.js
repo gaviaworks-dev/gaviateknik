@@ -340,7 +340,8 @@ window.DEMO = (function () {
       { k: 'revizyon-istendi',        ad: 'Revizyon İstendi',        ton: 'danger', ikon: 'fa-rotate-left' },
       { k: 'onaylandi',               ad: 'Onaylandı',               ton: 'ok',     ikon: 'fa-circle-check' },
       { k: 'imzalandi',               ad: 'İmzalandı',               ton: 'ok',     ikon: 'fa-signature' },
-      { k: 'teslim-edildi',           ad: 'Teslim Edildi',           ton: 'ok',     ikon: 'fa-paper-plane' }
+      { k: 'teslim-edildi',           ad: 'Teslim Edildi',           ton: 'ok',     ikon: 'fa-paper-plane' },
+      { k: 'arsiv',                   ad: 'Arşiv (eski revizyon)',   ton: 'off',    ikon: 'fa-box-archive' }
     ],
     fatura: [
       { k: 'faturaya-uygun-degil',    ad: 'Faturaya Uygun Değil',    ton: 'off',    ikon: 'fa-circle-minus' },

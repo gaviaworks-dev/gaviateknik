@@ -99,9 +99,26 @@
       ("Belirlenecek") — talep anında `false` yazmak müşteriye ücretsizlik taahhüdü üretiyordu
       (portal-raporlar, onaylar, raporlar birlikte hizalandı)
 
-## FAZ 10 — Sistem
-- [ ] raporlar / ayarlar / roller-yetkiler / islem-kayitlari
-- [ ] veri-aktarimi (10 adımlı sihirbaz)
+## FAZ 10 — Sistem ✅
+- [x] raporlar (BRIEF'teki 14 göstergenin tamamı, 5 sekme, 10 alanlı filtre çubuğu)
+- [x] ayarlar (firma, operasyon, bildirim kuralları, numaralandırma, veri ve gizlilik)
+- [x] roller-yetkiler (13 rol × 11 bölüm matrisi, ekran yetkileri, erişim koruması notu)
+- [x] islem-kayitlari (değiştirilemez denetim izi, önceki→yeni farkı, modül dağılımı)
+- [x] veri-aktarimi (10 adımlı sihirbaz: dosya, eşleştirme, önizleme, doğrulama,
+      mükerrer kararı, hatalı satır, özet+onay, çalıştırma, mutabakat, geri alınabilir kayıt)
+
+### Faz 10'da ortak katmanda kapatılan gerçek hatalar
+- [x] `gvBar` / `gvSpark` / `gvDonut` boş veride kabı eski grafikle bırakıyordu →
+      filtre daraltılınca YANLIŞ veri görünüyordu; artık `gvBarList` gibi boş durum basıyor
+- [x] `durumlar.rapor` sözlüğünde `arsiv` anahtarı yoktu → ham "arsiv" metni basılıyordu
+      (5 durum akışının tamamı kullanılan değerlere karşı denetlendi, hepsi tam)
+- [x] `kayitAt` modül adını normalize ediyor — denetim izinde koleksiyon anahtarı ile
+      ekran adı karışık görünüyordu (`uygunsuzluklar` / `Uygunsuzluk`)
+- [x] `demoApi.firma()` cephesi — ayarlarda kaydedilen künye artık rapor kapağına ve
+      fatura başlığına da yansıyor
+- [x] `demoApi.harita()` cephesi + `GV.ayar()` okuyucusu; sayfalarda **hiç** `window.DEMO`
+      doğrudan erişimi kalmadı (CLAUDE.md §7 istisnasız)
+- [x] Kalibrasyon uyarı eşiği artık Ayarlar'dan geliyor (3 sayfada 13 sabit değer bağlandı)
 
 ## FAZ 11 — QA
 - [ ] Kırık link taraması (otomatik script) — 0 bulgu

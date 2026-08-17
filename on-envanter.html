@@ -118,7 +118,7 @@
   var lokSuz = GV.q('lokasyon');
   var kaynak = A.lokasyonlar().map(function(l){
     var h = A.lokasyonHizmetleri(l.id);
-    var ayar = window.DEMO.lokasyonKapsamAyarlari[l.id];
+    var ayar = A.harita('lokasyonKapsamAyarlari')[l.id];
     var sablon = ayar ? A.kayit('envanterSablonlari', ayar.sablon) : null;
     var kaynakTur = h.length ? h[0].kaynak : null;
     var proje = l.projeId ? A.kayit('projeler', l.projeId) : null;

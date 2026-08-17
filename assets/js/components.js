@@ -296,10 +296,21 @@
   function svgEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   /* Sütun grafiği — veri: [{ etiket, deger, ton }] */
+  /* Grafik kabı boş veriyle çağrıldığında ESKİ grafiği ekranda bırakmak,
+     filtre daraltıldığında yanlış veri göstermek demektir. Üç SVG grafiği de
+     gvBarList ile aynı davranışı gösterir: kabı temizler ve boş durum basar. */
+  function grafikBos(kap, secenek) {
+    kap.innerHTML = window.gvEmpty((secenek && secenek.bosDurum) || {
+      ikon: 'fa-chart-simple', baslik: 'Gösterilecek veri yok',
+      metin: 'Seçili filtrede bu göstergeye ait kayıt bulunmuyor.'
+    });
+  }
+
   window.gvBar = function (hedef, veri, secenek) {
     var kap = typeof hedef === 'string' ? document.querySelector(hedef) : hedef;
-    if (!kap || !veri || !veri.length) return;
+    if (!kap) return;
     secenek = secenek || {};
+    if (!veri || !veri.length) { grafikBos(kap, secenek); return; }
     var G = 720, Y = secenek.yukseklik || 220, solPay = 44, altPay = 34, ustPay = 12;
     var enBuyuk = Math.max.apply(null, veri.map(function (d) { return d.deger; })) || 1;
     var cizimG = G - solPay - 12, cizimY = Y - altPay - ustPay;
@@ -326,8 +337,9 @@
   /* Halka grafiği */
   window.gvDonut = function (hedef, veri, secenek) {
     var kap = typeof hedef === 'string' ? document.querySelector(hedef) : hedef;
-    if (!kap || !veri || !veri.length) return;
+    if (!kap) return;
     secenek = secenek || {};
+    if (!veri || !veri.length) { grafikBos(kap, secenek); return; }
     var toplam = veri.reduce(function (t, d) { return t + d.deger; }, 0) || 1;
     var B = 200, m = B / 2, r = 74, kalinlik = 26, cevre = 2 * Math.PI * r, ofset = 0;
     var h = '<svg viewBox="0 0 ' + B + ' ' + B + '" role="img" aria-label="' + svgEsc(secenek.baslik || 'Halka grafiği') + '" style="max-width:220px;margin:0 auto">';
@@ -355,8 +367,9 @@
   /* Çizgi / alan grafiği */
   window.gvSpark = function (hedef, veri, secenek) {
     var kap = typeof hedef === 'string' ? document.querySelector(hedef) : hedef;
-    if (!kap || !veri || !veri.length) return;
+    if (!kap) return;
     secenek = secenek || {};
+    if (!veri || !veri.length) { grafikBos(kap, secenek); return; }
     var G = 720, Y = secenek.yukseklik || 200, solPay = 44, altPay = 28, ustPay = 12;
     var enBuyuk = Math.max.apply(null, veri.map(function (d) { return d.deger; })) || 1;
     var cizimG = G - solPay - 12, cizimY = Y - altPay - ustPay;

@@ -179,7 +179,7 @@
   function kaydet(){ try { localStorage.setItem(ANAHTAR, JSON.stringify(durum)); } catch(e){} }
 
   function maddeler(kat){
-    return window.DEMO.kontrolMaddeleri[kat] || window.DEMO.kontrolMaddeleri['KAT-01'];
+    return A.harita('kontrolMaddeleri')[kat] || A.harita('kontrolMaddeleri')['KAT-01'];
   }
   function birimBul(bid){ return birimler.filter(function(b){ return b.id === bid; })[0]; }
 

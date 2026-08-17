@@ -99,6 +99,28 @@
   };
   GV.ay = AYLAR; GV.ayKisa = AYLAR_KISA; GV.haftaGun = GUNLER; GV.bos = BOS;
 
+  /* Sistem ayarları tek okuyucudan gelir (Ayarlar > Operasyon Ayarları).
+     Ayarlar ekranı gv_tk_ayar anahtarına yazar; SLA, parti büyüklüğü, ödeme
+     vadesi ve uyarı eşikleri buradan okunur ki ayar ekranı işlevsiz kalmasın. */
+  var AYAR_VARSAYILAN = {
+    slaGun: 7,          /* rapor teslim süresi */
+    partiBuyuklugu: 6,  /* fatura grubu parti büyüklüğü */
+    odemeVadesi: 30,    /* gün */
+    kalibrasyonEsik: 30,/* gün — cihaz kalibrasyon uyarısı */
+    belgeEsik: 60,      /* gün — personel belge uyarısı */
+    sozlesmeEsik: 90    /* gün — sözleşme yenileme uyarısı */
+  };
+  GV.ayar = function (anahtar, varsayilan) {
+    var kayitli = {};
+    try { kayitli = JSON.parse(localStorage.getItem('gv_tk_ayar') || '{}') || {}; } catch (e) {}
+    var v = kayitli[anahtar];
+    if (v == null || v === '' || isNaN(Number(v))) {
+      v = varsayilan != null ? varsayilan : AYAR_VARSAYILAN[anahtar];
+    }
+    return Number(v);
+  };
+  GV.ayarVarsayilan = AYAR_VARSAYILAN;
+
   /* HTML kaçışı — demo veriden gelen metinler için */
   GV.esc = function (s) {
     return String(s == null ? '' : s)

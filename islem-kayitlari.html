@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>İşlem Kayıtları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="sistem" data-screen="islem-kayitlari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Sistem Ayarları</div>
+        <h1>İşlem Kayıtları</h1>
+        <p class="ph-sub">Kayıt üzerinde yapılan her oluşturma, güncelleme, durum değişikliği, onay ve ret işlemi; tarih, saat, kullanıcı, önceki değer ve yeni değer bilgisiyle saklanır.</p>
+      </div>
+      <div class="ph-actions no-print">
+        <button class="btn btn-ghost" type="button" id="ikDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      </div>
+    </div>
+
+    <div class="gv-note" style="margin-bottom:18px">
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+      <span><b>Bu kayıtlar değiştirilemez ve silinemez; denetim izini oluşturur.</b>
+      Kayıtlar yalnızca okunabilir ve dışa aktarılabilir. Akreditasyon denetimlerinde işlem geçmişinin bütünlüğü bu izle kanıtlanır;
+      bu nedenle listede düzenleme ve silme aksiyonu bulunmaz.</span>
+    </div>
+
+    <div class="kpi-grid" id="ikKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="İşlem kaydı görünümleri">
+      <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Kayıt Akışı</button>
+      <button class="gv-tab" role="tab" id="tbD" aria-controls="pnD" aria-selected="false"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Modül Dağılımı</button>
+    </div>
+
+    <div id="pnL" role="tabpanel" aria-labelledby="tbL">
+      <section class="gv-card">
+        <div class="gv-listhead no-print">
+          <div class="lh-row">
+            <div class="lh-search">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <label class="gv-sr" for="gvSearch">Listede ara</label>
+              <input type="search" id="gvSearch" placeholder="Kayıt kodu, kullanıcı, modül, açıklama…" autocomplete="off">
+            </div>
+            <div class="lh-acts">
+              <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+                <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+              </button>
+              <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            </div>
+          </div>
+          <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+        </div>
+        <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div class="gc-body flush" id="ikTablo"></div>
+        <div class="gv-pager" id="ikPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnD" role="tabpanel" aria-labelledby="tbD" hidden>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Modül Bazlı İşlem Sayısı</h2></div>
+          <div class="gc-body">
+            <div class="chart-box" id="ikDonut"></div>
+            <p style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6">Filtrelenmiş kayıtların hangi modülden geldiğini gösterir. Yoğunlaşan modüller, süreç değişikliği ya da veri kalitesi sorunu olan alanlara işaret eder.</p>
+          </div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-user-clock" aria-hidden="true"></i>Kullanıcı Bazlı İşlem Sayısı</h2></div>
+          <div class="gc-body" id="ikKullanici"></div>
+          <div class="gc-foot"><span style="font-size:12px;color:var(--muted);line-height:1.6">Kullanıcı ve sistem kaynaklı işlemlerin dağılımı. Otomatik üretilen kayıtlar "Sistem" altında toplanır.</span></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>İşlem Türü Dağılımı</h2></div>
+          <div class="gc-body" id="ikTur"></div>
+          <div class="gc-foot"><span style="font-size:12px;color:var(--muted);line-height:1.6">Durum değişikliği, onay ve ret işlemlerinin payı; onay akışının ne kadar sağlıklı ilerlediğini gösterir.</span></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Rol Bazlı İşlem Sayısı</h2></div>
+          <div class="gc-body" id="ikRol"></div>
+          <div class="gc-foot"><span style="font-size:12px;color:var(--muted);line-height:1.6">İşlemi yapan kullanıcının rolü. Rol bazlı erişim kontrolünün doğru çalıştığı bu dağılımla doğrulanır.</span></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  gvTabs('.gv-tabbar');
+
+  /* ---------- işlem türü sözlüğü (renk TEK BAŞINA gösterge değil: ikon + metin) ---------- */
+  var ISLEM = {
+    'olusturma':         ['info',  'fa-plus',                    'Oluşturma'],
+    'guncelleme':        ['info',  'fa-pen',                     'Güncelleme'],
+    'durum-degisikligi': ['warn',  'fa-arrow-right-arrow-left',  'Durum Değişikliği'],
+    'onay':              ['ok',    'fa-circle-check',            'Onay'],
+    'ret':               ['danger','fa-circle-xmark',            'Ret'],
+    'silme':             ['danger','fa-trash-can',               'Silme'],
+    'bildirim-uretildi': ['info',  'fa-bell',                    'Bildirim Üretildi'],
+    'revizyon-istendi':  ['danger','fa-rotate-left',             'Revizyon İstendi'],
+    'revizyon':          ['warn',  'fa-code-branch',             'Revizyon'],
+    'tamamlandi':        ['ok',    'fa-flag-checkered',          'Tamamlandı'],
+    'kapatma':           ['ok',    'fa-lock',                    'Kapatma'],
+    'yeniden-acma':      ['warn',  'fa-lock-open',               'Yeniden Açma'],
+    'tarih-degisikligi': ['warn',  'fa-calendar-day',            'Tarih Değişikliği'],
+    'erteleme':          ['warn',  'fa-clock',                   'Erteleme'],
+    'hatirlatma':        ['info',  'fa-paper-plane',             'Hatırlatma'],
+    'bilgilendirme':     ['info',  'fa-comment-dots',            'Bilgilendirme'],
+    'bulgu-ekleme':      ['warn',  'fa-magnifying-glass-chart',  'Bulgu Ekleme'],
+    'disa-aktarim':      ['off',   'fa-file-export',             'Dışa Aktarım']
+  };
+  var CIP_TURLERI = ['olusturma','guncelleme','durum-degisikligi','onay','ret','silme','bildirim-uretildi'];
+  function islemBilgi(k){
+    return ISLEM[k] || ['off', 'fa-circle-dot',
+      String(k || '—').replace(/-/g, ' ').replace(/^./, function(c){ return c.toLocaleUpperCase('tr-TR'); })];
+  }
+
+  /* ---------- modül adı sözlüğü (koleksiyon anahtarı → ekran adı) ---------- */
+  var MODUL = {
+    musteriler:'Müşteri', markalar:'Marka', iletisimKisileri:'İletişim Kişisi', projeler:'Proje',
+    lokasyonlar:'Lokasyon', lokasyonHizmetleri:'Lokasyon Hizmeti', hizmetler:'Hizmet Kataloğu',
+    ekipmanlar:'Ekipman', mutabakat:'Envanter Mutabakatı', eksikEkipmanlar:'Eksik Ekipman',
+    isEmirleri:'İş Emri', sahaKontroller:'Saha Kontrol', raporlar:'Teknik Rapor',
+    raporSablonlari:'Rapor Şablonu', uygunsuzluklar:'Uygunsuzluk', yenidenKontroller:'Yeniden Kontrol',
+    teklifler:'Teklif', sozlesmeler:'Sözleşme', hakedisler:'Hakediş', faturaGruplari:'Fatura Grubu',
+    faturalar:'Fatura', tahsilatlar:'Tahsilat', taseronlar:'Taşeron', taseronHakedisleri:'Taşeron Hakedişi',
+    personeller:'Personel', personelBelgeleri:'Personel Belgesi', yetkinlikler:'Yetkinlik',
+    olcumCihazlari:'Ölçüm Cihazı', kalibrasyonlar:'Kalibrasyon', kaliteDokumanlari:'Kalite Dokümanı',
+    denetimler:'Denetim', duzelticiFaaliyetler:'Düzeltici Faaliyet', musteriSikayetleri:'Müşteri Şikâyeti',
+    bildirimler:'Bildirim', ajanda:'Ajanda', belgeler:'Belge', veriAktarimlari:'Veri Aktarımı'
+  };
+
+  /* ---------- kayıt kodundan ilgili sayfaya bağlantı ---------- */
+  var ONEKLER = [
+    ['IE-',  'is-emri-detay.html'],
+    ['RPR-', 'rapor-detay.html'],
+    ['LOK-', 'lokasyon-detay.html'],
+    ['UYG-', 'uygunsuzluk-detay.html'],
+    ['FTR-', 'faturalar.html'],
+    ['MST-', 'musteri-detay.html'],
+    ['PRJ-', 'proje-detay.html'],
+    ['TH-',  'taseron-hakedisleri.html']
+  ];
+  function kayitBaglantisi(kod){
+    if (!kod) return null;
+    for (var i = 0; i < ONEKLER.length; i++) {
+      if (String(kod).indexOf(ONEKLER[i][0]) === 0) return ONEKLER[i][1] + '?id=' + encodeURIComponent(kod);
+    }
+    return null;
+  }
+
+  /* ---------- kaynak veri ---------- */
+  var roller = A.liste('roller');
+  var ROL = {}; roller.forEach(function(r){ ROL[r.id] = r; });
+
+  var kaynak = A.liste('islemKayitlari').map(function(k){
+    var p = k.kullaniciId ? A.kayit('personeller', k.kullaniciId) : null;
+    var r = ROL[k.rol];
+    return Object.assign({}, k, {
+      tarih: String(k.zaman || '').substring(0, 10),
+      kullaniciAd: p ? p.ad : 'Sistem',
+      kullaniciAnahtar: k.kullaniciId || '__sistem',
+      kullaniciGorev: k.kullaniciId ? k.kullaniciId : 'Otomatik işlem',
+      rolAd: k.kullaniciId ? (r ? r.ad : (k.rol || '—')) : 'Sistem (otomatik)',
+      modulAd: MODUL[k.modul] || k.modul || '—',
+      islemAd: islemBilgi(k.islem)[2],
+      baglanti: kayitBaglantisi(k.kayit)
+    });
+  }).sort(function(a, b){ return String(b.zaman).localeCompare(String(a.zaman)); });
+
+  /* ---------- KPI ---------- */
+  function kpiCiz(){
+    gvKpi('#ikKpi', [
+      { ikon:'fa-clock-rotate-left', sayi: GV.n(kaynak.length), etiket:'Toplam işlem kaydı',
+        delta:{ yon:'flat', metin: kaynak.length ? GV.d(kaynak[kaynak.length - 1].tarih) + ' tarihinden bu yana' : 'Kayıt yok' } },
+      { ikon:'fa-calendar-day', sayi: GV.n(kaynak.filter(function(k){ return k.tarih === BUGUN; }).length),
+        etiket:'Bugünkü işlem', ton:'info',
+        delta:{ yon:'flat', metin: GV.d(BUGUN) } },
+      { ikon:'fa-arrow-right-arrow-left', sayi: GV.n(kaynak.filter(function(k){ return k.islem === 'durum-degisikligi'; }).length),
+        etiket:'Durum değişikliği', ton:'warn',
+        delta:{ yon:'flat', metin: GV.n(kaynak.filter(function(k){ return k.rol === 'sistem'; }).length) + ' otomatik kayıt' } },
+      { ikon:'fa-stamp', sayi: GV.n(kaynak.filter(function(k){ return ['onay','ret','revizyon-istendi'].indexOf(k.islem) !== -1; }).length),
+        etiket:'Onay / ret işlemi', ton:'ok',
+        delta:{ yon:'flat', metin: GV.n(kaynak.filter(function(k){ return k.islem === 'ret' || k.islem === 'revizyon-istendi'; }).length) + ' ret veya revizyon' } }
+    ]);
+  }
+  kpiCiz();
+
+  /* ---------- tablo ---------- */
+  function deger(v, ton){
+    if (v == null || v === '') return '<span class="muted">' + GV.bos + '</span>';
+    return '<span class="' + ton + '">' + GV.esc(v) + '</span>';
+  }
+
+  var kolonlar = [
+    { k:'zaman', ad:'Zaman', kilitli:true, ciz: function(k){
+        return '<div class="gcell"><div class="gcell-mark"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name">' + GV.dSaat(k.zaman) + '</div>'
+          + '<div class="gcell-sub">' + GV.esc(k.id) + ' · ' + GV.gorece(k.tarih) + '</div></div></div>'; } },
+    { k:'kullaniciAd', ad:'Kullanıcı', ciz: function(k){
+        return (k.kullaniciId
+            ? '<a href="personel-detay.html?id=' + GV.esc(k.kullaniciId) + '">' + GV.esc(k.kullaniciAd) + '</a>'
+            : '<span class="gtag"><i class="fa-solid fa-robot" aria-hidden="true"></i> Sistem</span>')
+          + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(k.kullaniciGorev) + '</span>'; } },
+    { k:'rolAd', ad:'Rol', ciz: function(k){ return '<span class="gtag">' + GV.esc(k.rolAd) + '</span>'; } },
+    { k:'modulAd', ad:'Modül' },
+    { k:'kayit', ad:'Kayıt', ciz: function(k){
+        if (!k.kayit) return '<span class="muted">' + GV.bos + '</span>';
+        return k.baglanti
+          ? '<a href="' + GV.esc(k.baglanti) + '">' + GV.esc(k.kayit) + '</a>'
+          : '<span class="nowrap">' + GV.esc(k.kayit) + '</span>'; } },
+    { k:'islem', ad:'İşlem Türü', ciz: function(k){
+        var b = islemBilgi(k.islem);
+        return GV.rozetOzel(b[0], b[1], b[2]); } },
+    { k:'onceki', ad:'Önceki Değer', ciz: function(k){
+        if (k.onceki == null || k.onceki === '') return '<span class="muted">' + GV.bos + '</span>';
+        return '<span class="muted" style="text-decoration:line-through">' + GV.esc(k.onceki) + '</span>'; } },
+    { k:'yeni', ad:'Yeni Değer', ciz: function(k){
+        if (k.yeni == null || k.yeni === '') return '<span class="muted">' + GV.bos + '</span>';
+        return '<span class="nowrap"><i class="fa-solid fa-arrow-right-long" style="color:var(--gv-action);margin-right:6px" aria-hidden="true"></i>'
+          + '<b class="t-strong">' + GV.esc(k.yeni) + '</b></span>'; } },
+    { k:'aciklama', ad:'Açıklama', ciz: function(k){
+        if (!k.aciklama) return '<span class="muted">' + GV.bos + '</span>';
+        return '<span class="gv-ellip" style="display:inline-block;max-width:300px;vertical-align:bottom" title="'
+          + GV.esc(k.aciklama) + '">' + GV.esc(k.aciklama) + '</span>'; } },
+    { k:'ip', ad:'IP Adresi', ciz: function(k){
+        return k.ip
+          ? '<span class="nowrap num">' + GV.esc(k.ip) + '</span>'
+          : '<span class="muted">' + GV.bos + '</span>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ikTablo', kolonlar:kolonlar, satirId: function(k){ return k.id; },
+    bosDurum:{ ikon:'fa-clock-rotate-left', baslik:'İşlem kaydı bulunamadı',
+      metin:'Filtrelerinize uyan denetim izi kaydı yok. Tarih aralığını genişletip yeniden deneyin.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'islem-kayitlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#ikPager', boyut:20, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+
+  function ciz(v){
+    son = v;
+    pager.ayarla(v.length);
+    tablo.ciz(pager.dilim(v));
+    dagilim(v);
+  }
+
+  /* ---------- dağılım grafikleri ---------- */
+  var TONLAR = ['acc','info','warn','danger','mor','turuncu','ok','gri'];
+  function dagilim(v){
+    var modulSay = {};
+    v.forEach(function(k){ modulSay[k.modulAd] = (modulSay[k.modulAd] || 0) + 1; });
+    var modulListe = Object.keys(modulSay).sort(function(a,b){ return modulSay[b] - modulSay[a]; });
+    var donutEl = document.getElementById('ikDonut');
+    if (!modulListe.length) {
+      donutEl.innerHTML = gvEmpty({ ikon:'fa-chart-pie', baslik:'Gösterilecek veri yok',
+        metin:'Seçili filtrelere uyan işlem kaydı bulunmuyor.' });
+    } else {
+      gvDonut(donutEl, modulListe.map(function(m, i){
+        return { etiket:m, deger:modulSay[m], ton: TONLAR[i % TONLAR.length] };
+      }), { merkezEtiket:'işlem' });
+    }
+
+    var kulSay = {};
+    v.forEach(function(k){
+      if (!kulSay[k.kullaniciAnahtar]) kulSay[k.kullaniciAnahtar] = { ad:k.kullaniciAd, rol:k.rolAd, n:0 };
+      kulSay[k.kullaniciAnahtar].n++;
+    });
+    gvBarList('#ikKullanici', Object.keys(kulSay)
+      .sort(function(a,b){ return kulSay[b].n - kulSay[a].n; })
+      .map(function(id){
+        var s = kulSay[id];
+        return { etiket: s.ad + ' — ' + s.rol, deger: s.n,
+          gosterim: GV.n(s.n) + ' işlem', ton: id === '__sistem' ? 'info' : '' };
+      }));
+
+    var turSay = {};
+    v.forEach(function(k){ turSay[k.islem] = (turSay[k.islem] || 0) + 1; });
+    gvBarList('#ikTur', Object.keys(turSay)
+      .sort(function(a,b){ return turSay[b] - turSay[a]; })
+      .map(function(t){
+        var b = islemBilgi(t);
+        return { etiket: b[2], deger: turSay[t], gosterim: GV.n(turSay[t]) + ' kayıt',
+          ton: b[0] === 'off' ? '' : b[0] };
+      }));
+
+    var rolSay = {};
+    v.forEach(function(k){ rolSay[k.rolAd] = (rolSay[k.rolAd] || 0) + 1; });
+    gvBarList('#ikRol', Object.keys(rolSay)
+      .sort(function(a,b){ return rolSay[b] - rolSay[a]; })
+      .map(function(r){
+        return { etiket:r, deger:rolSay[r], gosterim: GV.n(rolSay[r]) + ' işlem',
+          ton: r === 'Sistem' ? 'info' : '' };
+      }));
+  }
+
+  /* ---------- filtreler ---------- */
+  var modulSecenekleri = [];
+  kaynak.forEach(function(k){
+    if (!modulSecenekleri.some(function(o){ return o.deger === k.modulAd; })) {
+      modulSecenekleri.push({ deger:k.modulAd, ad:k.modulAd });
+    }
+  });
+  modulSecenekleri.sort(function(a,b){ return a.ad.localeCompare(b.ad, 'tr'); });
+
+  var rolSecenekleri = [];
+  kaynak.forEach(function(k){
+    if (!rolSecenekleri.some(function(o){ return o.deger === k.rolAd; })) {
+      rolSecenekleri.push({ deger:k.rolAd, ad:k.rolAd });
+    }
+  });
+  rolSecenekleri.sort(function(a,b){ return a.ad.localeCompare(b.ad, 'tr'); });
+
+  var kullaniciSecenekleri = [];
+  kaynak.forEach(function(k){
+    if (!kullaniciSecenekleri.some(function(o){ return o.deger === k.kullaniciAnahtar; })) {
+      kullaniciSecenekleri.push({ deger:k.kullaniciAnahtar, ad:k.kullaniciAd + ' — ' + k.rolAd });
+    }
+  });
+  kullaniciSecenekleri.sort(function(a,b){ return a.ad.localeCompare(b.ad, 'tr'); });
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','kayit','modulAd','kullaniciAd','rolAd','islemAd','onceki','yeni','aciklama','ip'],
+    cipler: {
+      secenekler: CIP_TURLERI.map(function(t){
+        return { k:t, ad: ISLEM[t][2], ikon: ISLEM[t][1] };
+      }).concat([{ k:'__diger', ad:'Diğer', ikon:'fa-ellipsis' }]),
+      suz: function(k, cip){
+        if (cip === '__diger') return CIP_TURLERI.indexOf(k.islem) === -1;
+        return k.islem === cip;
+      }
+    },
+    alanlar: [
+      { k:'modulAd', ad:'Modül', tur:'coklu', secenekler: modulSecenekleri },
+      { k:'rolAd', ad:'Rol', tur:'coklu', secenekler: rolSecenekleri },
+      { k:'kullaniciAnahtar', ad:'Kullanıcı', tur:'secim', secenekler: kullaniciSecenekleri },
+      { k:'tarih', ad:'İşlem tarihi', tur:'tarih' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* ---------- dışa aktarım ---------- */
+  document.getElementById('ikDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'islem-kayitlari', modul:'İşlem Kaydı' });
+  });
+})();
+</script>
+</body>
+</html>

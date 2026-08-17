@@ -119,7 +119,7 @@
     document.querySelectorAll('[data-onizle]').forEach(function(b){
       b.addEventListener('click', function(){
         var s = A.kayit('raporSablonlari', b.getAttribute('data-onizle'));
-        var maddeler = window.DEMO.kontrolMaddeleri[s.kategoriId] || [];
+        var maddeler = A.harita('kontrolMaddeleri')[s.kategoriId] || [];
         gvModal({
           baslik: s.ad + ' — ' + s.versiyon, ikon:'fa-file-code', genislik:'gv-modal-lg',
           metin: s.bolumSayisi + ' bölümlü şablon. Yayın: ' + GV.d(s.yayin) + '.',

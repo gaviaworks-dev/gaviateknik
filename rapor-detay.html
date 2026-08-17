@@ -166,7 +166,7 @@
   GV.crumb(r.no + (r.versiyon > 1 ? ' v' + r.versiyon : ''));
   document.title = r.no + ' — GAVIA Periyodik Kontrol Yönetimi';
 
-  var firma = window.DEMO.firma;
+  var firma = A.firma();
   var l = A.lokasyon(r.lokasyonId);
   var proje = r.projeId ? A.kayit('projeler', r.projeId) : null;
   var ie = r.isEmriId ? A.isEmri(r.isEmriId) : null;
@@ -175,7 +175,7 @@
   var uygunsuzluklar = A.liste('uygunsuzluklar').filter(function(u){ return u.raporId === r.id; });
   var ekipmanlar = A.ekipmanlar().filter(function(e){ return e.lokasyonId === r.lokasyonId && e.kategoriId === r.kategoriId; });
   var hizmetler = A.lokasyonHizmetleri(r.lokasyonId).filter(function(h){ return h.kat === r.kategoriId; });
-  var maddeler = window.DEMO.kontrolMaddeleri[r.kategoriId] || window.DEMO.kontrolMaddeleri['KAT-01'];
+  var maddeler = A.harita('kontrolMaddeleri')[r.kategoriId] || A.harita('kontrolMaddeleri')['KAT-01'];
   var duzenlenebilir = A.raporDuzenlenebilirMi(r.id);
   var tumSurumler = A.liste('raporlar').filter(function(x){ return x.no === r.no; })
     .sort(function(a,b){ return b.versiyon - a.versiyon; });

@@ -403,7 +403,7 @@
     document.getElementById('lProje').value = mevcut.projeId || '';
     document.getElementById('lTaseron').value = mevcut.taseronId || '';
     document.getElementById('lSonraki').value = mevcut.sonrakiKontrol || '';
-    var ayar = window.DEMO.lokasyonKapsamAyarlari[mevcut.id];
+    var ayar = A.harita('lokasyonKapsamAyarlari')[mevcut.id];
     if (ayar) secilenSablon = null;
     form.kirliSifirla();
   } else {

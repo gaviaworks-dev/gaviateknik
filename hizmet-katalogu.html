@@ -91,7 +91,7 @@
     var kat = A.kayit('hizmetKategorileri', h.kat);
     var y = h.yetkinlik ? A.kayit('yetkinlikler', h.yetkinlik) : null;
     var kullanim = A.liste('lokasyonHizmetleri').filter(function(x){ return x.hizmetId === h.id; });
-    var f = window.DEMO.hizmetFiyatlari[h.id] || { satis:0, maliyet:0 };
+    var f = A.harita('hizmetFiyatlari')[h.id] || { satis:0, maliyet:0 };
     return Object.assign({}, h, {
       katAd: kat ? kat.ad : '—', katIkon: kat ? kat.ikon : 'fa-list', katRenk: kat ? kat.renk : '#69708A',
       yetkinlikAd: y ? y.ad : null,
@@ -239,7 +239,7 @@
             }
             var kat = kap.querySelector('#hyKat').value;
             var yeniId = 'HZM-Y' + String(A.liste('hizmetler').length + 1).padStart(3,'0');
-            window.DEMO.hizmetFiyatlari[yeniId] = { satis: satis, maliyet: Number(kap.querySelector('#hyMaliyet').value || 0) };
+            A.harita('hizmetFiyatlari')[yeniId] = { satis: satis, maliyet: Number(kap.querySelector('#hyMaliyet').value || 0) };
             A.ekle('hizmetler', {
               id: yeniId, poz: poz, ad: ad, kat: kat,
               birim: kap.querySelector('#hyBirim').value,

@@ -101,6 +101,7 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun(), BU_YIL = BUGUN.substring(0, 4);
+  var ESIK = GV.ayar('kalibrasyonEsik');  /* Ayarlar > Operasyon Ayarları'ndan gelir */
 
   /* ---- cihazlar (iş kuralı sonucu ile) ---- */
   var cihazlar = A.liste('olcumCihazlari').map(function(c){
@@ -150,8 +151,8 @@
       delta:{ yon:'flat', metin: GV.n(cihazlar.length) + ' cihaz · ' + GV.n(kuruluslar().length) + ' kuruluş' } },
     { ikon:'fa-calendar-check', sayi: GV.n(kaynak.filter(function(k){ return k.yil === BU_YIL; }).length),
       etiket: BU_YIL + ' yılında yapılan', ton:'info' },
-    { ikon:'fa-hourglass-half', sayi: GV.n(cihazlar.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= 30; }).length),
-      etiket:'30 gün içinde dolacak cihaz', ton:'warn' },
+    { ikon:'fa-hourglass-half', sayi: GV.n(cihazlar.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= ESIK; }).length),
+      etiket: ESIK + ' gün içinde dolacak cihaz', ton:'warn' },
     { ikon:'fa-triangle-exclamation', sayi: GV.n(cihazlar.filter(function(c){ return c.gecmis; }).length),
       etiket:'Geçerliliği dolmuş cihaz', ton:'danger' },
     { ikon:'fa-money-bill-wave', sayi: GV.tlKisa(toplamMaliyet), etiket:'Toplam kalibrasyon maliyeti' }
@@ -246,9 +247,9 @@
     { k:'bitis', ad:'Geçerlilik Bitişi', ciz: function(k){
         if (!k.bitis) return '<span class="muted">Sertifika bekleniyor</span>';
         var kalan = A.gunFarki(BUGUN, k.bitis);
-        var t = kalan < 0 ? 'danger' : kalan <= 30 ? 'warn' : 'ok';
+        var t = kalan < 0 ? 'danger' : kalan <= ESIK ? 'warn' : 'ok';
         return GV.d(k.bitis) + ' <span class="gtag ' + t + '">'
-          + '<i class="fa-solid ' + (kalan < 0 ? 'fa-calendar-xmark' : kalan <= 30 ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
+          + '<i class="fa-solid ' + (kalan < 0 ? 'fa-calendar-xmark' : kalan <= ESIK ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
           + (kalan < 0 ? GV.n(Math.abs(kalan)) + ' gün geçti' : GV.n(kalan) + ' gün') + '</span>'; } },
     { k:'sonuc', ad:'Sonuç', ciz: function(k){ return sonucRozet(k.sonuc); } },
     { k:'maliyet', ad:'Maliyet', sinif:'num', ciz: function(k){ return GV.tl(k.maliyet); } },
@@ -304,7 +305,7 @@
     return a.kalanGun - b.kalanGun;
   });
   document.getElementById('cnt_yaklasan').textContent =
-    GV.n(yaklasan.filter(function(c){ return c.kalanGun == null || c.kalanGun <= 30; }).length);
+    GV.n(yaklasan.filter(function(c){ return c.kalanGun == null || c.kalanGun <= ESIK; }).length);
 
   function yaklasanCiz(){
     document.getElementById('klYaklasan').innerHTML = yaklasan.length
@@ -315,8 +316,8 @@
         + yaklasan.map(function(c){
             var kalanHtml = c.kalanGun == null
               ? '<span class="gtag danger"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>Bilgi eksik</span>'
-              : '<span class="gtag ' + (c.kalanGun < 0 ? 'danger' : c.kalanGun <= 30 ? 'warn' : 'ok') + '">'
-                + '<i class="fa-solid ' + (c.kalanGun < 0 ? 'fa-calendar-xmark' : c.kalanGun <= 30 ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
+              : '<span class="gtag ' + (c.kalanGun < 0 ? 'danger' : c.kalanGun <= ESIK ? 'warn' : 'ok') + '">'
+                + '<i class="fa-solid ' + (c.kalanGun < 0 ? 'fa-calendar-xmark' : c.kalanGun <= ESIK ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
                 + (c.kalanGun < 0 ? GV.n(Math.abs(c.kalanGun)) + ' gün geçti' : GV.n(c.kalanGun) + ' gün') + '</span>';
             /* İŞ KURALI: atanamayan cihaz kırmızı gösterilir, gerekçesi metinle verilir */
             var uygunlukHtml = c.uygunluk.uygun
