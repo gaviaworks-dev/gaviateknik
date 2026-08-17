@@ -1007,10 +1007,10 @@ window.DEMO = (function () {
   ];
 
   var denetimler = [
-    { id: 'DNT-2026-001', tur: 'İç Denetim',    kapsam: 'Muayene süreci ve saha uygulamaları', tarih: '2026-03-18', denetciId: 'PRS-005', denetlenenBirim: 'Operasyon', bulguSayisi: 4, majorSayisi: 0, minorSayisi: 3, gozlem: 1, durum: 'kapandi',  rapor: 'DNT-2026-001-RPR' },
+    { id: 'DNT-2026-001', tur: 'İç Denetim',    kapsam: 'Muayene süreci ve saha uygulamaları', tarih: '2026-03-18', denetciId: 'PRS-005', denetlenenBirim: 'Operasyon', bulguSayisi: 3, majorSayisi: 0, minorSayisi: 3, gozlem: 1, durum: 'kapandi',  rapor: 'DNT-2026-001-RPR' },
     { id: 'DNT-2026-002', tur: 'İç Denetim',    kapsam: 'Ölçüm cihazı kalibrasyon takibi',     tarih: '2026-06-24', denetciId: 'PRS-005', denetlenenBirim: 'Teknik',    bulguSayisi: 3, majorSayisi: 1, minorSayisi: 2, gozlem: 0, durum: 'acik',     rapor: 'DNT-2026-002-RPR' },
     { id: 'DNT-2026-003', tur: 'Dış Denetim',   kapsam: 'Akreditasyon gözetim denetimi',        tarih: '2026-05-12', denetciId: null,      denetlenenBirim: 'Tüm süreçler', bulguSayisi: 2, majorSayisi: 0, minorSayisi: 2, gozlem: 3, durum: 'kapandi', rapor: 'DNT-2026-003-RPR' },
-    { id: 'DNT-2026-004', tur: 'Taşeron Denetimi', kapsam: 'Batı Teknik saha uygulamaları',     tarih: '2026-07-30', denetciId: 'PRS-005', denetlenenBirim: 'TSR-001',   bulguSayisi: 5, majorSayisi: 1, minorSayisi: 3, gozlem: 1, durum: 'acik',     rapor: 'DNT-2026-004-RPR' },
+    { id: 'DNT-2026-004', tur: 'Taşeron Denetimi', kapsam: 'Batı Teknik saha uygulamaları',     tarih: '2026-07-30', denetciId: 'PRS-005', denetlenenBirim: 'TSR-001',   bulguSayisi: 4, majorSayisi: 1, minorSayisi: 3, gozlem: 1, durum: 'acik',     rapor: 'DNT-2026-004-RPR' },
     { id: 'DNT-2026-005', tur: 'İç Denetim',    kapsam: 'Rapor onay ve teslim süreci',          tarih: '2026-09-15', denetciId: 'PRS-005', denetlenenBirim: 'Teknik',    bulguSayisi: 0, majorSayisi: 0, minorSayisi: 0, gozlem: 0, durum: 'planlandi', rapor: null }
   ];
 

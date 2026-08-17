@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Düzeltici Faaliyetler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+  .dof-metin { font-size: 13px; color: var(--ink-2); line-height: 1.7; margin: 0 0 4px }
+</style>
+</head>
+<body data-sec="kalite" data-screen="duzeltici-faaliyetler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Kalite Yönetimi</div>
+        <h1>Düzeltici Faaliyetler</h1>
+        <p class="ph-sub">Denetim bulgularından, müşteri şikâyetlerinden ve uygunsuzluklardan doğan düzeltici ve önleyici faaliyetler; kök neden, termin ve etkinlik doğrulaması ile izlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="dfDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="dfYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni DÖF</button></div>
+    </div>
+    <div class="kpi-grid" id="dfKpi"></div>
+
+    <section class="gv-card">
+      <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="DÖF no, başlık, kök neden, sorumlu…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="dfTablo"></div>
+      <div class="gv-pager" id="dfPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>DÖF Analizi
+        <span class="bs-sub">Tüm kayıtlar üzerinden hesaplanır</span></h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Kaynak Dağılımı</h3></div>
+          <div class="gc-body"><div class="chart-box" id="dfDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-clock" aria-hidden="true"></i>Kapanma Süreleri</h3></div>
+          <div class="gc-body"><div class="chart-box" id="dfSure"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  var KAYNAKLAR = [
+    { ad:'İç Denetim',       ikon:'fa-house-chimney',     ton:'acc' },
+    { ad:'Dış Denetim',      ikon:'fa-building-shield',   ton:'mor' },
+    { ad:'Taşeron Denetimi', ikon:'fa-people-carry-box',  ton:'warn' },
+    { ad:'Müşteri Şikâyeti', ikon:'fa-comment-dots',      ton:'info' },
+    { ad:'Uygunsuzluk',      ikon:'fa-circle-exclamation', ton:'danger' }
+  ];
+  function kaynakBilgi(ad){
+    for (var i = 0; i < KAYNAKLAR.length; i++) if (KAYNAKLAR[i].ad === ad) return KAYNAKLAR[i];
+    return { ad: ad || '—', ikon:'fa-link', ton:'gri' };
+  }
+  function kaynakHref(kaynakId){
+    if (!kaynakId) return null;
+    if (kaynakId.indexOf('DNT-') === 0) return 'denetimler.html?q=' + encodeURIComponent(kaynakId);
+    if (kaynakId.indexOf('SKY-') === 0) return 'musteri-sikayetleri.html?q=' + encodeURIComponent(kaynakId);
+    if (kaynakId.indexOf('UYG-') === 0) return 'uygunsuzluk-detay.html?id=' + encodeURIComponent(kaynakId);
+    return null;
+  }
+
+  function yeniKod(kol, onek, uzunluk){
+    var n = A.liste(kol).length + 1, id;
+    do { id = onek + String(n).padStart(uzunluk, '0'); n++; } while (A.kayit(kol, id));
+    return id;
+  }
+
+  function zenginlestir(f){
+    var p = f.sorumluId ? A.kayit('personeller', f.sorumluId) : null;
+    var kalanGun = f.termin ? GV.gun(BUGUN, f.termin) : null;
+    return Object.assign({}, f, {
+      sorumluAd: p ? p.ad : null, sorumluBirim: p ? p.birim : null,
+      kaynakIkon: kaynakBilgi(f.kaynak).ikon,
+      kaynakHref: kaynakHref(f.kaynakId),
+      kalanGun: kalanGun,
+      kapanmaSuresi: f.kapanis ? GV.gun(f.acilis, f.kapanis) : null,
+      gecikmisMi: f.durum !== 'kapandi' && kalanGun != null && kalanGun < 0,
+      etkinDogrulandi: f.etkinlik === 'etkin'
+    });
+  }
+
+  var kaynak = A.liste('duzelticiFaaliyetler').map(zenginlestir).sort(function(a,b){
+    if (a.durum !== b.durum) return a.durum === 'kapandi' ? 1 : -1;
+    var ka = a.kalanGun == null ? 9999 : a.kalanGun, kb = b.kalanGun == null ? 9999 : b.kalanGun;
+    return ka - kb;
+  });
+
+  function kayitBul(id){
+    for (var i = 0; i < kaynak.length; i++) if (kaynak[i].id === id) return kaynak[i];
+    return zenginlestir(A.kayit('duzelticiFaaliyetler', id) || {});
+  }
+
+  var kapananlar = kaynak.filter(function(f){ return f.durum === 'kapandi'; });
+  var dogrulanan = kapananlar.filter(function(f){ return f.etkinDogrulandi; });
+
+  gvKpi('#dfKpi', [
+    { ikon:'fa-screwdriver-wrench', sayi: GV.n(kaynak.filter(function(f){ return f.durum !== 'kapandi'; }).length),
+      etiket:'Açık DÖF', ton:'warn',
+      delta:{ yon:'flat', metin: GV.n(kapananlar.length) + ' kapandı' } },
+    { ikon:'fa-clock', sayi: GV.n(kaynak.filter(function(f){ return f.gecikmisMi; }).length),
+      etiket:'Termini geçen', ton:'danger' },
+    { ikon:'fa-circle-check', sayi: GV.n(kaynak.filter(function(f){
+        return f.kapanis && f.kapanis.substring(0, 7) === BUGUN.substring(0, 7); }).length),
+      etiket:'Bu ay kapanan',
+      delta:{ yon:'flat', metin: GV.dUzun(BUGUN).replace(/^\d+\s/, '') } },
+    { ikon:'fa-clipboard-check',
+      sayi: kapananlar.length ? GV.pct(dogrulanan.length / kapananlar.length, true, 0) : GV.bos,
+      etiket:'Etkinliği doğrulanmış', ton: kapananlar.length && dogrulanan.length === kapananlar.length ? '' : 'info',
+      delta:{ yon:'flat', metin: GV.n(dogrulanan.length) + ' / ' + GV.n(kapananlar.length) + ' kapanan DÖF' } }
+  ]);
+
+  function terminHucre(f){
+    if (!f.termin) return '<span class="muted">Termin yok</span>';
+    if (f.durum === 'kapandi') return GV.d(f.termin);
+    return GV.d(f.termin) + ' ' + (f.kalanGun < 0
+      ? GV.rozetOzel('danger','fa-clock', Math.abs(f.kalanGun) + ' gün geçti')
+      : f.kalanGun <= 15 ? GV.rozetOzel('warn','fa-clock', f.kalanGun + ' gün kaldı')
+      : GV.rozetOzel('info','fa-clock', f.kalanGun + ' gün kaldı'));
+  }
+  function durumHucre(f){
+    return f.durum === 'kapandi' ? GV.rozetOzel('ok','fa-circle-check','Kapandı')
+      : f.gecikmisMi ? GV.rozetOzel('danger','fa-triangle-exclamation','Gecikti')
+      : GV.rozetOzel('warn','fa-circle-dot','Açık');
+  }
+  function etkinlikHucre(f){
+    return f.etkinDogrulandi ? GV.rozetOzel('ok','fa-clipboard-check','Etkin')
+      : f.durum === 'kapandi' ? GV.rozetOzel('warn','fa-hourglass-half','Değerlendirilmedi')
+      : GV.rozetOzel('off','fa-minus','Kapanmadı');
+  }
+
+  var kolonlar = [
+    { k:'id', ad:'DÖF No', kilitli:true, ciz: function(f){
+        return '<div class="gcell"><div class="gcell-mark ' + (f.durum === 'kapandi' ? 'ok' : f.gecikmisMi ? 'danger' : 'warn') + '">'
+          + '<i class="fa-solid ' + f.kaynakIkon + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name">'
+          + '<button class="btn-link" type="button" data-detay="' + GV.esc(f.id) + '">' + GV.esc(f.id) + '</button></div>'
+          + '<div class="gcell-sub">' + GV.esc(f.kaynak) + '</div></div></div>'; } },
+    { k:'baslik', ad:'Başlık', ciz: function(f){
+        return '<button class="btn-link" type="button" data-detay="' + GV.esc(f.id) + '">' + GV.esc(f.baslik) + '</button>'; } },
+    { k:'kaynak', ad:'Kaynak', ciz: function(f){
+        return '<span class="gtag"><i class="fa-solid ' + f.kaynakIkon + '" aria-hidden="true"></i>' + GV.esc(f.kaynak) + '</span>'
+          + '<br>' + (f.kaynakHref
+            ? '<a href="' + f.kaynakHref + '" style="font-size:11.5px">' + GV.esc(f.kaynakId) + '</a>'
+            : '<span class="muted" style="font-size:11.5px">' + GV.esc(f.kaynakId || GV.bos) + '</span>'); } },
+    { k:'kokNeden', ad:'Kök Neden', varsayilanGizli:true, gizli:true, ciz: function(f){
+        return '<span style="font-size:12px;color:var(--ink-2)">' + GV.esc(f.kokNeden) + '</span>'; } },
+    { k:'sorumluAd', ad:'Sorumlu', ciz: function(f){
+        return f.sorumluAd
+          ? GV.esc(f.sorumluAd) + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(f.sorumluBirim) + '</span>'
+          : '<span class="muted">Atanmadı</span>'; } },
+    { k:'acilis', ad:'Açılış', ciz: function(f){ return GV.d(f.acilis); } },
+    { k:'termin', ad:'Termin', ciz: terminHucre },
+    { k:'kapanis', ad:'Kapanış', ciz: function(f){ return GV.d(f.kapanis); } },
+    { k:'durum', ad:'Durum', ciz: durumHucre },
+    { k:'etkinlik', ad:'Etkinlik', ciz: etkinlikHucre },
+    { k:'__islem', ad:'İşlem', ciz: function(f){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-detay="' + GV.esc(f.id) + '" aria-label="' + GV.esc(f.id) + ' düzeltici faaliyet detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+          + (f.durum !== 'kapandi'
+            ? '<button class="ia-btn" type="button" data-kapat="' + GV.esc(f.id) + '" aria-label="' + GV.esc(f.id) + ' faaliyetini kapat">'
+              + '<i class="fa-solid fa-check" aria-hidden="true"></i></button>'
+            : !f.etkinDogrulandi
+              ? '<button class="ia-btn" type="button" data-etkin="' + GV.esc(f.id) + '" aria-label="' + GV.esc(f.id) + ' etkinliğini doğrula">'
+                + '<i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></button>'
+              : '')
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#dfTablo', kolonlar:kolonlar, satirId: function(f){ return f.id; },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Düzeltici faaliyet yok',
+      metin:'Filtrelerinize uyan DÖF kaydı bulunmuyor.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'duzeltici-faaliyetler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#dfPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-detay]').forEach(function(b){
+      b.addEventListener('click', function(){ detay(b.getAttribute('data-detay')); });
+    });
+    document.querySelectorAll('[data-kapat]').forEach(function(b){
+      b.addEventListener('click', function(){ kapat(b.getAttribute('data-kapat')); });
+    });
+    document.querySelectorAll('[data-etkin]').forEach(function(b){
+      b.addEventListener('click', function(){ etkinlikDogrula(b.getAttribute('data-etkin')); });
+    });
+  }
+
+  /* ---------------- detay modalı ---------------- */
+  function detay(id){
+    var f = kayitBul(id);
+    var adimlar = [
+      { ton:'ok', ikon:'fa-folder-plus', baslik:'Açıldı',
+        altBaslik: f.kaynak + (f.kaynakId ? ' · ' + f.kaynakId : ''),
+        aksiyon:'Kayıt açıldı', tarih: f.acilis },
+      { ton: f.faaliyet ? 'ok' : 'warn', simdi: !f.faaliyet,
+        ikon:'fa-list-check', baslik:'Faaliyet planlandı',
+        altBaslik: f.faaliyet || 'Faaliyet planı hazırlanmadı',
+        aksiyon: f.faaliyet ? 'Planlandı' : 'Bekliyor', tarih: f.faaliyet ? f.acilis : null },
+      { ton: f.durum === 'kapandi' ? 'ok' : f.gecikmisMi ? 'danger' : 'warn',
+        simdi: f.durum !== 'kapandi',
+        ikon:'fa-screwdriver-wrench', baslik:'Uygulandı',
+        altBaslik: f.sorumluAd ? f.sorumluAd + ' — ' + f.sorumluBirim : 'Sorumlu atanmadı',
+        aksiyon: f.durum === 'kapandi' ? 'Tamamlandı'
+          : f.gecikmisMi ? Math.abs(f.kalanGun) + ' gün gecikme' : 'Devam ediyor',
+        tarih: f.kapanis || f.termin,
+        not: f.gecikmisMi ? 'Termin aşıldı. Sorumluya hatırlatma yapılmalı ve yönetim gözden geçirmesine taşınmalıdır.' : null,
+        notTon:'danger' },
+      { ton: f.etkinDogrulandi ? 'ok' : f.durum === 'kapandi' ? 'warn' : 'idle',
+        simdi: f.durum === 'kapandi' && !f.etkinDogrulandi,
+        ikon:'fa-clipboard-check', baslik:'Etkinlik doğrulandı',
+        altBaslik: f.etkinDogrulandi ? 'Faaliyet etkin bulundu' : 'Doğrulama yapılmadı',
+        aksiyon: f.etkinDogrulandi ? 'Etkin' : 'Değerlendirilmedi',
+        tarih: f.etkinDogrulandi ? f.kapanis : null },
+      { ton: f.durum === 'kapandi' ? 'ok' : 'idle', ikon:'fa-circle-check', baslik:'Kapandı',
+        altBaslik: f.durum === 'kapandi'
+          ? (f.kapanmaSuresi != null ? GV.n(f.kapanmaSuresi) + ' günde kapandı' : 'Kapatıldı')
+          : 'Kapatma bekleniyor',
+        aksiyon: f.durum === 'kapandi' ? 'Kapandı' : 'Bekliyor', tarih: f.kapanis }
+    ];
+
+    var butonlar = [{ etiket:'Kapat', sinif:'btn-ghost' }];
+    if (f.durum !== 'kapandi') {
+      butonlar.push({ etiket:'Faaliyeti Kapat', sinif:'btn-acc', ikon:'fa-check',
+        tikla: function(){ setTimeout(function(){ kapat(f.id); }, 280); } });
+    } else if (!f.etkinDogrulandi) {
+      butonlar.push({ etiket:'Etkinliği Doğrula', sinif:'btn-acc', ikon:'fa-clipboard-check',
+        tikla: function(){ setTimeout(function(){ etkinlikDogrula(f.id); }, 280); } });
+    }
+
+    gvModal({
+      baslik: f.id + ' — ' + f.baslik, ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
+      metin: GV.esc(f.aciklama),
+      govde:
+        '<dl class="info-rows">'
+        + '<div class="info-row"><dt>Kaynak</dt><dd>' + GV.esc(f.kaynak)
+          + (f.kaynakHref ? ' · <a href="' + f.kaynakHref + '">' + GV.esc(f.kaynakId) + '</a>'
+             : f.kaynakId ? ' · ' + GV.esc(f.kaynakId) : '') + '</dd></div>'
+        + '<div class="info-row"><dt>Sorumlu</dt><dd>' + (f.sorumluAd ? GV.esc(f.sorumluAd + ' — ' + f.sorumluBirim) : 'Atanmadı') + '</dd></div>'
+        + '<div class="info-row"><dt>Açılış</dt><dd>' + GV.dUzun(f.acilis) + '</dd></div>'
+        + '<div class="info-row"><dt>Termin</dt><dd>' + GV.dUzun(f.termin) + '</dd></div>'
+        + '<div class="info-row"><dt>Kapanış</dt><dd>' + GV.dUzun(f.kapanis) + '</dd></div>'
+        + '<div class="info-row"><dt>Durum</dt><dd>' + durumHucre(f) + '</dd></div>'
+        + '<div class="info-row"><dt>Etkinlik</dt><dd>' + etkinlikHucre(f) + '</dd></div>'
+        + '</dl>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-magnifying-glass-chart" aria-hidden="true"></i>Kök Neden Analizi</h3>'
+        + '<p class="dof-metin">' + GV.esc(f.kokNeden) + '</p></div>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Planlanan Faaliyet</h3>'
+        + '<p class="dof-metin">' + GV.esc(f.faaliyet) + '</p></div>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Süreç Zinciri</h3>'
+        + '<div id="dfSurec"></div></div>',
+      acildi: function(){ gvChain('#dfSurec', adimlar); },
+      butonlar: butonlar
+    });
+  }
+
+  /* ---------------- kapatma ---------------- */
+  function kapat(id){
+    var f = kayitBul(id);
+    gvConfirm({
+      baslik:'Düzeltici faaliyet kapatılsın mı?',
+      metin:'<b>' + GV.esc(f.baslik) + '</b> kapatılacak. '
+        + (f.gecikmisMi ? '<b>Bu faaliyetin termini ' + Math.abs(f.kalanGun) + ' gün aşıldı;</b> gecikme gerekçesi kayda geçirilmelidir.'
+           : 'Kapanış tarihi ' + GV.d(BUGUN) + ' olarak kaydedilecek.')
+        + ' Etkinlik doğrulaması ayrıca yapılır.',
+      ton: f.gecikmisMi ? 'danger' : 'warn',
+      onayEtiket:'Kapat', onayIkon:'fa-check', notAlani:true, notZorunlu:true,
+      notYer:'Uygulanan faaliyet ve kapatma gerekçesi…'
+    }).then(function(s){
+      if (!s.onay) return;
+      A.guncelle('duzelticiFaaliyetler', f.id, { durum:'kapandi', kapanis: BUGUN }).then(function(){
+        A.kayitAt('kapatma', 'Düzeltici Faaliyet', f.id, 'Açık', 'Kapandı', s.not);
+        gvToast('Düzeltici faaliyet kapatıldı. Etkinlik doğrulaması bekliyor.', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 900);
+      });
+    });
+  }
+
+  /* ---------------- etkinlik doğrulama ---------------- */
+  function etkinlikDogrula(id){
+    var f = kayitBul(id);
+    gvConfirm({
+      baslik:'Etkinlik doğrulansın mı?',
+      metin:'<b>' + GV.esc(f.baslik) + '</b> faaliyetinin etkin olduğu kayda geçirilecek. '
+        + 'Doğrulama, faaliyetin aynı bulgunun tekrarını önlediğinin kanıtlanmasıdır.',
+      ton:'warn', onayEtiket:'Etkin olarak işaretle', onayIkon:'fa-clipboard-check',
+      notAlani:true, notZorunlu:true, notYer:'Etkinliğin nasıl doğrulandığı (izleme, sonraki denetim, kayıt)…'
+    }).then(function(s){
+      if (!s.onay) return;
+      A.guncelle('duzelticiFaaliyetler', f.id, { etkinlik:'etkin' }).then(function(){
+        A.kayitAt('etkinlik-dogrulama', 'Düzeltici Faaliyet', f.id, 'Değerlendirilmedi', 'Etkin', s.not);
+        gvToast('Faaliyet etkinliği doğrulandı.', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 900);
+      });
+    });
+  }
+
+  /* ---------------- yeni DÖF ---------------- */
+  document.getElementById('dfYeni').addEventListener('click', function(){
+    function grup(etiket, kayitlar, kaynakAdFn, metinFn){
+      if (!kayitlar.length) return '';
+      return '<optgroup label="' + GV.esc(etiket) + '">'
+        + kayitlar.map(function(k){
+            return '<option value="' + GV.esc(k.id) + '" data-kaynak="' + GV.esc(kaynakAdFn(k)) + '">'
+              + GV.esc(k.id + ' · ' + metinFn(k)) + '</option>';
+          }).join('') + '</optgroup>';
+    }
+    var secenekHtml =
+      grup('Denetimler', A.liste('denetimler'), function(d){ return d.tur; }, function(d){ return d.kapsam; })
+      + grup('Müşteri Şikâyetleri', A.liste('musteriSikayetleri'), function(){ return 'Müşteri Şikâyeti'; }, function(s){ return s.konu; })
+      + grup('Uygunsuzluklar', A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi'; }),
+          function(){ return 'Uygunsuzluk'; }, function(u){ return u.baslik; });
+
+    gvModal({
+      baslik:'Yeni düzeltici faaliyet', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
+      metin:'DÖF kaydı bir kaynağa bağlanır; kaynak kaydı üzerinden izlenebilirlik sağlanır.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full" id="ynKaynakF"><label for="ynKaynak">Kaynak kaydı *</label>'
+        + '<select id="ynKaynak"><option value="">Seçiniz…</option>' + secenekHtml + '</select>'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Kaynak kaydı seçilmelidir.</div></div>'
+        + '<div class="gfield full" id="ynBaslikF"><label for="ynBaslik">Faaliyet başlığı *</label>'
+        + '<input type="text" id="ynBaslik" placeholder="Faaliyetin kısa tanımı">'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Başlık zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="ynAciklama">Açıklama</label>'
+        + '<textarea id="ynAciklama" placeholder="Tespitin ayrıntısı"></textarea></div>'
+        + '<div class="gfield full"><label for="ynKok">Kök neden</label>'
+        + '<textarea id="ynKok" placeholder="Kök neden analizi sonucu"></textarea></div>'
+        + '<div class="gfield full"><label for="ynFaaliyet">Planlanan faaliyet</label>'
+        + '<textarea id="ynFaaliyet" placeholder="Yapılacak düzeltici faaliyet"></textarea></div>'
+        + '<div class="gfield"><label for="ynSorumlu">Sorumlu *</label><select id="ynSorumlu">'
+        + A.liste('personeller').filter(function(p){ return p.durum === 'aktif'; })
+            .map(function(p){ return '<option value="' + p.id + '"' + (p.id === 'PRS-005' ? ' selected' : '') + '>'
+              + GV.esc(p.ad + ' — ' + p.birim) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="ynTermin">Termin</label><input type="date" id="ynTermin">'
+        + '<span class="gf-hint">Boş bırakılırsa termin belirlenmemiş sayılır.</span></div>'
+        + '</div>',
+      acildi: function(kap){
+        kap.querySelector('#ynKaynak').addEventListener('change', function(){
+          var o = this.options[this.selectedIndex];
+          var b = kap.querySelector('#ynBaslik');
+          if (o.value && !b.value.trim()) {
+            var m = o.textContent.split(' · ');
+            b.value = m.length > 1 ? m.slice(1).join(' · ') : o.textContent;
+          }
+        });
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var sec = kap.querySelector('#ynKaynak');
+            var baslik = kap.querySelector('#ynBaslik').value.trim();
+            kap.querySelector('#ynKaynakF').classList.toggle('is-err', !sec.value);
+            kap.querySelector('#ynBaslikF').classList.toggle('is-err', !baslik);
+            if (!sec.value) { sec.focus(); return false; }
+            if (!baslik) { kap.querySelector('#ynBaslik').focus(); return false; }
+            var kaynakAd = sec.options[sec.selectedIndex].getAttribute('data-kaynak');
+            A.ekle('duzelticiFaaliyetler', {
+              id: yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3),
+              kaynak: kaynakAd, kaynakId: sec.value, baslik: baslik,
+              aciklama: kap.querySelector('#ynAciklama').value.trim() || baslik,
+              kokNeden: kap.querySelector('#ynKok').value.trim() || 'Kök neden analizi yapılacak.',
+              faaliyet: kap.querySelector('#ynFaaliyet').value.trim() || 'Faaliyet planı hazırlanacak.',
+              sorumluId: kap.querySelector('#ynSorumlu').value, acilis: BUGUN,
+              termin: kap.querySelector('#ynTermin').value || null,
+              kapanis: null, durum:'acik', etkinlik: null
+            }).then(function(){
+              gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  });
+
+  document.getElementById('dfDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'duzeltici-faaliyetler', modul:'Düzeltici Faaliyet' });
+  });
+
+  /* ---------------- filtre ---------------- */
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','baslik','aciklama','kokNeden','faaliyet','kaynak','kaynakId','sorumluAd'],
+    cipler: {
+      alan:'durum',
+      secenekler:[
+        { k:'acik',    ad:'Açık',    ikon:'fa-circle-dot' },
+        { k:'gecikti', ad:'Gecikti', ikon:'fa-triangle-exclamation' },
+        { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
+      ],
+      suz: function(f, k){
+        if (k === 'gecikti') return !!f.gecikmisMi;
+        if (k === 'acik') return f.durum !== 'kapandi';
+        return f.durum === 'kapandi';
+      }
+    },
+    alanlar: [
+      { k:'kaynak', ad:'Kaynak', tur:'coklu', secenekler: KAYNAKLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
+      { k:'sorumluId', ad:'Sorumlu', tur:'secim', secenekler: A.liste('personeller')
+        .filter(function(p){ return kaynak.some(function(f){ return f.sorumluId === p.id; }); })
+        .map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
+      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle',
+        secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* ---------------- grafikler ---------------- */
+  var donutVeri = KAYNAKLAR.map(function(k){
+    return { etiket: k.ad, deger: kaynak.filter(function(f){ return f.kaynak === k.ad; }).length, ton: k.ton };
+  }).filter(function(x){ return x.deger; });
+  if (donutVeri.length) gvDonut('#dfDonut', donutVeri, { merkezEtiket:'düzeltici faaliyet' });
+  else document.getElementById('dfDonut').innerHTML = gvEmpty({ ikon:'fa-circle-check',
+    baslik:'DÖF kaydı yok', metin:'Kaynak dağılımı için henüz düzeltici faaliyet kaydı bulunmuyor.' });
+
+  var sureli = kaynak.filter(function(f){ return f.kapanmaSuresi != null; });
+  gvBar('#dfSure', sureli.length
+    ? [{ etiket:'0–30 gün',  deger: sureli.filter(function(f){ return f.kapanmaSuresi <= 30; }).length, ton:'ok' },
+       { etiket:'31–60 gün', deger: sureli.filter(function(f){ return f.kapanmaSuresi > 30 && f.kapanmaSuresi <= 60; }).length, ton:'acc' },
+       { etiket:'61–90 gün', deger: sureli.filter(function(f){ return f.kapanmaSuresi > 60 && f.kapanmaSuresi <= 90; }).length, ton:'warn' },
+       { etiket:'90+ gün',   deger: sureli.filter(function(f){ return f.kapanmaSuresi > 90; }).length, ton:'danger' }]
+    : [{ etiket:'Kapanan DÖF yok', deger:0, ton:'gri' }],
+    { baslik:'DÖF kapanma süreleri', birim:'kayıt', yukseklik:220 });
+})();
+</script>
+</body>
+</html>

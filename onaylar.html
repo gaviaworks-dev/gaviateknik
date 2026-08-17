@@ -106,7 +106,7 @@
     kaynak.push({ tur:'Yeniden Kontrol', ikon:'fa-rotate-right', kod:y.id, id:y.id,
       baslik:'Yeniden kontrol talebi onayı bekliyor', musteri: l ? l.musteriAd : '—', lokasyon: l ? l.ad : '—',
       tutar:null, tarih:y.talepTarihi, sorumlu:'Operasyon Yöneticisi',
-      aciklama: y.aciklama + ' Talep eden: ' + y.talepEden + '. ' + (y.ucretli ? 'Ücretli kontrol kapsamında.' : 'Ücretsiz yeniden kontrol.')
+      aciklama: y.aciklama + ' Talep eden: ' + y.talepEden + '. ' + (y.ucretli == null ? 'Ücret durumu belirlenecek.' : y.ucretli ? 'Ücretli kontrol kapsamında.' : 'Ücretsiz yeniden kontrol.')
         + (u ? ' İlgili uygunsuzluk: ' + u.baslik + '.' : ''),
       zincir:[{ad:'Talep',ton:'ok',ikon:'fa-check'},{ad:'Onay',ton:'warn',ikon:'fa-hourglass-half'},{ad:'Planlama',ton:'',ikon:'fa-circle'}],
       sla:null, link:'yeniden-kontroller.html?id=' + y.id, onay:'yeniden' });

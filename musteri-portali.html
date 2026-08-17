@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Genel Bakış — GAVIA Müşteri Portalı</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+/* Portal, iç panelden daha sade ve daha büyük tipografi kullanır. */
+.prt-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.prt-hero h1{font-size:27px;margin-bottom:7px;letter-spacing:-.02em}
+.prt-hero .ph-sub{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.prt-hero .ph-eyebrow{margin-bottom:8px}
+.prt-firma{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+.prt-body .gtable td{font-size:13.5px}
+.prt-body .gc-title{font-size:15px}
+.prt-eris{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.prt-eris:last-child{border-bottom:none}
+.prt-eris-ico{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:14px;
+  background:rgba(var(--mint-rgb),.1);color:var(--gv-action)}
+.prt-eris-ico.info{background:var(--info-tint);color:var(--info)}
+.prt-eris-ico.warn{background:var(--warning-tint);color:var(--warning)}
+.prt-eris-govde{min-width:0;flex:1;line-height:1.45}
+.prt-eris-govde b{display:block;font-size:13.5px;font-weight:700;color:var(--ink)}
+.prt-eris-govde span{display:block;font-size:12.5px;color:var(--muted)}
+.prt-eris-govde .prt-eris-alt{margin-top:6px}
+</style>
+</head>
+<body data-sec="portal" data-screen="musteri-portali">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main prt-body">
+    <div class="prt-hero">
+      <div>
+        <div class="ph-eyebrow">Müşteri Portalı</div>
+        <h1 id="prtSelam">Hoş geldiniz</h1>
+        <p class="ph-sub" id="prtTarih">—<span class="prt-firma" id="prtFirma">—</span></p>
+      </div>
+      <div class="ph-actions no-print">
+        <a class="btn btn-ghost" href="portal-raporlar.html"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Teknik Raporlar</a>
+        <a class="btn btn-acc" href="portal-lokasyonlar.html"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyonlarım</a>
+      </div>
+    </div>
+
+    <div class="gv-note" id="prtKapsamNot" style="margin-bottom:18px">
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+      <span>Kapsam bilgisi yükleniyor…</span>
+    </div>
+
+    <div class="kpi-grid" id="prtKpi"></div>
+
+    <div class="dash-cols">
+      <div class="gv-stack">
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Yaklaşan Kontroller</h2>
+            <a class="gc-link" href="portal-lokasyonlar.html">Bütün lokasyonlar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body">
+            <div class="gv-note warn">
+              <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+              <span><b>Kontrol gününe hazırlık.</b> Ekiplerimizin işini tek ziyarette tamamlayabilmesi için kontrol
+              tarihinden önce şunları hazırlamanızı rica ederiz:
+              <b>ekipmanlar çalışır ve erişilebilir</b> durumda olmalı (raf önleri boşaltılmış, panolar açılabilir),
+              <b>ekipman operatörleri</b> (forklift/transpalet kullanıcısı, teknik personel) kontrol saatinde
+              lokasyonda hazır bulunmalı, <b>saha giriş izinleri</b> ve varsa iş güvenliği evrakları önceden
+              onaylanmış olmalıdır. Eksik hazırlık, yeniden ziyaret gerektirebilir.</span>
+            </div>
+            <div id="prtYaklasanNot"></div>
+          </div>
+          <div class="gc-body flush" id="prtYaklasan"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Son Teknik Raporlar</h2>
+            <a class="gc-link" href="portal-raporlar.html">Bütün raporlar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush" id="prtRapor"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Açık Uygunsuzluklar</h2>
+            <a class="gc-link" href="portal-raporlar.html?sekme=pnU">Tümü <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush" id="prtUygunsuzluk"></div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Açık Faturalar</h2>
+            <a class="gc-link" href="portal-faturalar.html">Bütün faturalar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="gc-body flush" id="prtFatura"></div>
+        </section>
+
+      </div>
+
+      <div class="gv-side-stack">
+
+        <section class="gv-card">
+          <div class="gc-head">
+            <h2 class="gc-title"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Yetkili Erişimler</h2>
+            <button class="btn btn-sm btn-ghost no-print" type="button" id="prtYeniErisim">
+              <i class="fa-solid fa-plus" aria-hidden="true"></i>Denetçi Erişimi</button>
+          </div>
+          <div class="gc-body" id="prtErisim"></div>
+          <div class="gc-foot">
+            <span class="muted" style="font-size:12.5px">Süreli erişimler bitiş tarihinde kendiliğinden kapanır; denetçi yalnız rapor ekranlarını okuyabilir, kayıt değiştiremez.</span>
+          </div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-headset" aria-hidden="true"></i>Destek Talebi</h2></div>
+          <div class="gc-body">
+            <div class="gform gform-1">
+              <div class="gfield full">
+                <label for="prtKonu">Konu</label>
+                <select id="prtKonu">
+                  <option value="Kontrol randevusu">Kontrol randevusu</option>
+                  <option value="Teknik rapor">Teknik rapor</option>
+                  <option value="Uygunsuzluk ve düzeltme">Uygunsuzluk ve düzeltme</option>
+                  <option value="Fatura ve ödeme">Fatura ve ödeme</option>
+                  <option value="Portal erişimi">Portal erişimi</option>
+                  <option value="Diğer">Diğer</option>
+                </select>
+              </div>
+              <div class="gfield full">
+                <label for="prtLok">İlgili lokasyon <span class="gf-hint">(isteğe bağlı)</span></label>
+                <select id="prtLok"><option value="">Belirtmek istemiyorum</option></select>
+              </div>
+              <div class="gfield full">
+                <label for="prtMesaj">Mesajınız <span class="req" aria-hidden="true">*</span></label>
+                <textarea id="prtMesaj" rows="4" placeholder="Talebinizi kısaca yazın; ekibimiz bir iş günü içinde döner."></textarea>
+                <div class="gf-err" id="prtMesajErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Mesaj alanı boş bırakılamaz.</div>
+              </div>
+            </div>
+          </div>
+          <div class="gc-foot">
+            <button class="btn btn-acc btn-block" type="button" id="prtGonder">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Talebi Gönder</button>
+          </div>
+        </section>
+
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i>Destek Taleplerim</h2></div>
+          <div class="gc-body flush gv-cap gv-cap-sm" id="prtTalepler"></div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  /* ---------------------------------------------------------------
+     KAPSAM SÜZMESİ — portalda hiçbir liste kapsam dışına çıkamaz.
+     Bütün kaynaklar rolKapsami / kapsamaGoreLokasyonlar üzerinden okunur.
+     Taşeron maliyeti, iç maliyet ve kârlılık alanları hiç okunmaz.
+     --------------------------------------------------------------- */
+  var kapsam = A.rolKapsami(GV.rol);
+  var musteriId = kapsam.tur === 'musteri' ? kapsam.musteriId : null;
+  var musteri = musteriId ? A.kayit('musteriler', musteriId) : null;
+  var loklar = A.kapsamaGoreLokasyonlar(GV.rol).map(function(l){ return A.lokasyon(l.id); });
+  var lokIds = loklar.map(function(l){ return l.id; });
+  function kapsamda(lokId){ return lokIds.indexOf(lokId) !== -1; }
+
+  /* ---------------- müşteri diliyle durumlar (teknik jargon yok) --------------- */
+  var OPS = {
+    'bilgi-bekleniyor':        ['warn','fa-circle-question','Bilgi bekleniyor'],
+    'envanter-bekleniyor':     ['warn','fa-circle-question','Bilgi bekleniyor'],
+    'iletisime-gecildi':       ['info','fa-phone','Randevu görüşmesi'],
+    'tarih-onayi-bekleniyor':  ['warn','fa-calendar-check','Tarih onayınız bekleniyor'],
+    'planlandi':               ['info','fa-calendar-days','Kontrol planlandı'],
+    'tadilatta':               ['warn','fa-trowel-bricks','Lokasyon tadilatta'],
+    'tasiniyor':               ['warn','fa-truck-moving','Lokasyon taşınıyor'],
+    'sahada':                  ['info','fa-person-walking','Ekip sahada'],
+    'kontrol-tamamlandi':      ['ok','fa-circle-check','Kontrol tamamlandı'],
+    'yeniden-ziyaret':         ['danger','fa-rotate-right','Yeniden ziyaret gerekli'],
+    'kapsam-disi':             ['off','fa-ban','Kapsam dışı'],
+    'iptal':                   ['off','fa-xmark','İptal edildi']
+  };
+  function opsRozet(k){ var d = OPS[k] || ['off','fa-circle','—']; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  var SONUC = {
+    'uygun':        ['ok','fa-circle-check','Uygun'],
+    'sartli-uygun': ['warn','fa-triangle-exclamation','Şartlı uygun'],
+    'uygun-degil':  ['danger','fa-circle-xmark','Uygun değil']
+  };
+  function sonucRozet(k){ var d = SONUC[k] || ['off','fa-circle','—']; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  var ONEM = {
+    'kritik': ['danger','fa-fire','Kritik'],
+    'yuksek': ['danger','fa-triangle-exclamation','Yüksek'],
+    'orta':   ['warn','fa-circle-exclamation','Orta'],
+    'dusuk':  ['info','fa-circle-info','Düşük']
+  };
+  function onemRozet(k){ var d = ONEM[k] || ['off','fa-circle','—']; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  function kalanRozet(tarih){
+    var g = GV.gun(BUGUN, tarih);
+    if (g == null) return GV.rozetOzel('off','fa-minus', GV.bos);
+    if (g < 0)  return GV.rozetOzel('danger','fa-clock', Math.abs(g) + ' gün gecikti');
+    if (g === 0) return GV.rozetOzel('warn','fa-bolt','Bugün');
+    if (g <= 7) return GV.rozetOzel('warn','fa-hourglass-half', g + ' gün kaldı');
+    return GV.rozetOzel('info','fa-calendar-day', g + ' gün kaldı');
+  }
+
+  function odemeRozet(f){
+    if (f.tahsilatDurum === 'vadesi-gecti') return GV.rozetOzel('danger','fa-triangle-exclamation','Vadesi geçti');
+    if (f.kalan <= 0) return GV.rozetOzel('ok','fa-circle-check','Ödendi');
+    if (f.tahsilEdilen > 0) return GV.rozetOzel('warn','fa-circle-half-stroke','Kısmen ödendi');
+    return GV.rozetOzel('info','fa-hourglass-half','Ödeme bekleniyor');
+  }
+
+  /* ---------------- karşılama ---------------- */
+  var erisimler = A.liste('portalErisimleri').filter(function(p){ return p.musteriId === musteriId; });
+  var anaErisim = erisimler.filter(function(p){ return p.rol === 'Müşteri Yetkilisi' && p.kisiId; })[0] || null;
+  var kisi = anaErisim ? A.kayit('iletisimKisileri', anaErisim.kisiId) : null;
+  var kisiAd = kisi ? kisi.ad : GV.kullanici.ad;
+
+  document.getElementById('prtSelam').textContent = 'Hoş geldiniz, ' + kisiAd;
+  document.getElementById('prtTarih').childNodes[0].nodeValue = GV.dTam(BUGUN);
+  document.getElementById('prtFirma').textContent =
+    (musteri ? musteri.unvan : 'Firma') + (kisi ? ' · ' + kisi.unvan : '');
+
+  var markaAdlari = Array.from(new Set(loklar.map(function(l){ return l.markaAd; }))).filter(Boolean);
+  var iller = Array.from(new Set(loklar.map(function(l){ return l.il; }))).filter(Boolean);
+  document.getElementById('prtKapsamNot').innerHTML =
+    '<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>'
+    + '<span>Bu portalda yalnız yetkili olduğunuz kayıtlar görünür: <b>' + GV.esc(markaAdlari.join(', ') || '—')
+    + '</b> markaları, <b>' + GV.n(iller.length) + ' il</b> ve <b>' + GV.n(loklar.length)
+    + ' lokasyon</b>. Diğer müşterilere ait hiçbir veri bu ekranlarda listelenmez.</span>';
+
+  /* ---------------- KPI (sade — 4 kart) ---------------- */
+  var yaklasan = loklar.filter(function(l){
+    if (!l.kontrolTarihi) return false;
+    if (['iptal','kapsam-disi','kontrol-tamamlandi'].indexOf(l.operasyonDurum) !== -1) return false;
+    var g = GV.gun(BUGUN, l.kontrolTarihi);
+    return g != null && g >= 0 && g <= 30;
+  }).sort(function(a,b){ return String(a.kontrolTarihi).localeCompare(String(b.kontrolTarihi)); });
+
+  var raporlar = A.raporlar().filter(function(r){
+    return kapsamda(r.lokasyonId) && ['teslim-edildi','imzalandi'].indexOf(r.durum) !== -1;
+  }).sort(function(a,b){ return String(b.teslimTarihi || b.raporTarihi).localeCompare(String(a.teslimTarihi || a.raporTarihi)); });
+
+  var uygunsuzluklar = A.liste('uygunsuzluklar').filter(function(u){
+    return kapsamda(u.lokasyonId) && u.durum !== 'kapandi';
+  }).map(function(u){
+    var l = A.kayit('lokasyonlar', u.lokasyonId);
+    return Object.assign({}, u, { lokasyonAd: l ? l.ad : GV.bos, kalanGun: GV.gun(BUGUN, u.termin) });
+  }).sort(function(a,b){
+    var s = { kritik:0, yuksek:1, orta:2, dusuk:3 };
+    var f = (s[a.onem] == null ? 9 : s[a.onem]) - (s[b.onem] == null ? 9 : s[b.onem]);
+    if (f) return f;
+    return String(a.termin || '9999').localeCompare(String(b.termin || '9999'));
+  });
+
+  var faturalar = A.liste('faturalar').filter(function(f){ return f.musteriId === musteriId; });
+  var acikFaturalar = faturalar.filter(function(f){ return f.kalan > 0; })
+    .sort(function(a,b){ return String(a.vade).localeCompare(String(b.vade)); });
+
+  var kapsamDisi = loklar.filter(function(l){ return ['iptal','kapsam-disi'].indexOf(l.operasyonDurum) !== -1; }).length;
+  var gecikenUyg = uygunsuzluklar.filter(function(u){ return u.durum === 'gecikti' || (u.kalanGun != null && u.kalanGun < 0); }).length;
+
+  gvKpi('#prtKpi', [
+    { ikon:'fa-location-dot', sayi: GV.n(loklar.length), etiket:'Lokasyonunuz', link:'portal-lokasyonlar.html',
+      delta:{ yon:'flat', metin: kapsamDisi ? kapsamDisi + ' lokasyon kapsam dışı' : 'Tamamı hizmet kapsamında' } },
+    { ikon:'fa-calendar-days', sayi: GV.n(yaklasan.length), etiket:'30 gün içinde kontrol', ton:'info',
+      delta:{ yon:'flat', metin: yaklasan.length ? 'İlki ' + GV.d(yaklasan[0].kontrolTarihi) : 'Planlanmış ziyaret yok' } },
+    { ikon:'fa-file-lines', sayi: GV.n(raporlar.length), etiket:'Size teslim edilen rapor', ton:'ok', link:'portal-raporlar.html' },
+    { ikon:'fa-circle-exclamation', sayi: GV.n(uygunsuzluklar.length), etiket:'Açık uygunsuzluk',
+      ton: gecikenUyg ? 'danger' : 'warn', link:'portal-raporlar.html?sekme=pnU',
+      delta:{ yon: gecikenUyg ? 'down' : 'flat', metin: gecikenUyg ? gecikenUyg + ' tanesinin termini geçti' : 'Termini geçen yok' } }
+  ]);
+
+  /* ---------------- Yaklaşan kontroller ---------------- */
+  var tarihBekleyen = loklar.filter(function(l){ return l.operasyonDurum === 'tarih-onayi-bekleniyor'; });
+  var bilgiBekleyen = loklar.filter(function(l){
+    return ['bilgi-bekleniyor','envanter-bekleniyor'].indexOf(l.operasyonDurum) !== -1; });
+  var notlar = '';
+  if (tarihBekleyen.length) {
+    notlar += '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>'
+      + '<span><b>' + GV.n(tarihBekleyen.length) + ' lokasyon</b> için önerdiğimiz kontrol tarihini onaylamanız bekleniyor: '
+      + GV.esc(tarihBekleyen.map(function(l){ return l.ad; }).join(', ')) + '.</span>'
+      + '<a class="btn btn-sm btn-ghost gn-act" href="portal-lokasyonlar.html?durum=bilgi">Görüntüle</a></div>';
+  }
+  if (bilgiBekleyen.length) {
+    notlar += '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>'
+      + '<span><b>' + GV.n(bilgiBekleyen.length) + ' lokasyon</b> için ekipman listesi ve yetkili kişi bilgisi bekleniyor; '
+      + 'bu bilgiler tamamlanmadan kontrol tarihi verilemiyor.</span>'
+      + '<a class="btn btn-sm btn-ghost gn-act" href="portal-lokasyonlar.html?durum=bilgi">Bilgi gönder</a></div>';
+  }
+  document.getElementById('prtYaklasanNot').innerHTML = notlar;
+
+  gvTable({ hedef:'#prtYaklasan',
+    bosDurum:{ ikon:'fa-calendar-check', baslik:'Yaklaşan kontrol yok', metin:'Önümüzdeki 30 gün içinde planlanmış saha ziyareti bulunmuyor.' },
+    kolonlar:[
+      { k:'ad', ad:'Lokasyon', ciz: function(l){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(l.ad) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(l.musteriKod + ' · ' + l.il + ' / ' + l.ilce) + '</div></div>'; } },
+      { k:'kontrolTarihi', ad:'Planlanan Tarih', ciz: function(l){ return GV.d(l.kontrolTarihi); } },
+      { k:'__kalan', ad:'Kalan Gün', ciz: function(l){ return kalanRozet(l.kontrolTarihi); } },
+      { k:'operasyonDurum', ad:'Hazırlık Durumu', ciz: function(l){ return opsRozet(l.operasyonDurum); } }
+    ] }).ciz(yaklasan);
+
+  /* ---------------- Son teknik raporlar ---------------- */
+  gvTable({ hedef:'#prtRapor',
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Teslim edilmiş rapor yok', metin:'Onaylanan raporlar teslim edildiğinde bu listede görünür.' },
+    kolonlar:[
+      { k:'no', ad:'Rapor No', ciz: function(r){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(r.no) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(r.kategoriAd) + '</div></div>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon', ciz: function(r){ return GV.esc(r.lokasyonAd); } },
+      { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz: function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'sonuc', ad:'Sonuç', ciz: function(r){ return sonucRozet(r.sonuc); } },
+      { k:'__islem', ad:'İşlem', ciz: function(r){
+          return '<div class="row-acts">'
+            + '<a class="ia-btn" href="portal-raporlar.html?q=' + encodeURIComponent(r.no) + '" aria-label="'
+            + GV.esc(r.no) + ' raporunu aç"><i class="fa-solid fa-download" aria-hidden="true"></i></a></div>'; } }
+    ] }).ciz(raporlar.slice(0, 5));
+
+  /* ---------------- Açık uygunsuzluklar ---------------- */
+  gvTable({ hedef:'#prtUygunsuzluk',
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Açık uygunsuzluk yok', metin:'Raporlarda tespit edilen bütün bulgular kapatılmış.' },
+    kolonlar:[
+      { k:'baslik', ad:'Bulgu', ciz: function(u){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(u.baslik) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(u.id) + '</div></div>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon', ciz: function(u){ return GV.esc(u.lokasyonAd); } },
+      { k:'onem', ad:'Önem', ciz: function(u){ return onemRozet(u.onem); } },
+      { k:'termin', ad:'Termin', ciz: function(u){ return GV.d(u.termin); } },
+      { k:'__kalan', ad:'Kalan Gün', ciz: function(u){ return kalanRozet(u.termin); } }
+    ] }).ciz(uygunsuzluklar.slice(0, 6));
+
+  /* ---------------- Açık faturalar ---------------- */
+  gvTable({ hedef:'#prtFatura',
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Açık fatura yok', metin:'Kesilen bütün faturaların ödemesi tamamlanmış.' },
+    kolonlar:[
+      { k:'no', ad:'Fatura No', ciz: function(f){
+          return '<div class="gcell-info"><div class="gcell-name">'
+            + '<a href="portal-faturalar.html?q=' + encodeURIComponent(f.no) + '">' + GV.esc(f.no) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.esc(f.aciklama) + '</div></div>'; } },
+      { k:'tarih', ad:'Tarih', ciz: function(f){ return GV.d(f.tarih); } },
+      { k:'vade', ad:'Vade', ciz: function(f){ return GV.d(f.vade) + ' ' + kalanRozet(f.vade); } },
+      { k:'toplam', ad:'Tutar', sinif:'num', ciz: function(f){ return GV.tl(f.toplam); } },
+      { k:'kalan', ad:'Kalan', sinif:'num', ciz: function(f){
+          return '<b class="t-strong">' + GV.tl(f.kalan) + '</b>'; } },
+      { k:'__durum', ad:'Durum', ciz: function(f){ return odemeRozet(f); } }
+    ] }).ciz(acikFaturalar);
+
+  /* ---------------- Yetkili erişimler ---------------- */
+  function erisimCiz(){
+    var liste = A.liste('portalErisimleri').filter(function(p){ return p.musteriId === musteriId; });
+    var kap = document.getElementById('prtErisim');
+    if (!liste.length) {
+      kap.innerHTML = gvEmpty({ ikon:'fa-user-shield', baslik:'Tanımlı erişim yok',
+        metin:'Portala giriş yetkisi verilen kişi bulunmuyor.' });
+      return;
+    }
+    kap.innerHTML = liste.map(function(p){
+      var k = p.kisiId ? A.kayit('iletisimKisileri', p.kisiId) : null;
+      var markalar = (p.kapsamMarka || []).map(function(mid){
+        var m = A.kayit('markalar', mid); return m ? m.ad : mid; }).join(', ');
+      var sureli = !p.suresiz;
+      var kalan = sureli ? GV.gun(BUGUN, p.bitis) : null;
+      var ton = sureli ? 'warn' : (p.rol === 'Müşteri Yetkilisi' ? '' : 'info');
+      var ikon = sureli ? 'fa-hourglass-half' : (p.rol === 'Müşteri Yetkilisi' ? 'fa-user-shield' : 'fa-user-tie');
+      return '<div class="prt-eris">'
+        + '<span class="prt-eris-ico ' + ton + '"><i class="fa-solid ' + ikon + '" aria-hidden="true"></i></span>'
+        + '<span class="prt-eris-govde">'
+        +   '<b>' + GV.esc(k ? k.ad : 'Bağımsız denetim firması') + '</b>'
+        +   '<span>' + GV.esc(p.rol) + (k && k.unvan ? ' · ' + GV.esc(k.unvan) : '') + '</span>'
+        +   '<span>Kapsam: ' + GV.esc(markalar || 'Tanımsız') + ' · Bölge: ' + GV.esc(p.kapsamBolge === 'tümü' ? 'Tümü' : p.kapsamBolge) + '</span>'
+        +   '<span class="prt-eris-alt">'
+        +     (sureli
+                ? GV.rozetOzel(kalan != null && kalan < 0 ? 'off' : 'warn', 'fa-hourglass-half',
+                    'Salt okunur · ' + GV.d(p.bitis) + ' tarihine kadar')
+                : GV.rozetOzel('ok','fa-infinity','Süresiz erişim'))
+        +     ' ' + (p.sonGiris ? GV.rozetOzel('info','fa-right-to-bracket','Son giriş ' + GV.dSaat(p.sonGiris))
+                                : GV.rozetOzel('off','fa-minus','Henüz giriş yapılmadı'))
+        +   '</span>'
+        + (p.not ? '<span>' + GV.esc(p.not) + '</span>' : '')
+        + '</span></div>';
+    }).join('');
+  }
+  erisimCiz();
+
+  document.getElementById('prtYeniErisim').addEventListener('click', function(){
+    var markaSec = A.liste('markalar').filter(function(m){ return m.musteriId === musteriId; });
+    gvModal({
+      baslik:'Süreli denetçi erişimi oluştur', ikon:'fa-user-shield', genislik:'gv-modal-lg',
+      metin:'Denetçi veya müfettiş, verilen tarihe kadar yalnız teknik raporlarınızı ve uygunsuzluk kayıtlarınızı <b>okuyabilir</b>; kayıt ekleyemez, değiştiremez, fatura bilgisi göremez.',
+      govde:'<div class="gform form-grid">'
+        + '<div class="gfield"><label for="prtEAd">Denetçi / kurum adı <span class="req" aria-hidden="true">*</span></label>'
+        +   '<input type="text" id="prtEAd" placeholder="Örn. Bağımsız Denetim A.Ş."></div>'
+        + '<div class="gfield"><label for="prtEBitis">Erişim bitiş tarihi <span class="req" aria-hidden="true">*</span></label>'
+        +   '<input type="date" id="prtEBitis" min="' + BUGUN + '" value=""></div>'
+        + '<div class="gfield full"><label for="prtEMarka">Erişim kapsamı (marka)</label>'
+        +   '<select id="prtEMarka">'
+        +     markaSec.map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.ad) + '</option>'; }).join('')
+        +   '</select></div>'
+        + '<div class="gfield full"><label for="prtENot">Açıklama</label>'
+        +   '<textarea id="prtENot" rows="2" placeholder="Erişimin gerekçesi (denetim adı, dönem…)"></textarea></div>'
+        + '<div class="gf-err full" id="prtEErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Ad ve bitiş tarihi zorunludur.</div>'
+        + '</div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Erişimi Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap, kapat){
+            var ad = kap.querySelector('#prtEAd').value.trim();
+            var bitis = kap.querySelector('#prtEBitis').value;
+            if (!ad || !bitis) { kap.querySelector('#prtEErr').hidden = false; return false; }
+            A.ekle('portalErisimleri', {
+              id: 'PRT-U' + String(Date.now()).slice(-5),
+              musteriId: musteriId, kisiId: null,
+              kapsamMarka: [kap.querySelector('#prtEMarka').value],
+              kapsamBolge: 'tümü',
+              rol: 'Denetçi (salt okunur)', durum: 'aktif', sonGiris: null,
+              suresiz: false, bitis: bitis,
+              not: kap.querySelector('#prtENot').value.trim() || ('Süreli salt okunur erişim — ' + ad)
+            }).then(function(){
+              gvToast(ad + ' için ' + GV.d(bitis) + ' tarihine kadar salt okunur erişim oluşturuldu.', { ton:'ok' });
+              erisimCiz();
+            });
+            kapat(true);
+            return false;
+          } }
+      ]
+    });
+  });
+
+  /* ---------------- Destek talebi ---------------- */
+  var lokSecim = document.getElementById('prtLok');
+  loklar.forEach(function(l){
+    var o = document.createElement('option');
+    o.value = l.id; o.textContent = l.ad + ' (' + l.musteriKod + ')';
+    lokSecim.appendChild(o);
+  });
+
+  function talepleriCiz(){
+    var liste = A.liste('musteriSikayetleri').filter(function(s){ return s.musteriId === musteriId; })
+      .sort(function(a,b){ return String(b.tarih).localeCompare(String(a.tarih)); });
+    var kap = document.getElementById('prtTalepler');
+    if (!liste.length) {
+      kap.innerHTML = gvEmpty({ ikon:'fa-comment-dots', baslik:'Açık talebiniz yok',
+        metin:'Gönderdiğiniz destek talepleri burada listelenir.' });
+      return;
+    }
+    var TON = { acik:['info','fa-envelope-open','Alındı'], degerlendiriliyor:['warn','fa-hourglass-half','Değerlendiriliyor'],
+                kapandi:['ok','fa-circle-check','Kapatıldı'] };
+    kap.innerHTML = '<div class="act-list">' + liste.map(function(s){
+      var t = TON[s.durum] || ['info','fa-circle-info', s.durum];
+      var l = s.lokasyonId ? A.kayit('lokasyonlar', s.lokasyonId) : null;
+      return '<div class="act-row">'
+        + '<span class="act-ico ' + t[0] + '"><i class="fa-solid ' + t[1] + '" aria-hidden="true"></i></span>'
+        + '<span class="act-info"><b>' + GV.esc(s.konu) + '</b>'
+        + '<span>' + GV.esc(l ? l.ad + ' · ' : '') + GV.d(s.tarih) + ' · ' + GV.esc(s.kanal) + '</span></span>'
+        + '<span class="act-time">' + GV.rozetOzel(t[0], t[1], t[2]) + '</span></div>';
+    }).join('') + '</div>';
+  }
+  talepleriCiz();
+
+  document.getElementById('prtGonder').addEventListener('click', function(){
+    var mesaj = document.getElementById('prtMesaj');
+    var err = document.getElementById('prtMesajErr');
+    if (!mesaj.value.trim()) {
+      err.hidden = false; mesaj.classList.add('is-err'); mesaj.focus();
+      return;
+    }
+    err.hidden = true; mesaj.classList.remove('is-err');
+    var konu = document.getElementById('prtKonu').value;
+    var lokId = document.getElementById('prtLok').value || null;
+    A.ekle('musteriSikayetleri', {
+      id: 'SKY-U' + String(Date.now()).slice(-5),
+      musteriId: musteriId, lokasyonId: lokId,
+      tarih: BUGUN, kanal: 'Müşteri Portalı',
+      konu: konu, aciklama: mesaj.value.trim(),
+      atananId: null, durum: 'acik', cozum: null, kapanis: null, dofId: null, memnuniyet: null
+    }).then(function(){
+      gvToast('Talebiniz alındı. Müşteri temsilciniz bir iş günü içinde dönüş yapacak.', { ton:'ok' });
+      mesaj.value = '';
+      document.getElementById('prtLok').value = '';
+      talepleriCiz();
+    });
+  });
+})();
+</script>
+</body>
+</html>

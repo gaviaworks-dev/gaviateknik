@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Kalite Dokümanları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.kd-tur{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px;margin-bottom:22px}
+.kd-kart{display:flex;align-items:center;gap:12px;padding:15px 17px;border-radius:var(--radius-md);
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:pointer;
+  transition:.2s var(--ease);text-align:left;width:100%;font-family:inherit}
+.kd-kart:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kd-kart.is-on{border-color:var(--gv-action);background:rgba(63,213,173,.06)}
+.kd-ico{width:40px;height:40px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:15px;
+  background:rgba(63,213,173,.11);color:var(--gv-action)}
+.kd-txt b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.kd-txt span{display:block;font-size:11.5px;color:var(--muted)}
+</style>
+</head>
+<body data-sec="kalite" data-screen="kalite-dokumanlari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Kalite Yönetimi</div>
+        <h1>Kalite Dokümanları</h1>
+        <p class="ph-sub">Prosedürler, talimatlar, form şablonları ve el kitabı. Doküman kodu, sürüm, yayın tarihi, hazırlayan, onaylayan ve ilgili modüller ile birlikte sürüm geçmişi izlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="kdDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="kdYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Doküman</button></div>
+    </div>
+    <div class="kpi-grid" id="kdKpi"></div>
+    <h2 class="gv-sr">Doküman türleri</h2>
+    <div class="kd-tur" id="kdTurler"></div>
+
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Doküman kodu, ad, hazırlayan…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="kdBulk"></div>
+      <div class="gc-body flush" id="kdTablo"></div>
+      <div class="gv-pager" id="kdPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Yayın ve Onay Süreci
+        <span class="bs-sub">Doküman hazırlıktan yürürlükten kalkmaya kadar izlenir</span></h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>Onay Bekleyen Dokümanlar</h3></div>
+          <div class="gc-body" id="kdOnay"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>Geçerliliği Yaklaşan</h3></div>
+          <div class="gc-body" id="kdGecerlilik"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  var turIkon = { 'Prosedür':'fa-file-shield', 'Talimat':'fa-file-lines', 'Form':'fa-file-pen',
+    'El Kitabı':'fa-book', 'Plan':'fa-diagram-project' };
+
+  var kaynak = A.liste('kaliteDokumanlari').map(function(d){
+    var h = A.kayit('personeller', d.hazirlayanId), o = d.onaylayanId ? A.kayit('personeller', d.onaylayanId) : null;
+    var kalan = d.gecerlilik ? GV.gun(BUGUN, d.gecerlilik) : null;
+    return Object.assign({}, d, {
+      hazirlayanAd: h ? h.ad : '—', onaylayanAd: o ? o.ad : null,
+      modulMetni: (d.modul || []).join(', '),
+      kalanGun: kalan,
+      gecerlilikUyari: kalan != null && kalan <= 180 && kalan >= 0 && d.durum === 'yayinda',
+      gecerlilikGecti: kalan != null && kalan < 0
+    });
+  });
+
+  gvKpi('#kdKpi', [
+    { ikon:'fa-folder-open', sayi: GV.n(kaynak.filter(function(d){ return d.durum === 'yayinda'; }).length),
+      etiket:'Yayındaki doküman',
+      delta:{ yon:'flat', metin: kaynak.filter(function(d){ return d.durum === 'yururlukten-kalkti'; }).length + ' yürürlükten kalktı' } },
+    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(d){ return d.durum === 'onayda'; }).length),
+      etiket:'Onay bekleyen', ton:'warn' },
+    { ikon:'fa-calendar-xmark', sayi: GV.n(kaynak.filter(function(d){ return d.gecerlilikUyari || d.gecerlilikGecti; }).length),
+      etiket:'Geçerliliği yaklaşan / dolan', ton:'danger' },
+    { ikon:'fa-layer-group', sayi: GV.n(Array.from(new Set(kaynak.map(function(d){ return d.tur; }))).length),
+      etiket:'Doküman türü', ton:'info' }
+  ]);
+
+  var aktifTur = null;
+  function turCiz(){
+    var turler = Array.from(new Set(kaynak.map(function(d){ return d.tur; })));
+    document.getElementById('kdTurler').innerHTML = turler.map(function(t){
+      var n = kaynak.filter(function(d){ return d.tur === t; }).length;
+      var yayinda = kaynak.filter(function(d){ return d.tur === t && d.durum === 'yayinda'; }).length;
+      return '<button type="button" class="kd-kart' + (aktifTur === t ? ' is-on' : '') + '" data-tur="' + GV.esc(t) + '"'
+        + ' aria-pressed="' + (aktifTur === t ? 'true' : 'false') + '">'
+        + '<span class="kd-ico"><i class="fa-solid ' + (turIkon[t] || 'fa-file') + '" aria-hidden="true"></i></span>'
+        + '<span class="kd-txt"><b>' + GV.esc(t) + '</b>'
+        + '<span>' + GV.n(yayinda) + ' yayında · ' + GV.n(n) + ' toplam</span></span></button>';
+    }).join('');
+    document.querySelectorAll('[data-tur]').forEach(function(b){
+      b.addEventListener('click', function(){
+        aktifTur = aktifTur === b.getAttribute('data-tur') ? null : b.getAttribute('data-tur');
+        turCiz(); filtre.uygula();
+      });
+    });
+  }
+  turCiz();
+
+  var kolonlar = [
+    { k:'kod', ad:'Doküman', kilitli:true, ciz: function(d){
+        return '<div class="gcell"><div class="gcell-mark">' + GV.esc(d.kod) + '</div>'
+          + '<div class="gcell-info"><div class="gcell-name">'
+          + '<button type="button" class="btn-link" data-dokuman="' + d.id + '">' + GV.esc(d.ad) + '</button></div>'
+          + '<div class="gcell-sub">' + GV.esc(d.tur + ' · ' + d.id) + '</div></div></div>'; } },
+    { k:'tur', ad:'Tür', ciz: function(d){ return '<span class="gtag">' + GV.esc(d.tur) + '</span>'; } },
+    { k:'versiyon', ad:'Sürüm', ciz: function(d){ return '<b class="t-strong">' + GV.esc(d.versiyon) + '</b>'; } },
+    { k:'yayin', ad:'Yayın Tarihi', ciz: function(d){ return GV.d(d.yayin); } },
+    { k:'gecerlilik', ad:'Geçerlilik', ciz: function(d){
+        if (!d.gecerlilik) return '<span class="muted">Yayınlanmadı</span>';
+        return GV.d(d.gecerlilik) + (d.gecerlilikGecti ? ' ' + GV.rozetOzel('danger','fa-ban','Süresi doldu')
+          : d.gecerlilikUyari ? ' ' + GV.rozetOzel('warn','fa-clock', d.kalanGun + ' gün') : ''); } },
+    { k:'hazirlayanAd', ad:'Hazırlayan' },
+    { k:'onaylayanAd', ad:'Onaylayan', ciz: function(d){
+        return d.onaylayanAd ? GV.esc(d.onaylayanAd) : '<span class="muted">Onaylanmadı</span>'; } },
+    { k:'sayfa', ad:'Sayfa', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(d){ return GV.n(d.sayfa); } },
+    { k:'modulMetni', ad:'İlgili Modüller', ciz: function(d){
+        return (d.modul || []).map(function(m){ return '<span class="gtag mint">' + GV.esc(m) + '</span>'; }).join(' '); } },
+    { k:'durum', ad:'Durum', ciz: function(d){
+        return d.durum === 'yayinda' ? GV.rozetOzel('ok','fa-circle-check','Yayında')
+          : d.durum === 'onayda' ? GV.rozetOzel('warn','fa-hourglass-half','Onayda')
+          : GV.rozetOzel('off','fa-box-archive','Yürürlükten kalktı'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(d){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-dokuman="' + d.id + '" aria-label="' + GV.esc(d.ad) + ' detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+          + '<button class="ia-btn" type="button" data-surum="' + d.id + '" aria-label="' + GV.esc(d.ad) + ' yeni sürüm">'
+          + '<i class="fa-solid fa-code-branch" aria-hidden="true"></i></button>'
+          + (d.durum === 'onayda'
+            ? '<button class="ia-btn" type="button" data-onayla="' + d.id + '" aria-label="' + GV.esc(d.ad) + ' yayın onayı">'
+              + '<i class="fa-solid fa-check" aria-hidden="true"></i></button>' : '')
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#kdTablo', kolonlar:kolonlar, secim:true, satirId: function(d){ return d.id; },
+    bosDurum:{ ikon:'fa-folder-open', baslik:'Doküman bulunamadı', metin:'Filtrelerinize uyan kalite dokümanı yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#kdBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){
+        GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'kalite-dokumanlari', modul:'Kalite Dokümanı' }); } },
+    { etiket:'Yürürlükten kaldır', ikon:'fa-box-archive', sinif:'btn-ghost', tikla: function(s){
+        gvConfirm({ baslik:'Dokümanlar yürürlükten kaldırılsın mı?', ton:'warn',
+          metin:'<b>' + s.length + '</b> doküman yürürlükten kaldırılacak. Yürürlükten kalkan doküman '
+            + 'yeni işlerde kullanılamaz; geçmiş kayıtlardaki referanslar korunur.',
+          onayEtiket:'Yürürlükten kaldır', onayIkon:'fa-box-archive',
+          notAlani:true, notZorunlu:true, notYer:'Gerekçe (denetim izine yazılır)…'
+        }).then(function(r){
+          if (!r.onay) return;
+          Promise.all(s.map(function(did){ return A.durumDegistir('kaliteDokumanlari', did, 'durum', 'yururlukten-kalkti', r.not); }))
+            .then(function(){ gvToast(s.length + ' doküman yürürlükten kaldırıldı.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 800); });
+        });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'kalite-dokumanlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#kdPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-dokuman]').forEach(function(b){
+      b.addEventListener('click', function(){ dokumanAc(b.getAttribute('data-dokuman')); });
+    });
+    document.querySelectorAll('[data-surum]').forEach(function(b){
+      b.addEventListener('click', function(){ surumAc(b.getAttribute('data-surum')); });
+    });
+    document.querySelectorAll('[data-onayla]').forEach(function(b){
+      b.addEventListener('click', function(){ yayinOnayi(b.getAttribute('data-onayla')); });
+    });
+  }
+
+  function surumGecmisi(d){
+    /* aynı koda sahip bütün sürümler */
+    return A.liste('kaliteDokumanlari').filter(function(x){ return x.kod === d.kod; })
+      .sort(function(a,b){ return String(b.versiyon).localeCompare(String(a.versiyon)); });
+  }
+
+  function dokumanAc(did){
+    var d = A.kayit('kaliteDokumanlari', did);
+    var h = A.kayit('personeller', d.hazirlayanId), o = d.onaylayanId ? A.kayit('personeller', d.onaylayanId) : null;
+    var surumler = surumGecmisi(d);
+    var kalan = d.gecerlilik ? GV.gun(BUGUN, d.gecerlilik) : null;
+
+    gvModal({
+      baslik: d.kod + ' — ' + d.ad, ikon: turIkon[d.tur] || 'fa-file', genislik:'gv-modal-lg',
+      metin: GV.esc(d.tur + ' · sürüm ' + d.versiyon + ' · ' + d.sayfa + ' sayfa'),
+      govde:'<dl class="info-grid">'
+        + '<div class="info-item"><dt>Doküman kodu</dt><dd><b>' + GV.esc(d.kod) + '</b></dd></div>'
+        + '<div class="info-item"><dt>Sürüm</dt><dd>' + GV.esc(d.versiyon) + '</dd></div>'
+        + '<div class="info-item"><dt>Yayın tarihi</dt><dd>' + GV.dUzun(d.yayin) + '</dd></div>'
+        + '<div class="info-item"><dt>Geçerlilik</dt><dd>' + GV.dUzun(d.gecerlilik) + '</dd></div>'
+        + '<div class="info-item"><dt>Hazırlayan</dt><dd>' + GV.esc(h ? h.ad : '—') + '</dd></div>'
+        + '<div class="info-item"><dt>Onaylayan</dt><dd>' + GV.esc(o ? o.ad : 'Onaylanmadı') + '</dd></div>'
+        + '<div class="info-item"><dt>Sayfa sayısı</dt><dd>' + GV.n(d.sayfa) + '</dd></div>'
+        + '<div class="info-item"><dt>Durum</dt><dd>' + (d.durum === 'yayinda' ? 'Yayında'
+            : d.durum === 'onayda' ? 'Yayın onayında' : 'Yürürlükten kalktı') + '</dd></div>'
+        + '<div class="info-item" style="grid-column:1/-1"><dt>İlgili modüller</dt><dd>'
+        + (d.modul || []).map(function(m){ return '<span class="gtag mint">' + GV.esc(m) + '</span>'; }).join(' ') + '</dd></div>'
+        + '</dl>'
+        + (kalan != null && kalan < 0
+          ? '<div class="gv-note danger" style="margin-top:16px"><i class="fa-solid fa-ban" aria-hidden="true"></i>'
+            + '<span><b>Geçerlilik süresi doldu.</b> Doküman gözden geçirilip yeni sürüm yayımlanmalıdır.</span></div>'
+          : kalan != null && kalan <= 180 && d.durum === 'yayinda'
+          ? '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-clock" aria-hidden="true"></i>'
+            + '<span>Geçerlilik süresi <b>' + kalan + ' gün</b> içinde doluyor. Gözden geçirme planlanmalıdır.</span></div>'
+          : '')
+        + '<div style="margin-top:20px"><b style="display:block;font-size:13px;color:var(--ink);margin-bottom:10px">'
+        + 'Sürüm geçmişi</b>'
+        + surumler.map(function(s){
+            return '<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">'
+              + '<span style="width:40px;height:40px;flex:none;border-radius:11px;display:grid;place-items:center;'
+              + 'font-size:12.5px;font-weight:800;background:' + (s.id === d.id ? 'rgba(63,213,173,.12);color:var(--gv-action)' : 'var(--bg);color:var(--ink-2)')
+              + ';border:1px solid ' + (s.id === d.id ? 'transparent' : 'var(--line)') + '">' + GV.esc(s.versiyon) + '</span>'
+              + '<span style="flex:1;min-width:0;line-height:1.45">'
+              + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+              + (s.id === d.id ? 'Bu sürüm — ' : '') + (s.durum === 'yayinda' ? 'Yayında'
+                : s.durum === 'onayda' ? 'Yayın onayında' : 'Yürürlükten kalktı') + '</b>'
+              + '<span style="display:block;font-size:11.5px;color:var(--muted)">'
+              + 'Yayın ' + GV.d(s.yayin) + ' · geçerlilik ' + GV.d(s.gecerlilik) + ' · ' + GV.n(s.sayfa) + ' sayfa</span></span></div>';
+          }).join('') + '</div>',
+      butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+        { etiket:'Yeni Sürüm', sinif:'btn-ghost', ikon:'fa-code-branch', tikla: function(){
+            setTimeout(function(){ surumAc(did); }, 300); } },
+        { etiket:'İndir', sinif:'btn-acc', ikon:'fa-download', kapat:false, tikla: function(){
+            gvToast(d.kod + ' ' + d.versiyon + ' indirme demo arayüzünde etkin değildir.', { ton:'info' }); } }]
+    });
+  }
+
+  function surumAc(did){
+    var d = A.kayit('kaliteDokumanlari', did);
+    gvConfirm({
+      baslik:'Yeni sürüm oluşturulsun mu?',
+      metin:'<b>' + GV.esc(d.kod + ' ' + d.versiyon) + '</b> yürürlükten kaldırılacak ve içeriği kopyalanarak '
+        + 'yeni sürüm <b>onay bekleyen</b> durumda açılacak. Yürürlükteki sürümle üretilmiş kayıtlar etkilenmez.',
+      onayEtiket:'Yeni sürüm aç', onayIkon:'fa-code-branch',
+      notAlani:true, notZorunlu:true, notYer:'Revizyon gerekçesi (denetim izine yazılır)…'
+    }).then(function(s){
+      if (!s.onay) return;
+      var yeniV = 'v' + (Number(String(d.versiyon).replace('v','')) + 1);
+      A.guncelle('kaliteDokumanlari', d.id, { durum:'yururlukten-kalkti' }).then(function(){
+        return A.ekle('kaliteDokumanlari', Object.assign({}, d, {
+          id: d.id + '-' + yeniV, versiyon: yeniV, yayin: null, gecerlilik: null,
+          durum:'onayda', onaylayanId: null,
+          hazirlayanId: (GV.rolBilgi || {}).personelId || d.hazirlayanId
+        }));
+      }).then(function(){
+        A.kayitAt('revizyon', 'Kalite Dokümanı', d.kod, d.versiyon, yeniV, s.not);
+        gvToast('Yeni sürüm oluşturuldu: ' + yeniV + ' (onay bekliyor)', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 900);
+      });
+    });
+  }
+
+  function yayinOnayi(did){
+    var d = A.kayit('kaliteDokumanlari', did);
+    gvModal({
+      baslik:'Doküman yayın onayı', ikon:'fa-stamp',
+      metin:'<b>' + GV.esc(d.kod + ' ' + d.versiyon) + '</b> yayımlanacak ve ilgili modüllerde kullanıma açılacak.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="kdYayin">Yayın tarihi *</label><input type="date" id="kdYayin" value="' + BUGUN + '"></div>'
+        + '<div class="gfield"><label for="kdSure">Geçerlilik süresi (ay)</label>'
+        + '<input type="number" id="kdSure" min="6" max="120" value="24"></div>'
+        + '<div class="gfield full"><label for="kdGecer">Geçerlilik bitişi</label>'
+        + '<input type="date" id="kdGecer" readonly>'
+        + '<span class="gf-hint" id="kdGecerNot">Yayın tarihine geçerlilik süresi eklenerek hesaplanır.</span></div>'
+        + '<div class="gfield full"><label for="kdOnayNot">Onay notu</label><textarea id="kdOnayNot"></textarea></div></div>',
+      acildi: function(kap){
+        function hesapla(){
+          var y = kap.querySelector('#kdYayin').value;
+          var ay = Number(kap.querySelector('#kdSure').value || 24);
+          kap.querySelector('#kdGecer').value = y ? (A.sonrakiKontrol(y, ay) || '') : '';
+          kap.querySelector('#kdGecerNot').textContent = y
+            ? GV.d(y) + ' tarihine ' + ay + ' ay eklenerek hesaplandı.'
+            : 'Yayın tarihi girilmedi; geçerlilik bitişi boş bırakıldı.';
+        }
+        kap.querySelector('#kdYayin').addEventListener('change', hesapla);
+        kap.querySelector('#kdSure').addEventListener('input', hesapla);
+        hesapla();
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Yayımla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var y = kap.querySelector('#kdYayin').value;
+            if (!y) { gvToast('Yayın tarihi zorunludur.', { ton:'danger' }); return false; }
+            A.guncelle('kaliteDokumanlari', did, {
+              durum:'yayinda', yayin: y, gecerlilik: kap.querySelector('#kdGecer').value || null,
+              onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-002'
+            }).then(function(){
+              A.kayitAt('onay', 'Kalite Dokümanı', d.kod, 'Onayda', 'Yayında', kap.querySelector('#kdOnayNot').value);
+              gvToast(d.kod + ' yayımlandı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  }
+
+  var filtre = gvFilter({
+    veri: function(){ return aktifTur ? kaynak.filter(function(d){ return d.tur === aktifTur; }) : kaynak; },
+    arama: ['id','kod','ad','tur','hazirlayanAd','modulMetni'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' },
+      { k:'onayda', ad:'Onayda', ikon:'fa-hourglass-half' },
+      { k:'yururlukten-kalkti', ad:'Yürürlükten kalktı', ikon:'fa-box-archive' }] },
+    alanlar: [
+      { k:'tur', ad:'Doküman türü', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(d){ return d.tur; })))
+          .map(function(t){ return { deger:t, ad:t }; }) },
+      { k:'modul', ad:'İlgili modül', tur:'coklu',
+        suz: function(d,v){ return v.some(function(m){ return (d.modul || []).indexOf(m) !== -1; }); },
+        secenekler: Array.from(new Set(kaynak.flatMap(function(d){ return d.modul || []; })))
+          .map(function(m){ return { deger:m, ad:m }; }) },
+      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'yayin', ad:'Yayın tarihi', tur:'tarih' },
+      { k:'gecerlilikUyari', ad:'Yalnız geçerliliği yaklaşanlar', tur:'toggle',
+        suz: function(d,v){ return v !== 'evet' || d.gecerlilikUyari || d.gecerlilikGecti; },
+        secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('kdDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'kalite-dokumanlari', modul:'Kalite Dokümanı' });
+  });
+
+  document.getElementById('kdYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni kalite dokümanı', ikon:'fa-plus', genislik:'gv-modal-lg',
+      metin:'Yeni doküman <b>onay bekleyen</b> durumda oluşturulur; yayın onayı verilene kadar kullanıma açılmaz.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="dyKod">Doküman kodu *</label><input type="text" id="dyKod" placeholder="P-06"></div>'
+        + '<div class="gfield"><label for="dyTur">Tür *</label><select id="dyTur">'
+        + ['Prosedür','Talimat','Form','El Kitabı','Plan'].map(function(t){ return '<option>' + t + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield full"><label for="dyAd">Doküman adı *</label>'
+        + '<input type="text" id="dyAd" placeholder="Saha Kontrol Süreci Prosedürü"></div>'
+        + '<div class="gfield"><label for="dySayfa">Sayfa sayısı</label><input type="number" id="dySayfa" min="1" max="200" value="8"></div>'
+        + '<div class="gfield"><label for="dyOnay">Onaylayacak kişi</label><select id="dyOnay">'
+        + A.liste('personeller').filter(function(p){ return ['Kalite','Yönetim','Teknik'].indexOf(p.birim) !== -1; })
+            .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield full"><label for="dyModul">İlgili modüller</label><select id="dyModul" multiple size="5">'
+        + ['Operasyon','Teknik','Kalite','Satış','Taşeron','Finans'].map(function(m){ return '<option>' + m + '</option>'; }).join('')
+        + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim yapabilirsiniz.</span></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var kod = kap.querySelector('#dyKod').value.trim();
+            var ad = kap.querySelector('#dyAd').value.trim();
+            if (!kod || !ad) { gvToast('Doküman kodu ve adı zorunludur.', { ton:'danger' }); return false; }
+            if (A.liste('kaliteDokumanlari').some(function(x){ return x.kod === kod; })) {
+              gvToast('Bu doküman kodu zaten kullanılıyor.', { ton:'danger' }); return false;
+            }
+            var tur = kap.querySelector('#dyTur').value;
+            var modul = Array.prototype.slice.call(kap.querySelectorAll('#dyModul option:checked')).map(function(o){ return o.value; });
+            A.ekle('kaliteDokumanlari', {
+              id:'KLT-Y' + String(A.liste('kaliteDokumanlari').length + 1).padStart(3,'0'),
+              kod: kod, ad: ad, tur: tur, versiyon:'v1', yayin: null,
+              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-005',
+              onaylayanId: kap.querySelector('#dyOnay').value,
+              gecerlilik: null, modul: modul.length ? modul : ['Kalite'],
+              durum:'onayda', sayfa: Number(kap.querySelector('#dySayfa').value || 8)
+            }).then(function(){
+              gvToast('Doküman oluşturuldu, yayın onayına gönderildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+
+  /* --- onay bekleyenler --- */
+  var onaydakiler = kaynak.filter(function(d){ return d.durum === 'onayda'; });
+  document.getElementById('kdOnay').innerHTML = onaydakiler.length
+    ? onaydakiler.map(function(d){
+        var o = d.onaylayanId ? A.kayit('personeller', d.onaylayanId) : null;
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;'
+          + 'background:var(--warning-tint);color:var(--warning)"><i class="fa-solid ' + (turIkon[d.tur] || 'fa-file') + '" aria-hidden="true"></i></span>'
+          + '<span style="flex:1;min-width:0;line-height:1.4">'
+          + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">' + GV.esc(d.kod + ' — ' + d.ad) + '</b>'
+          + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(d.tur + ' · ' + d.versiyon
+            + ' · onaylayacak: ' + (o ? o.ad : 'atanmadı')) + '</span></span>'
+          + '<button class="btn btn-sm btn-acc" type="button" data-onay-hizli="' + d.id + '">Onayla</button></div>';
+      }).join('')
+    : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+      + '<span>Yayın onayı bekleyen doküman yok.</span></div>';
+
+  document.querySelectorAll('[data-onay-hizli]').forEach(function(b){
+    b.addEventListener('click', function(){ yayinOnayi(b.getAttribute('data-onay-hizli')); });
+  });
+
+  /* --- geçerliliği yaklaşanlar --- */
+  var gecerlilikListe = kaynak.filter(function(d){ return d.gecerlilikUyari || d.gecerlilikGecti; })
+    .sort(function(a,b){ return (a.kalanGun || 0) - (b.kalanGun || 0); });
+  document.getElementById('kdGecerlilik').innerHTML = gecerlilikListe.length
+    ? gecerlilikListe.map(function(d){
+        var ton = d.gecerlilikGecti ? 'danger' : 'warning';
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;'
+          + 'background:var(--' + ton + '-tint);color:var(--' + ton + ')">'
+          + '<i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i></span>'
+          + '<span style="flex:1;min-width:0;line-height:1.4">'
+          + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">' + GV.esc(d.kod + ' — ' + d.ad) + '</b>'
+          + '<span style="display:block;font-size:11.5px;color:var(--muted)">Geçerlilik ' + GV.d(d.gecerlilik) + '</span></span>'
+          + '<span style="flex:none">' + (d.gecerlilikGecti
+              ? GV.rozetOzel('danger','fa-ban', Math.abs(d.kalanGun) + ' gün geçti')
+              : GV.rozetOzel('warn','fa-clock', d.kalanGun + ' gün')) + '</span></div>';
+      }).join('')
+      + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span>Geçerliliği dolan dokümanlar gözden geçirilip yeni sürüm yayımlanmalıdır. '
+      + 'Denetimde süresi dolmuş doküman bulgu oluşturur.</span></div>'
+    : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+      + '<span>Geçerliliği yaklaşan doküman yok.</span></div>';
+})();
+</script>
+</body>
+</html>

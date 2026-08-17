@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Lokasyonlarım — GAVIA Müşteri Portalı</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+/* Portal listesi iç panelden sadedir: kolon seçimi, toplu işlem ve arşiv anahtarı yoktur. */
+.prt-body h1{font-size:25px;letter-spacing:-.02em}
+.prt-body .ph-sub{font-size:14px;line-height:1.65}
+.prt-body .gtable td{font-size:13.5px}
+.prt-body .gtable th{font-size:12px}
+</style>
+</head>
+<body data-sec="portal" data-screen="portal-lokasyonlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main prt-body">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri Portalı</div>
+        <h1>Lokasyonlarım</h1>
+        <p class="ph-sub">Hizmet kapsamındaki bütün şube, depo ve tesisleriniz; kontrol tarihi, kontrolün hangi
+        aşamada olduğu ve raporunuzun durumu ile birlikte. Yalnız yetkili olduğunuz marka ve bölgeler listelenir.</p>
+      </div>
+      <div class="ph-actions no-print">
+        <button class="btn btn-acc" type="button" id="plBilgiBtn"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Bilgi Gönder</button>
+      </div>
+    </div>
+
+    <div id="plNot"></div>
+
+    <section class="gv-card">
+      <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Lokasyonlarımda ara</label>
+            <input type="search" id="gvSearch" placeholder="Lokasyon adı, kendi kodunuz, il…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="plTablo"></div>
+      <div class="gv-pager" id="plPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  /* KAPSAM SÜZMESİ — liste yalnız rolün yetkili olduğu lokasyonlardan üretilir. */
+  var kapsam = A.rolKapsami(GV.rol);
+  var musteriId = kapsam.tur === 'musteri' ? kapsam.musteriId : null;
+
+  /* ---- müşteri diliyle durum sözlüğü (iç akış adları portalda görünmez) ---- */
+  var OPS = {
+    'bilgi-bekleniyor':        ['warn','fa-circle-question','Bilgi bekleniyor'],
+    'envanter-bekleniyor':     ['warn','fa-circle-question','Bilgi bekleniyor'],
+    'iletisime-gecildi':       ['info','fa-phone','Randevu görüşmesi'],
+    'tarih-onayi-bekleniyor':  ['warn','fa-calendar-check','Tarih onayınız bekleniyor'],
+    'planlandi':               ['info','fa-calendar-days','Kontrol planlandı'],
+    'tadilatta':               ['warn','fa-trowel-bricks','Lokasyon tadilatta'],
+    'tasiniyor':               ['warn','fa-truck-moving','Lokasyon taşınıyor'],
+    'sahada':                  ['info','fa-person-walking','Ekip sahada'],
+    'kontrol-tamamlandi':      ['ok','fa-circle-check','Kontrol tamamlandı'],
+    'yeniden-ziyaret':         ['danger','fa-rotate-right','Yeniden ziyaret gerekli'],
+    'kapsam-disi':             ['off','fa-ban','Kapsam dışı'],
+    'iptal':                   ['off','fa-xmark','İptal edildi']
+  };
+  function opsRozet(k){ var d = OPS[k] || ['off','fa-circle', GV.bos]; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  /* Rapor akışının iç adımları (taslak, incelemede, revizyon) müşteriye tek ifadeyle gösterilir. */
+  var RAP = {
+    'baslatilmadi':            ['off','fa-circle-minus','Rapor başlamadı'],
+    'taslak':                  ['info','fa-pen-ruler','Rapor hazırlanıyor'],
+    'taserondan-bekleniyor':   ['info','fa-pen-ruler','Rapor hazırlanıyor'],
+    'teknik-incelemede':       ['info','fa-pen-ruler','Rapor hazırlanıyor'],
+    'revizyon-istendi':        ['warn','fa-pen-ruler','Rapor hazırlanıyor'],
+    'onaylandi':               ['ok','fa-circle-check','Rapor onaylandı'],
+    'imzalandi':               ['ok','fa-signature','Rapor imzalandı'],
+    'teslim-edildi':           ['ok','fa-paper-plane','Rapor teslim edildi']
+  };
+  function rapRozet(k){ var d = RAP[k] || ['off','fa-circle', GV.bos]; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  var GRUP = {
+    'kontrol-tamamlandi':'tamamlandi',
+    'planlandi':'planlandi', 'sahada':'planlandi', 'iletisime-gecildi':'planlandi',
+    'bilgi-bekleniyor':'bilgi', 'envanter-bekleniyor':'bilgi', 'tarih-onayi-bekleniyor':'bilgi'
+  };
+
+  var kaynak = A.kapsamaGoreLokasyonlar(GV.rol).map(function(l){
+    var z = A.lokasyon(l.id);
+    var yetkili = z.yetkiliId ? A.kayit('iletisimKisileri', z.yetkiliId) : null;
+    var sonRapor = A.raporlar().filter(function(r){
+      return r.lokasyonId === z.id && ['teslim-edildi','imzalandi'].indexOf(r.durum) !== -1;
+    }).sort(function(a,b){ return String(b.kontrolTarihi).localeCompare(String(a.kontrolTarihi)); })[0] || null;
+    return Object.assign({}, z, {
+      portalGrup: GRUP[z.operasyonDurum] || 'diger',
+      yetkiliAd: yetkili ? yetkili.ad : null,
+      yetkiliUnvan: yetkili ? yetkili.unvan : null,
+      yetkiliRol: yetkili ? yetkili.iletisimRolu : null,
+      sonRaporNo: sonRapor ? sonRapor.no : null,
+      sonRaporTarih: sonRapor ? sonRapor.kontrolTarihi : null
+    });
+  });
+
+  /* ---- bilgi bekleyenler şeridi ---- */
+  var bekleyen = kaynak.filter(function(l){ return l.portalGrup === 'bilgi'; });
+  if (bekleyen.length) {
+    document.getElementById('plNot').innerHTML =
+      '<div class="gv-note warn" style="margin-bottom:18px"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>'
+      + '<span><b>' + GV.n(bekleyen.length) + ' lokasyon için sizden bilgi bekliyoruz.</b> '
+      + '“Bilgi bekleniyor” durumundaki lokasyonlar için <b>ekipman listesi</b> (kaç adet yangın dolabı, transpalet, '
+      + 'kaçak akım rölesi vb.), <b>lokasyon yetkilisinin adı ve telefonu</b> ve varsa <b>kat planı</b> gereklidir. '
+      + '“Tarih onayınız bekleniyor” durumundakiler için ise önerdiğimiz ziyaret tarihini onaylamanız yeterlidir. '
+      + 'Bu bilgiler tamamlanmadan saha ekibi planlanamıyor.</span>'
+      + '<button class="btn btn-sm btn-acc gn-act no-print" type="button" id="plBilgiBtn2">'
+      + '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Bilgi Gönder</button></div>';
+  }
+
+  /* ---- tablo (sade: kolon seçimi ve toplu işlem yok) ---- */
+  var kolonlar = [
+    { k:'ad', ad:'Lokasyon', ciz: function(l){
+        return '<div class="gcell"><div class="gcell-mark"><i class="fa-solid fa-'
+          + (l.tur === 'Market' ? 'store' : l.tur === 'Fabrika' ? 'industry' : 'warehouse') + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name">'
+          + '<button type="button" class="btn-link" data-detay="' + l.id + '">' + GV.esc(l.ad) + '</button></div>'
+          + '<div class="gcell-sub">' + GV.esc(l.tur) + '</div></div></div>'; } },
+    { k:'musteriKod', ad:'Kendi Kodunuz', ciz: function(l){ return '<b class="t-strong">' + GV.esc(l.musteriKod) + '</b>'; } },
+    { k:'il', ad:'İl / İlçe', ciz: function(l){ return GV.esc(l.il + ' / ' + l.ilce); } },
+    { k:'markaAd', ad:'Marka', ciz: function(l){ return GV.esc(l.markaAd); } },
+    { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz: function(l){ return GV.d(l.kontrolTarihi); } },
+    { k:'operasyonDurum', ad:'Kontrol Durumu', ciz: function(l){ return opsRozet(l.operasyonDurum); } },
+    { k:'raporDurum', ad:'Rapor Durumu', ciz: function(l){ return rapRozet(l.raporDurum); } },
+    { k:'sonrakiKontrol', ad:'Sonraki Kontrol', ciz: function(l){ return GV.d(l.sonrakiKontrol); } },
+    { k:'__islem', ad:'İşlem', ciz: function(l){
+        return '<div class="row-acts"><button class="ia-btn" type="button" data-detay="' + l.id + '" aria-label="'
+          + GV.esc(l.ad) + ' detayını aç"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#plTablo', kolonlar:kolonlar,
+    bosDurum:{ ikon:'fa-location-dot', baslik:'Lokasyon bulunamadı',
+      metin:'Aramanıza veya seçtiğiniz filtrelere uyan lokasyon yok.' } });
+
+  var pager = gvPager({ hedef:'#plPager', boyut:12, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('#plTablo [data-detay]').forEach(function(b){
+      b.addEventListener('click', function(){ detayAc(b.getAttribute('data-detay')); });
+    });
+  }
+
+  /* ---- detay modalı (fiyat bilgisi içermez) ---- */
+  function detayAc(lokId){
+    var l = null;
+    kaynak.forEach(function(x){ if (x.id === lokId) l = x; });
+    if (!l) { gvToast('Lokasyon kaydı bulunamadı.', { ton:'danger' }); return; }
+
+    var hizmetler = A.lokasyonHizmetleri(lokId);
+    var govde =
+      '<div class="info-grid" style="margin-bottom:20px">'
+      + '<div class="info-item"><dt>Kendi kodunuz</dt><dd>' + GV.esc(l.musteriKod) + '</dd></div>'
+      + '<div class="info-item"><dt>Marka</dt><dd>' + GV.esc(l.markaAd) + '</dd></div>'
+      + '<div class="info-item"><dt>Lokasyon türü</dt><dd>' + GV.esc(l.tur) + '</dd></div>'
+      + '<div class="info-item"><dt>İl / ilçe</dt><dd>' + GV.esc(l.il + ' / ' + l.ilce) + '</dd></div>'
+      + '<div class="info-item"><dt>Alan</dt><dd>' + GV.n(l.m2) + ' m²</dd></div>'
+      + '<div class="info-item"><dt>Adres</dt><dd>' + GV.esc(l.adres || GV.bos) + '</dd></div>'
+      + '<div class="info-item"><dt>Kontrol tarihi</dt><dd>' + GV.d(l.kontrolTarihi) + '</dd></div>'
+      + '<div class="info-item"><dt>Sonraki kontrol</dt><dd>' + GV.d(l.sonrakiKontrol) + '</dd></div>'
+      + '</div>'
+      + '<div class="gv-row" style="margin-bottom:18px">' + opsRozet(l.operasyonDurum) + rapRozet(l.raporDurum) + '</div>';
+
+    govde += '<h4 class="gc-title" style="margin-bottom:10px"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Hizmet Kapsamı</h4>';
+    if (hizmetler.length) {
+      govde += '<div class="gv-tscroll"><table class="gtable gtable-sm gtable-cards">'
+        + '<thead><tr><th scope="col">Poz</th><th scope="col">Hizmet</th>'
+        + '<th scope="col" class="num">Miktar</th><th scope="col">Birim</th></tr></thead><tbody>'
+        + hizmetler.map(function(h){
+            return '<tr><td data-lbl="Poz">' + GV.esc(h.poz || GV.bos) + '</td>'
+              + '<td data-lbl="Hizmet">' + GV.esc(h.hizmetAd || h.hizmetId) + '</td>'
+              + '<td data-lbl="Miktar" class="num">' + GV.n(h.planlananMiktar) + '</td>'
+              + '<td data-lbl="Birim">' + GV.esc(h.birim || GV.bos) + '</td></tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    } else {
+      govde += '<div class="gv-note warn"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>'
+        + '<span>Bu lokasyon için hizmet kapsamı henüz tanımlanmadı; ekipman listesini gönderdiğinizde kapsam oluşturulur.</span></div>';
+    }
+
+    govde += '<h4 class="gc-title" style="margin:20px 0 10px"><i class="fa-solid fa-user" aria-hidden="true"></i>Lokasyon Yetkilisi</h4>'
+      + '<dl class="info-rows">'
+      + '<div class="info-row"><dt>Ad soyad</dt><dd>' + (l.yetkiliAd ? GV.esc(l.yetkiliAd)
+          : GV.rozetOzel('warn','fa-triangle-exclamation','Tanımlı değil — bildirmenizi rica ederiz')) + '</dd></div>'
+      + '<div class="info-row"><dt>Görev</dt><dd>' + GV.esc(l.yetkiliUnvan || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>İletişim rolü</dt><dd>' + GV.esc(l.yetkiliRol || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Son teslim edilen rapor</dt><dd>'
+      + (l.sonRaporNo
+          ? '<a href="portal-raporlar.html?q=' + encodeURIComponent(l.sonRaporNo) + '">' + GV.esc(l.sonRaporNo) + '</a> · ' + GV.d(l.sonRaporTarih)
+          : '<span class="muted">Henüz teslim edilmiş rapor yok</span>')
+      + '</dd></div></dl>';
+
+    var butonlar = [{ etiket:'Kapat', sinif:'btn-ghost' }];
+    if (l.sonRaporNo) {
+      butonlar.push({ etiket:'Raporu Aç', sinif:'btn-acc', ikon:'fa-file-lines', tikla: function(){
+        location.href = GV.href('portal-raporlar.html?q=' + encodeURIComponent(l.sonRaporNo)); } });
+    } else if (l.portalGrup === 'bilgi') {
+      butonlar.push({ etiket:'Bilgi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(){
+        setTimeout(function(){ bilgiModal(l.id); }, 260); } });
+    }
+
+    gvModal({ baslik: l.ad, ikon:'fa-location-dot', genislik:'gv-modal-lg', govde: govde, butonlar: butonlar });
+  }
+
+  /* ---- bilgi gönderme modalı ---- */
+  function bilgiModal(onSecili){
+    var secenekler = (bekleyen.length ? bekleyen : kaynak);
+    gvModal({
+      baslik:'Lokasyon bilgisi gönder', ikon:'fa-paper-plane', genislik:'gv-modal-lg',
+      metin:'Gönderdiğiniz bilgi doğrudan planlama ekibimize ulaşır ve lokasyonun kontrol takvimine alınmasını sağlar.',
+      govde:'<div class="gform form-grid">'
+        + '<div class="gfield full"><label for="plbLok">Lokasyon <span class="req" aria-hidden="true">*</span></label>'
+        +   '<select id="plbLok">'
+        +     secenekler.map(function(l){
+                return '<option value="' + l.id + '"' + (l.id === onSecili ? ' selected' : '') + '>'
+                  + GV.esc(l.ad + ' (' + l.musteriKod + ')') + '</option>'; }).join('')
+        +   '</select></div>'
+        + '<div class="gfield"><label for="plbKisi">Lokasyon yetkilisi</label>'
+        +   '<input type="text" id="plbKisi" placeholder="Ad soyad"></div>'
+        + '<div class="gfield"><label for="plbTel">Yetkili telefonu</label>'
+        +   '<input type="tel" id="plbTel" placeholder="0 (___) ___ __ __"></div>'
+        + '<div class="gfield full"><label for="plbEkipman">Ekipman listesi ve notlarınız <span class="req" aria-hidden="true">*</span></label>'
+        +   '<textarea id="plbEkipman" rows="4" placeholder="Örn. 7 yangın dolabı, 1 akülü transpalet, 23 acil aydınlatma armatürü. Kontrol için uygun günler…"></textarea>'
+        +   '<div class="gf-hint">Kesin sayıyı bilmiyorsanız yaklaşık değer yazmanız da yeterli; saha ekibi yerinde teyit eder.</div>'
+        +   '<div class="gf-err" id="plbErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Ekipman listesi alanı zorunludur.</div></div>'
+        + '</div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
+            var metin = kap.querySelector('#plbEkipman').value.trim();
+            if (!metin) { kap.querySelector('#plbErr').hidden = false; return false; }
+            var lid = kap.querySelector('#plbLok').value;
+            var lok = A.kayit('lokasyonlar', lid);
+            var kisi = kap.querySelector('#plbKisi').value.trim();
+            var tel = kap.querySelector('#plbTel').value.trim();
+            A.ekle('iletisimGecmisi', {
+              id: 'ILT-U' + String(Date.now()).slice(-5),
+              musteriId: musteriId, lokasyonId: lid, kisiId: null,
+              tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+              konu: 'Müşteri portalı — lokasyon bilgi gönderimi (' + (lok ? lok.ad : lid) + ')',
+              ozet: metin + (kisi ? ' · Yetkili: ' + kisi : '') + (tel ? ' · Tel: ' + tel : '')
+            }).then(function(){
+              gvToast((lok ? lok.ad : 'Lokasyon') + ' için bilgileriniz planlama ekibine iletildi.', { ton:'ok' });
+            });
+            kapat(true);
+            return false;
+          } }
+      ]
+    });
+  }
+
+  document.getElementById('plBilgiBtn').addEventListener('click', function(){ bilgiModal(bekleyen.length ? bekleyen[0].id : null); });
+  var not2 = document.getElementById('plBilgiBtn2');
+  if (not2) not2.addEventListener('click', function(){ bilgiModal(bekleyen[0].id); });
+
+  /* ---- filtre: sade arama + 3 durum çipi + marka/il çoklu ---- */
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['ad','musteriKod','il','ilce','markaAd'],
+    cipler: { alan:'portalGrup', secenekler:[
+      { k:'planlandi',  ad:'Kontrol planlandı',  ikon:'fa-calendar-days' },
+      { k:'tamamlandi', ad:'Kontrol tamamlandı', ikon:'fa-circle-check' },
+      { k:'bilgi',      ad:'Bilgi bekleniyor',   ikon:'fa-circle-question' }
+    ] },
+    alanlar: [
+      { k:'markaId', ad:'Marka', tur:'coklu',
+        secenekler: A.liste('markalar').filter(function(m){ return m.musteriId === musteriId; })
+          .map(function(m){ return { deger:m.id, ad:m.ad }; }) },
+      { k:'il', ad:'İl', tur:'coklu',
+        secenekler: Array.from(new Set(kaynak.map(function(l){ return l.il; }))).sort(function(a,b){
+          return String(a).localeCompare(String(b), 'tr'); }).map(function(i){ return { deger:i, ad:i }; }) }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+})();
+</script>
+</body>
+</html>

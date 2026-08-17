@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Müşteri Şikâyetleri — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+  .sky-metin { font-size: 13px; color: var(--ink-2); line-height: 1.7; margin: 0 }
+</style>
+</head>
+<body data-sec="kalite" data-screen="musteri-sikayetleri">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Kalite Yönetimi</div>
+        <h1>Müşteri Şikâyetleri</h1>
+        <p class="ph-sub">Şikâyet ve itirazlar; geliş kanalı, atanan sorumlu, çözüm süresi, memnuniyet değerlendirmesi ve bağlı düzeltici faaliyet ile izlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="skDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="skYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Şikâyet Kaydet</button></div>
+    </div>
+    <div class="kpi-grid" id="skKpi"></div>
+
+    <section class="gv-card">
+      <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Şikâyet no, konu, müşteri, lokasyon…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="skTablo"></div>
+      <div class="gv-pager" id="skPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Şikâyet Analizi
+        <span class="bs-sub">Tüm kayıtlar üzerinden hesaplanır</span></h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-inbox" aria-hidden="true"></i>Kanal Dağılımı</h3></div>
+          <div class="gc-body"><div class="chart-box" id="skDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-building" aria-hidden="true"></i>Müşteri Bazlı Şikâyet</h3></div>
+          <div class="gc-body" id="skMusteri"></div>
+        </section>
+      </div>
+      <section class="gv-card" style="margin-top:18px">
+        <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Çözüm Süresi Trendi
+          <span class="gct-sub">Kapanış ayına göre ortalama, gün</span></h3></div>
+        <div class="gc-body"><div class="chart-box" id="skTrend"></div></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var KANALLAR = [
+    { ad:'E-posta', ikon:'fa-envelope', ton:'info' },
+    { ad:'Telefon', ikon:'fa-phone',    ton:'acc' },
+    { ad:'Portal',  ikon:'fa-globe',    ton:'mor' }
+  ];
+  function kanalBilgi(ad){
+    for (var i = 0; i < KANALLAR.length; i++) if (KANALLAR[i].ad === ad) return KANALLAR[i];
+    return { ad: ad || '—', ikon:'fa-inbox', ton:'gri' };
+  }
+  var DURUM = {
+    acik:             ['warn','fa-circle-dot','Açık'],
+    degerlendiriliyor:['info','fa-magnifying-glass','Değerlendiriliyor'],
+    kapandi:          ['ok','fa-circle-check','Kapandı']
+  };
+  function durumHucre(s){ var d = DURUM[s.durum] || DURUM.acik; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  var MEMNUNIYET = {
+    5: ['ok','fa-face-grin-stars','Çok memnun'],
+    4: ['ok','fa-face-smile','Memnun'],
+    3: ['warn','fa-face-meh','Kararsız'],
+    2: ['danger','fa-face-frown','Memnun değil'],
+    1: ['danger','fa-face-angry','Hiç memnun değil']
+  };
+  function memnuniyetHucre(s){
+    if (s.memnuniyet == null) return '<span class="muted">Değerlendirilmedi</span>';
+    var m = MEMNUNIYET[s.memnuniyet] || MEMNUNIYET[3];
+    return GV.rozetOzel(m[0], m[1], s.memnuniyet + ' / 5 · ' + m[2]);
+  }
+
+  function yeniKod(kol, onek, uzunluk){
+    var n = A.liste(kol).length + 1, id;
+    do { id = onek + String(n).padStart(uzunluk, '0'); n++; } while (A.kayit(kol, id));
+    return id;
+  }
+
+  function zenginlestir(s){
+    var m = s.musteriId ? A.kayit('musteriler', s.musteriId) : null;
+    var l = s.lokasyonId ? A.lokasyon(s.lokasyonId) : null;
+    var p = s.atananId ? A.kayit('personeller', s.atananId) : null;
+    return Object.assign({}, s, {
+      musteriAd: m ? m.kisaAd : '—', musteriUnvan: m ? m.unvan : null,
+      lokasyonAd: l ? l.ad : null,
+      atananAd: p ? p.ad : null, atananGorev: p ? p.gorev : null,
+      kanalIkon: kanalBilgi(s.kanal).ikon,
+      cozumSuresi: s.kapanis ? GV.gun(s.tarih, s.kapanis) : null,
+      acikGun: s.durum === 'kapandi' ? null : GV.gun(s.tarih, BUGUN)
+    });
+  }
+
+  var kaynak = A.liste('musteriSikayetleri').map(zenginlestir)
+    .filter(function(s){
+      if (kapsam.tur === 'musteri' && s.musteriId !== kapsam.musteriId) return false;
+      return true;
+    })
+    .sort(function(a, b){
+      if ((a.durum === 'kapandi') !== (b.durum === 'kapandi')) return a.durum === 'kapandi' ? 1 : -1;
+      return (b.tarih || '').localeCompare(a.tarih || '');
+    });
+
+  function kayitBul(id){
+    for (var i = 0; i < kaynak.length; i++) if (kaynak[i].id === id) return kaynak[i];
+    return zenginlestir(A.kayit('musteriSikayetleri', id) || {});
+  }
+
+  var kapananlar = kaynak.filter(function(s){ return s.cozumSuresi != null; });
+  var ortCozum = kapananlar.length
+    ? kapananlar.reduce(function(t, s){ return t + s.cozumSuresi; }, 0) / kapananlar.length : null;
+  var puanlilar = kaynak.filter(function(s){ return s.memnuniyet != null; });
+  var ortPuan = puanlilar.length
+    ? puanlilar.reduce(function(t, s){ return t + s.memnuniyet; }, 0) / puanlilar.length : null;
+
+  gvKpi('#skKpi', [
+    { ikon:'fa-comment-dots', sayi: GV.n(kaynak.length), etiket:'Toplam şikâyet',
+      delta:{ yon:'flat', metin: GV.n(kaynak.filter(function(s){ return s.durum === 'kapandi'; }).length) + ' kapandı' } },
+    { ikon:'fa-circle-dot', sayi: GV.n(kaynak.filter(function(s){ return s.durum !== 'kapandi'; }).length),
+      etiket:'Açık şikâyet', ton:'warn' },
+    { ikon:'fa-hourglass-half', sayi: ortCozum != null ? GV.n(ortCozum, 1) : GV.bos,
+      etiket:'Ortalama çözüm süresi (gün)', ton:'info',
+      delta:{ yon:'flat', metin: GV.n(kapananlar.length) + ' kapanan kayıt' } },
+    { ikon:'fa-face-smile', sayi: ortPuan != null ? GV.n(ortPuan, 1) + ' / 5' : GV.bos,
+      etiket:'Ortalama memnuniyet puanı',
+      delta:{ yon:'flat', metin: GV.n(puanlilar.length) + ' değerlendirme' } }
+  ]);
+
+  var kolonlar = [
+    { k:'id', ad:'Şikâyet No', kilitli:true, ciz: function(s){
+        return '<div class="gcell"><div class="gcell-mark ' + (s.durum === 'kapandi' ? 'ok' : s.durum === 'degerlendiriliyor' ? 'info' : 'warn') + '">'
+          + '<i class="fa-solid ' + s.kanalIkon + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name">'
+          + '<button class="btn-link" type="button" data-detay="' + GV.esc(s.id) + '">' + GV.esc(s.id) + '</button></div>'
+          + '<div class="gcell-sub">' + GV.esc(s.konu) + '</div></div></div>'; } },
+    { k:'musteriAd', ad:'Müşteri', ciz: function(s){
+        return s.musteriId
+          ? '<a href="musteri-detay.html?id=' + s.musteriId + '">' + GV.esc(s.musteriAd) + '</a>'
+          : '<span class="muted">—</span>'; } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(s){
+        return s.lokasyonId && s.lokasyonAd
+          ? '<a href="lokasyon-detay.html?id=' + s.lokasyonId + '">' + GV.esc(s.lokasyonAd) + '</a>'
+          : '<span class="gtag"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Genel</span>'; } },
+    { k:'tarih', ad:'Tarih', ciz: function(s){ return GV.d(s.tarih); } },
+    { k:'kanal', ad:'Kanal', ciz: function(s){
+        return '<span class="gtag"><i class="fa-solid ' + s.kanalIkon + '" aria-hidden="true"></i>' + GV.esc(s.kanal) + '</span>'; } },
+    { k:'konu', ad:'Konu', varsayilanGizli:true, gizli:true, ciz: function(s){
+        return '<span style="font-size:12.5px;color:var(--ink-2)">' + GV.esc(s.konu) + '</span>'; } },
+    { k:'atananAd', ad:'Atanan', ciz: function(s){
+        return s.atananAd
+          ? GV.esc(s.atananAd) + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(s.atananGorev) + '</span>'
+          : '<span class="muted">Atanmadı</span>'; } },
+    { k:'cozumSuresi', ad:'Çözüm Süresi', sinif:'num', ciz: function(s){
+        if (s.cozumSuresi != null) return '<b>' + GV.n(s.cozumSuresi) + '</b> gün';
+        return '<span class="muted">' + GV.n(s.acikGun) + ' gündür açık</span>'; } },
+    { k:'memnuniyet', ad:'Memnuniyet', ciz: memnuniyetHucre },
+    { k:'durum', ad:'Durum', ciz: durumHucre },
+    { k:'dofId', ad:'Bağlı DÖF', ciz: function(s){
+        return s.dofId
+          ? '<a href="duzeltici-faaliyetler.html?q=' + encodeURIComponent(s.dofId) + '">' + GV.esc(s.dofId) + '</a>'
+          : '<span class="muted">Yok</span>'; } },
+    { k:'__islem', ad:'İşlem', ciz: function(s){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-detay="' + GV.esc(s.id) + '" aria-label="' + GV.esc(s.id) + ' şikâyet detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+          + (s.durum !== 'kapandi'
+            ? '<button class="ia-btn" type="button" data-cozum="' + GV.esc(s.id) + '" aria-label="' + GV.esc(s.id) + ' için çözüm kaydet">'
+              + '<i class="fa-solid fa-check" aria-hidden="true"></i></button>'
+            : '')
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#skTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
+    bosDurum:{ ikon:'fa-face-smile', baslik:'Şikâyet kaydı yok',
+      metin:'Filtrelerinize uyan müşteri şikâyeti bulunmuyor.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'musteri-sikayetleri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#skPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-detay]').forEach(function(b){
+      b.addEventListener('click', function(){ detay(b.getAttribute('data-detay')); });
+    });
+    document.querySelectorAll('[data-cozum]').forEach(function(b){
+      b.addEventListener('click', function(){ cozumKaydet(b.getAttribute('data-cozum')); });
+    });
+  }
+
+  /* ---------------- detay modalı ---------------- */
+  function detay(id){
+    var s = kayitBul(id);
+    var dof = s.dofId ? A.kayit('duzelticiFaaliyetler', s.dofId) : null;
+
+    var butonlar = [{ etiket:'Kapat', sinif:'btn-ghost' }];
+    if (!dof) butonlar.push({ etiket:'DÖF Aç', sinif:'btn-ghost', ikon:'fa-screwdriver-wrench',
+      tikla: function(){ setTimeout(function(){ dofAc(s); }, 280); } });
+    if (s.durum !== 'kapandi') butonlar.push({ etiket:'Çözüm Kaydet ve Kapat', sinif:'btn-acc', ikon:'fa-check',
+      tikla: function(){ setTimeout(function(){ cozumKaydet(s.id); }, 280); } });
+
+    gvModal({
+      baslik: s.id + ' — ' + s.konu, ikon:'fa-comment-dots', genislik:'gv-modal-lg',
+      metin: GV.esc(s.musteriUnvan || s.musteriAd) + ' · ' + GV.esc(s.kanal) + ' · ' + GV.d(s.tarih),
+      govde:
+        '<dl class="info-rows">'
+        + '<div class="info-row"><dt>Müşteri</dt><dd>'
+          + (s.musteriId ? '<a href="musteri-detay.html?id=' + s.musteriId + '">' + GV.esc(s.musteriUnvan || s.musteriAd) + '</a>' : GV.bos) + '</dd></div>'
+        + '<div class="info-row"><dt>Lokasyon</dt><dd>'
+          + (s.lokasyonId && s.lokasyonAd
+            ? '<a href="lokasyon-detay.html?id=' + s.lokasyonId + '">' + GV.esc(s.lokasyonAd) + '</a>'
+            : 'Genel — belirli bir lokasyona bağlı değil') + '</dd></div>'
+        + '<div class="info-row"><dt>Geliş kanalı</dt><dd>' + GV.esc(s.kanal) + '</dd></div>'
+        + '<div class="info-row"><dt>Şikâyet tarihi</dt><dd>' + GV.dUzun(s.tarih) + '</dd></div>'
+        + '<div class="info-row"><dt>Atanan</dt><dd>' + (s.atananAd ? GV.esc(s.atananAd + ' — ' + s.atananGorev) : 'Atanmadı') + '</dd></div>'
+        + '<div class="info-row"><dt>Kapanış</dt><dd>' + GV.dUzun(s.kapanis) + '</dd></div>'
+        + '<div class="info-row"><dt>Çözüm süresi</dt><dd>'
+          + (s.cozumSuresi != null ? GV.n(s.cozumSuresi) + ' gün' : GV.n(s.acikGun) + ' gündür açık') + '</dd></div>'
+        + '<div class="info-row"><dt>Durum</dt><dd>' + durumHucre(s) + '</dd></div>'
+        + '<div class="info-row"><dt>Memnuniyet</dt><dd>' + memnuniyetHucre(s) + '</dd></div>'
+        + '</dl>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-quote-left" aria-hidden="true"></i>Şikâyet Açıklaması</h3>'
+        + '<p class="sky-metin">' + GV.esc(s.aciklama) + '</p></div>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-handshake-angle" aria-hidden="true"></i>Çözüm</h3>'
+        + (s.cozum
+          ? '<p class="sky-metin">' + GV.esc(s.cozum) + '</p>'
+          : '<div class="gv-note warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>'
+            + '<span>Çözüm henüz kaydedilmedi. Şikâyet ve itiraz prosedürü gereği kapanış öncesi çözüm metni yazılmalıdır.</span></div>')
+        + '</div>'
+        + '<div class="gv-botsec"><h3 class="gv-botsec-h"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>Bağlı Düzeltici Faaliyet</h3>'
+        + (dof
+          ? '<div class="gv-note"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>'
+            + '<span><b><a href="duzeltici-faaliyetler.html?q=' + encodeURIComponent(dof.id) + '">' + GV.esc(dof.id) + '</a></b> — '
+            + GV.esc(dof.baslik) + '<br>Termin: ' + GV.d(dof.termin) + ' · '
+            + (dof.durum === 'kapandi' ? 'Kapandı' : 'Açık') + '</span></div>'
+          : '<div class="gv-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+            + '<span>Bu şikâyete bağlı düzeltici faaliyet yok. Tekrarlayan veya sistemsel şikâyetlerde DÖF açılması önerilir.</span></div>')
+        + '</div>',
+      butonlar: butonlar
+    });
+  }
+
+  /* ---------------- çözüm kaydet ve kapat ---------------- */
+  function cozumKaydet(id){
+    var s = kayitBul(id);
+    gvModal({
+      baslik:'Çözüm kaydet ve kapat', ikon:'fa-handshake-angle', genislik:'gv-modal-lg', ton:'warn',
+      metin:'<b>' + GV.esc(s.id) + '</b> şikâyeti kapatılacak. Çözüm metni müşteriye yazılı olarak bildirilir '
+        + 've kapanış tarihi ' + GV.d(BUGUN) + ' olarak kaydedilir.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full" id="czCozumF"><label for="czCozum">Çözüm metni *</label>'
+        + '<textarea id="czCozum" placeholder="Şikâyetin nasıl çözüldüğü ve müşteriye ne bildirildiği…"></textarea>'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Çözüm metni zorunludur.</div></div>'
+        + '<div class="gfield"><label for="czPuan">Müşteri memnuniyet puanı</label><select id="czPuan">'
+        + '<option value="">Değerlendirilmedi</option>'
+        + [5,4,3,2,1].map(function(p){
+            return '<option value="' + p + '">' + p + ' / 5 — ' + GV.esc(MEMNUNIYET[p][2]) + '</option>'; }).join('')
+        + '</select><span class="gf-hint">Kapanış anketi yapılmadıysa boş bırakın.</span></div>'
+        + '<div class="gfield"><label class="lh-toggle" for="czDof"><input type="checkbox" id="czDof"' + (s.dofId ? ' disabled' : '') + '> '
+        + (s.dofId ? 'Bu şikâyete bağlı DÖF zaten var' : 'Kapanışla birlikte düzeltici faaliyet aç') + '</label></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet ve Kapat', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var cozum = kap.querySelector('#czCozum').value.trim();
+            kap.querySelector('#czCozumF').classList.toggle('is-err', !cozum);
+            if (!cozum) { kap.querySelector('#czCozum').focus(); return false; }
+            var puan = kap.querySelector('#czPuan').value;
+            var dofIster = !s.dofId && kap.querySelector('#czDof').checked;
+            var yeniDof = dofIster ? yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3) : null;
+            var yama = { durum:'kapandi', cozum: cozum, kapanis: BUGUN,
+              memnuniyet: puan ? Number(puan) : null };
+            if (yeniDof) yama.dofId = yeniDof;
+            A.guncelle('musteriSikayetleri', s.id, yama).then(function(){
+              A.kayitAt('kapatma', 'Müşteri Şikâyeti', s.id, (DURUM[s.durum] || DURUM.acik)[2], 'Kapandı', cozum);
+              if (!yeniDof) return null;
+              return A.ekle('duzelticiFaaliyetler', {
+                id: yeniDof, kaynak:'Müşteri Şikâyeti', kaynakId: s.id,
+                baslik: s.konu, aciklama: s.aciklama,
+                kokNeden:'Kök neden analizi yapılacak.',
+                faaliyet: cozum,
+                sorumluId: s.atananId || 'PRS-005', acilis: BUGUN, termin: null,
+                kapanis: null, durum:'acik', etkinlik: null
+              });
+            }).then(function(){
+              gvToast(yeniDof ? 'Şikâyet kapatıldı ve düzeltici faaliyet açıldı.' : 'Şikâyet kapatıldı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  /* ---------------- DÖF aç ---------------- */
+  function dofAc(s){
+    gvModal({
+      baslik:'Düzeltici faaliyet aç', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
+      metin:'<b>' + GV.esc(s.id) + '</b> şikâyeti kaynak olarak bağlanacak.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full" id="skDfBaslikF"><label for="skDfBaslik">Faaliyet başlığı *</label>'
+        + '<input type="text" id="skDfBaslik" value="' + GV.esc(s.konu) + '">'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Başlık zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="skDfKok">Kök neden</label>'
+        + '<textarea id="skDfKok" placeholder="Şikâyetin kök nedeni"></textarea></div>'
+        + '<div class="gfield full"><label for="skDfFaaliyet">Planlanan faaliyet</label>'
+        + '<textarea id="skDfFaaliyet" placeholder="Yapılacak düzeltici faaliyet"></textarea></div>'
+        + '<div class="gfield"><label for="skDfSorumlu">Sorumlu</label><select id="skDfSorumlu">'
+        + A.liste('personeller').filter(function(p){ return p.durum === 'aktif'; })
+            .map(function(p){ return '<option value="' + p.id + '"' + (p.id === (s.atananId || 'PRS-005') ? ' selected' : '') + '>'
+              + GV.esc(p.ad + ' — ' + p.birim) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="skDfTermin">Termin</label><input type="date" id="skDfTermin"></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var baslik = kap.querySelector('#skDfBaslik').value.trim();
+            kap.querySelector('#skDfBaslikF').classList.toggle('is-err', !baslik);
+            if (!baslik) { kap.querySelector('#skDfBaslik').focus(); return false; }
+            var yeni = yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3);
+            A.ekle('duzelticiFaaliyetler', {
+              id: yeni, kaynak:'Müşteri Şikâyeti', kaynakId: s.id, baslik: baslik,
+              aciklama: s.aciklama,
+              kokNeden: kap.querySelector('#skDfKok').value.trim() || 'Kök neden analizi yapılacak.',
+              faaliyet: kap.querySelector('#skDfFaaliyet').value.trim() || 'Faaliyet planı hazırlanacak.',
+              sorumluId: kap.querySelector('#skDfSorumlu').value, acilis: BUGUN,
+              termin: kap.querySelector('#skDfTermin').value || null,
+              kapanis: null, durum:'acik', etkinlik: null
+            }).then(function(){
+              return A.guncelle('musteriSikayetleri', s.id, { dofId: yeni });
+            }).then(function(){
+              gvToast('Düzeltici faaliyet açıldı ve şikâyete bağlandı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  /* ---------------- yeni şikâyet ---------------- */
+  document.getElementById('skYeni').addEventListener('click', function(){
+    var musteriler = A.liste('musteriler');
+    var lokasyonlar = A.lokasyonlar();
+    function lokasyonSecenek(musteriId){
+      return '<option value="">Genel — lokasyona bağlı değil</option>'
+        + lokasyonlar.filter(function(l){ return l.musteriId === musteriId; })
+            .map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad) + '</option>'; }).join('');
+    }
+    var ilkMusteri = musteriler.length ? musteriler[0].id : null;
+
+    gvModal({
+      baslik:'Yeni şikâyet kaydı', ikon:'fa-comment-dots', genislik:'gv-modal-lg',
+      metin:'Şikâyet ve itirazlar kayıt altına alınır; değerlendirme süreci prosedüre göre yürütülür.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="ysMusteri">Müşteri *</label><select id="ysMusteri">'
+        + musteriler.map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.kisaAd) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="ysLokasyon">Lokasyon</label><select id="ysLokasyon">'
+        + (ilkMusteri ? lokasyonSecenek(ilkMusteri) : '<option value="">Genel</option>') + '</select></div>'
+        + '<div class="gfield" id="ysTarihF"><label for="ysTarih">Şikâyet tarihi *</label>'
+        + '<input type="date" id="ysTarih" value="' + BUGUN + '">'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Tarih zorunludur.</div></div>'
+        + '<div class="gfield"><label for="ysKanal">Geliş kanalı *</label><select id="ysKanal">'
+        + KANALLAR.map(function(k){ return '<option value="' + GV.esc(k.ad) + '">' + GV.esc(k.ad) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield full" id="ysKonuF"><label for="ysKonu">Konu *</label>'
+        + '<input type="text" id="ysKonu" placeholder="Şikâyetin kısa başlığı">'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Konu zorunludur.</div></div>'
+        + '<div class="gfield full" id="ysAciklamaF"><label for="ysAciklama">Açıklama *</label>'
+        + '<textarea id="ysAciklama" placeholder="Müşterinin bildirdiği durumun ayrıntısı…"></textarea>'
+        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama zorunludur.</div></div>'
+        + '<div class="gfield"><label for="ysAtanan">Atanan *</label><select id="ysAtanan">'
+        + A.liste('personeller').filter(function(p){ return p.durum === 'aktif'; })
+            .map(function(p){ return '<option value="' + p.id + '"' + (p.id === 'PRS-005' ? ' selected' : '') + '>'
+              + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="ysDurum">Durum</label><select id="ysDurum">'
+        + '<option value="acik">Açık</option><option value="degerlendiriliyor">Değerlendiriliyor</option></select></div>'
+        + '</div>',
+      acildi: function(kap){
+        kap.querySelector('#ysMusteri').addEventListener('change', function(){
+          kap.querySelector('#ysLokasyon').innerHTML = lokasyonSecenek(this.value);
+        });
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Şikâyeti Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var konu = kap.querySelector('#ysKonu').value.trim();
+            var aciklama = kap.querySelector('#ysAciklama').value.trim();
+            var tarih = kap.querySelector('#ysTarih').value;
+            kap.querySelector('#ysKonuF').classList.toggle('is-err', !konu);
+            kap.querySelector('#ysAciklamaF').classList.toggle('is-err', !aciklama);
+            kap.querySelector('#ysTarihF').classList.toggle('is-err', !tarih);
+            if (!konu) { kap.querySelector('#ysKonu').focus(); return false; }
+            if (!aciklama) { kap.querySelector('#ysAciklama').focus(); return false; }
+            if (!tarih) { kap.querySelector('#ysTarih').focus(); return false; }
+            A.ekle('musteriSikayetleri', {
+              id: yeniKod('musteriSikayetleri', 'SKY-2026-', 3),
+              musteriId: kap.querySelector('#ysMusteri').value,
+              lokasyonId: kap.querySelector('#ysLokasyon').value || null,
+              tarih: tarih, kanal: kap.querySelector('#ysKanal').value,
+              konu: konu, aciklama: aciklama,
+              atananId: kap.querySelector('#ysAtanan').value,
+              durum: kap.querySelector('#ysDurum').value,
+              cozum: null, kapanis: null, dofId: null, memnuniyet: null
+            }).then(function(){
+              gvToast('Şikâyet kaydedildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  });
+
+  document.getElementById('skDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'musteri-sikayetleri', modul:'Müşteri Şikâyeti' });
+  });
+
+  /* ---------------- filtre ---------------- */
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','konu','aciklama','cozum','musteriAd','lokasyonAd','atananAd','kanal','dofId'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'acik', ad:'Açık', ikon:'fa-circle-dot' },
+      { k:'degerlendiriliyor', ad:'Değerlendiriliyor', ikon:'fa-magnifying-glass' },
+      { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
+    ] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu',
+        secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kanal', ad:'Kanal', tur:'coklu',
+        secenekler: KANALLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
+      { k:'tarih', ad:'Şikâyet tarihi', tur:'tarih' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* ---------------- grafikler ---------------- */
+  var donutVeri = KANALLAR.map(function(k){
+    return { etiket: k.ad, deger: kaynak.filter(function(s){ return s.kanal === k.ad; }).length, ton: k.ton };
+  }).filter(function(x){ return x.deger; });
+  if (donutVeri.length) gvDonut('#skDonut', donutVeri, { merkezEtiket:'şikâyet' });
+  else document.getElementById('skDonut').innerHTML = gvEmpty({ ikon:'fa-face-smile',
+    baslik:'Şikâyet kaydı yok', metin:'Kanal dağılımı için henüz şikâyet kaydı bulunmuyor.' });
+
+  var musSay = {};
+  kaynak.forEach(function(s){
+    if (!musSay[s.musteriAd]) musSay[s.musteriAd] = { toplam:0, acik:0 };
+    musSay[s.musteriAd].toplam++;
+    if (s.durum !== 'kapandi') musSay[s.musteriAd].acik++;
+  });
+  gvBarList('#skMusteri', Object.keys(musSay)
+    .sort(function(a, b){ return musSay[b].toplam - musSay[a].toplam; })
+    .map(function(m){
+      return { etiket: m, deger: musSay[m].toplam,
+        gosterim: GV.n(musSay[m].acik) + ' açık / ' + GV.n(musSay[m].toplam) + ' toplam',
+        ton: musSay[m].acik ? 'warn' : 'ok' };
+    }));
+
+  /* son 6 ayın kapanış ayına göre ortalama çözüm süresi */
+  var aylar = [], ref = new Date(Number(BUGUN.substring(0, 4)), Number(BUGUN.substring(5, 7)) - 1, 1);
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(ref.getFullYear(), ref.getMonth() - i, 1);
+    aylar.push({ anahtar: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
+      etiket: GV.ayKisa[d.getMonth()] });
+  }
+  gvBar('#skTrend', aylar.map(function(a){
+    var alt = kapananlar.filter(function(s){ return s.kapanis.substring(0, 7) === a.anahtar; });
+    var ort = alt.length ? alt.reduce(function(t, s){ return t + s.cozumSuresi; }, 0) / alt.length : 0;
+    return { etiket: a.etiket, deger: Math.round(ort),
+      ton: !alt.length ? 'gri' : ort <= 10 ? 'ok' : ort <= 20 ? 'acc' : ort <= 30 ? 'warn' : 'danger' };
+  }), { baslik:'Kapanış ayına göre ortalama çözüm süresi', birim:'gün', yukseklik:220 });
+})();
+</script>
+</body>
+</html>

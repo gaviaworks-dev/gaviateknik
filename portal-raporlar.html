@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Teknik Raporlar — GAVIA Müşteri Portalı</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+.prt-body h1{font-size:25px;letter-spacing:-.02em}
+.prt-body .ph-sub{font-size:14px;line-height:1.65}
+.prt-body .gtable td{font-size:13.5px}
+.prt-body .gtable th{font-size:12px}
+.prt-oneri{display:block;font-size:12.5px;color:var(--muted);line-height:1.5;max-width:360px}
+</style>
+</head>
+<body data-sec="portal" data-screen="portal-raporlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main prt-body">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri Portalı</div>
+        <h1>Teknik Raporlar</h1>
+        <p class="ph-sub">Lokasyonlarınızda yapılan periyodik kontrollerin sonuç raporları, raporlarda tespit edilen
+        bulgular ve yeniden kontrol talepleriniz.</p>
+      </div>
+      <div class="ph-actions no-print">
+        <a class="btn btn-ghost" href="portal-lokasyonlar.html"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyonlarım</a>
+      </div>
+    </div>
+
+    <div class="gv-note" id="prNot" style="margin-bottom:18px">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <span>Rapor listesi hazırlanıyor…</span>
+    </div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Rapor görünümleri">
+      <button class="gv-tab" role="tab" id="tbR" aria-controls="pnR" aria-selected="true"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Raporlar</button>
+      <button class="gv-tab" role="tab" id="tbU" aria-controls="pnU" aria-selected="false"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Uygunsuzluklar</button>
+      <button class="gv-tab" role="tab" id="tbY" aria-controls="pnY" aria-selected="false"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Yeniden Kontrol Talepleri</button>
+    </div>
+
+    <div id="pnR" role="tabpanel" aria-labelledby="tbR">
+      <section class="gv-card">
+        <div class="gv-listhead no-print">
+          <div class="lh-row">
+            <div class="lh-search">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <label class="gv-sr" for="gvSearch">Raporlarımda ara</label>
+              <input type="search" id="gvSearch" placeholder="Rapor no, lokasyon, hizmet…" autocomplete="off">
+            </div>
+            <div class="lh-acts">
+              <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+                <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+              </button>
+            </div>
+          </div>
+          <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+        </div>
+        <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div class="gc-body flush" id="prTablo"></div>
+        <div class="gv-pager" id="prPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnU" role="tabpanel" aria-labelledby="tbU" hidden>
+      <section class="gv-card">
+        <div class="gv-listhead no-print">
+          <div class="lh-row">
+            <div class="lh-search">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <label class="gv-sr" for="prUyAra">Bulgularda ara</label>
+              <input type="search" id="prUyAra" placeholder="Bulgu başlığı, lokasyon…" autocomplete="off">
+            </div>
+          </div>
+          <div class="lh-chiprow"><div class="chips" id="prUyCip" role="group" aria-label="Bulgu durumu filtresi"></div></div>
+        </div>
+        <div class="gc-body flush" id="prUyTablo"></div>
+      </section>
+    </div>
+
+    <div id="pnY" role="tabpanel" aria-labelledby="tbY" hidden>
+      <section class="gv-card">
+        <div class="gc-head">
+          <h2 class="gc-title"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Yeniden Kontrol Talepleri</h2>
+          <button class="btn btn-sm btn-acc no-print" type="button" id="prYeniTalep">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Talep</button>
+        </div>
+        <div class="gc-body">
+          <div class="gv-note">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>Bir bulguyu giderdikten sonra ilgili ekipmanın yeniden kontrol edilmesini buradan talep edebilirsiniz.
+            Sözleşme kapsamındaki yeniden kontroller ek ücret doğurmaz; kapsam dışı talepler için önce fiyat bilgisi iletilir.</span>
+          </div>
+        </div>
+        <div class="gc-body flush" id="prYkTablo"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  gvTabs('.gv-tabbar');
+
+  /* KAPSAM SÜZMESİ — rapor, bulgu ve talepler yalnız yetkili lokasyonlardan gelir. */
+  var kapsam = A.rolKapsami(GV.rol);
+  var musteriId = kapsam.tur === 'musteri' ? kapsam.musteriId : null;
+  var loklar = A.kapsamaGoreLokasyonlar(GV.rol);
+  var lokIds = loklar.map(function(l){ return l.id; });
+  function kapsamda(lokId){ return lokIds.indexOf(lokId) !== -1; }
+  /* Teknik bölüme yetkisi olmayan portal kullanıcısı iç rapor ekranına yönlendirilmez. */
+  var teknikErisim = !!(GV.bolumGorunur && GV.bolumGorunur('teknik'));
+
+  var SONUC = {
+    'uygun':        ['ok','fa-circle-check','Uygun'],
+    'sartli-uygun': ['warn','fa-triangle-exclamation','Şartlı uygun'],
+    'uygun-degil':  ['danger','fa-circle-xmark','Uygun değil']
+  };
+  function sonucRozet(k){ var d = SONUC[k] || ['off','fa-circle', GV.bos]; return GV.rozetOzel(d[0], d[1], d[2]); }
+  var ONEM = {
+    'kritik': ['danger','fa-fire','Kritik'], 'yuksek': ['danger','fa-triangle-exclamation','Yüksek'],
+    'orta':   ['warn','fa-circle-exclamation','Orta'], 'dusuk': ['info','fa-circle-info','Düşük']
+  };
+  function onemRozet(k){ var d = ONEM[k] || ['off','fa-circle', GV.bos]; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  function uygunsuzlukRozet(u){
+    if (u.durum === 'kapandi') return GV.rozetOzel('ok','fa-circle-check','Kapatıldı');
+    var g = GV.gun(BUGUN, u.termin);
+    if (u.durum === 'gecikti' || (g != null && g < 0)) {
+      return GV.rozetOzel('danger','fa-clock','Termini geçti' + (g != null ? ' · ' + Math.abs(g) + ' gün' : ''));
+    }
+    return GV.rozetOzel('warn','fa-hourglass-half','Açık' + (g != null ? ' · ' + g + ' gün kaldı' : ''));
+  }
+
+  /* ================= SEKME 1 — RAPORLAR ================= */
+  /* Müşteri onaylanmamış taslak raporu GÖREMEZ: yalnız teslim edilmiş / imzalanmış raporlar. */
+  var raporlar = A.raporlar().filter(function(r){
+    return kapsamda(r.lokasyonId) && ['teslim-edildi','imzalandi'].indexOf(r.durum) !== -1;
+  }).map(function(r){
+    var l = A.kayit('lokasyonlar', r.lokasyonId);
+    return Object.assign({}, r, { musteriKod: l ? l.musteriKod : GV.bos });
+  }).sort(function(a,b){
+    return String(b.teslimTarihi || b.raporTarihi || '').localeCompare(String(a.teslimTarihi || a.raporTarihi || ''));
+  });
+
+  var hazirlanan = A.raporlar().filter(function(r){
+    return kapsamda(r.lokasyonId) && ['teslim-edildi','imzalandi'].indexOf(r.durum) === -1;
+  }).length;
+
+  document.getElementById('prNot').innerHTML =
+    '<i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+    + '<span><b>Bu listede yalnız teknik onayı tamamlanmış ve size teslim edilmiş raporlar yer alır.</b> '
+    + 'Hazırlık, teknik inceleme veya revizyon aşamasındaki raporlar onaylanmadan portala yansımaz; '
+    + 'böylece elinizdeki her belge nihai ve imzalı sürümdür. '
+    + (hazirlanan
+        ? 'Şu anda <b>' + GV.n(hazirlanan) + ' rapor</b> hazırlık aşamasında; tamamlandığında bu listeye eklenecek ve size bildirim gönderilecek.'
+        : 'Şu anda hazırlık aşamasında rapor bulunmuyor.')
+    + '</span>';
+
+  function raporAc(rid){
+    var r = A.rapor(rid);
+    if (!r) { gvToast('Rapor bulunamadı.', { ton:'danger' }); return; }
+    var bulgular = A.liste('uygunsuzluklar').filter(function(u){ return u.raporId === rid; });
+
+    var govde =
+      '<div class="info-grid" style="margin-bottom:18px">'
+      + '<div class="info-item"><dt>Lokasyon</dt><dd>' + GV.esc(r.lokasyonAd) + '</dd></div>'
+      + '<div class="info-item"><dt>Hizmet kategorisi</dt><dd>' + GV.esc(r.kategoriAd) + '</dd></div>'
+      + '<div class="info-item"><dt>Kontrol tarihi</dt><dd>' + GV.d(r.kontrolTarihi) + '</dd></div>'
+      + '<div class="info-item"><dt>Rapor tarihi</dt><dd>' + GV.d(r.raporTarihi) + '</dd></div>'
+      + '<div class="info-item"><dt>Size teslim tarihi</dt><dd>' + GV.d(r.teslimTarihi) + '</dd></div>'
+      + '<div class="info-item"><dt>Rapor sürümü</dt><dd>v' + GV.n(r.versiyon) + '</dd></div>'
+      + '<div class="info-item"><dt>Kontrolü yapan uzman</dt><dd>' + GV.esc(r.personelAd) + '</dd></div>'
+      + '<div class="info-item"><dt>Onaylayan</dt><dd>' + GV.esc(r.onaylayanAd || GV.bos) + '</dd></div>'
+      + '<div class="info-item"><dt>Kontrol edilen ekipman</dt><dd>' + GV.n(r.ekipmanSayisi) + ' adet</dd></div>'
+      + '<div class="info-item"><dt>Sonuç</dt><dd>' + sonucRozet(r.sonuc) + '</dd></div>'
+      + '</div>';
+
+    govde += '<h4 class="gc-title" style="margin-bottom:10px"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Raporda Tespit Edilen Bulgular</h4>';
+    if (bulgular.length) {
+      govde += '<div class="gv-tscroll"><table class="gtable gtable-sm gtable-cards">'
+        + '<thead><tr><th scope="col">Bulgu</th><th scope="col">Önem</th>'
+        + '<th scope="col">Önerilen düzeltici faaliyet</th><th scope="col">Termin</th><th scope="col">Durum</th></tr></thead><tbody>'
+        + bulgular.map(function(u){
+            return '<tr><td data-lbl="Bulgu">' + GV.esc(u.baslik) + '</td>'
+              + '<td data-lbl="Önem">' + onemRozet(u.onem) + '</td>'
+              + '<td data-lbl="Önerilen düzeltici faaliyet"><span class="prt-oneri">' + GV.esc(u.oneri) + '</span></td>'
+              + '<td data-lbl="Termin">' + GV.d(u.termin) + '</td>'
+              + '<td data-lbl="Durum">' + uygunsuzlukRozet(u) + '</td></tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    } else {
+      govde += '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+        + '<span>Bu raporda düzeltilmesi gereken bir bulgu tespit edilmedi.</span></div>';
+    }
+
+    govde += '<div class="gv-note" style="margin-top:18px"><i class="fa-solid fa-stamp" aria-hidden="true"></i>'
+      + '<span>Rapor, ' + GV.esc(window.DEMO.firma.akredite) + ' kapsamında düzenlenmiştir. '
+      + 'Bu ekran raporun portal özetidir; imzalı PDF nüshası resmî belgedir.</span></div>';
+
+    var butonlar = [{ etiket:'Kapat', sinif:'btn-ghost' },
+      { etiket:'PDF İndir', sinif:'btn-acc', ikon:'fa-file-pdf', tikla: function(){
+          gvToast(r.no + '.pdf indirme bağlantısı e-posta adresinize gönderildi (demo).', { ton:'ok' }); } }];
+    if (teknikErisim) {
+      butonlar.splice(1, 0, { etiket:'Ayrıntılı Teknik Rapor', sinif:'btn-ghost', ikon:'fa-up-right-from-square',
+        tikla: function(){ location.href = GV.href('rapor-detay.html?id=' + rid); } });
+    }
+
+    gvModal({ baslik: r.no, ikon:'fa-file-lines', genislik:'gv-modal-xl', govde: govde, butonlar: butonlar });
+  }
+
+  var kolonlar = [
+    { k:'no', ad:'Rapor No', ciz: function(r){
+        return '<div class="gcell-info"><div class="gcell-name">'
+          + '<button type="button" class="btn-link" data-rapor="' + r.id + '">' + GV.esc(r.no) + '</button></div>'
+          + '<div class="gcell-sub">Kendi kodunuz: ' + GV.esc(r.musteriKod) + '</div></div>'; } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(r){ return GV.esc(r.lokasyonAd); } },
+    { k:'kategoriAd', ad:'Hizmet Kategorisi', ciz: function(r){ return GV.esc(r.kategoriAd); } },
+    { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz: function(r){ return GV.d(r.kontrolTarihi); } },
+    { k:'teslimTarihi', ad:'Teslim Tarihi', ciz: function(r){ return GV.d(r.teslimTarihi); } },
+    { k:'sonuc', ad:'Sonuç', ciz: function(r){ return sonucRozet(r.sonuc); } },
+    { k:'uygunsuzlukSayisi', ad:'Bulgu', sinif:'num', ciz: function(r){
+        return r.uygunsuzlukSayisi
+          ? GV.rozetOzel('warn','fa-circle-exclamation', GV.n(r.uygunsuzlukSayisi) + ' bulgu')
+          : GV.rozetOzel('ok','fa-circle-check','Bulgu yok'); } },
+    { k:'versiyon', ad:'Sürüm', ciz: function(r){ return 'v' + GV.n(r.versiyon); } },
+    { k:'__islem', ad:'İşlem', ciz: function(r){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-rapor="' + r.id + '" aria-label="' + GV.esc(r.no) + ' raporunu görüntüle">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+          + '<button class="ia-btn" type="button" data-pdf="' + r.id + '" aria-label="' + GV.esc(r.no) + ' PDF indir">'
+          + '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i></button></div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#prTablo', kolonlar:kolonlar,
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Teslim edilmiş rapor yok',
+      metin:'Aramanıza uyan, size teslim edilmiş bir rapor bulunamadı.' } });
+
+  var pager = gvPager({ hedef:'#prPager', boyut:12, degisti: function(){ ciz(son); } });
+  var son = raporlar;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('#prTablo [data-rapor]').forEach(function(b){
+      b.addEventListener('click', function(){ raporAc(b.getAttribute('data-rapor')); });
+    });
+    document.querySelectorAll('#prTablo [data-pdf]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var r = A.kayit('raporlar', b.getAttribute('data-pdf'));
+        gvToast((r ? r.no : 'Rapor') + '.pdf indirme bağlantısı e-posta adresinize gönderildi (demo).', { ton:'ok' });
+      });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return raporlar; },
+    arama: ['no','lokasyonAd','musteriKod','kategoriAd'],
+    cipler: { alan:'sonuc', secenekler:[
+      { k:'uygun', ad:'Uygun', ikon:'fa-circle-check' },
+      { k:'sartli-uygun', ad:'Şartlı uygun', ikon:'fa-triangle-exclamation' },
+      { k:'uygun-degil', ad:'Uygun değil', ikon:'fa-circle-xmark' }
+    ] },
+    alanlar: [
+      { k:'lokasyonId', ad:'Lokasyon', tur:'coklu',
+        secenekler: loklar.map(function(l){ return { deger:l.id, ad:l.ad }; }) },
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu',
+        secenekler: Array.from(new Set(raporlar.map(function(r){ return r.kategoriId; })))
+          .map(function(k){ var c = A.kayit('hizmetKategorileri', k); return { deger:k, ad: c ? c.ad : k }; }) },
+      { k:'kontrolTarihi', ad:'Kontrol tarihi', tur:'tarih' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* ================= SEKME 2 — UYGUNSUZLUKLAR ================= */
+  var bulgular = A.liste('uygunsuzluklar').filter(function(u){ return kapsamda(u.lokasyonId); })
+    .map(function(u){
+      var l = A.kayit('lokasyonlar', u.lokasyonId);
+      var r = u.raporId ? A.kayit('raporlar', u.raporId) : null;
+      var g = GV.gun(BUGUN, u.termin);
+      return Object.assign({}, u, {
+        lokasyonAd: l ? l.ad : GV.bos,
+        raporNo: r ? r.no : null,
+        gecikti: u.durum !== 'kapandi' && (u.durum === 'gecikti' || (g != null && g < 0))
+      });
+    }).sort(function(a,b){
+      if (a.gecikti !== b.gecikti) return a.gecikti ? -1 : 1;
+      var s = { kritik:0, yuksek:1, orta:2, dusuk:3 };
+      var f = (s[a.onem] == null ? 9 : s[a.onem]) - (s[b.onem] == null ? 9 : s[b.onem]);
+      if (f) return f;
+      return String(a.termin || '9999').localeCompare(String(b.termin || '9999'));
+    });
+
+  var uyTablo = gvTable({ hedef:'#prUyTablo',
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Bulgu bulunamadı', metin:'Seçtiğiniz filtreye uyan uygunsuzluk kaydı yok.' },
+    kolonlar:[
+      { k:'baslik', ad:'Bulgu', ciz: function(u){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(u.baslik) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(u.id + (u.raporNo ? ' · ' + u.raporNo : '')) + '</div></div>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon', ciz: function(u){ return GV.esc(u.lokasyonAd); } },
+      { k:'onem', ad:'Önem', ciz: function(u){ return onemRozet(u.onem); } },
+      { k:'oneri', ad:'Önerilen Düzeltici Faaliyet', ciz: function(u){
+          return '<span class="prt-oneri">' + GV.esc(u.oneri) + '</span>'; } },
+      { k:'termin', ad:'Termin', ciz: function(u){ return GV.d(u.termin); } },
+      { k:'durum', ad:'Durum', ciz: function(u){ return uygunsuzlukRozet(u); } },
+      { k:'__islem', ad:'İşlem', ciz: function(u){
+          return u.durum === 'kapandi'
+            ? '<span class="gtag ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Kapandı</span>'
+            : '<div class="row-acts"><button class="ia-btn" type="button" data-duzeltme="' + u.id + '" aria-label="'
+              + GV.esc(u.baslik) + ' için düzeltme bildir"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></button></div>'; } }
+    ] });
+
+  var uyDurum = 'tumu', uyArama = '';
+  function uySuz(){
+    var q = uyArama.toLocaleLowerCase('tr-TR').trim();
+    return bulgular.filter(function(u){
+      if (uyDurum === 'acik' && (u.durum === 'kapandi' || u.gecikti)) return false;
+      if (uyDurum === 'gecikti' && !u.gecikti) return false;
+      if (uyDurum === 'kapandi' && u.durum !== 'kapandi') return false;
+      if (q) {
+        var alan = (u.baslik + ' ' + u.lokasyonAd + ' ' + u.oneri).toLocaleLowerCase('tr-TR');
+        if (alan.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+  var UY_CIP = [
+    { k:'tumu', ad:'Tümü', ikon:'fa-list' },
+    { k:'gecikti', ad:'Termini geçti', ikon:'fa-clock' },
+    { k:'acik', ad:'Açık', ikon:'fa-hourglass-half' },
+    { k:'kapandi', ad:'Kapatıldı', ikon:'fa-circle-check' }
+  ];
+  function uySay(k){
+    if (k === 'tumu') return bulgular.length;
+    if (k === 'gecikti') return bulgular.filter(function(u){ return u.gecikti; }).length;
+    if (k === 'acik') return bulgular.filter(function(u){ return u.durum !== 'kapandi' && !u.gecikti; }).length;
+    return bulgular.filter(function(u){ return u.durum === 'kapandi'; }).length;
+  }
+  function uyCipCiz(){
+    document.getElementById('prUyCip').innerHTML = UY_CIP.map(function(c){
+      return '<button type="button" class="chip' + (c.k === uyDurum ? ' is-on' : '') + '" data-uycip="' + c.k + '"'
+        + ' aria-pressed="' + (c.k === uyDurum ? 'true' : 'false') + '">'
+        + '<i class="fa-solid ' + c.ikon + '" aria-hidden="true"></i>' + GV.esc(c.ad)
+        + '<span class="ch-cnt">' + GV.n(uySay(c.k)) + '</span></button>';
+    }).join('');
+  }
+  function uyCiz(){
+    uyTablo.ciz(uySuz());
+    document.querySelectorAll('#prUyTablo [data-duzeltme]').forEach(function(b){
+      b.addEventListener('click', function(){ duzeltmeModal(b.getAttribute('data-duzeltme')); });
+    });
+  }
+  uyCipCiz(); uyCiz();
+  document.getElementById('prUyCip').addEventListener('click', function(e){
+    var b = e.target.closest('[data-uycip]');
+    if (!b) return;
+    uyDurum = b.getAttribute('data-uycip');
+    uyCipCiz(); uyCiz();
+  });
+  (function(){
+    var inp = document.getElementById('prUyAra'), z = null;
+    inp.addEventListener('input', function(){
+      clearTimeout(z);
+      z = setTimeout(function(){ uyArama = inp.value; uyCiz(); }, 200);
+    });
+  })();
+
+  function duzeltmeModal(uid){
+    var u = A.kayit('uygunsuzluklar', uid);
+    if (!u) { gvToast('Bulgu kaydı bulunamadı.', { ton:'danger' }); return; }
+    var l = A.kayit('lokasyonlar', u.lokasyonId);
+    gvModal({
+      baslik:'Düzeltme bildir', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
+      metin:'<b>' + GV.esc(u.baslik) + '</b> — ' + GV.esc(l ? l.ad : ''),
+      govde:'<div class="gv-note" style="margin-bottom:16px"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>'
+        + '<span><b>Önerdiğimiz düzeltici faaliyet:</b> ' + GV.esc(u.oneri) + '<br>'
+        + '<b>Termin:</b> ' + GV.d(u.termin) + '</span></div>'
+        + '<div class="gform gform-1">'
+        + '<div class="gfield full"><label for="prDzTarih">Düzeltmenin tamamlandığı tarih</label>'
+        +   '<input type="date" id="prDzTarih" max="' + BUGUN + '" value="' + BUGUN + '"></div>'
+        + '<div class="gfield full"><label for="prDzAciklama">Yapılan işin açıklaması <span class="req" aria-hidden="true">*</span></label>'
+        +   '<textarea id="prDzAciklama" rows="4" placeholder="Örn. Hortum komple değiştirildi, yeni hortumun basınç testi yapıldı. Fatura ve fotoğraflar hazır."></textarea>'
+        +   '<div class="gf-hint">Bildiriminiz teknik ekibimize iletilir; gerekiyorsa yeniden kontrol planlanır.</div>'
+        +   '<div class="gf-err" id="prDzErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+        + '</div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
+            var metin = kap.querySelector('#prDzAciklama').value.trim();
+            if (!metin) { kap.querySelector('#prDzErr').hidden = false; return false; }
+            var tarih = kap.querySelector('#prDzTarih').value || BUGUN;
+            A.ekle('iletisimGecmisi', {
+              id: 'ILT-U' + String(Date.now()).slice(-5),
+              musteriId: musteriId, lokasyonId: u.lokasyonId, kisiId: null,
+              tur: 'uygunsuzluk-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+              konu: 'Müşteri portalı — düzeltme bildirimi (' + u.id + ')',
+              ozet: GV.d(tarih) + ' tarihinde tamamlandı: ' + metin
+            }).then(function(){
+              gvToast('Düzeltme bildiriminiz teknik ekibe iletildi. Doğrulama sonrası bulgu kapatılacaktır.', { ton:'ok' });
+            });
+            kapat(true);
+            return false;
+          } }
+      ]
+    });
+  }
+
+  /* ================= SEKME 3 — YENİDEN KONTROL TALEPLERİ ================= */
+  var YK = {
+    'talep-edildi': ['info','fa-envelope-open','Talebiniz alındı'],
+    'planlandi':    ['warn','fa-calendar-days','Planlandı'],
+    'tamamlandi':   ['ok','fa-circle-check','Tamamlandı'],
+    'iptal':        ['off','fa-xmark','İptal edildi']
+  };
+  function ykRozet(k){ var d = YK[k] || ['off','fa-circle', GV.bos]; return GV.rozetOzel(d[0], d[1], d[2]); }
+
+  var ykTablo = gvTable({ hedef:'#prYkTablo',
+    bosDurum:{ ikon:'fa-rotate-right', baslik:'Yeniden kontrol talebi yok',
+      metin:'Bir bulguyu giderdikten sonra “Yeni Talep” ile yeniden kontrol isteyebilirsiniz.' },
+    kolonlar:[
+      { k:'id', ad:'Talep No', ciz: function(y){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(y.id) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(y.bulguBaslik || GV.bos) + '</div></div>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon', ciz: function(y){ return GV.esc(y.lokasyonAd); } },
+      { k:'talepTarihi', ad:'Talep Tarihi', ciz: function(y){ return GV.d(y.talepTarihi); } },
+      { k:'talepEden', ad:'Talebi Açan', ciz: function(y){
+          return y.talepEden === 'Müşteri'
+            ? GV.rozetOzel('info','fa-building-user','Siz')
+            : GV.rozetOzel('off','fa-helmet-safety','GAVIA Teknik'); } },
+      { k:'planTarihi', ad:'Planlanan Tarih', ciz: function(y){ return GV.d(y.planTarihi); } },
+      { k:'ucretli', ad:'Ücret', ciz: function(y){
+          /* Talep anında ücret durumu belirsizdir; null "belirlenecek" demektir.
+             Sisteme false yazmak müşteriye ücretsizlik taahhüdü üretir. */
+          if (y.ucretli == null) return GV.rozetOzel('off','fa-hourglass-half','Belirlenecek');
+          return y.ucretli
+            ? GV.rozetOzel('warn','fa-tag','Ücretli — teklif iletilir')
+            : GV.rozetOzel('ok','fa-circle-check','Sözleşme kapsamında'); } },
+      { k:'durum', ad:'Durum', ciz: function(y){ return ykRozet(y.durum); } }
+    ] });
+
+  function ykCiz(){
+    var liste = A.liste('yenidenKontroller').filter(function(y){ return kapsamda(y.lokasyonId); })
+      .map(function(y){
+        var l = A.kayit('lokasyonlar', y.lokasyonId);
+        var u = y.uygunsuzlukId ? A.kayit('uygunsuzluklar', y.uygunsuzlukId) : null;
+        return Object.assign({}, y, { lokasyonAd: l ? l.ad : GV.bos, bulguBaslik: u ? u.baslik : null });
+      })
+      .sort(function(a,b){ return String(b.talepTarihi).localeCompare(String(a.talepTarihi)); });
+    ykTablo.ciz(liste);
+  }
+  ykCiz();
+
+  document.getElementById('prYeniTalep').addEventListener('click', function(){
+    var acikBulgular = bulgular.filter(function(u){ return u.durum !== 'kapandi'; });
+    gvModal({
+      baslik:'Yeniden kontrol talebi', ikon:'fa-rotate-right', genislik:'gv-modal-lg',
+      metin:'Giderdiğiniz bir bulgunun yerinde doğrulanmasını talep edin. Ekibimiz uygun tarihi teyit ederek dönüş yapar.',
+      govde:'<div class="gform form-grid">'
+        + '<div class="gfield full"><label for="prYkLok">Lokasyon <span class="req" aria-hidden="true">*</span></label>'
+        +   '<select id="prYkLok">'
+        +     loklar.map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad + ' (' + l.musteriKod + ')') + '</option>'; }).join('')
+        +   '</select></div>'
+        + '<div class="gfield full"><label for="prYkBulgu">İlgili bulgu</label>'
+        +   '<select id="prYkBulgu"><option value="">Belirli bir bulguya bağlı değil</option>'
+        +     acikBulgular.map(function(u){
+                return '<option value="' + u.id + '" data-lok="' + u.lokasyonId + '">'
+                  + GV.esc(u.id + ' — ' + u.baslik) + '</option>'; }).join('')
+        +   '</select></div>'
+        + '<div class="gfield"><label for="prYkTarih">Tercih ettiğiniz tarih</label>'
+        +   '<input type="date" id="prYkTarih" min="' + BUGUN + '"></div>'
+        + '<div class="gfield full"><label for="prYkAciklama">Açıklama <span class="req" aria-hidden="true">*</span></label>'
+        +   '<textarea id="prYkAciklama" rows="3" placeholder="Örn. Yangın pompası onarıldı, otomatik devreye girme testi için ziyaret talep ediyoruz."></textarea>'
+        +   '<div class="gf-err" id="prYkErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+        + '</div>'
+        + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+        + '<span>Talep sözleşme kapsamındaysa ek ücret alınmaz. Kapsam dışı kalırsa önce yazılı fiyat bilgisi iletilir, onayınız olmadan ziyaret planlanmaz.</span></div>',
+      butonlar:[
+        { etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Talebi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
+            var aciklama = kap.querySelector('#prYkAciklama').value.trim();
+            if (!aciklama) { kap.querySelector('#prYkErr').hidden = false; return false; }
+            var lid = kap.querySelector('#prYkLok').value;
+            var uid = kap.querySelector('#prYkBulgu').value || null;
+            var tercih = kap.querySelector('#prYkTarih').value || null;
+            A.ekle('yenidenKontroller', {
+              id: 'YKN-U' + String(Date.now()).slice(-5),
+              uygunsuzlukId: uid, lokasyonId: lid,
+              talepTarihi: BUGUN, talepEden: 'Müşteri',
+              planTarihi: tercih, durum: 'talep-edildi', ucretli: null,
+              aciklama: aciklama + (tercih ? ' (Müşterinin tercih ettiği tarih: ' + GV.d(tercih) + ')' : '')
+            }).then(function(){
+              gvToast('Yeniden kontrol talebiniz alındı. Planlama ekibi tarihi teyit edip dönüş yapacak.', { ton:'ok' });
+              ykCiz();
+            });
+            kapat(true);
+            return false;
+          } }
+      ]
+    });
+  });
+})();
+</script>
+</body>
+</html>

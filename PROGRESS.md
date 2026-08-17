@@ -84,9 +84,20 @@
 - [x] Yetkinliği olmayan personel atanamaz (`demoApi.personelAtanabilir`; belge süresi dolmuşsa da engel)
 - [x] `components.js` gvTable seçim dinleyicisi sızıntısı giderildi (her çizimde yeniden bağlanıyordu)
 
-## FAZ 9 — Kalite ve Portal
-- [ ] kalite-dokumanlari / denetimler / duzeltici-faaliyetler / musteri-sikayetleri
-- [ ] musteri-portali / portal-lokasyonlar / portal-raporlar / portal-faturalar
+## FAZ 9 — Kalite ve Portal ✅
+- [x] kalite-dokumanlari (sürüm geçmişi, yayın onayı, geçerlilik takibi)
+- [x] denetimler / duzeltici-faaliyetler / musteri-sikayetleri
+- [x] musteri-portali / portal-lokasyonlar / portal-raporlar / portal-faturalar
+- [x] Portal iç panelden sade: toplu işlem yok, kolon seçici yok, jargon yok
+- [x] Portalda taşeron maliyeti / iç maliyet / kârlılık HİÇ okunmuyor (test edildi)
+- [x] Portalda yalnız `teslim-edildi` / `imzalandi` rapor görünüyor; hazırlıktakiler yalnız sayı olarak
+- [x] Kapsam `rolKapsami` / `kapsamaGoreLokasyonlar` ile sınırlı (başka müşteri kaydı sabit kodlu değil)
+- [x] Süreli salt-okunur denetçi erişimi (PRT-005, bitiş 30.09.2026) yüzeye çıkarıldı
+- [x] Veri düzeltmesi: denetim `bulguSayisi` = majör + minör (gözlem bulgu sayılmaz) — DNT-001/004 hizalandı
+- [x] Sapma düzeltmesi: subagent'ın uydurduğu `.gc-linkbtn` → ortak `.btn-link`
+- [x] İş kuralı düzeltmesi: müşterinin açtığı yeniden kontrol talebinde `ucretli` artık `null`
+      ("Belirlenecek") — talep anında `false` yazmak müşteriye ücretsizlik taahhüdü üretiyordu
+      (portal-raporlar, onaylar, raporlar birlikte hizalandı)
 
 ## FAZ 10 — Sistem
 - [ ] raporlar / ayarlar / roller-yetkiler / islem-kayitlari
