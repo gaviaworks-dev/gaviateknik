@@ -19,21 +19,21 @@
 - [x] `.gitignore` (`_docs/`, `.DS_Store`)
 - [x] `PROGRESS.md`
 - [x] `CLAUDE.md`
-- [ ] Public repo + GitHub Pages yayında
+- [x] Public repo + GitHub Pages yayında
 
 ## FAZ 1 — Altyapı
-- [ ] `assets/css/gavia-ui.css` (:root değişken bloğu birebir + kabuk)
-- [ ] `assets/css/components.css`
-- [ ] `assets/css/responsive.css` (1100/980/640/480)
-- [ ] `assets/css/print.css`
-- [ ] `assets/js/app.js` (boot, rol motoru, TR formatlayıcılar, store)
-- [ ] `assets/js/navigation.js` (rail + modül menüsü + topbar enjeksiyonu)
-- [ ] `assets/js/components.js`
-- [ ] `assets/js/filters.js`
-- [ ] `assets/js/forms.js`
-- [ ] `assets/js/demo-api.js` (gerçek API'ye ayrık geçiş katmanı)
-- [ ] `assets/js/demo-data.js`
-- [ ] localStorage: menü tercihi + demo kayıt kalıcılığı
+- [x] `assets/css/gavia-ui.css` (:root değişken bloğu birebir + kabuk)
+- [x] `assets/css/components.css`
+- [x] `assets/css/responsive.css` (1100/980/640/480)
+- [x] `assets/css/print.css`
+- [x] `assets/js/app.js` (boot, rol motoru, TR formatlayıcılar, store)
+- [x] `assets/js/navigation.js` (rail + modül menüsü + topbar enjeksiyonu)
+- [x] `assets/js/components.js`
+- [x] `assets/js/filters.js`
+- [x] `assets/js/forms.js`
+- [x] `assets/js/demo-api.js` (gerçek API'ye ayrık geçiş katmanı)
+- [x] `assets/js/demo-data.js`
+- [x] localStorage: menü tercihi + demo kayıt kalıcılığı
 
 ## FAZ 2 — Ana Panel
 - [ ] index.html (rol seçimli giriş kapısı)

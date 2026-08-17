@@ -1,0 +1,385 @@
+/* =====================================================================
+   GAVIA — PERİYODİK KONTROL YÖNETİMİ · ÇEKİRDEK ARAYÜZ
+   Tasarım belirteçleri (:root) + reset + kabuk (rail / modül menüsü /
+   üst bar / içerik alanı) + tipografi temelleri.
+   Bu dosya tek kaynaktır; renk/ölçü değişikliği yalnız burada yapılır.
+   ===================================================================== */
+
+:root {
+  --gv-deep: #020837;
+  --gv-dark: #0A0E27;
+  --gv-night: #141533;
+  --gv-border-dark: #1F2740;
+
+  --gv-mint: #3FD5AD;
+  --gv-mint-bright: #4FE5BD;
+  --gv-action: #0E8C6D;
+  --gv-action-deep: #0B7A5F;
+
+  --bg: #F4F6F9;
+  --paper: #FFFFFF;
+  --ink: #111528;
+  --ink-2: #3D4258;
+  --muted: #69708A;
+
+  --line: #E4E7EE;
+  --line-2: #CDD2DE;
+
+  --success: #2E9E6B;
+  --success-tint: #E6F5EE;
+  --warning: #A97908;
+  --warning-tint: #FCF3DD;
+  --danger: #D14343;
+  --danger-tint: #FBEAEA;
+  --info: #3B6FD4;
+  --info-tint: #EAF0FB;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  --shadow-sm:
+    0 1px 2px rgba(17, 21, 40, 0.04),
+    0 2px 6px rgba(17, 21, 40, 0.05);
+
+  --shadow-md:
+    0 6px 22px rgba(17, 21, 40, 0.09);
+
+  --rail-width: 76px;
+  --menu-width: 264px;
+  --topbar-height: 64px;
+  --font: "Manrope", system-ui, -apple-system, sans-serif;
+}
+
+/* ---- türev yardımcı belirteçler (yukarıdaki blok dokunulmaz kalsın diye ayrı) ---- */
+:root {
+  --mint-rgb: 63, 213, 173;
+  --side-width: calc(var(--rail-width) + var(--menu-width));
+  --shadow-lg: 0 18px 50px rgba(17, 21, 40, .16);
+  --radius-circle: 50%;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --on-dark: rgba(233, 238, 241, .78);
+  --on-dark-mut: rgba(233, 238, 241, .52);
+  --on-dark-faint: rgba(233, 238, 241, .38);
+  --on-dark-strong: #E9EEF1;
+  --hair: rgba(233, 238, 241, .09);
+}
+
+/* ============ RESET / TEMEL ============ */
+* { margin: 0; padding: 0; box-sizing: border-box }
+
+html { scroll-behavior: smooth }
+html.gv-scroll-locked { overflow: hidden }
+
+body {
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4, h5 {
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.18;
+  letter-spacing: -.02em;
+}
+
+a { color: inherit; text-decoration: none }
+img { display: block; max-width: 100% }
+button, input, select, textarea { font-family: inherit }
+[hidden] { display: none !important }
+
+.muted { color: var(--muted) }
+.num { font-variant-numeric: tabular-nums }
+.nowrap { white-space: nowrap }
+.gv-ellip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.gv-ellip-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+
+.gv-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:focus-visible { outline: 2px solid var(--gv-action); outline-offset: 2px }
+.gv-rail :focus-visible, .gv-menu :focus-visible { outline-color: var(--gv-mint) }
+
+/* modal / çekmece açıkken arka sayfa kaymaz */
+body:has([class*="modal-ov"].open, [class*="fpanel-ov"].open) { overflow: hidden }
+
+.gv-app { min-height: 100vh }
+
+/* ============ 1) İKON RAIL — 76px, --gv-deep ============ */
+.gv-rail {
+  position: fixed; inset: 0 auto 0 0; width: var(--rail-width); z-index: 85;
+  background: var(--gv-deep);
+  background-image: radial-gradient(260px 240px at 50% -8%, rgba(var(--mint-rgb), .14), transparent 62%);
+  border-right: 1px solid rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 18px 0; gap: 6px;
+}
+.gv-rail-logo {
+  width: 46px; height: 46px; border-radius: 13px; margin-bottom: 8px; flex: none;
+  display: grid; place-items: center;
+  font-size: 21px; font-weight: 800; letter-spacing: -.03em;
+  color: var(--gv-mint);
+  background: rgba(var(--mint-rgb), .12);
+  border: 1px solid rgba(var(--mint-rgb), .28);
+  transition: .2s var(--ease);
+}
+.gv-rail-logo:hover { background: rgba(var(--mint-rgb), .2) }
+.gv-rail-div { width: 30px; height: 1px; background: var(--hair); margin: 6px 0; flex: none }
+.gv-rail-ico {
+  position: relative; width: 48px; height: 48px; border-radius: 14px; flex: none;
+  display: grid; place-items: center;
+  font-size: 18px; color: var(--on-dark-mut);
+  cursor: pointer; transition: .2s var(--ease);
+}
+.gv-rail-ico:hover { background: rgba(255, 255, 255, .07); color: #fff }
+.gv-rail-ico.is-active { background: rgba(var(--mint-rgb), .18); color: var(--gv-mint) }
+.gv-rail-ico.is-active::before {
+  content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 3px;
+  background: var(--gv-mint); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.gv-rail-nav { display: flex; flex-direction: column; align-items: center; gap: 6px; overflow-y: auto; overflow-x: hidden; width: 100%; scrollbar-width: none }
+.gv-rail-nav::-webkit-scrollbar { display: none }
+.gv-rail-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 10px }
+
+/* rail ipucu — sağa açılır */
+.gv-rail [data-tip] { position: relative }
+.gv-rail [data-tip]::after {
+  content: attr(data-tip); position: absolute; left: calc(100% + 12px); top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  background: var(--gv-dark); color: var(--on-dark-strong);
+  font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  padding: 6px 11px; border-radius: 8px;
+  border: 1px solid var(--gv-border-dark); box-shadow: var(--shadow-md);
+  opacity: 0; pointer-events: none; z-index: 90;
+  transition: opacity .15s var(--ease), transform .15s var(--ease);
+}
+.gv-rail [data-tip]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0) }
+
+.gv-sig {
+  height: 30px; padding: 0 8px; border-radius: 9px; display: grid; place-items: center;
+  color: var(--on-dark-strong); font-size: 9.5px; font-weight: 700; letter-spacing: .14em;
+  opacity: .42; transition: .2s var(--ease);
+}
+.gv-sig:hover { opacity: 1; background: rgba(255, 255, 255, .06) }
+
+/* ============ 2) MODÜL MENÜSÜ — 264px, --gv-night ============ */
+.gv-menu {
+  position: fixed; top: 0; bottom: 0; left: var(--rail-width); width: var(--menu-width); z-index: 80;
+  background: var(--gv-night);
+  background-image: radial-gradient(360px 260px at -10% -6%, rgba(var(--mint-rgb), .13), transparent 60%);
+  border-right: 1px solid rgba(0, 0, 0, .3);
+  display: flex; flex-direction: column; overflow: hidden;
+  transition: width .26s var(--ease), opacity .2s var(--ease);
+}
+.gv-menu-head {
+  height: var(--topbar-height); flex: none; padding: 0 20px;
+  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  border-bottom: 1px solid var(--hair); white-space: nowrap;
+}
+.gmh-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--gv-mint) }
+.gmh-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.01em }
+.gv-mnav { flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 3px }
+.gv-msec {
+  font-size: 11px; font-weight: 700; letter-spacing: .02em; color: var(--on-dark-faint);
+  padding: 15px 12px 7px; white-space: nowrap;
+}
+.gv-mlink {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius-md); white-space: nowrap;
+  font-size: 13.5px; font-weight: 500; color: var(--on-dark);
+  cursor: pointer; transition: .18s var(--ease);
+}
+.gv-mlink i { width: 20px; flex: none; text-align: center; font-size: 15px; color: var(--on-dark-mut); transition: .18s var(--ease) }
+.gv-mlink:hover { background: rgba(255, 255, 255, .06); color: #fff }
+.gv-mlink:hover i { color: var(--gv-mint) }
+.gv-mlink.is-active { background: rgba(var(--mint-rgb), .15); color: #fff; font-weight: 700 }
+.gv-mlink.is-active i { color: var(--gv-mint) }
+.gv-mlink.is-active::before {
+  content: ""; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px;
+  background: var(--gv-mint); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.gv-mlink .ml-cnt {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--gv-mint); color: var(--gv-deep);
+}
+.gv-mlink .ml-cnt.alarm { background: var(--danger); color: #fff }
+.gv-menu-foot { padding: 12px 14px; border-top: 1px solid var(--hair); display: flex; flex-direction: column; gap: 3px }
+.gv-menu-foot .gv-mlink { font-size: 13px }
+
+/* ============ KATLAMA SEKMESİ ============ */
+.gv-divider {
+  position: fixed; top: 0; bottom: 0; left: var(--side-width); width: 26px;
+  transform: translateX(-13px); z-index: 84; cursor: ew-resize;
+  transition: left .26s var(--ease);
+}
+.gv-grip {
+  position: absolute; top: 50%; left: 3px; transform: translateY(-50%);
+  width: 22px; height: 54px; border-radius: 0 10px 10px 0;
+  display: flex; align-items: center; justify-content: center; padding-left: 7px;
+  background: var(--gv-night); border: 1px solid var(--hair); border-left: none;
+  color: var(--on-dark); box-shadow: 6px 0 16px rgba(0, 0, 0, .26);
+  transition: border-color .18s var(--ease), color .18s var(--ease);
+}
+.gv-grip::after {
+  font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 15px; line-height: 1;
+  content: "\f104";
+}
+.gv-divider:hover .gv-grip, .gv-divider.is-drag .gv-grip {
+  color: var(--gv-mint); border-color: rgba(var(--mint-rgb), .6);
+}
+@media (min-width: 981px) {
+  body.gv-collapsed .gv-menu { width: 0; opacity: 0; pointer-events: none; border-right-color: transparent }
+  body.gv-collapsed .gv-top { left: var(--rail-width) }
+  body.gv-collapsed .gv-main { margin-left: var(--rail-width) }
+  body.gv-collapsed .gv-divider { left: var(--rail-width); z-index: 86 }
+  body.gv-collapsed .gv-grip { background: var(--gv-deep) }
+  body.gv-collapsed .gv-grip::after { content: "\f105" }
+}
+
+/* ============ 3) ÜST BAR — 64px ============ */
+.gv-top {
+  position: fixed; top: 0; left: var(--side-width); right: 0; z-index: 70;
+  height: var(--topbar-height); padding: 0 28px;
+  background: var(--paper); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 14px;
+  transition: left .26s var(--ease);
+}
+.gv-burger {
+  display: none; width: 40px; height: 40px; flex: none;
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--paper); color: var(--ink); font-size: 16px; cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.gv-search { position: relative; flex: 1; max-width: 440px; min-width: 0 }
+.gv-search > i {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 13.5px; color: var(--muted); pointer-events: none;
+}
+.gv-search input {
+  width: 100%; height: 40px; padding: 0 14px 0 38px;
+  font-size: 13.5px; font-weight: 500; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md);
+  outline: none; transition: .2s var(--ease);
+}
+.gv-search input::placeholder { color: var(--muted) }
+.gv-search input:focus {
+  border-color: var(--gv-mint); background: var(--paper);
+  box-shadow: 0 0 0 3px rgba(var(--mint-rgb), .14);
+}
+
+.gv-top-tools { margin-left: auto; display: flex; align-items: center; gap: 10px }
+.gv-iconbtn {
+  position: relative; width: 40px; height: 40px; flex: none;
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--paper); color: var(--ink-2); font-size: 15px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: .2s var(--ease);
+}
+.gv-iconbtn:hover { border-color: var(--gv-action); color: var(--gv-action) }
+.gv-iconbtn .gb-cnt {
+  position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--radius-pill); background: var(--danger); color: #fff;
+  border: 2px solid var(--paper);
+  font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.gv-langbtn { font-size: 11.5px; font-weight: 800; letter-spacing: .01em }
+
+.gv-top [data-tip] { position: relative }
+.gv-top [data-tip]::after {
+  content: attr(data-tip); position: absolute; top: calc(100% + 9px); left: 50%;
+  transform: translateX(-50%) translateY(-3px);
+  background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  padding: 6px 10px; border-radius: 8px; box-shadow: var(--shadow-md);
+  opacity: 0; pointer-events: none; z-index: 130;
+  transition: opacity .15s var(--ease), transform .15s var(--ease);
+}
+.gv-top [data-tip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(0) }
+
+/* kullanıcı çipi */
+.gv-me {
+  position: relative; display: flex; align-items: center; gap: 11px;
+  padding: 6px 8px 6px 6px; border-radius: var(--radius-md);
+  background: none; border: none; cursor: pointer; text-align: left;
+  transition: .2s var(--ease);
+}
+.gv-me:hover, .gv-me[aria-expanded="true"] { background: var(--bg) }
+.gv-me[aria-expanded="true"] > .me-caret { transform: rotate(180deg) }
+.gv-me .me-ava {
+  width: 36px; height: 36px; border-radius: var(--radius-circle); flex: none;
+  display: grid; place-items: center; font-size: 12.5px; font-weight: 800;
+  background: rgba(var(--mint-rgb), .14); color: var(--gv-action);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--gv-mint);
+}
+.gv-me .me-id { line-height: 1.25; min-width: 0 }
+.gv-me .me-name { font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap }
+.gv-me .me-role { font-size: 11.5px; color: var(--muted); white-space: nowrap }
+.gv-me .me-caret { font-size: 11px; color: var(--muted); transition: .2s var(--ease) }
+
+/* ============ 4) İÇERİK ALANI ============ */
+.gv-main {
+  margin-left: var(--side-width);
+  padding: calc(var(--topbar-height) + 26px) 28px 52px;
+  min-height: 100vh;
+  transition: margin-left .26s var(--ease);
+}
+.gv-overlay {
+  position: fixed; inset: 0; z-index: 79; background: rgba(2, 8, 55, .5);
+  opacity: 0; pointer-events: none; transition: .25s;
+}
+
+.gv-crumbs {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 14px; font-size: 12px; color: var(--muted); min-width: 0;
+}
+.gv-crumbs a { color: var(--muted) }
+.gv-crumbs a:hover { color: var(--gv-action); text-decoration: underline }
+.gv-crumbs .gvc-sep { font-size: 9px; opacity: .55 }
+.gv-crumbs .gvc-mod, .gv-crumbs .gvc-kayit { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw }
+.gv-crumbs .gvc-kayit { color: var(--ink); font-weight: 600 }
+
+.gv-page-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.gv-page-head h1 { font-size: 24px }
+.gv-page-head .ph-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: var(--gv-action); margin-bottom: 6px }
+.gv-page-head .ph-sub { margin-top: 5px; font-size: 13.5px; color: var(--muted); max-width: 680px }
+.gv-page-head .ph-actions { display: flex; gap: 10px; flex: none; flex-wrap: wrap }
+
+/* dikey bölüm ayracı */
+.gv-botsec { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--line) }
+.gv-botsec-h {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 16px;
+}
+.gv-botsec-h i { color: var(--gv-action); font-size: 13px }
+.gv-botsec-h .bs-sub { font-size: 12.5px; font-weight: 500; color: var(--muted) }
+
+/* iki kolonlu düzenler */
+.gv-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start }
+.gv-cols > * { min-width: 0 }
+.gv-side-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0 }
+.dash-cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start }
+.dash-cols > * { min-width: 0 }
+
+/* yardımcı ızgaralar */
+.gv-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+.gv-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
+.gv-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
+.gv-stack { display: flex; flex-direction: column; gap: 16px }
+.gv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+.gv-cap { max-height: var(--gv-cap, 340px); overflow-y: auto; overscroll-behavior: contain }
+.gv-cap-sm { --gv-cap: 240px }
+.gv-cap-lg { --gv-cap: 460px }

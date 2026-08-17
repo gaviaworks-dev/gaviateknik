@@ -1,0 +1,86 @@
+/* =====================================================================
+   GAVIA — YAZDIRMA DÜZENİ
+   Kural: yazdırmada sol menü, üst bar, filtreler, sekmeler ve aksiyon
+   butonları GÖRÜNMEZ. Yalnız kurumsal rapor gövdesi basılır.
+   ===================================================================== */
+
+@media print {
+  @page { size: A4 portrait; margin: 14mm 12mm 16mm }
+
+  html, body { background: #fff !important; color: #000 }
+  body { font-size: 10.5pt; line-height: 1.5; overflow: visible !important }
+
+  /* ---- kabuk ve etkileşim öğeleri basılmaz ---- */
+  .gv-rail, .gv-menu, .gv-divider, .gv-overlay, .gv-top,
+  .gv-crumbs, .gv-page-head .ph-actions, .gv-tabbar, .gv-seg,
+  .gv-listhead, .filter-bar, .chips, .gv-achips-row, .gv-bulk-bar,
+  .gv-pager, .row-acts, .rec-acts, .form-foot, .gv-fpanel-ov,
+  .gv-modal-ov, .gv-toast-wrap, .gv-pop, .gv-drop, .btn,
+  .no-print, .gv-empty .ge-acts, .fw-actionbar, .fw-sticky-top {
+    display: none !important;
+  }
+
+  .print-only { display: revert !important }
+
+  /* ---- içerik tam genişlik ---- */
+  .gv-main { margin-left: 0 !important; padding: 0 !important; min-height: 0 }
+  .gv-app { display: block }
+  .gv-cols, .form-grid, .dash-cols, .gv-grid-2, .gv-grid-3, .gv-grid-4 { display: block }
+  .gv-side-stack { display: block }
+
+  /* ---- kart çerçeveleri sadeleşir ---- */
+  .gv-card, .pr-doc, .rec-head {
+    border: 1px solid #C9CDD8 !important; border-radius: 0 !important;
+    box-shadow: none !important; break-inside: avoid; margin-bottom: 8mm;
+  }
+  .pr-doc { max-width: none; padding: 0; border: none !important }
+  .gc-head { border-bottom: 1px solid #C9CDD8; padding: 6px 0 }
+  .gc-body { padding: 8px 0 }
+  .gc-foot { display: none }
+
+  /* ---- rapor başlığı her sayfada ---- */
+  .pr-head { border-bottom: 2px solid #000; margin-bottom: 6mm }
+  .pr-logo { background: #020837 !important; color: #3FD5AD !important; -webkit-print-color-adjust: exact; print-color-adjust: exact }
+  .pr-sec { break-inside: avoid; margin-bottom: 6mm }
+  .pr-sec-h { border-bottom: 1px solid #666; color: #000 }
+  .pr-sign { break-inside: avoid; margin-top: 10mm }
+  .pr-notes { font-size: 8pt }
+
+  /* ---- tablolar ---- */
+  .gtable, .rec-table { min-width: 0 !important; width: 100%; font-size: 9pt; break-inside: auto }
+  .gtable thead { display: table-header-group }
+  .gtable tfoot { display: table-footer-group }
+  .gtable tr { break-inside: avoid }
+  .gtable th {
+    background: #EFF1F5 !important; color: #000; font-size: 8pt;
+    border-bottom: 1px solid #666; padding: 5px 6px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .gtable td { padding: 5px 6px; border-bottom: 1px solid #DDE0E8; color: #000 }
+  .gtable th:first-child, .gtable td:first-child { padding-left: 0 }
+  .gtable th:last-child, .gtable td:last-child { padding-right: 0 }
+  .gv-tscroll, .gc-body.flush { overflow: visible !important }
+  .gc-body.flush::before, .gc-body.flush::after { display: none }
+
+  /* ---- rozetler: renk yerine çerçeve + metin (siyah-beyaz baskı) ---- */
+  .gstat, .gtag, .diff {
+    border: 1px solid #999 !important; background: #fff !important; color: #000 !important;
+    padding: 1px 6px; font-size: 8.5pt;
+  }
+  .gstat i, .gtag i, .diff i { color: #000 !important }
+
+  /* ---- fotoğraflar ---- */
+  .gv-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm }
+  .gv-photo { border: 1px solid #C9CDD8; -webkit-print-color-adjust: exact; print-color-adjust: exact }
+
+  /* ---- sayfa kırılımı yardımcıları ---- */
+  .print-break { break-before: page }
+  .print-avoid { break-inside: avoid }
+
+  h1, h2, h3, h4 { break-after: avoid; color: #000 }
+  a { color: #000; text-decoration: none }
+  .gv-note { border: 1px solid #999 !important; background: #fff !important }
+  .gv-chain, .act-list { break-inside: avoid }
+  .chain-step::before { background: #999 }
+  .cs-node { border-color: #999 !important; background: #fff !important; color: #000 !important }
+}

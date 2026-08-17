@@ -1,0 +1,190 @@
+/* =====================================================================
+   GAVIA — RESPONSIVE KURALLAR
+   Kırılım eşikleri dokümandan birebir: 1100 / 980 / 640 / 480.
+   Bu dosya en son yüklenir; kırılımlar önceki dosyaların kurallarını ezer.
+   ===================================================================== */
+
+/* ============ ≤1280px — yoğunluk ============ */
+@media (max-width: 1280px) {
+  .kpi-num { font-size: 22px }
+  .gv-cols { grid-template-columns: minmax(0, 1fr) 300px }
+  .form-grid { grid-template-columns: minmax(0, 1fr) 290px }
+}
+
+/* ============ ≤1100px — iki kolon → tek kolon ============ */
+@media (max-width: 1100px) {
+  .gv-cols, .form-grid, .dash-cols { grid-template-columns: minmax(0, 1fr) }
+  .gv-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .gv-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .gform { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  /* dashboard sağ kolonu ana içeriğin ALTINA iner */
+  .dash-cols > .dash-side { order: 2 }
+}
+
+/* ============ ≤980px — sol navigasyon off-canvas ============ */
+@media (max-width: 980px) {
+  .gv-rail { transform: translateX(-100%); transition: transform .28s var(--ease) }
+  .gv-menu { transform: translateX(calc(-100% - var(--rail-width))); transition: transform .28s var(--ease) }
+  body.nav-open .gv-rail, body.nav-open .gv-menu { transform: translateX(0) }
+  body.nav-open .gv-overlay { opacity: 1; pointer-events: auto }
+
+  .gv-top { left: 0; padding: 0 16px }
+  .gv-burger { display: inline-flex }
+  .gv-divider { display: none }
+  .gv-main { margin-left: 0; padding: calc(var(--topbar-height) + 20px) 16px 44px }
+
+  .gv-me .me-id, .gv-me .me-caret { display: none }
+
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+  .gv-grid-2, .gv-grid-3, .gv-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .gform { grid-template-columns: minmax(0, 1fr) }
+  .linerow-head { display: none }
+  .linerow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 14px }
+  .linerow > * { min-width: 0 }
+  .linerow .lr-wide { grid-column: 1 / -1 }
+  .cal-day { min-height: 92px }
+  .tl-row { grid-template-columns: 130px minmax(0, 1fr) }
+  .pr-sign { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+}
+
+/* ============ ≤640px — mobil kart tabloları ============ */
+@media (max-width: 640px) {
+  .gv-top { gap: 8px }
+  .gv-search { max-width: none; min-width: 104px }
+  .gv-top-tools { gap: 6px }
+  .gv-top-tools .gv-langbtn { display: none }
+
+  .gv-page-head h1 { font-size: 20px }
+  .gv-page-head .ph-actions { flex-wrap: wrap; width: 100% }
+  .gv-page-head .ph-actions .btn { flex: 1 1 auto; justify-content: center }
+  .gv-crumbs .gvc-sec, .gv-crumbs .gvc-sec + .gvc-sep { display: none }
+
+  .gc-head, .gc-body, .act-row, .lh-row, .gv-pager, .gv-bulk-bar, .gv-achips-row { padding-left: 16px; padding-right: 16px }
+  .lh-chiprow { padding-left: 16px; padding-right: 16px }
+  .gc-body.flush { padding: 0 }
+  .gtable th:first-child, .gtable td:first-child { padding-left: 16px }
+  .gtable th:last-child, .gtable td:last-child { padding-right: 16px }
+
+  .kpi-num { font-size: 21px }
+  .gv-grid-2, .gv-grid-3, .gv-grid-4 { grid-template-columns: minmax(0, 1fr) }
+  .info-grid { grid-template-columns: minmax(0, 1fr) }
+
+  /* filtre araçları alt alta */
+  .lh-row { flex-direction: column; align-items: stretch }
+  .lh-search { max-width: none }
+  .lh-acts { margin-left: 0; justify-content: space-between }
+  .lh-acts .btn { flex: 1 1 auto; justify-content: center }
+  .gv-achips-acts { width: 100%; margin-left: 0; justify-content: space-between }
+
+  /* sayfalama sadeleşir */
+  .gv-pager { padding: 12px 16px }
+  .pg-num, .pg-gap { display: none }
+  .pg-compact { display: inline-flex }
+
+  /* toplu işlem çubuğu ekranın altında sabit */
+  .gv-bulk-bar.is-sticky {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+    background: var(--paper); border-top: 1px solid var(--line); border-bottom: none;
+    box-shadow: 0 -6px 22px rgba(17, 21, 40, .12);
+  }
+  .gv-bulk-bar.is-sticky .gvb-acts { width: 100%; margin-left: 0 }
+  .gv-bulk-bar.is-sticky .gvb-acts .btn { flex: 1 1 auto; justify-content: center }
+
+  .gv-toast-wrap { left: 16px; right: 16px; align-items: stretch }
+  .gv-toast { max-width: none }
+
+  .form-foot { padding: 14px 16px }
+  .form-foot .btn { flex: 1 1 auto; justify-content: center }
+  .form-foot .foot-left { width: 100%; margin-right: 0; margin-bottom: 4px }
+
+  .rec-head { padding: 16px }
+  .rec-acts { width: 100%; margin-left: 0 }
+  .rec-acts .btn { flex: 1 1 auto; justify-content: center }
+
+  .gv-modal { padding: 20px }
+  .gv-modal-acts .btn { flex: 1 1 auto; justify-content: center }
+
+  .pr-doc { padding: 20px 16px }
+  .pr-head { flex-direction: column; gap: 12px }
+  .pr-meta { text-align: left }
+  .pr-sign { grid-template-columns: minmax(0, 1fr); gap: 22px }
+
+  .cal-grid { border-radius: var(--radius-sm) }
+  .cal-day { min-height: 72px; padding: 5px }
+  .cal-ev { font-size: 10px; padding: 3px 5px }
+  .tl-row { grid-template-columns: minmax(0, 1fr); gap: 7px }
+
+  /* ---- tablo → mobil kart (opt-in: .gtable-cards + td[data-lbl]) ---- */
+  .gtable-cards { min-width: 0; display: block }
+  .gtable-cards thead { display: none }
+  .gtable-cards tbody, .gtable-cards tr { display: block; width: 100% }
+  .gtable-cards tr {
+    margin: 0 0 12px; padding: 6px 14px;
+    border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--paper);
+  }
+  .gtable-cards tbody tr:hover td { background: none }
+  .gtable-cards td {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+    padding: 8px 0 !important; text-align: right !important; border-bottom: 1px dashed var(--line);
+  }
+  .gtable-cards tr td:last-child { border-bottom: none }
+  .gtable-cards td::before {
+    content: attr(data-lbl); flex: none;
+    font-size: 11px; font-weight: 700; letter-spacing: .02em; color: var(--muted);
+    text-align: left; white-space: nowrap;
+  }
+  .gtable-cards td[data-lbl=""]::before, .gtable-cards td:not([data-lbl])::before { content: none }
+  .gtable-cards td .gcell { justify-content: flex-end; text-align: left }
+  .gtable-cards td .row-acts { justify-content: flex-end }
+  .gtable-cards .gv-bulk-td { justify-content: flex-start }
+  .gtable-cards tfoot { display: block }
+  .gtable-cards tfoot tr { background: var(--bg) }
+
+  /* mutabakat gibi çok kolonlu tablolar kartta okunur kalır */
+  .rec-table.gtable-cards td { font-size: 13px }
+
+  .fw-choice button { min-height: 58px }
+  .wz-step { padding: 8px 11px; font-size: 12px }
+  .map-row { grid-template-columns: minmax(0, 1fr); gap: 7px }
+  .map-arrow { display: none }
+}
+
+/* ============ ≤480px — dar telefon ============ */
+@media (max-width: 480px) {
+  .gv-main { padding-left: 12px; padding-right: 12px }
+  .kpi-card { flex-direction: column; align-items: flex-start; gap: 8px; padding: 15px }
+  .kpi-num { font-size: 19px }
+  .kpi-ico { width: 40px; height: 40px; font-size: 15px }
+  .kpi-grid { gap: 10px }
+
+  .gv-search { min-width: 110px }
+  .gv-me { padding: 4px }
+
+  /* ikincil butonlarda yalnız ikon */
+  .btn-ghost.btn-icon-sm span, .ia-btn span { display: none }
+  .btn-ghost.btn-icon-sm { padding: 10px 12px }
+  .btn-ghost.btn-icon-sm i { font-size: 14px }
+
+  .gfield input, .gfield select, .gfield textarea { width: 100% }
+  .gv-fpanel { width: 100% }
+  .gv-modal { padding: 18px 16px }
+  .gc-head { padding: 14px 16px; gap: 10px }
+  .gc-body { padding: 16px }
+  .gc-title { font-size: 14px }
+  .rec-id h1 { font-size: 18px }
+  .fw-choice { grid-template-columns: minmax(0, 1fr); gap: 7px }
+  .fw-choice button { min-height: 46px; flex-direction: row; gap: 9px }
+  .cal-day { min-height: 60px }
+  .cal-ev { font-size: 0; padding: 3px; border-left-width: 6px }
+  .cal-ev::after { content: "•"; font-size: 11px }
+}
+
+/* ============ HAREKET TERCİHİ ============ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto }
+  *, *::before, *::after { transition: none !important; animation: none !important }
+}
+
+/* ============ YARDIMCI GÖRÜNÜRLÜK ============ */
+@media (max-width: 640px) { .gv-desktop-only { display: none !important } }
+@media (min-width: 641px) { .gv-mobile-only { display: none !important } }
