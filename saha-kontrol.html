@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Saha Kontrolleri — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="operasyon" data-screen="saha-kontrol">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1>Saha Kontrolleri</h1>
+        <p class="ph-sub">Sahada doldurulan kontrol formlarının durumu; çevrimdışı çalışan cihazlar, senkronizasyon bekleyen kayıtlar ve imza durumu.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="skSenkron"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>Tümünü Senkronize Et</button>
+      <a class="btn btn-acc" href="saha-kontrol-formu.html"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>Yeni Saha Kontrolü</a></div>
+    </div>
+    <div class="kpi-grid" id="skKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Kayıt no, lokasyon, personel…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="skTablo"></div>
+      <div class="gv-pager" id="skPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-wifi" aria-hidden="true"></i>Çevrimdışı Çalışma ve Senkronizasyon</h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>Senkronizasyon Kuyruğu</h3></div>
+          <div class="gc-body" id="skKuyruk"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Çevrimdışı Çalışma Nasıl İşler?</h3></div>
+          <div class="gc-body">
+            <ol style="padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.85">
+              <li>Saha ekibi kontrol formunu açtığında iş emri, hizmet kalemleri ve kontrol maddeleri cihaza indirilir.</li>
+              <li>Bağlantı kesildiğinde form <b>çevrimdışı</b> moda geçer; girilen değerler ve fotoğraflar cihazda tutulur.</li>
+              <li>Ekran üstündeki durum şeridi bağlantı yokken sarı, senkronizasyon sırasında mavi, tamamlandığında yeşil olur.</li>
+              <li>Bağlantı geri geldiğinde kayıtlar sıraya alınır ve arka planda gönderilir.</li>
+              <li>Aynı kayıt iki cihazdan değiştirilmişse çakışma uyarısı çıkar; en son imzalanan kayıt esas alınır.</li>
+              <li>Senkronizasyon tamamlanmadan iş emri “Kontrol tamamlandı” durumuna geçmez.</li>
+            </ol>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var kaynak = A.liste('sahaKontroller').filter(function(s){
+    if (kapsam.tur === 'taseron') { var i = A.kayit('isEmirleri', s.isEmriId); return i && i.taseronId === kapsam.taseronId; }
+    return true;
+  }).map(function(s){
+    var l = A.lokasyon(s.lokasyonId), p = A.kayit('personeller', s.personelId);
+    return Object.assign({}, s, {
+      lokasyonAd: l ? l.ad : '—', musteriAd: l ? l.musteriAd : '—', bolge: l ? l.bolge : '—',
+      personelAd: p ? p.ad : '—',
+      ilerleme: s.toplam ? s.tamamlanan / s.toplam : 0
+    });
+  });
+
+  gvKpi('#skKpi', [
+    { ikon:'fa-mobile-screen', sayi: GV.n(kaynak.length), etiket:'Saha kontrol kaydı' },
+    { ikon:'fa-person-walking', sayi: GV.n(kaynak.filter(function(s){ return s.durum === 'devam-ediyor'; }).length), etiket:'Devam eden', ton:'info' },
+    { ikon:'fa-wifi', sayi: GV.n(kaynak.filter(function(s){ return s.cevrimdisi; }).length), etiket:'Çevrimdışı çalışılan', ton:'warn' },
+    { ikon:'fa-cloud-arrow-up', sayi: GV.n(kaynak.filter(function(s){ return s.senkron !== 'tamamlandi'; }).length), etiket:'Senkronizasyon bekleyen', ton:'danger' }
+  ]);
+
+  var kolonlar = [
+    { k:'id', ad:'Kayıt', kilitli:true, ciz: function(s){
+        return '<div class="gcell-info"><div class="gcell-name">'
+          + '<a href="saha-kontrol-formu.html?isemri=' + s.isEmriId + '">' + GV.esc(s.id) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(s.isEmriId) + '</div></div>'; } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(s){
+        return '<a href="lokasyon-detay.html?id=' + s.lokasyonId + '">' + GV.esc(s.lokasyonAd) + '</a>'
+          + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(s.musteriAd + ' · ' + s.bolge) + '</span>'; } },
+    { k:'personelAd', ad:'Kontrol Personeli' },
+    { k:'baslangic', ad:'Başlangıç', ciz: function(s){ return GV.dSaat(s.baslangic); } },
+    { k:'bitis', ad:'Bitiş', ciz: function(s){ return s.bitis ? GV.dSaat(s.bitis) : '<span class="muted">Devam ediyor</span>'; } },
+    { k:'ilerleme', ad:'İlerleme', ciz: function(s){
+        return GV.bar(s.ilerleme, { etiket: s.tamamlanan + '/' + s.toplam }); } },
+    { k:'fotograf', ad:'Fotoğraf', sinif:'num', ciz: function(s){ return GV.n(s.fotograf); } },
+    { k:'uygunsuzluk', ad:'Uygunsuzluk', sinif:'num', ciz: function(s){
+        return s.uygunsuzluk ? '<span class="gtag danger">' + GV.n(s.uygunsuzluk) + '</span>' : GV.n(0); } },
+    { k:'cevrimdisi', ad:'Bağlantı', ciz: function(s){
+        return s.cevrimdisi ? GV.rozetOzel('warn','fa-wifi','Çevrimdışı çalışıldı') : GV.rozetOzel('ok','fa-wifi','Çevrimiçi'); } },
+    { k:'senkron', ad:'Senkronizasyon', ciz: function(s){
+        return s.senkron === 'tamamlandi' ? GV.rozetOzel('ok','fa-cloud-arrow-up','Tamamlandı')
+          : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor'); } },
+    { k:'imza', ad:'Müşteri İmzası', ciz: function(s){
+        return s.imza ? GV.rozetOzel('ok','fa-signature','Alındı') : GV.rozetOzel('warn','fa-pen','Bekliyor'); } },
+    { k:'durum', ad:'Durum', ciz: function(s){
+        return s.durum === 'tamamlandi' ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
+          : s.durum === 'eksik-tamamlandi' ? GV.rozetOzel('warn','fa-circle-half-stroke','Eksik tamamlandı')
+          : GV.rozetOzel('info','fa-person-walking','Devam ediyor'); } }
+  ];
+
+  var tablo = gvTable({ hedef:'#skTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
+    bosDurum:{ ikon:'fa-mobile-screen', baslik:'Saha kontrol kaydı yok', metin:'Filtrelerinize uyan kayıt bulunmuyor.' } });
+
+  var pager = gvPager({ hedef:'#skPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','isEmriId','lokasyonAd','musteriAd','personelAd'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'devam-ediyor', ad:'Devam eden', ikon:'fa-person-walking' },
+      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-circle-check' },
+      { k:'eksik-tamamlandi', ad:'Eksik tamamlandı', ikon:'fa-circle-half-stroke' }] },
+    alanlar: [
+      { k:'senkron', ad:'Senkronizasyon', tur:'secim', secenekler:[
+        { deger:'tamamlandi', ad:'Tamamlandı' }, { deger:'bekliyor', ad:'Bekliyor' }] },
+      { k:'cevrimdisi', ad:'Yalnız çevrimdışı çalışılanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
+      { k:'imza', ad:'Yalnız imzalananlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* --- senkronizasyon kuyruğu --- */
+  function kuyrukCiz(){
+    var bekleyen = A.liste('sahaKontroller').filter(function(s){ return s.senkron !== 'tamamlandi'; });
+    document.getElementById('skKuyruk').innerHTML = bekleyen.length
+      ? bekleyen.map(function(s){
+          var l = A.lokasyon(s.lokasyonId);
+          return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)">'
+            + '<span style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;'
+            + 'background:var(--warning-tint);color:var(--warning)"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>'
+            + '<span style="flex:1;min-width:0;line-height:1.4">'
+            + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">' + GV.esc(l ? l.ad : s.lokasyonId) + '</b>'
+            + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(s.id) + ' · '
+            + GV.n(s.tamamlanan) + ' madde · ' + GV.n(s.fotograf) + ' fotoğraf cihazda bekliyor</span></span>'
+            + '<button class="btn btn-sm btn-ghost" type="button" data-senk="' + s.id + '">Gönder</button></div>';
+        }).join('')
+      : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+        + '<span>Senkronizasyon kuyruğu boş. Bütün saha kayıtları sunucuya aktarıldı.</span></div>';
+
+    document.querySelectorAll('[data-senk]').forEach(function(b){
+      b.addEventListener('click', function(){ senkronize([b.getAttribute('data-senk')]); });
+    });
+  }
+  kuyrukCiz();
+
+  function senkronize(idler){
+    var m = gvModal({
+      baslik:'Senkronizasyon', ikon:'fa-cloud-arrow-up', disKapat:false,
+      metin: idler.length + ' saha kaydı sunucuya aktarılıyor…',
+      govde:'<div id="skIlerleme">' + GV.bar(0, { etiket:'0%' }) + '</div>'
+        + '<div id="skLog" style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.8"></div>',
+      butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+    });
+    var adim = 0;
+    var adimlar = ['Bağlantı doğrulanıyor…','Kontrol maddeleri gönderiliyor…','Fotoğraflar yükleniyor…',
+      'İmza kaydı aktarılıyor…','Sunucu doğrulaması…','Tamamlandı'];
+    var zaman = setInterval(function(){
+      adim++;
+      var oran = adim / adimlar.length;
+      var il = m.kap.querySelector('#skIlerleme');
+      var log = m.kap.querySelector('#skLog');
+      if (il) il.innerHTML = GV.bar(oran, { etiket: GV.pct(oran, true, 0) });
+      if (log) log.innerHTML += '<div><i class="fa-solid fa-check" style="color:var(--success)" aria-hidden="true"></i> '
+        + GV.esc(adimlar[adim - 1]) + '</div>';
+      if (adim >= adimlar.length) {
+        clearInterval(zaman);
+        Promise.all(idler.map(function(sid){ return A.guncelle('sahaKontroller', sid, { senkron:'tamamlandi', cevrimdisi:false }); }))
+          .then(function(){
+            gvToast(idler.length + ' saha kaydı senkronize edildi.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 1100);
+          });
+      }
+    }, 620);
+  }
+
+  document.getElementById('skSenkron').addEventListener('click', function(){
+    var bekleyen = A.liste('sahaKontroller').filter(function(s){ return s.senkron !== 'tamamlandi'; }).map(function(s){ return s.id; });
+    if (!bekleyen.length) { gvToast('Senkronize edilecek kayıt yok.', { ton:'info' }); return; }
+    senkronize(bekleyen);
+  });
+})();
+</script>
+</body>
+</html>

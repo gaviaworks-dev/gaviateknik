@@ -58,10 +58,10 @@
 - [x] envanter-mutabakati (13 kolon + renkli fark)
 
 ## FAZ 5 — Operasyon ve Saha
-- [ ] planlama / operasyon-takvimi
-- [ ] is-emirleri / is-emri-detay / is-emri-form
-- [ ] saha-kontrol / saha-kontrol-formu (mobil öncelikli + çevrimdışı + senkron)
-- [ ] eksik-ekipmanlar / yeniden-kontroller
+- [x] planlama / operasyon-takvimi
+- [x] is-emirleri / is-emri-detay / is-emri-form
+- [x] saha-kontrol / saha-kontrol-formu (mobil öncelikli + çevrimdışı + senkron)
+- [x] eksik-ekipmanlar / yeniden-kontroller
 
 ## FAZ 6 — Teknik Rapor ve Uygunsuzluk
 - [ ] teknik-raporlar / rapor-detay / rapor-onaylari / rapor-sablonlari

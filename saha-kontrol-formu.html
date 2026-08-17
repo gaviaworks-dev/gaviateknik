@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Saha Kontrol Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+/* MOBİL ÖNCELİKLİ — tek elle kullanım için geniş dokunma alanları,
+   aksiyonlar ekranın altında, kritik bilgi üstte sabit. */
+.fw-shell{max-width:600px;margin:0 auto}
+.fw-ust{position:sticky;top:calc(var(--topbar-height) + 8px);z-index:42;margin-bottom:16px;
+  padding:13px 16px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-sm)}
+.fw-ust-satir{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fw-ust b{font-size:14.5px;font-weight:800;color:var(--ink);line-height:1.3}
+.fw-ust .fw-alt{font-size:12px;color:var(--muted);margin-top:2px}
+.fw-ilerleme{margin-top:11px}
+.fw-adimlar{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none;margin-bottom:14px}
+.fw-adimlar::-webkit-scrollbar{display:none}
+.fw-adim{flex:none;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--radius-pill);
+  border:1px solid var(--line);background:var(--paper);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.fw-adim.is-on{border-color:var(--gv-action);background:rgba(63,213,173,.09);color:var(--gv-action)}
+.fw-adim.tamam{border-color:rgba(46,158,107,.4);color:var(--success)}
+.fw-adim .fw-adim-n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;background:var(--bg)}
+.fw-adim.is-on .fw-adim-n{background:var(--gv-action);color:#fff}
+.fw-adim.tamam .fw-adim-n{background:var(--success);color:#fff}
+
+.fw-ekipman{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-md);
+  background:var(--paper);margin-bottom:10px;width:100%;text-align:left;font-family:inherit;cursor:pointer;transition:.15s var(--ease)}
+.fw-ekipman:hover{border-color:var(--line-2)}
+.fw-ekipman.is-on{border-color:var(--gv-action);background:rgba(63,213,173,.06)}
+.fw-ekipman.tamam{border-left:4px solid var(--success)}
+.fw-ekipman.uygunsuz{border-left:4px solid var(--danger)}
+.fw-ekipman .fw-e-ico{width:42px;height:42px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;
+  background:rgba(63,213,173,.1);color:var(--gv-action)}
+.fw-ekipman .fw-e-body{flex:1;min-width:0;line-height:1.4}
+.fw-ekipman .fw-e-body b{display:block;font-size:13.5px;font-weight:700;color:var(--ink)}
+.fw-ekipman .fw-e-body span{display:block;font-size:11.5px;color:var(--muted)}
+
+.fw-olcum{margin-top:11px;display:flex;align-items:center;gap:10px}
+.fw-olcum label{flex:none;font-size:12px;font-weight:700;color:var(--ink-2)}
+.fw-olcum input{flex:1;min-width:0;padding:12px 14px;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);outline:none}
+.fw-olcum input:focus{border-color:var(--gv-mint);background:var(--paper);box-shadow:0 0 0 3px rgba(63,213,173,.12)}
+.fw-olcum .fw-birim{flex:none;font-size:12.5px;font-weight:700;color:var(--muted);min-width:36px}
+
+.fw-madde-ek{margin-top:11px;display:flex;gap:8px;flex-wrap:wrap}
+.fw-madde-ek button{flex:1 1 auto;min-height:42px}
+
+.fw-qr{display:flex;gap:10px;margin-bottom:16px}
+.fw-qr button{flex:1;min-height:52px}
+
+.fw-net{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom, 0px) + 88px);z-index:60;
+  display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--radius-pill);
+  font-size:12px;font-weight:700;box-shadow:var(--shadow-md)}
+.fw-net.online{background:var(--success);color:#fff}
+.fw-net.offline{background:var(--warning);color:#fff}
+.fw-net.syncing{background:var(--info);color:#fff}
+
+.fw-actionbar{position:sticky;bottom:0;z-index:45;margin:18px -4px 0;padding:12px 14px;
+  display:flex;gap:9px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius-md);box-shadow:var(--shadow-md)}
+.fw-actionbar .btn{flex:1 1 132px;justify-content:center;min-height:48px}
+
+.fw-ozet-satir{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.fw-ozet-satir:last-child{border-bottom:none}
+.fw-ozet-satir b{font-size:13px;color:var(--ink)}
+.fw-ozet-satir span{font-size:13px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+@media(max-width:640px){
+  .gv-main{padding-left:12px;padding-right:12px}
+  .fw-ust{top:calc(var(--topbar-height) + 4px)}
+  .fw-choice button{min-height:62px;font-size:13px}
+  .fw-actionbar{margin-left:-12px;margin-right:-12px;border-radius:0;border-left:none;border-right:none;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))}
+  .fw-net{bottom:calc(env(safe-area-inset-bottom, 0px) + 96px)}
+}
+</style>
+</head>
+<body data-sec="operasyon" data-screen="saha-kontrol-formu">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="fw-shell">
+      <div class="gv-page-head no-print">
+        <div>
+          <div class="ph-eyebrow">Operasyon</div>
+          <h1>Saha Kontrol Formu</h1>
+          <p class="ph-sub">Mobil öncelikli, tek elle kullanılabilir kontrol formu. Bağlantı kesildiğinde çevrimdışı çalışır, bağlantı gelince senkronize eder.</p>
+        </div>
+      </div>
+
+      <div class="fw-ust" id="fwUst"></div>
+      <div class="fw-adimlar" id="fwAdimlar" role="tablist" aria-label="Form adımları"></div>
+      <div id="fwIcerik"></div>
+
+      <div class="fw-actionbar no-print" id="fwAksiyon"></div>
+    </div>
+    <div class="fw-net online no-print" id="fwNet" role="status" aria-live="polite">
+      <i class="fa-solid fa-wifi" aria-hidden="true"></i><span>Çevrimiçi</span>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  /* ---- iş emri çözümü ---- */
+  var ieId = GV.q('isemri');
+  var lokId = GV.q('lokasyon');
+  var ie = ieId ? A.isEmri(ieId) : null;
+  if (!ie && lokId) ie = A.isEmirleri().filter(function(x){ return x.lokasyonId === lokId; })[0];
+  if (!ie) ie = A.isEmirleri().filter(function(x){ return x.operasyonDurum === 'sahada'; })[0]
+    || A.isEmirleri().filter(function(x){ return x.operasyonDurum === 'planlandi'; })[0];
+  if (!ie) { gvNotFound({ listeHref:'is-emirleri.html', listeEtiket:'İş emirleri' }); return; }
+  GV.crumb(ie.id);
+
+  var lok = A.lokasyon(ie.lokasyonId);
+  var hizmetler = A.lokasyonHizmetleri(ie.lokasyonId);
+  var kisiler = A.liste('iletisimKisileri').filter(function(k){
+    return k.lokasyonId === ie.lokasyonId || (lok && k.musteriId === lok.musteriId); });
+
+  /* ---- kontrol edilecek birimleri üret ---- */
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+  var birimler = [];
+  hizmetler.forEach(function(h){
+    var hz = A.kayit('hizmetler', h.hizmetId);
+    if (!hz) return;
+    var ekipmanlar = A.ekipmanlar().filter(function(e){ return e.lokasyonId === ie.lokasyonId && e.hizmetId === h.hizmetId; });
+    if (ekipmanlar.length) {
+      ekipmanlar.forEach(function(e){
+        birimler.push({ id:e.id, tur:'ekipman', ad:e.ad, alt:e.kod + ' · ' + e.marka + ' ' + e.model, qr:e.qr,
+          hizmetId:h.hizmetId, hizmetAd:hz.ad, poz:hz.poz, kat:hz.kat, miktar:1, birim:'adet' });
+      });
+      if (h.planlananMiktar > ekipmanlar.length) {
+        birimler.push({ id:'TOPLU-' + h.hizmetId, tur:'toplu', ad:hz.ad, poz:hz.poz,
+          alt:'Kartı olmayan ' + (h.planlananMiktar - ekipmanlar.length) + ' ' + (birimAd[hz.birim] || hz.birim),
+          hizmetId:h.hizmetId, hizmetAd:hz.ad, kat:hz.kat,
+          miktar: h.planlananMiktar - ekipmanlar.length, birim: hz.birim });
+      }
+    } else {
+      birimler.push({ id:'TOPLU-' + h.hizmetId, tur:'toplu', ad:hz.ad, poz:hz.poz,
+        alt: GV.n(h.planlananMiktar) + ' ' + (birimAd[hz.birim] || hz.birim) + ' planlandı',
+        hizmetId:h.hizmetId, hizmetAd:hz.ad, kat:hz.kat, miktar:h.planlananMiktar, birim:hz.birim });
+    }
+  });
+
+  /* ---- form durumu (localStorage'da kalıcı) ---- */
+  var ANAHTAR = 'gv_tk_saha_' + ie.id;
+  var durum = { aktifBirim: birimler.length ? birimler[0].id : null, adim:'ekipman',
+    cevaplar:{}, olcumler:{}, fotograflar:{}, notlar:{}, eksikler:{}, yeniEkipmanlar:[],
+    imzaAlindi:false, imzalayan: kisiler.length ? kisiler[0].id : null, cevrimdisi:false, senkron:'bekliyor' };
+  try {
+    var kayitli = JSON.parse(localStorage.getItem(ANAHTAR) || 'null');
+    if (kayitli) durum = Object.assign(durum, kayitli);
+  } catch(e){}
+  function kaydet(){ try { localStorage.setItem(ANAHTAR, JSON.stringify(durum)); } catch(e){} }
+
+  function maddeler(kat){
+    return window.DEMO.kontrolMaddeleri[kat] || window.DEMO.kontrolMaddeleri['KAT-01'];
+  }
+  function birimBul(bid){ return birimler.filter(function(b){ return b.id === bid; })[0]; }
+
+  function birimTamamMi(bid){
+    var b = birimBul(bid);
+    if (!b) return false;
+    if (durum.eksikler[bid]) return true;
+    var m = maddeler(b.kat);
+    var c = durum.cevaplar[bid] || {};
+    return m.every(function(x){ return c[x.k]; });
+  }
+  function birimUygunsuzMu(bid){
+    var c = durum.cevaplar[bid] || {};
+    return Object.keys(c).some(function(k){ return c[k] === 'uygunsuz'; });
+  }
+  function toplamMadde(){
+    return birimler.reduce(function(t,b){ return t + maddeler(b.kat).length; }, 0);
+  }
+  function cevaplananMadde(){
+    return birimler.reduce(function(t,b){
+      var c = durum.cevaplar[b.id] || {};
+      return t + Object.keys(c).length; }, 0);
+  }
+  function uygunsuzSayisi(){
+    return birimler.reduce(function(t,b){
+      var c = durum.cevaplar[b.id] || {};
+      return t + Object.keys(c).filter(function(k){ return c[k] === 'uygunsuz'; }).length; }, 0);
+  }
+  function fotoSayisi(){
+    return Object.keys(durum.fotograflar).reduce(function(t,k){ return t + durum.fotograflar[k].length; }, 0);
+  }
+
+  /* ---- üst şerit ---- */
+  function ustCiz(){
+    var toplam = toplamMadde(), yapilan = cevaplananMadde();
+    var tamamBirim = birimler.filter(function(b){ return birimTamamMi(b.id); }).length;
+    document.getElementById('fwUst').innerHTML =
+      '<div class="fw-ust-satir"><div style="min-width:0">'
+      + '<b>' + GV.esc(lok ? lok.ad : ie.lokasyonAd) + '</b>'
+      + '<div class="fw-alt">' + GV.esc(ie.id + ' · ' + (lok ? lok.musteriAd : '') + ' · ' + GV.d(ie.tarih)) + '</div></div>'
+      + '<div style="flex:none;text-align:right">'
+      + '<b style="font-size:19px;color:var(--gv-action)">' + GV.n(tamamBirim) + '/' + GV.n(birimler.length) + '</b>'
+      + '<div class="fw-alt">birim tamamlandı</div></div></div>'
+      + '<div class="fw-ilerleme">' + GV.bar(toplam ? yapilan / toplam : 0,
+          { etiket: GV.n(yapilan) + '/' + GV.n(toplam) + ' madde' }) + '</div>';
+  }
+
+  /* ---- adım çubuğu ---- */
+  var adimlar = [
+    { k:'ekipman', ad:'Ekipman', ikon:'fa-gears' },
+    { k:'kontrol', ad:'Kontrol', ikon:'fa-clipboard-check' },
+    { k:'uygunsuzluk', ad:'Uygunsuzluk', ikon:'fa-circle-exclamation' },
+    { k:'ozet', ad:'Özet', ikon:'fa-list-check' },
+    { k:'imza', ad:'İmza', ikon:'fa-signature' }
+  ];
+  function adimCiz(){
+    document.getElementById('fwAdimlar').innerHTML = adimlar.map(function(a,i){
+      var tamam = (a.k === 'ekipman' && durum.aktifBirim)
+        || (a.k === 'kontrol' && birimler.every(function(b){ return birimTamamMi(b.id); }))
+        || (a.k === 'imza' && durum.imzaAlindi);
+      return '<button type="button" role="tab" class="fw-adim' + (durum.adim === a.k ? ' is-on' : '') + (tamam ? ' tamam' : '') + '"'
+        + ' data-adim="' + a.k + '" aria-selected="' + (durum.adim === a.k) + '">'
+        + '<span class="fw-adim-n">' + (tamam ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : (i + 1)) + '</span>'
+        + GV.esc(a.ad) + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-adim]').forEach(function(b){
+      b.addEventListener('click', function(){ durum.adim = b.getAttribute('data-adim'); kaydet(); ciz(); });
+    });
+  }
+
+  /* ---- içerik ---- */
+  function ciz(){
+    ustCiz(); adimCiz();
+    var k = document.getElementById('fwIcerik');
+    if (durum.adim === 'ekipman') k.innerHTML = ekipmanEkrani();
+    else if (durum.adim === 'kontrol') k.innerHTML = kontrolEkrani();
+    else if (durum.adim === 'uygunsuzluk') k.innerHTML = uygunsuzlukEkrani();
+    else if (durum.adim === 'ozet') k.innerHTML = ozetEkrani();
+    else k.innerHTML = imzaEkrani();
+    aksiyonCiz();
+    bagla();
+    GV.rolBaglantilariniIsle(k);
+  }
+
+  function ekipmanEkrani(){
+    return '<div class="fw-qr no-print">'
+      + '<button class="btn btn-dark" type="button" id="fwQrOkut"><i class="fa-solid fa-qrcode" aria-hidden="true"></i>QR / Barkod Okut</button>'
+      + '<button class="btn btn-ghost" type="button" id="fwYeniEkipman"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Ekipman</button></div>'
+      + '<section class="gv-card"><div class="gc-head"><h2 class="gc-title">'
+      + '<i class="fa-solid fa-gears" aria-hidden="true"></i>Kontrol Edilecek Birimler</h2>'
+      + '<span class="gtag">' + GV.n(birimler.length) + ' birim</span></div>'
+      + '<div class="gc-body">'
+      + (birimler.length ? birimler.map(function(b){
+          var tamam = birimTamamMi(b.id), uygunsuz = birimUygunsuzMu(b.id), eksik = durum.eksikler[b.id];
+          var c = durum.cevaplar[b.id] || {};
+          var m = maddeler(b.kat);
+          return '<button type="button" class="fw-ekipman' + (durum.aktifBirim === b.id ? ' is-on' : '')
+            + (uygunsuz ? ' uygunsuz' : tamam ? ' tamam' : '') + '" data-birim="' + GV.esc(b.id) + '">'
+            + '<span class="fw-e-ico" style="' + (eksik ? 'background:var(--warning-tint);color:var(--warning)' : '') + '">'
+            + '<i class="fa-solid fa-' + (b.tur === 'ekipman' ? 'gear' : 'layer-group') + '" aria-hidden="true"></i></span>'
+            + '<span class="fw-e-body"><b>' + GV.esc(b.ad) + '</b>'
+            + '<span>' + GV.esc(b.poz + ' · ' + b.alt) + '</span></span>'
+            + '<span style="flex:none">' + (eksik
+                ? GV.rozetOzel('warn','fa-eye-slash','Gösterilmedi')
+                : uygunsuz ? GV.rozetOzel('danger','fa-circle-xmark', Object.keys(c).length + '/' + m.length)
+                : tamam ? GV.rozetOzel('ok','fa-check','Tamam')
+                : GV.rozetOzel('off','fa-hourglass-half', Object.keys(c).length + '/' + m.length)) + '</span></button>';
+        }).join('')
+        : gvEmpty({ ikon:'fa-gears', baslik:'Kontrol edilecek birim yok',
+            metin:'Bu lokasyonun hizmet kapsamı tanımlanmadığı için kontrol listesi oluşturulamadı.' }))
+      + '</div></section>'
+      + (durum.yeniEkipmanlar.length
+        ? '<section class="gv-card" style="margin-top:16px"><div class="gc-head"><h2 class="gc-title">'
+          + '<i class="fa-solid fa-plus" aria-hidden="true"></i>Sahada Eklenen Ekipmanlar</h2></div><div class="gc-body">'
+          + durum.yeniEkipmanlar.map(function(y,i){
+              return '<div class="fw-ozet-satir"><b>' + GV.esc(y.ad) + '<br>'
+                + '<span style="font-size:11.5px;font-weight:500;color:var(--muted)">' + GV.esc(y.hizmetAd) + '</span></b>'
+                + '<span><span class="gtag info">İlave tespit</span> '
+                + '<button class="ia-btn danger" type="button" data-yeni-sil="' + i + '" aria-label="Kaldır">'
+                + '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></span></div>';
+            }).join('') + '</div></section>'
+        : '');
+  }
+
+  function kontrolEkrani(){
+    var b = birimBul(durum.aktifBirim);
+    if (!b) return gvEmpty({ ikon:'fa-hand-pointer', baslik:'Birim seçilmedi',
+      metin:'Kontrol maddelerini görmek için önce “Ekipman” adımından bir birim seçin.' });
+    if (durum.eksikler[b.id]) {
+      return '<section class="gv-card"><div class="gc-body">'
+        + '<div class="gv-note warn"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>'
+        + '<span><b>' + GV.esc(b.ad) + '</b> sahada gösterilmedi olarak işaretlendi. Gerekçe: '
+        + GV.esc(durum.eksikler[b.id]) + '</span></div>'
+        + '<button class="btn btn-ghost" type="button" id="fwEksikGeri" style="margin-top:16px">'
+        + '<i class="fa-solid fa-rotate-left" aria-hidden="true"></i>İşareti Kaldır, Kontrole Devam Et</button></div></section>';
+    }
+    var m = maddeler(b.kat);
+    var c = durum.cevaplar[b.id] || {};
+    var fotolar = durum.fotograflar[b.id] || [];
+    return '<section class="gv-card"><div class="gc-head">'
+      + '<h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>' + GV.esc(b.ad) + '</h2>'
+      + '<span class="gtag">' + GV.n(Object.keys(c).length) + '/' + GV.n(m.length) + '</span></div>'
+      + '<div class="gc-body"><div style="margin-bottom:14px;font-size:12px;color:var(--muted)">'
+      + GV.esc(b.poz + ' · ' + b.hizmetAd + (b.qr ? ' · ' + b.qr : '')) + '</div>'
+      + m.map(function(x, i){
+          var deger = c[x.k];
+          return '<div class="fw-item"><div class="fw-item-q">' + (i + 1) + '. ' + GV.esc(x.ad) + '</div>'
+            + '<div class="fw-choice" role="group" aria-label="' + GV.esc(x.ad) + ' değerlendirmesi">'
+            + '<button type="button" class="' + (deger === 'uygun' ? 'is-on' : '') + '" data-v="uygun" data-madde="' + x.k + '">'
+            + '<i class="fa-solid fa-circle-check" aria-hidden="true"></i>Uygun</button>'
+            + '<button type="button" class="' + (deger === 'uygunsuz' ? 'is-on' : '') + '" data-v="uygunsuz" data-madde="' + x.k + '">'
+            + '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Uygun Değil</button>'
+            + '<button type="button" class="' + (deger === 'na' ? 'is-on' : '') + '" data-v="na" data-madde="' + x.k + '">'
+            + '<i class="fa-solid fa-minus" aria-hidden="true"></i>Uygulanamaz</button></div>'
+            + (x.olcum ? '<div class="fw-olcum"><label for="olc_' + x.k + '">' + GV.esc(x.olcum.ad) + '</label>'
+                + '<input type="number" step="0.01" inputmode="decimal" id="olc_' + x.k + '" data-olcum="' + x.k + '"'
+                + ' value="' + GV.esc((durum.olcumler[b.id] || {})[x.k] || '') + '" placeholder="0,00">'
+                + '<span class="fw-birim">' + GV.esc(x.olcum.birim || '') + '</span></div>' : '')
+            + (deger === 'uygunsuz'
+                ? '<div class="fw-madde-ek"><button class="btn btn-sm btn-danger" type="button" data-uygunsuzluk="' + x.k + '">'
+                  + '<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Uygunsuzluk Kaydet</button></div>' : '')
+            + '</div>';
+        }).join('')
+      + '<div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">'
+      + '<b style="font-size:13px;color:var(--ink)">Fotoğraflar</b>'
+      + '<span class="gtag">' + GV.n(fotolar.length) + ' adet</span></div>'
+      + '<div class="gv-photos">'
+      + fotolar.map(function(f,i){
+          return '<div class="gv-photo" style="background-color:#E4E7EE" role="img" aria-label="' + GV.esc(f) + '">'
+            + '<span class="ph-cap">' + GV.esc(f) + '</span>'
+            + '<button class="ia-btn danger no-print" type="button" data-foto-sil="' + i + '"'
+            + ' style="position:absolute;top:5px;right:5px;width:24px;height:24px" aria-label="Fotoğrafı sil">'
+            + '<i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>';
+        }).join('')
+      + '<button type="button" class="gv-photo ph-empty no-print" id="fwFotoEkle" aria-label="Fotoğraf ekle" style="cursor:pointer;border:1.5px dashed var(--line-2);background:var(--bg)">'
+      + '<i class="fa-solid fa-camera" aria-hidden="true"></i></button></div>'
+      + '<div class="gfield" style="margin-top:16px"><label for="fwNot">Saha notu</label>'
+      + '<textarea id="fwNot" placeholder="Bu birime ilişkin gözlem ve notlar">' + GV.esc(durum.notlar[b.id] || '') + '</textarea></div>'
+      + '<div class="fw-madde-ek" style="margin-top:14px">'
+      + '<button class="btn btn-warn" type="button" id="fwGosterilmedi">'
+      + '<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>Gösterilmedi / Erişilemedi</button></div>'
+      + '</div></div></section>';
+  }
+
+  function uygunsuzlukEkrani(){
+    var kayitlar = [];
+    birimler.forEach(function(b){
+      var c = durum.cevaplar[b.id] || {};
+      maddeler(b.kat).forEach(function(x){
+        if (c[x.k] === 'uygunsuz') kayitlar.push({ birim:b, madde:x, olcum:(durum.olcumler[b.id] || {})[x.k] });
+      });
+    });
+    return '<section class="gv-card"><div class="gc-head">'
+      + '<h2 class="gc-title"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Tespit Edilen Uygunsuzluklar</h2>'
+      + '<span class="gtag ' + (kayitlar.length ? 'danger' : 'ok') + '">' + GV.n(kayitlar.length) + '</span></div>'
+      + '<div class="gc-body">'
+      + (kayitlar.length
+        ? kayitlar.map(function(u){
+            return '<div class="fw-item"><div class="fw-item-q" style="color:var(--danger)">'
+              + '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> ' + GV.esc(u.madde.ad) + '</div>'
+              + '<div class="fw-item-hint">' + GV.esc(u.birim.ad + ' · ' + u.birim.poz)
+              + (u.olcum ? ' · ölçülen: ' + GV.esc(u.olcum) + ' ' + GV.esc(u.madde.olcum ? u.madde.olcum.birim : '') : '') + '</div>'
+              + '<div class="gfield"><label for="uyg_' + u.birim.id + '_' + u.madde.k + '">Önem derecesi</label>'
+              + '<select id="uyg_' + u.birim.id + '_' + u.madde.k + '" data-onem="' + u.birim.id + '|' + u.madde.k + '">'
+              + '<option value="dusuk">Düşük</option><option value="orta" selected>Orta</option>'
+              + '<option value="yuksek">Yüksek</option><option value="kritik">Kritik</option></select></div></div>';
+          }).join('')
+        : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok',
+            metin:'Şu ana kadar kontrol edilen maddelerde uygunsuzluk tespit edilmedi.' }))
+      + '</div></section>'
+      + '<section class="gv-card" style="margin-top:16px"><div class="gc-head">'
+      + '<h2 class="gc-title"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>Gösterilmeyen / Eksik Ekipmanlar</h2>'
+      + '<span class="gtag warn">' + GV.n(Object.keys(durum.eksikler).length) + '</span></div><div class="gc-body">'
+      + (Object.keys(durum.eksikler).length
+        ? Object.keys(durum.eksikler).map(function(bid){
+            var b = birimBul(bid);
+            return '<div class="fw-ozet-satir"><b>' + GV.esc(b ? b.ad : bid) + '<br>'
+              + '<span style="font-size:11.5px;font-weight:500;color:var(--muted)">' + GV.esc(durum.eksikler[bid]) + '</span></b>'
+              + '<span>' + GV.rozetOzel('warn','fa-eye-slash','Gösterilmedi') + '</span></div>';
+          }).join('')
+        : '<p class="muted" style="font-size:13px">Bütün ekipmanlar sahada gösterildi.</p>')
+      + '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span>Gösterilmeyen ekipmanlar mutabakat tablosunda ayrı kolonda izlenir ve '
+      + '<b>faturalanabilir miktardan düşülür</b>. Müşteriye yeniden kontrol talebi açılabilir.</span></div></div></section>';
+  }
+
+  function ozetEkrani(){
+    var toplam = toplamMadde(), yapilan = cevaplananMadde();
+    var uygun = 0, uygunsuz = 0, na = 0;
+    birimler.forEach(function(b){
+      var c = durum.cevaplar[b.id] || {};
+      Object.keys(c).forEach(function(k){
+        if (c[k] === 'uygun') uygun++; else if (c[k] === 'uygunsuz') uygunsuz++; else na++;
+      });
+    });
+    var eksikSayi = Object.keys(durum.eksikler).length;
+    var kontrolEdilen = birimler.length - eksikSayi;
+    return '<section class="gv-card"><div class="gc-head">'
+      + '<h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kontrol Özeti</h2></div>'
+      + '<div class="gc-body">'
+      + '<div class="fw-ozet-satir"><b>Kontrol edilecek birim</b><span>' + GV.n(birimler.length) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Kontrol edilen birim</b><span>' + GV.n(kontrolEdilen) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Gösterilmeyen / erişilemeyen</b><span style="color:var(--warning)">' + GV.n(eksikSayi) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Sahada eklenen (ilave tespit)</b><span style="color:var(--info)">' + GV.n(durum.yeniEkipmanlar.length) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Cevaplanan madde</b><span>' + GV.n(yapilan) + ' / ' + GV.n(toplam) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Uygun</b><span style="color:var(--success)">' + GV.n(uygun) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Uygun değil</b><span style="color:var(--danger)">' + GV.n(uygunsuz) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Uygulanamaz</b><span>' + GV.n(na) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Fotoğraf</b><span>' + GV.n(fotoSayisi()) + '</span></div>'
+      + '<div class="fw-ozet-satir"><b>Genel sonuç</b><span>' + (uygunsuz
+          ? GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')
+          : na ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+          : GV.rozetOzel('ok','fa-circle-check','Uygun')) + '</span></div>'
+      + '</div></section>'
+      + (yapilan < toplam
+        ? '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+          + '<span><b>' + GV.n(toplam - yapilan) + ' madde henüz cevaplanmadı.</b> Eksik maddelerle kontrolü tamamlarsanız '
+          + 'rapor “eksik tamamlandı” olarak işaretlenir ve teknik inceleme sırasında geri dönebilir.</span></div>'
+        : '<div class="gv-note ok" style="margin-top:16px"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+          + '<span>Bütün kontrol maddeleri cevaplandı. Kontrolü tamamlayıp teknik incelemeye gönderebilirsiniz.</span></div>');
+  }
+
+  function imzaEkrani(){
+    return '<section class="gv-card"><div class="gc-head">'
+      + '<h2 class="gc-title"><i class="fa-solid fa-signature" aria-hidden="true"></i>Müşteri Yetkilisi ve İmza</h2></div>'
+      + '<div class="gc-body">'
+      + '<div class="gfield" style="margin-bottom:16px"><label for="fwImzalayan">İmzalayan yetkili</label>'
+      + '<select id="fwImzalayan">'
+      + (kisiler.length ? kisiler.map(function(k){
+          return '<option value="' + k.id + '"' + (durum.imzalayan === k.id ? ' selected' : '') + '>'
+            + GV.esc(k.ad + ' — ' + k.iletisimRolu) + '</option>'; }).join('')
+        : '<option value="">Lokasyon yetkilisi tanımlı değil</option>')
+      + '</select>'
+      + (kisiler.length ? '' : '<span class="gf-hint" style="color:var(--warning)">Bu lokasyon için iletişim kişisi tanımlanmamış. '
+        + 'İmza alınamazsa saha notuna imzalayan kişinin adı yazılmalıdır.</span>') + '</div>'
+      + '<label class="gv-sr" for="fwImzaAlan">İmza alanı</label>'
+      + '<div id="fwImzaAlan"></div>'
+      + '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span>İmza, kontrolün sahada yapıldığının ve gösterilen/gösterilmeyen ekipman sayısının '
+      + 'müşteri yetkilisi tarafından görüldüğünün kaydıdır. Miktar mutabakatı ayrıca onaylanır.</span></div>'
+      + '</div></section>';
+  }
+
+  /* ---- aksiyon çubuğu ---- */
+  function aksiyonCiz(){
+    var toplam = toplamMadde(), yapilan = cevaplananMadde();
+    document.getElementById('fwAksiyon').innerHTML =
+      '<button class="btn btn-ghost" type="button" id="fwTaslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>'
+      + (durum.adim === 'imza'
+        ? '<button class="btn btn-acc" type="button" id="fwTamamla"><i class="fa-solid fa-check" aria-hidden="true"></i>Kontrolü Tamamla</button>'
+          + '<button class="btn btn-dark" type="button" id="fwGonder"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Teknik İncelemeye Gönder</button>'
+        : '<button class="btn btn-acc" type="button" id="fwIleri">'
+          + '<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>' + (durum.adim === 'ozet' ? 'İmzaya Geç' : 'İleri') + '</button>');
+  }
+
+  /* ---- olay bağlama ---- */
+  function bagla(){
+    /* birim seçimi */
+    document.querySelectorAll('[data-birim]').forEach(function(b){
+      b.addEventListener('click', function(){
+        durum.aktifBirim = b.getAttribute('data-birim');
+        durum.adim = 'kontrol';
+        kaydet(); ciz();
+      });
+    });
+    /* cevap */
+    document.querySelectorAll('[data-madde]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var bid = durum.aktifBirim, mk = b.getAttribute('data-madde'), v = b.getAttribute('data-v');
+        durum.cevaplar[bid] = durum.cevaplar[bid] || {};
+        if (durum.cevaplar[bid][mk] === v) delete durum.cevaplar[bid][mk];
+        else durum.cevaplar[bid][mk] = v;
+        kaydet(); ciz();
+      });
+    });
+    /* ölçüm */
+    document.querySelectorAll('[data-olcum]').forEach(function(i){
+      i.addEventListener('input', function(){
+        var bid = durum.aktifBirim;
+        durum.olcumler[bid] = durum.olcumler[bid] || {};
+        durum.olcumler[bid][i.getAttribute('data-olcum')] = i.value;
+        kaydet(); ustCiz();
+      });
+    });
+    /* not */
+    var not = document.getElementById('fwNot');
+    if (not) not.addEventListener('input', function(){ durum.notlar[durum.aktifBirim] = not.value; kaydet(); });
+    /* fotoğraf */
+    var fotoBtn = document.getElementById('fwFotoEkle');
+    if (fotoBtn) fotoBtn.addEventListener('click', function(){
+      var bid = durum.aktifBirim;
+      durum.fotograflar[bid] = durum.fotograflar[bid] || [];
+      var etiketler = ['Genel görünüm','Etiket / plaka','Ölçüm ekranı','Tespit noktası','Emniyet donanımı','Seri numarası'];
+      durum.fotograflar[bid].push(etiketler[durum.fotograflar[bid].length % etiketler.length]);
+      kaydet(); ciz();
+      gvToast('Fotoğraf eklendi (demo — cihaz kamerası kullanılmaz).', { ton:'ok' });
+    });
+    document.querySelectorAll('[data-foto-sil]').forEach(function(b){
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        durum.fotograflar[durum.aktifBirim].splice(Number(b.getAttribute('data-foto-sil')), 1);
+        kaydet(); ciz();
+      });
+    });
+    /* gösterilmedi */
+    var gost = document.getElementById('fwGosterilmedi');
+    if (gost) gost.addEventListener('click', function(){
+      var b = birimBul(durum.aktifBirim);
+      gvModal({
+        baslik:'Ekipman gösterilmedi', ikon:'fa-eye-slash', ton:'warn',
+        metin:'<b>' + GV.esc(b.ad) + '</b> sahada gösterilemedi olarak işaretlenecek. '
+          + 'Bu kayıt mutabakatta “gösterilmeyen” kolonuna yazılır ve faturalanabilir miktardan düşülür.',
+        govde:'<div class="gfield"><label for="fwEksikSebep">Gerekçe *</label><select id="fwEksikSebep">'
+          + '<option>Ekipman sahada bulunamadı</option>'
+          + '<option>Ekipman başka lokasyona ödünç verilmiş</option>'
+          + '<option>Ekipman bakımda / arızalı</option>'
+          + '<option>Erişim sağlanamadı (kilitli alan, yetkili yok)</option>'
+          + '<option>Ekipman enerjisiz, test edilemedi</option>'
+          + '<option>Operatör hazır değildi</option>'
+          + '<option>Üretim durdurulamadı</option></select></div>'
+          + '<div class="gfield full" style="margin-top:14px"><label for="fwEksikNot">Ek açıklama</label>'
+          + '<textarea id="fwEksikNot" placeholder="Müşteri yetkilisine iletilecek açıklama"></textarea></div>',
+        butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+          { etiket:'İşaretle', sinif:'btn-warn', ikon:'fa-eye-slash', tikla: function(kap){
+              var sebep = kap.querySelector('#fwEksikSebep').value;
+              var ek = kap.querySelector('#fwEksikNot').value.trim();
+              durum.eksikler[b.id] = sebep + (ek ? ' — ' + ek : '');
+              kaydet(); ciz();
+              gvToast('Ekipman “gösterilmedi” olarak işaretlendi.', { ton:'warn' });
+            } }]
+      });
+    });
+    var eksikGeri = document.getElementById('fwEksikGeri');
+    if (eksikGeri) eksikGeri.addEventListener('click', function(){
+      delete durum.eksikler[durum.aktifBirim]; kaydet(); ciz();
+    });
+    /* uygunsuzluk kaydet */
+    document.querySelectorAll('[data-uygunsuzluk]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var birim = birimBul(durum.aktifBirim);
+        var mk = b.getAttribute('data-uygunsuzluk');
+        var madde = maddeler(birim.kat).filter(function(x){ return x.k === mk; })[0];
+        gvModal({
+          baslik:'Uygunsuzluk kaydet', ikon:'fa-circle-exclamation', ton:'danger', genislik:'gv-modal-lg',
+          metin: GV.esc(birim.ad + ' — ' + madde.ad),
+          govde:'<div class="gform">'
+            + '<div class="gfield"><label for="uyOnem">Önem derecesi *</label><select id="uyOnem">'
+            + '<option value="dusuk">Düşük</option><option value="orta" selected>Orta</option>'
+            + '<option value="yuksek">Yüksek</option><option value="kritik">Kritik</option></select></div>'
+            + '<div class="gfield"><label for="uyTermin">Termin</label><input type="date" id="uyTermin"></div>'
+            + '<div class="gfield full"><label for="uyAciklama">Teknik açıklama *</label>'
+            + '<textarea id="uyAciklama" placeholder="Tespitin teknik açıklaması, ölçülen değer, sınır değer"></textarea></div>'
+            + '<div class="gfield full"><label for="uyOneri">Önerilen düzeltici faaliyet *</label>'
+            + '<textarea id="uyOneri" placeholder="Yapılması gereken işlem"></textarea></div>'
+            + '<div class="gfield full"><label class="gfield-inline"><input type="checkbox" id="uyYeniden" checked>'
+            + ' Düzeltme sonrası yeniden kontrol gerekli</label></div></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Kaydet', sinif:'btn-danger', ikon:'fa-check', tikla: function(kap){
+                var acik = kap.querySelector('#uyAciklama').value.trim();
+                var oneri = kap.querySelector('#uyOneri').value.trim();
+                if (!acik || !oneri) { gvToast('Teknik açıklama ve önerilen faaliyet zorunludur.', { ton:'danger' }); return false; }
+                A.ekle('uygunsuzluklar', {
+                  id:'UYG-S' + Date.now().toString().slice(-5), raporId: ie.raporId, lokasyonId: ie.lokasyonId,
+                  ekipmanId: birim.tur === 'ekipman' ? birim.id : null, hizmetId: birim.hizmetId,
+                  onem: kap.querySelector('#uyOnem').value, tespit: BUGUN,
+                  baslik: madde.ad + ' — ' + birim.ad, aciklama: acik, oneri: oneri,
+                  sorumluTaraf:'musteri', sorumluKisi: durum.imzalayan,
+                  termin: kap.querySelector('#uyTermin').value || null,
+                  durum:'acik', kapanis:null,
+                  yenidenKontrol: kap.querySelector('#uyYeniden').checked ? 'gerekli' : 'gerekmiyor',
+                  musteriBildirimi: null
+                }).then(function(){ gvToast('Uygunsuzluk kaydedildi.', { ton:'ok' }); });
+              } }]
+        });
+      });
+    });
+    /* önem seçimi */
+    document.querySelectorAll('[data-onem]').forEach(function(s){
+      s.addEventListener('change', function(){ kaydet(); });
+    });
+    /* yeni ekipman sil */
+    document.querySelectorAll('[data-yeni-sil]').forEach(function(b){
+      b.addEventListener('click', function(){
+        durum.yeniEkipmanlar.splice(Number(b.getAttribute('data-yeni-sil')), 1); kaydet(); ciz();
+      });
+    });
+    /* QR okut */
+    var qr = document.getElementById('fwQrOkut');
+    if (qr) qr.addEventListener('click', function(){
+      gvModal({
+        baslik:'QR / barkod okut', ikon:'fa-qrcode',
+        metin:'Sahada cihaz kamerası açılır. Demo arayüzde kodu elle girerek birime geçebilirsiniz.',
+        govde:'<div class="gfield"><label for="fwQrGiris">Kod</label>'
+          + '<input type="text" id="fwQrGiris" placeholder="GVT-0108-0001" autocomplete="off"></div>'
+          + '<div id="fwQrSonuc" style="margin-top:12px"></div>',
+        acildi: function(kap){
+          var g = kap.querySelector('#fwQrGiris'), s = kap.querySelector('#fwQrSonuc');
+          g.addEventListener('input', function(){
+            var q = g.value.trim().toLocaleUpperCase('tr-TR');
+            if (q.length < 3) { s.innerHTML = ''; return; }
+            var bul = birimler.filter(function(b){
+              return (b.qr && b.qr.toLocaleUpperCase('tr-TR').indexOf(q) !== -1)
+                || b.id.toLocaleUpperCase('tr-TR').indexOf(q) !== -1; }).slice(0,4);
+            s.innerHTML = bul.length
+              ? bul.map(function(b){
+                  return '<button type="button" class="gs-item" style="width:100%;border:none;background:none;font-family:inherit;text-align:left" data-qr-sec="' + GV.esc(b.id) + '">'
+                    + '<span class="gs-ico"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>'
+                    + '<span class="gs-txt"><b>' + GV.esc(b.ad) + '</b><span>' + GV.esc(b.alt) + '</span></span></button>';
+                }).join('')
+              : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+                + '<span>Bu kod bu iş emrinin kapsamında bulunamadı. Sahada yeni ekipman tespit ettiyseniz '
+                + '“Yeni Ekipman” ile ilave tespit olarak ekleyin.</span></div>';
+            s.querySelectorAll('[data-qr-sec]').forEach(function(b){
+              b.addEventListener('click', function(){
+                durum.aktifBirim = b.getAttribute('data-qr-sec'); durum.adim = 'kontrol'; kaydet(); ciz();
+                gvToast('Birim seçildi.', { ton:'ok' });
+                document.querySelector('.gv-modal-ov.open .gv-modal-acts .btn').click();
+              });
+            });
+          });
+        },
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+      });
+    });
+    /* yeni ekipman */
+    var yeni = document.getElementById('fwYeniEkipman');
+    if (yeni) yeni.addEventListener('click', function(){
+      gvModal({
+        baslik:'Sahada yeni ekipman tespit edildi', ikon:'fa-plus', genislik:'gv-modal-lg',
+        metin:'Ön envanterde olmayan bu ekipman <b>ilave tespit</b> olarak kaydedilir, mutabakat tablosunda '
+          + 'ayrı kolonda gösterilir ve müşteri onayından sonra faturalanabilir hâle gelir.',
+        govde:'<div class="gform">'
+          + '<div class="gfield full"><label for="yeAd">Ekipman adı *</label><input type="text" id="yeAd" placeholder="Akülü transpalet"></div>'
+          + '<div class="gfield full"><label for="yeHizmet">Hizmet pozisyonu *</label><select id="yeHizmet">'
+          + A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif'; })
+              .map(function(h){ return '<option value="' + h.id + '">' + GV.esc(h.poz + ' · ' + h.ad) + '</option>'; }).join('')
+          + '</select></div>'
+          + '<div class="gfield"><label for="yeMarka">Marka</label><input type="text" id="yeMarka"></div>'
+          + '<div class="gfield"><label for="yeModel">Model</label><input type="text" id="yeModel"></div>'
+          + '<div class="gfield"><label for="yeSeri">Seri no</label><input type="text" id="yeSeri"></div>'
+          + '<div class="gfield"><label for="yeKapasite">Kapasite</label><input type="text" id="yeKapasite"></div></div>',
+        butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+          { etiket:'Ekle', sinif:'btn-acc', ikon:'fa-plus', tikla: function(kap){
+              var ad = kap.querySelector('#yeAd').value.trim();
+              if (!ad) { gvToast('Ekipman adı zorunludur.', { ton:'danger' }); return false; }
+              var hid = kap.querySelector('#yeHizmet').value;
+              var hz = A.kayit('hizmetler', hid);
+              durum.yeniEkipmanlar.push({ ad: ad, hizmetId: hid, hizmetAd: hz ? hz.ad : hid,
+                marka: kap.querySelector('#yeMarka').value.trim(), model: kap.querySelector('#yeModel').value.trim(),
+                seri: kap.querySelector('#yeSeri').value.trim(), kapasite: kap.querySelector('#yeKapasite').value.trim() });
+              kaydet(); ciz();
+              gvToast('İlave tespit kaydedildi.', { ton:'ok' });
+            } }]
+      });
+    });
+    /* imzalayan */
+    var imzalayan = document.getElementById('fwImzalayan');
+    if (imzalayan) imzalayan.addEventListener('change', function(){ durum.imzalayan = imzalayan.value; kaydet(); });
+    /* imza alanı */
+    if (document.getElementById('fwImzaAlan')) {
+      gvSignature('#fwImzaAlan', {
+        ipucu: durum.imzaAlindi ? 'İmza alındı — yeniden imzalamak için dokunun' : 'İmzalamak için bu alana dokunun',
+        degisti: function(dolu){ durum.imzaAlindi = dolu; kaydet(); }
+      });
+    }
+    /* ileri */
+    var ileri = document.getElementById('fwIleri');
+    if (ileri) ileri.addEventListener('click', function(){
+      var i = adimlar.map(function(a){ return a.k; }).indexOf(durum.adim);
+      durum.adim = adimlar[Math.min(adimlar.length - 1, i + 1)].k;
+      kaydet(); ciz();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    /* taslak */
+    var taslak = document.getElementById('fwTaslak');
+    if (taslak) taslak.addEventListener('click', function(){
+      kaydet();
+      gvToast('Taslak cihazda kaydedildi. Bağlantı olmasa da kaybolmaz.', { ton:'ok' });
+    });
+    /* tamamla */
+    var tamamla = document.getElementById('fwTamamla');
+    if (tamamla) tamamla.addEventListener('click', function(){ kontroluTamamla(false); });
+    var gonder = document.getElementById('fwGonder');
+    if (gonder) gonder.addEventListener('click', function(){ kontroluTamamla(true); });
+  }
+
+  function kontroluTamamla(incelemeyeGonder){
+    var toplam = toplamMadde(), yapilan = cevaplananMadde();
+    var eksikMadde = toplam - yapilan;
+    if (!durum.imzaAlindi) {
+      gvToast('Müşteri yetkilisinin imzası alınmadan kontrol tamamlanamaz.', { ton:'danger' });
+      durum.adim = 'imza'; kaydet(); ciz();
+      return;
+    }
+    gvConfirm({
+      baslik: incelemeyeGonder ? 'Teknik incelemeye gönderilsin mi?' : 'Kontrol tamamlansın mı?',
+      metin: (eksikMadde
+          ? '<b>' + GV.n(eksikMadde) + ' madde cevaplanmadı.</b> Kontrol “eksik tamamlandı” olarak kaydedilecek. '
+          : 'Bütün kontrol maddeleri cevaplandı. ')
+        + (Object.keys(durum.eksikler).length
+          ? '<b>' + Object.keys(durum.eksikler).length + ' ekipman</b> gösterilmedi olarak işaretlendi; mutabakata yansıyacak. '
+          : '')
+        + (durum.yeniEkipmanlar.length
+          ? '<b>' + durum.yeniEkipmanlar.length + ' ilave tespit</b> kaydedildi. ' : '')
+        + (incelemeyeGonder ? 'Rapor teknik inceleme kuyruğuna alınacak.' : 'Rapor taslak olarak açılacak.'),
+      ton: eksikMadde ? 'warn' : '', onayEtiket: incelemeyeGonder ? 'Gönder' : 'Tamamla',
+      onayIkon: incelemeyeGonder ? 'fa-paper-plane' : 'fa-check'
+    }).then(function(s){
+      if (!s.onay) return;
+      durum.senkron = 'gonderiliyor'; kaydet(); netCiz();
+      var m = gvModal({
+        baslik:'Senkronizasyon', ikon:'fa-cloud-arrow-up', disKapat:false,
+        metin:'Saha kayıtları sunucuya gönderiliyor…',
+        govde:'<div id="fwSenkIlerleme">' + GV.bar(0, { etiket:'0%' }) + '</div>'
+          + '<div id="fwSenkLog" style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.8"></div>',
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+      });
+      var adimListe = ['Kontrol maddeleri gönderiliyor…','Ölçüm değerleri aktarılıyor…',
+        GV.n(fotoSayisi()) + ' fotoğraf yükleniyor…','Uygunsuzluk kayıtları işleniyor…',
+        'Dijital imza kaydediliyor…','Mutabakat satırları güncelleniyor…','Tamamlandı'];
+      var n = 0;
+      var zaman = setInterval(function(){
+        n++;
+        var il = m.kap.querySelector('#fwSenkIlerleme'), log = m.kap.querySelector('#fwSenkLog');
+        if (il) il.innerHTML = GV.bar(n / adimListe.length, { etiket: GV.pct(n / adimListe.length, true, 0) });
+        if (log) log.innerHTML += '<div><i class="fa-solid fa-check" style="color:var(--success)" aria-hidden="true"></i> '
+          + GV.esc(adimListe[n - 1]) + '</div>';
+        if (n >= adimListe.length) {
+          clearInterval(zaman);
+          durum.senkron = 'tamamlandi'; kaydet(); netCiz();
+          A.guncelle('isEmirleri', ie.id, {
+            operasyonDurum:'kontrol-tamamlandi',
+            raporDurum: incelemeyeGonder ? 'teknik-incelemede' : 'taslak',
+            bitis: BUGUN
+          }).then(function(){
+            return A.guncelle('lokasyonlar', ie.lokasyonId, {
+              operasyonDurum:'kontrol-tamamlandi', kontrolTarihi: BUGUN,
+              raporDurum: incelemeyeGonder ? 'teknik-incelemede' : 'taslak'
+            });
+          }).then(function(){
+            return A.ekle('sahaKontroller', {
+              id:'SKT-S' + Date.now().toString().slice(-5), isEmriId: ie.id, lokasyonId: ie.lokasyonId,
+              personelId: (GV.rolBilgi || {}).personelId || 'PRS-007',
+              baslangic: BUGUN + 'T09:00:00', bitis: BUGUN + 'T17:00:00',
+              durum: eksikMadde ? 'eksik-tamamlandi' : 'tamamlandi',
+              senkron:'tamamlandi', cevrimdisi: durum.cevrimdisi,
+              tamamlanan: cevaplananMadde(), toplam: toplamMadde(),
+              fotograf: fotoSayisi(), uygunsuzluk: uygunsuzSayisi(), imza: true,
+              not:'Saha kontrol formundan tamamlandı.'
+            });
+          }).then(function(){
+            try { localStorage.removeItem(ANAHTAR); } catch(e){}
+            gvResult(true, {
+              baslik: incelemeyeGonder ? 'Teknik incelemeye gönderildi' : 'Kontrol tamamlandı',
+              metin:'<b>' + GV.esc(ie.id) + '</b> saha kontrolü kaydedildi. '
+                + GV.n(cevaplananMadde()) + ' madde, ' + GV.n(fotoSayisi()) + ' fotoğraf ve '
+                + GV.n(uygunsuzSayisi()) + ' uygunsuzluk senkronize edildi.',
+              butonlar:[
+                { etiket:'İş emrine dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('is-emri-detay.html?id=' + ie.id); } },
+                { etiket:'Saha kontrolleri', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){ location.href = GV.href('saha-kontrol.html'); } }
+              ]
+            });
+          });
+        }
+      }, 560);
+    });
+  }
+
+  /* ---- bağlantı durumu ---- */
+  function netCiz(){
+    var el = document.getElementById('fwNet');
+    if (durum.senkron === 'gonderiliyor') {
+      el.className = 'fw-net syncing no-print';
+      el.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-fade" aria-hidden="true"></i><span>Senkronize ediliyor…</span>';
+    } else if (durum.cevrimdisi) {
+      el.className = 'fw-net offline no-print';
+      el.innerHTML = '<i class="fa-solid fa-wifi" aria-hidden="true"></i><span>Çevrimdışı — kayıtlar cihazda</span>';
+    } else {
+      el.className = 'fw-net online no-print';
+      el.innerHTML = '<i class="fa-solid fa-wifi" aria-hidden="true"></i><span>Çevrimiçi</span>';
+    }
+  }
+  document.getElementById('fwNet').addEventListener('click', function(){
+    if (durum.senkron === 'gonderiliyor') return;
+    durum.cevrimdisi = !durum.cevrimdisi;
+    kaydet(); netCiz();
+    gvToast(durum.cevrimdisi
+      ? 'Çevrimdışı moda geçildi. Girdiğiniz veriler cihazda saklanır, bağlantı gelince gönderilir.'
+      : 'Bağlantı geri geldi. Bekleyen kayıtlar arka planda gönderilecek.',
+      { ton: durum.cevrimdisi ? 'warn' : 'ok' });
+  });
+  document.getElementById('fwNet').setAttribute('title', 'Bağlantı durumunu değiştir (demo)');
+
+  ciz();
+  netCiz();
+})();
+</script>
+</body>
+</html>

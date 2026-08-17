@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Eksik Ekipmanlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="operasyon" data-screen="eksik-ekipmanlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1>Eksik ve Gösterilmeyen Ekipmanlar</h1>
+        <p class="ph-sub">Sahada bulunamayan, gösterilemeyen veya ön envanterde olmayıp ilave tespit edilen kalemler. Bu kayıtlar mutabakat tablosuna ve faturalanabilir miktara doğrudan etki eder.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="eeDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="eeBildir"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button></div>
+    </div>
+    <div class="kpi-grid" id="eeKpi"></div>
+
+    <div class="gv-note" style="margin-bottom:20px">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <span><b>Eksik</b> = ön envanterde bildirilen ancak sahada bulunmayan · <b>Gösterilmeyen</b> = sahada var
+      ancak erişilemediği için kontrol edilemeyen · <b>İlave tespit</b> = ön envanterde olmayıp sahada bulunan kalem.
+      Üçü de mutabakat tablosunda ayrı kolonlarda izlenir.</span>
+    </div>
+
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Lokasyon, hizmet, açıklama…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="eeBulk"></div>
+      <div class="gc-body flush" id="eeTablo"></div>
+      <div class="gv-pager" id="eePager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Fark Analizi</h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Fark Türü Dağılımı</h3></div>
+          <div class="gc-body"><div class="chart-box" id="eeDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyon Bazlı Fark</h3></div>
+          <div class="gc-body" id="eeLokasyon"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+  var turBilgi = {
+    eksik:       ['danger','fa-minus','Eksik','Ön envanterde bildirildi, sahada bulunamadı'],
+    gosterilmeyen:['warn','fa-eye-slash','Gösterilmeyen','Sahada var, erişilemediği için kontrol edilemedi'],
+    ilave:       ['info','fa-plus','İlave Tespit','Ön envanterde yok, sahada bulundu']
+  };
+
+  var kaynak = A.liste('eksikEkipmanlar').map(function(e){
+    var l = A.lokasyon(e.lokasyonId), h = A.kayit('hizmetler', e.hizmetId);
+    var mtb = A.mutabakatSatirlari(e.lokasyonId).filter(function(m){ return m.hizmetId === e.hizmetId; })[0];
+    var bf = l ? A.birimSatisFiyati(e.hizmetId, l.projeId ? (A.kayit('projeler', l.projeId) || {}).fiyatListesiId : null) : 0;
+    return Object.assign({}, e, {
+      lokasyonAd: l ? l.ad : '—', musteriAd: l ? l.musteriAd : '—', musteriId: l ? l.musteriId : null,
+      bolge: l ? l.bolge : '—', projeId: l ? l.projeId : null,
+      hizmetAd: h ? h.ad : e.hizmetId, poz: h ? h.poz : '—',
+      birimGosterim: birimAd[e.birim || (h ? h.birim : 'adet')] || 'adet',
+      tutarEtkisi: bf * e.miktar * (e.tur === 'ilave' ? 1 : -1),
+      mutabakatDurum: mtb ? mtb.durum : null
+    });
+  });
+
+  var etkiToplam = kaynak.reduce(function(t,e){ return t + e.tutarEtkisi; }, 0);
+  gvKpi('#eeKpi', [
+    { ikon:'fa-minus', sayi: GV.n(kaynak.filter(function(e){ return e.tur === 'eksik'; }).reduce(function(t,e){ return t + e.miktar; }, 0)),
+      etiket:'Eksik çıkan miktar', ton:'danger' },
+    { ikon:'fa-eye-slash', sayi: GV.n(kaynak.filter(function(e){ return e.tur === 'gosterilmeyen'; }).reduce(function(t,e){ return t + e.miktar; }, 0)),
+      etiket:'Gösterilmeyen miktar', ton:'warn' },
+    { ikon:'fa-plus', sayi: GV.n(kaynak.filter(function(e){ return e.tur === 'ilave'; }).reduce(function(t,e){ return t + e.miktar; }, 0)),
+      etiket:'İlave tespit miktarı', ton:'info' },
+    { ikon:'fa-coins', sayi: GV.tlKisa(Math.abs(etkiToplam)), etiket: etkiToplam >= 0 ? 'Net gelir artışı' : 'Net gelir kaybı',
+      ton: etkiToplam >= 0 ? 'ok' : 'danger',
+      delta:{ yon: etkiToplam >= 0 ? 'up' : 'down', metin: kaynak.length + ' fark kaydı' } }
+  ]);
+
+  var kolonlar = [
+    { k:'lokasyonAd', ad:'Lokasyon', kilitli:true, ciz: function(e){
+        return '<div class="gcell-info"><div class="gcell-name">'
+          + '<a href="lokasyon-detay.html?id=' + e.lokasyonId + '">' + GV.esc(e.lokasyonAd) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(e.musteriAd + ' · ' + e.bolge) + '</div></div>'; } },
+    { k:'poz', ad:'Poz', ciz: function(e){ return '<b class="t-strong">' + GV.esc(e.poz) + '</b>'; } },
+    { k:'hizmetAd', ad:'Hizmet', ciz: function(e){
+        return '<a href="hizmet-detay.html?id=' + e.hizmetId + '">' + GV.esc(e.hizmetAd) + '</a>'; } },
+    { k:'tur', ad:'Fark Türü', ciz: function(e){
+        var t = turBilgi[e.tur] || turBilgi.eksik;
+        return GV.rozetOzel(t[0], t[1], t[2]); } },
+    { k:'miktar', ad:'Miktar', sinif:'num', ciz: function(e){
+        return '<b class="t-strong">' + GV.n(e.miktar) + '</b> ' + GV.esc(e.birimGosterim); } },
+    { k:'tutarEtkisi', ad:'Tutar Etkisi', sinif:'num', ciz: function(e){
+        return e.tutarEtkisi >= 0
+          ? '<span class="diff plus"><i class="fa-solid fa-plus" aria-hidden="true"></i>' + GV.tl(e.tutarEtkisi) + '</span>'
+          : '<span class="diff minus"><i class="fa-solid fa-minus" aria-hidden="true"></i>' + GV.tl(Math.abs(e.tutarEtkisi)) + '</span>'; } },
+    { k:'tespit', ad:'Tespit Tarihi', ciz: function(e){ return GV.d(e.tespit); } },
+    { k:'aciklama', ad:'Açıklama', ciz: function(e){ return '<span class="gv-ellip" style="max-width:280px;display:block">' + GV.esc(e.aciklama) + '</span>'; } },
+    { k:'durum', ad:'Durum', ciz: function(e){
+        var d = {
+          'musteri-bildirildi':['info','fa-paper-plane','Müşteriye bildirildi'],
+          'mutabakatta':['warn','fa-scale-balanced','Mutabakatta'],
+          'musteri-onayladi':['ok','fa-circle-check','Müşteri onayladı'],
+          'yeniden-kontrol-bekliyor':['danger','fa-rotate-right','Yeniden kontrol bekliyor']
+        }[e.durum] || ['off','fa-circle', e.durum];
+        return GV.rozetOzel(d[0], d[1], d[2]); } },
+    { k:'__islem', ad:'İşlem', ciz: function(e){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="envanter-mutabakati.html?lokasyon=' + e.lokasyonId + '" aria-label="Mutabakata git">'
+          + '<i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></a>'
+          + (e.tur !== 'ilave' ? '<button class="ia-btn" type="button" data-yeniden="' + e.id + '" aria-label="Yeniden kontrol talebi aç">'
+              + '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i></button>' : '')
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#eeTablo', kolonlar:kolonlar, secim:true, satirId: function(e){ return e.id; },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Fark kaydı yok',
+      metin:'Planlanan ile sahada bulunan miktarlar arasında kayda alınmış fark bulunmuyor.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#eeBulk', aksiyonlar:[
+    { etiket:'Müşteriye bildir', ikon:'fa-paper-plane', tikla: function(s){ bildirimGonder(s); } },
+    { etiket:'Yeniden kontrol talebi', ikon:'fa-rotate-right', tikla: function(s){
+        gvConfirm({ baslik:'Yeniden kontrol talebi açılsın mı?',
+          metin:'<b>' + s.length + '</b> kayıt için yeniden kontrol talebi oluşturulacak. '
+            + 'Gösterilemeyen ekipmanların sorumluluğu müşteride ise talep ücretli olarak açılabilir.',
+          onayEtiket:'Talep aç', onayIkon:'fa-rotate-right' }).then(function(r){
+            if (!r.onay) return;
+            Promise.all(s.map(function(eid){
+              var e = A.kayit('eksikEkipmanlar', eid);
+              return A.ekle('yenidenKontroller', {
+                id:'YKN-E' + Date.now().toString().slice(-5) + eid.slice(-2),
+                uygunsuzlukId: null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
+                talepEden:'GAVIA Teknik', planTarihi: null, durum:'talep-edildi', ucretli: e.tur === 'gosterilmeyen',
+                aciklama:'Eksik/gösterilmeyen ekipman kontrolü — ' + e.aciklama
+              });
+            })).then(function(){
+              gvToast(s.length + ' yeniden kontrol talebi açıldı.', { ton:'ok' });
+              setTimeout(function(){ location.href = GV.href('yeniden-kontroller.html'); }, 900);
+            });
+          });
+      } },
+    { etiket:'Dışa aktar', ikon:'fa-file-export', sinif:'btn-ghost', tikla: function(s){
+        GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'eksik-ekipmanlar', modul:'Eksik Ekipman' }); } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'eksik-ekipmanlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#eePager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-yeniden]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var e = A.kayit('eksikEkipmanlar', b.getAttribute('data-yeniden'));
+        var l = A.lokasyon(e.lokasyonId);
+        gvModal({
+          baslik:'Yeniden kontrol talebi', ikon:'fa-rotate-right',
+          metin:'<b>' + GV.esc(l ? l.ad : '') + '</b> lokasyonunda gösterilemeyen ekipman için yeniden kontrol planlanacak.',
+          govde:'<div class="gform">'
+            + '<div class="gfield"><label for="eeTarih">Planlanan tarih</label><input type="date" id="eeTarih"></div>'
+            + '<div class="gfield"><label for="eeUcret">Ücretlendirme</label><select id="eeUcret">'
+            + '<option value="ucretli"' + (e.tur === 'gosterilmeyen' ? ' selected' : '') + '>Ücretli (müşteri kaynaklı)</option>'
+            + '<option value="ucretsiz">Ücretsiz (GAVIA kaynaklı)</option></select></div>'
+            + '<div class="gfield full"><label for="eeAciklama">Açıklama</label><textarea id="eeAciklama">'
+            + GV.esc(e.aciklama) + '</textarea></div></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Talep Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+                A.ekle('yenidenKontroller', {
+                  id:'YKN-E' + Date.now().toString().slice(-5),
+                  uygunsuzlukId:null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
+                  talepEden:'GAVIA Teknik', planTarihi: kap.querySelector('#eeTarih').value || null,
+                  durum: kap.querySelector('#eeTarih').value ? 'planlandi' : 'talep-edildi',
+                  ucretli: kap.querySelector('#eeUcret').value === 'ucretli',
+                  aciklama: kap.querySelector('#eeAciklama').value
+                }).then(function(){
+                  gvToast('Yeniden kontrol talebi oluşturuldu.', { ton:'ok' });
+                  setTimeout(function(){ location.href = GV.href('yeniden-kontroller.html'); }, 900);
+                });
+              } }]
+        });
+      });
+    });
+  }
+
+  function bildirimGonder(idler){
+    var kayitlar = idler.map(function(i){ return A.kayit('eksikEkipmanlar', i); }).filter(Boolean);
+    var lokasyonlar = Array.from(new Set(kayitlar.map(function(k){ return k.lokasyonId; })));
+    gvModal({
+      baslik:'Fark bildirimi gönder', ikon:'fa-paper-plane', genislik:'gv-modal-lg',
+      metin: kayitlar.length + ' fark kaydı, ' + lokasyonlar.length + ' lokasyon için müşteriye bildirilecek.',
+      govde:'<div class="gv-tscroll gv-cap"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Lokasyon</th><th scope="col">Hizmet</th><th scope="col">Tür</th>'
+        + '<th scope="col" class="num">Miktar</th></tr></thead><tbody>'
+        + kayitlar.map(function(k){
+            var l = A.lokasyon(k.lokasyonId), h = A.kayit('hizmetler', k.hizmetId);
+            var t = turBilgi[k.tur] || turBilgi.eksik;
+            return '<tr><td>' + GV.esc(l ? l.ad : '—') + '</td><td>' + GV.esc(h ? h.ad : '—') + '</td>'
+              + '<td>' + GV.rozetOzel(t[0], t[1], t[2]) + '</td>'
+              + '<td class="num">' + GV.n(k.miktar) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+        + '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>'
+        + '<span>Bu farklar mutabakat tablosuna işlenmiştir. Müşteri onayı alınmadan '
+        + 'ilgili kalemler faturalanamaz.</span></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(){
+            Promise.all(lokasyonlar.map(function(lid){
+              var l = A.lokasyon(lid);
+              return A.ekle('iletisimGecmisi', {
+                id:'ILT-F' + Date.now().toString().slice(-5) + lid.slice(-2),
+                musteriId: l ? l.musteriId : null, lokasyonId: lid, kisiId: l ? l.yetkiliId : null,
+                tur:'uygunsuzluk-bildirimi', tarih: A.bugun() + 'T10:00:00',
+                kullaniciId: (GV.rolBilgi || {}).personelId,
+                konu:'Envanter farkı bildirimi',
+                ozet: kayitlar.filter(function(k){ return k.lokasyonId === lid; }).length + ' kalemde miktar farkı bildirildi.'
+              });
+            })).then(function(){
+              return Promise.all(idler.map(function(eid){ return A.guncelle('eksikEkipmanlar', eid, { durum:'musteri-bildirildi' }); }));
+            }).then(function(){
+              gvToast('Fark bildirimi gönderildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['lokasyonAd','musteriAd','hizmetAd','poz','aciklama'],
+    cipler: { alan:'tur', secenekler: Object.keys(turBilgi).map(function(k){
+      return { k:k, ad:turBilgi[k][2], ikon:turBilgi[k][1] }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'lokasyonId', ad:'Lokasyon', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(e){ return e.lokasyonId; })))
+          .map(function(lid){ var l = A.lokasyon(lid); return { deger:lid, ad: l ? l.ad : lid }; }) },
+      { k:'durum', ad:'Kayıt durumu', tur:'coklu', secenekler:[
+        { deger:'musteri-bildirildi', ad:'Müşteriye bildirildi' }, { deger:'mutabakatta', ad:'Mutabakatta' },
+        { deger:'musteri-onayladi', ad:'Müşteri onayladı' }, { deger:'yeniden-kontrol-bekliyor', ad:'Yeniden kontrol bekliyor' }] },
+      { k:'miktar', ad:'Miktar', tur:'aralik' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('eeDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'eksik-ekipmanlar', modul:'Eksik Ekipman' });
+  });
+  document.getElementById('eeBildir').addEventListener('click', function(){
+    bildirimGonder(kaynak.filter(function(e){ return e.durum !== 'musteri-bildirildi'; }).map(function(e){ return e.id; }));
+  });
+
+  /* --- grafikler --- */
+  gvDonut('#eeDonut', Object.keys(turBilgi).map(function(k){
+    return { etiket: turBilgi[k][2],
+      deger: kaynak.filter(function(e){ return e.tur === k; }).reduce(function(t,e){ return t + e.miktar; }, 0),
+      ton: k === 'eksik' ? 'danger' : k === 'gosterilmeyen' ? 'warn' : 'info' };
+  }).filter(function(d){ return d.deger; }), { merkezEtiket:'birim fark' });
+
+  var lokSay = {};
+  kaynak.forEach(function(e){
+    if (!lokSay[e.lokasyonId]) lokSay[e.lokasyonId] = { ad:e.lokasyonAd, miktar:0, tutar:0 };
+    lokSay[e.lokasyonId].miktar += e.miktar;
+    lokSay[e.lokasyonId].tutar += e.tutarEtkisi;
+  });
+  gvBarList('#eeLokasyon', Object.keys(lokSay).sort(function(a,b){ return lokSay[b].miktar - lokSay[a].miktar; })
+    .map(function(lid){
+      return { etiket: lokSay[lid].ad, deger: lokSay[lid].miktar,
+        gosterim: GV.n(lokSay[lid].miktar) + ' birim · ' + (lokSay[lid].tutar >= 0 ? '+' : '−') + GV.tl(Math.abs(lokSay[lid].tutar)),
+        ton: lokSay[lid].tutar >= 0 ? 'ok' : 'danger' };
+    }));
+})();
+</script>
+</body>
+</html>

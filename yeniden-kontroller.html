@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Yeniden Kontroller — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="operasyon" data-screen="yeniden-kontroller">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1>Yeniden Kontroller</h1>
+        <p class="ph-sub">Uygunsuzluk düzeltmesi, gösterilemeyen ekipman veya erişim engeli nedeniyle tekrarlanması gereken kontroller. Ücretlendirme sorumluluğun kimde olduğuna göre belirlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ykDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="ykYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Talep</button></div>
+    </div>
+    <div class="kpi-grid" id="ykKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Talep no, lokasyon, açıklama…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="ykTablo"></div>
+      <div class="gv-pager" id="ykPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  var kaynak = A.liste('yenidenKontroller').map(function(y){
+    var l = A.lokasyon(y.lokasyonId);
+    var u = y.uygunsuzlukId ? A.kayit('uygunsuzluklar', y.uygunsuzlukId) : null;
+    return Object.assign({}, y, {
+      lokasyonAd: l ? l.ad : '—', musteriAd: l ? l.musteriAd : '—', musteriId: l ? l.musteriId : null,
+      bolge: l ? l.bolge : '—',
+      uygunsuzlukBaslik: u ? u.baslik : null, uygunsuzlukOnem: u ? u.onem : null,
+      bekleyenGun: GV.gun(y.talepTarihi, BUGUN)
+    });
+  });
+
+  gvKpi('#ykKpi', [
+    { ikon:'fa-rotate-right', sayi: GV.n(kaynak.length), etiket:'Toplam yeniden kontrol talebi' },
+    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(y){ return y.durum === 'talep-edildi'; }).length), etiket:'Planlama bekleyen', ton:'warn' },
+    { ikon:'fa-calendar-check', sayi: GV.n(kaynak.filter(function(y){ return y.durum === 'planlandi'; }).length), etiket:'Planlanmış', ton:'info' },
+    { ikon:'fa-coins', sayi: GV.n(kaynak.filter(function(y){ return y.ucretli; }).length), etiket:'Ücretli talep', ton:'ok',
+      delta:{ yon:'flat', metin: kaynak.filter(function(y){ return !y.ucretli; }).length + ' ücretsiz (GAVIA kaynaklı)' } }
+  ]);
+
+  var kolonlar = [
+    { k:'id', ad:'Talep No', kilitli:true, ciz: function(y){
+        return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(y.id) + '</div>'
+          + '<div class="gcell-sub">' + GV.d(y.talepTarihi) + ' · ' + GV.esc(y.talepEden) + '</div></div>'; } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(y){
+        return '<a href="lokasyon-detay.html?id=' + y.lokasyonId + '">' + GV.esc(y.lokasyonAd) + '</a>'
+          + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(y.musteriAd + ' · ' + y.bolge) + '</span>'; } },
+    { k:'uygunsuzlukBaslik', ad:'İlgili Uygunsuzluk', ciz: function(y){
+        return y.uygunsuzlukId
+          ? '<a href="uygunsuzluk-detay.html?id=' + y.uygunsuzlukId + '">' + GV.esc(y.uygunsuzlukBaslik) + '</a>'
+            + (y.uygunsuzlukOnem === 'kritik' ? ' ' + GV.rozetOzel('danger','fa-fire','Kritik') : '')
+          : '<span class="muted">Envanter farkı kaynaklı</span>'; } },
+    { k:'aciklama', ad:'Açıklama', ciz: function(y){
+        return '<span class="gv-ellip" style="max-width:300px;display:block">' + GV.esc(y.aciklama) + '</span>'; } },
+    { k:'talepEden', ad:'Talep Eden', ciz: function(y){
+        return '<span class="gtag">' + GV.esc(y.talepEden) + '</span>'; } },
+    { k:'planTarihi', ad:'Planlanan Tarih', ciz: function(y){
+        return y.planTarihi ? GV.d(y.planTarihi) : '<span class="gtag warn">Planlanmadı</span>'; } },
+    { k:'ucretli', ad:'Ücretlendirme', ciz: function(y){
+        return y.ucretli ? GV.rozetOzel('info','fa-coins','Ücretli') : GV.rozetOzel('off','fa-gift','Ücretsiz'); } },
+    { k:'bekleyenGun', ad:'Bekleme', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(y){
+        return GV.n(y.bekleyenGun) + ' gün'; } },
+    { k:'durum', ad:'Durum', ciz: function(y){
+        return y.durum === 'tamamlandi' ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
+          : y.durum === 'planlandi' ? GV.rozetOzel('info','fa-calendar-check','Planlandı')
+          : GV.rozetOzel('warn','fa-hourglass-half','Talep edildi'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(y){
+        return '<div class="row-acts">'
+          + (y.durum === 'talep-edildi'
+            ? '<button class="ia-btn" type="button" data-planla="' + y.id + '" aria-label="Planla"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i></button>'
+            : '')
+          + (y.durum === 'planlandi'
+            ? '<button class="ia-btn" type="button" data-tamamla="' + y.id + '" aria-label="Tamamlandı işaretle"><i class="fa-solid fa-check" aria-hidden="true"></i></button>'
+            : '')
+          + '<a class="ia-btn" href="lokasyon-detay.html?id=' + y.lokasyonId + '" aria-label="Lokasyon detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a></div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ykTablo', kolonlar:kolonlar, satirId: function(y){ return y.id; },
+    bosDurum:{ ikon:'fa-rotate-right', baslik:'Yeniden kontrol talebi yok',
+      metin:'Tekrarlanması gereken kontrol bulunmuyor.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'yeniden-kontroller', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#ykPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-planla]').forEach(function(b){
+      b.addEventListener('click', function(){ planla(b.getAttribute('data-planla')); });
+    });
+    document.querySelectorAll('[data-tamamla]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var y = A.kayit('yenidenKontroller', b.getAttribute('data-tamamla'));
+        gvConfirm({ baslik:'Yeniden kontrol tamamlandı mı?',
+          metin:'<b>' + GV.esc(y.id) + '</b> talebi tamamlandı olarak işaretlenecek. '
+            + 'İlgili uygunsuzluk kaydı varsa kapatılması ayrıca değerlendirilir.',
+          onayEtiket:'Tamamlandı', onayIkon:'fa-check', notAlani:true, notYer:'Kontrol sonucu…'
+        }).then(function(s){
+          if (!s.onay) return;
+          A.durumDegistir('yenidenKontroller', y.id, 'durum', 'tamamlandi', s.not).then(function(){
+            gvToast('Yeniden kontrol tamamlandı olarak kaydedildi.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        });
+      });
+    });
+  }
+
+  function planla(yid){
+    var y = A.kayit('yenidenKontroller', yid);
+    var l = A.lokasyon(y.lokasyonId);
+    gvModal({
+      baslik:'Yeniden kontrolü planla', ikon:'fa-calendar-plus',
+      metin:'<b>' + GV.esc(l ? l.ad : '') + '</b> lokasyonu için yeniden kontrol tarihi belirlenecek.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="ykTarih">Kontrol tarihi *</label><input type="date" id="ykTarih" value="' + BUGUN + '"></div>'
+        + '<div class="gfield"><label for="ykUcret">Ücretlendirme</label><select id="ykUcret">'
+        + '<option value="ucretli"' + (y.ucretli ? ' selected' : '') + '>Ücretli</option>'
+        + '<option value="ucretsiz"' + (y.ucretli ? '' : ' selected') + '>Ücretsiz</option></select></div>'
+        + '<div class="gfield full"><label for="ykNot">Not</label><textarea id="ykNot">' + GV.esc(y.aciklama) + '</textarea></div></div>'
+        + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+        + '<span>Ücretsiz yeniden kontroller GAVIA kaynaklı eksikliklerde uygulanır. '
+        + 'Müşteri kaynaklı erişim engellerinde sözleşmeye göre ücretlendirilir.</span></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Planla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var t = kap.querySelector('#ykTarih').value;
+            if (!t) { gvToast('Kontrol tarihi zorunludur.', { ton:'danger' }); return false; }
+            A.guncelle('yenidenKontroller', yid, {
+              planTarihi: t, durum:'planlandi',
+              ucretli: kap.querySelector('#ykUcret').value === 'ucretli',
+              aciklama: kap.querySelector('#ykNot').value
+            }).then(function(){
+              gvToast('Yeniden kontrol ' + GV.d(t) + ' tarihine planlandı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','lokasyonAd','musteriAd','aciklama','uygunsuzlukBaslik'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'talep-edildi', ad:'Talep edildi', ikon:'fa-hourglass-half' },
+      { k:'planlandi', ad:'Planlandı', ikon:'fa-calendar-check' },
+      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-circle-check' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'talepEden', ad:'Talep eden', tur:'secim', secenekler:[
+        { deger:'GAVIA Teknik', ad:'GAVIA Teknik' }, { deger:'Müşteri', ad:'Müşteri' }] },
+      { k:'ucretli', ad:'Yalnız ücretliler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('ykDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'yeniden-kontroller', modul:'Yeniden Kontrol' });
+  });
+
+  document.getElementById('ykYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni yeniden kontrol talebi', ikon:'fa-plus', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="ynLokasyon">Lokasyon *</label><select id="ynLokasyon">'
+        + A.lokasyonlar().filter(function(l){ return l.projeId; })
+            .map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad + ' — ' + l.musteriAd) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="ynTalepEden">Talep eden</label><select id="ynTalepEden">'
+        + '<option>GAVIA Teknik</option><option>Müşteri</option></select></div>'
+        + '<div class="gfield"><label for="ynUcret">Ücretlendirme</label><select id="ynUcret">'
+        + '<option value="ucretsiz">Ücretsiz</option><option value="ucretli">Ücretli</option></select></div>'
+        + '<div class="gfield full"><label for="ynTarih">Planlanan tarih</label><input type="date" id="ynTarih"></div>'
+        + '<div class="gfield full"><label for="ynAciklama">Gerekçe *</label>'
+        + '<textarea id="ynAciklama" placeholder="Yeniden kontrolün gerekçesi"></textarea></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Talep Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var acik = kap.querySelector('#ynAciklama').value.trim();
+            if (!acik) { gvToast('Gerekçe zorunludur.', { ton:'danger' }); return false; }
+            var t = kap.querySelector('#ynTarih').value;
+            A.ekle('yenidenKontroller', {
+              id:'YKN-Y' + String(A.liste('yenidenKontroller').length + 1).padStart(3,'0'),
+              uygunsuzlukId:null, lokasyonId: kap.querySelector('#ynLokasyon').value,
+              talepTarihi: BUGUN, talepEden: kap.querySelector('#ynTalepEden').value,
+              planTarihi: t || null, durum: t ? 'planlandi' : 'talep-edildi',
+              ucretli: kap.querySelector('#ynUcret').value === 'ucretli', aciklama: acik
+            }).then(function(){
+              gvToast('Yeniden kontrol talebi oluşturuldu.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>İş Emirleri — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="operasyon" data-screen="is-emirleri">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1>İş Emirleri</h1>
+        <p class="ph-sub">Saha kontrol işlerinin tamamı; atanan ekip, taşeron, ölçüm cihazları, operasyon durumu ve rapor durumu ile birlikte.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ieDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <a class="btn btn-acc" href="is-emri-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni İş Emri</a></div>
+    </div>
+    <div class="kpi-grid" id="ieKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="İş emri no, lokasyon, müşteri, ekip…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="ieBulk"></div>
+      <div class="gc-body flush" id="ieTablo"></div>
+      <div class="gv-pager" id="iePager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var kaynak = A.isEmirleri().filter(function(i){
+    if (kapsam.tur === 'taseron') return i.taseronId === kapsam.taseronId;
+    if (kapsam.tur === 'musteri') { var l = A.kayit('lokasyonlar', i.lokasyonId); return l && l.musteriId === kapsam.musteriId; }
+    return true;
+  }).map(function(i){
+    var cihazUyari = (i.cihazlar || []).filter(function(c){ return !A.cihazAtanabilir(c).uygun; }).length;
+    return Object.assign({}, i, {
+      ekipMetni: i.ekipAdlari.join(', ') || '—',
+      cihazSayisi: (i.cihazlar || []).length,
+      cihazUyari: cihazUyari,
+      gecikti: i.operasyonDurum === 'planlandi' && GV.gun(BUGUN, i.tarih) < 0
+    });
+  });
+
+  gvKpi('#ieKpi', [
+    { ikon:'fa-clipboard-check', sayi: GV.n(kaynak.length), etiket:'Toplam iş emri',
+      delta:{ yon:'flat', metin: kaynak.filter(function(i){ return i.operasyonDurum === 'kontrol-tamamlandi'; }).length + ' tamamlandı' } },
+    { ikon:'fa-calendar-days', sayi: GV.n(kaynak.filter(function(i){ return i.operasyonDurum === 'planlandi'; }).length), etiket:'Planlanmış', ton:'info' },
+    { ikon:'fa-person-walking', sayi: GV.n(kaynak.filter(function(i){ return i.operasyonDurum === 'sahada'; }).length), etiket:'Şu an sahada', ton:'ok' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.n(kaynak.filter(function(i){ return i.gecikti || i.cihazUyari || !i.musteriTarihOnayi || !i.hazirlikTamam; }).length),
+      etiket:'Dikkat gerektiren', ton:'warn' }
+  ]);
+
+  var kolonlar = [
+    { k:'id', ad:'İş Emri No', kilitli:true, ciz: function(i){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="is-emri-detay.html?id=' + i.id + '">' + GV.esc(i.id) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.d(i.tarih) + ' · ' + GV.esc(i.saat) + '</div></div>'; } },
+    { k:'projeId', ad:'Proje', ciz: function(i){
+        var p = A.kayit('projeler', i.projeId);
+        return p ? '<a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.kod) + '</a>' : GV.bos; } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(i){
+        return '<a href="lokasyon-detay.html?id=' + i.lokasyonId + '">' + GV.esc(i.lokasyonAd) + '</a>'
+          + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(i.bolge + ' / ' + i.il) + '</span>'; } },
+    { k:'musteriAd', ad:'Müşteri' },
+    { k:'tarih', ad:'Tarih', ciz: function(i){
+        return GV.d(i.tarih) + (i.gecikti ? ' ' + GV.rozetOzel('danger','fa-clock','Geçti') : ''); } },
+    { k:'hizmetSayisi', ad:'Hizmet', sinif:'num', ciz: function(i){ return GV.n(i.hizmetSayisi); } },
+    { k:'tahminiMiktar', ad:'Tahmini Miktar', sinif:'num', ciz: function(i){ return GV.n(i.tahminiMiktar); } },
+    { k:'ekipMetni', ad:'Atanan Ekip' },
+    { k:'taseronAd', ad:'Taşeron', ciz: function(i){
+        return i.taseronId ? '<a href="taseron-detay.html?id=' + i.taseronId + '">' + GV.esc(i.taseronAd) + '</a>'
+          : '<span class="muted">GAVIA ekibi</span>'; } },
+    { k:'cihazSayisi', ad:'Cihaz', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(i){
+        return GV.n(i.cihazSayisi) + (i.cihazUyari ? ' ' + GV.rozetOzel('danger','fa-ban', i.cihazUyari + ' uygunsuz') : ''); } },
+    { k:'operasyonDurum', ad:'Operasyon', ciz: function(i){ return GV.rozet('operasyon', i.operasyonDurum); } },
+    { k:'raporDurum', ad:'Rapor', ciz: function(i){ return GV.rozet('rapor', i.raporDurum); } },
+    { k:'musteriTarihOnayi', ad:'Tarih Onayı', varsayilanGizli:true, gizli:true, ciz: function(i){
+        return i.musteriTarihOnayi ? GV.rozetOzel('ok','fa-check','Onaylı') : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(i){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="is-emri-detay.html?id=' + i.id + '" aria-label="' + GV.esc(i.id) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="is-emri-form.html?id=' + i.id + '" aria-label="' + GV.esc(i.id) + ' düzenle"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="saha-kontrol-formu.html?isemri=' + i.id + '" aria-label="' + GV.esc(i.id) + ' saha formu"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i></a>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ieTablo', kolonlar:kolonlar, secim:true, satirId: function(i){ return i.id; },
+    bosDurum:{ ikon:'fa-clipboard-check', baslik:'İş emri bulunamadı', metin:'Filtrelerinize uyan iş emri yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#ieBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'is-emirleri', modul:'İş Emri' }); } },
+    { etiket:'Ekip ata', ikon:'fa-users', tikla: function(s){
+        gvModal({ baslik:'Ekip ata', ikon:'fa-users', genislik:'gv-modal-lg',
+          metin: s.length + ' iş emrine personel atanacak. Yetkinliği olmayan personel listede kapalı gösterilir.',
+          govde:'<div class="gfield"><label for="ieEkip">Personel</label><select id="ieEkip" multiple size="8" style="min-height:170px">'
+            + A.liste('personeller').filter(function(p){ return ['Teknik','Operasyon'].indexOf(p.birim) !== -1; })
+                .map(function(p){
+                  var k = A.personelAtanabilir(p.id, null);
+                  return '<option value="' + p.id + '"' + (k.uygun ? '' : ' disabled') + '>'
+                    + GV.esc(p.ad + ' — ' + p.gorev + (k.uygun ? '' : ' (' + k.sebep + ')')) + '</option>'; }).join('')
+            + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim yapabilirsiniz.</span></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Ata', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+                var sec = Array.prototype.slice.call(kap.querySelectorAll('#ieEkip option:checked')).map(function(o){ return o.value; });
+                if (!sec.length) { gvToast('En az bir personel seçin.', { ton:'danger' }); return false; }
+                Promise.all(s.map(function(id){ return A.guncelle('isEmirleri', id, { ekipId: sec }); }))
+                  .then(function(){ gvToast(s.length + ' iş emrine ekip atandı.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+              } }] });
+      } },
+    { etiket:'Durum değiştir', ikon:'fa-arrows-rotate', sinif:'btn-ghost', tikla: function(s){
+        gvModal({ baslik:'Operasyon durumunu değiştir', ikon:'fa-arrows-rotate',
+          metin: s.length + ' iş emrinin operasyon durumu güncellenecek.',
+          govde:'<div class="gfield"><label for="ieDurum">Yeni durum</label><select id="ieDurum">'
+            + A.durumListesi('operasyon').map(function(d){ return '<option value="' + d.k + '">' + GV.esc(d.ad) + '</option>'; }).join('') + '</select></div>'
+            + '<div class="gfield full" style="margin-top:14px"><label for="ieDurumNot">Açıklama</label><textarea id="ieDurumNot"></textarea></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Güncelle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+                var d = kap.querySelector('#ieDurum').value, n = kap.querySelector('#ieDurumNot').value;
+                Promise.all(s.map(function(id){ return A.durumDegistir('isEmirleri', id, 'operasyonDurum', d, n); }))
+                  .then(function(){ gvToast(s.length + ' iş emrinin durumu güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+              } }] });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'is-emirleri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#iePager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','lokasyonAd','musteriAd','ekipMetni','taseronAd','bolge','il'],
+    cipler: { alan:'operasyonDurum', secenekler: A.durumListesi('operasyon')
+      .filter(function(d){ return ['planlandi','sahada','kontrol-tamamlandi','yeniden-ziyaret','tarih-onayi-bekleniyor'].indexOf(d.k) !== -1; })
+      .map(function(d){ return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
+      { k:'taseronId', ad:'Taşeron', tur:'coklu', secenekler: A.liste('taseronlar').map(function(t){ return { deger:t.id, ad:t.kisaAd }; }) },
+      { k:'bolge', ad:'Bölge', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(i){ return i.bolge; }))).map(function(b){ return { deger:b, ad:b }; }) },
+      { k:'raporDurum', ad:'Rapor durumu', tur:'coklu', secenekler: A.durumListesi('rapor').map(function(d){ return { deger:d.k, ad:d.ad }; }) },
+      { k:'tarih', ad:'Kontrol tarihi', tur:'tarih' },
+      { k:'musteriTarihOnayi', ad:'Yalnız tarih onayı bekleyenler', tur:'toggle',
+        suz: function(i,v){ return v !== 'evet' || !i.musteriTarihOnayi; }, secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('ieDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'is-emirleri', modul:'İş Emri' });
+  });
+})();
+</script>
+</body>
+</html>

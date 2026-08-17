@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Operasyon Takvimi — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.ot-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line)}
+.ot-donem{font-size:15.5px;font-weight:800;color:var(--ink);min-width:158px;text-align:center}
+.ot-lejant{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
+.ot-lejant span{display:inline-flex;align-items:center;gap:6px}
+.ot-lejant i{width:9px;height:9px;border-radius:3px;flex:none}
+.ot-gun{display:grid;grid-template-columns:78px minmax(0,1fr);gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+.ot-gun:last-child{border-bottom:none}
+.ot-gunbas{text-align:center}
+.ot-gunbas b{display:block;font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.ot-gunbas span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.ot-gun.bugun .ot-gunbas b{color:var(--gv-action)}
+.ot-kartlar{display:flex;flex-direction:column;gap:9px;min-width:0}
+.ot-kart{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+  border:1px solid var(--line);border-left-width:4px;background:var(--paper);cursor:grab;transition:.18s var(--ease)}
+.ot-kart:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.ot-kart.is-drag{opacity:.45;cursor:grabbing}
+.ot-kart.planlandi{border-left-color:var(--info)}
+.ot-kart.sahada{border-left-color:var(--gv-action)}
+.ot-kart.kontrol-tamamlandi{border-left-color:var(--success)}
+.ot-kart.yeniden-ziyaret{border-left-color:var(--danger)}
+.ot-kart.uyari{border-left-color:var(--warning)}
+.ot-kart-body{flex:1;min-width:0;line-height:1.45}
+.ot-kart-body b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.ot-kart-body span{display:block;font-size:11.5px;color:var(--muted)}
+.ot-kart-etiket{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.ot-birak{outline:2px dashed var(--gv-action);outline-offset:-4px;background:rgba(63,213,173,.05)}
+.ot-ekip{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.ot-ekip:last-child{border-bottom:none}
+@media(max-width:640px){ .ot-gun{grid-template-columns:56px minmax(0,1fr);gap:10px} .ot-ekip{grid-template-columns:minmax(0,1fr)} }
+</style>
+</head>
+<body data-sec="operasyon" data-screen="operasyon-takvimi">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1>Operasyon Takvimi</h1>
+        <p class="ph-sub">Günlük, haftalık, aylık, ekip, bölge ve proje bazlı görünümler. Kartı başka bir güne sürükleyerek kontrol tarihini değiştirebilirsiniz.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>
+      <a class="btn btn-ghost" href="planlama.html"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>Planlama</a>
+      <a class="btn btn-acc" href="is-emri-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni İş Emri</a></div>
+    </div>
+    <div class="kpi-grid" id="otKpi"></div>
+
+    <section class="gv-card">
+      <div class="ot-bar no-print">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="ia-btn" type="button" id="otGeri" aria-label="Önceki dönem"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <span class="ot-donem" id="otDonem">—</span>
+          <button class="ia-btn" type="button" id="otIleri" aria-label="Sonraki dönem"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          <button class="btn btn-sm btn-ghost" type="button" id="otBugun">Bugün</button>
+        </div>
+        <div class="gv-seg" role="group" aria-label="Görünüm">
+          <button type="button" data-gorunum="gunluk">Günlük</button>
+          <button type="button" class="is-on" data-gorunum="haftalik">Haftalık</button>
+          <button type="button" data-gorunum="aylik">Aylık</button>
+          <button type="button" data-gorunum="ekip">Ekip</button>
+          <button type="button" data-gorunum="bolge">Bölge</button>
+          <button type="button" data-gorunum="proje">Proje</button>
+          <button type="button" data-gorunum="liste">Liste</button>
+        </div>
+        <div class="ot-lejant">
+          <span><i style="background:var(--info)"></i>Planlandı</span>
+          <span><i style="background:var(--gv-action)"></i>Sahada</span>
+          <span><i style="background:var(--success)"></i>Tamamlandı</span>
+          <span><i style="background:var(--warning)"></i>Uyarılı</span>
+          <span><i style="background:var(--danger)"></i>Yeniden ziyaret</span>
+        </div>
+      </div>
+      <div class="gc-body" id="otIcerik"></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Özel Durumlu Lokasyonlar
+        <span class="bs-sub">Tadilatta, taşınan, bilgi bekleyen ve ertelenen kayıtlar</span></h2>
+      <section class="gv-card"><div class="gc-body flush" id="otOzel"></div></section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var gorunum = 'haftalik';
+  var referans = A.tariheCevir(BUGUN);
+
+  var isEmirleri = A.isEmirleri();
+  var yenidenler = A.liste('yenidenKontroller').filter(function(y){ return y.planTarihi; }).map(function(y){
+    var l = A.lokasyon(y.lokasyonId);
+    return { id:y.id, tarih:y.planTarihi, saat:'10:00', lokasyonAd: l ? l.ad : '—', lokasyonId: y.lokasyonId,
+      musteriAd: l ? l.musteriAd : '—', bolge: l ? l.bolge : '—', il: l ? l.il : '—',
+      operasyonDurum:'yeniden-ziyaret', ekipAdlari:[], taseronAd: l ? l.taseronAd : null,
+      hizmetSayisi:1, musteriTarihOnayi:true, hazirlikTamam:true, yenidenMi:true,
+      projeId: l ? l.projeId : null, link:'yeniden-kontroller.html?id=' + y.id };
+  });
+  var olaylar = isEmirleri.map(function(i){ return Object.assign({}, i, { link:'is-emri-detay.html?id=' + i.id }); }).concat(yenidenler);
+
+  gvKpi('#otKpi', [
+    { ikon:'fa-calendar-day', sayi: GV.n(olaylar.filter(function(o){ return o.tarih === BUGUN; }).length), etiket:'Bugünkü saha işi' },
+    { ikon:'fa-calendar-week', sayi: GV.n(olaylar.filter(function(o){
+        var g = GV.gun(BUGUN, o.tarih); return g >= 0 && g <= 7; }).length), etiket:'Bu hafta planlı', ton:'info' },
+    { ikon:'fa-user-clock', sayi: GV.n(olaylar.filter(function(o){ return !o.musteriTarihOnayi; }).length), etiket:'Müşteri onayı bekleyen', ton:'warn' },
+    { ikon:'fa-clipboard-list', sayi: GV.n(olaylar.filter(function(o){ return o.hazirlikTamam === false; }).length), etiket:'Hazırlığı eksik', ton:'danger' }
+  ]);
+
+  function kartTon(o){
+    if (o.operasyonDurum === 'yeniden-ziyaret') return 'yeniden-ziyaret';
+    if (!o.musteriTarihOnayi || o.hazirlikTamam === false) return 'uyari';
+    return o.operasyonDurum;
+  }
+
+  function kartHtml(o){
+    return '<div class="ot-kart ' + kartTon(o) + '" draggable="true" data-id="' + GV.esc(o.id) + '" data-tarih="' + GV.esc(o.tarih) + '">'
+      + '<span style="flex:none;font-size:12px;font-weight:800;color:var(--ink-2);font-variant-numeric:tabular-nums;padding-top:2px">'
+      + GV.esc(o.saat) + '</span>'
+      + '<span class="ot-kart-body"><b><a href="' + o.link + '">' + GV.esc(o.lokasyonAd) + '</a></b>'
+      + '<span>' + GV.esc(o.musteriAd + ' · ' + o.bolge + ' / ' + o.il
+        + (o.hizmetSayisi ? ' · ' + o.hizmetSayisi + ' hizmet' : '')) + '</span>'
+      + '<span class="ot-kart-etiket">' + GV.rozet('operasyon', o.operasyonDurum)
+      + (o.ekipAdlari && o.ekipAdlari.length ? '<span class="gtag">' + GV.esc(o.ekipAdlari.join(', ')) + '</span>' : '')
+      + (o.taseronAd ? '<span class="gtag mint">' + GV.esc(o.taseronAd) + '</span>' : '')
+      + (!o.musteriTarihOnayi ? '<span class="gtag warn"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Tarih onayı yok</span>' : '')
+      + (o.hazirlikTamam === false ? '<span class="gtag danger"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Hazırlık eksik</span>' : '')
+      + (o.yenidenMi ? '<span class="gtag danger"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Yeniden kontrol</span>' : '')
+      + '</span></span></div>';
+  }
+
+  function gunListesi(bas, adet){
+    var h = '', d = new Date(bas.getTime());
+    for (var i = 0; i < adet; i++) {
+      var iso = A.isoYaz(d);
+      var gunOlay = olaylar.filter(function(o){ return o.tarih === iso; })
+        .sort(function(a,b){ return String(a.saat).localeCompare(String(b.saat)); });
+      h += '<div class="ot-gun' + (iso === BUGUN ? ' bugun' : '') + '" data-gun="' + iso + '">'
+        + '<div class="ot-gunbas"><b>' + d.getDate() + '</b>'
+        + '<span>' + GV.ayKisa[d.getMonth()] + '</span>'
+        + '<span>' + GV.haftaGun[d.getDay()].substring(0,3) + '</span></div>'
+        + '<div class="ot-kartlar">'
+        + (gunOlay.length ? gunOlay.map(kartHtml).join('')
+           : '<div style="padding:14px;border:1px dashed var(--line);border-radius:var(--radius-md);color:var(--muted);font-size:12.5px">'
+             + 'Bu güne planlanmış saha işi yok. Kart sürükleyerek buraya taşıyabilirsiniz.</div>')
+        + '</div></div>';
+      d.setDate(d.getDate() + 1);
+    }
+    return h;
+  }
+
+  function gruplu(anahtarFn, baslikFn){
+    var g = {};
+    olaylar.forEach(function(o){ var k = anahtarFn(o); (g[k] = g[k] || []).push(o); });
+    return Object.keys(g).sort().map(function(k){
+      return '<div class="ot-ekip"><div><b style="font-size:13.5px;color:var(--ink)">' + GV.esc(baslikFn(k)) + '</b>'
+        + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.n(g[k].length) + ' saha işi</span></div>'
+        + '<div class="ot-kartlar">' + g[k].sort(function(a,b){ return String(a.tarih).localeCompare(String(b.tarih)); })
+            .map(function(o){
+              return '<div class="ot-kart ' + kartTon(o) + '"><span style="flex:none;font-size:11.5px;font-weight:800;color:var(--ink-2);padding-top:2px">'
+                + GV.d(o.tarih).substring(0,6) + '</span>'
+                + '<span class="ot-kart-body"><b><a href="' + o.link + '">' + GV.esc(o.lokasyonAd) + '</a></b>'
+                + '<span>' + GV.esc(o.musteriAd + ' · ' + o.saat) + '</span></span></div>';
+            }).join('') + '</div></div>';
+    }).join('');
+  }
+
+  function ciz(){
+    var kap = document.getElementById('otIcerik');
+    var baslik = '';
+    if (gorunum === 'gunluk') {
+      baslik = GV.dTam(A.isoYaz(referans));
+      kap.innerHTML = gunListesi(referans, 1);
+    } else if (gorunum === 'haftalik') {
+      var pzt = new Date(referans.getTime());
+      pzt.setDate(pzt.getDate() - ((pzt.getDay() + 6) % 7));
+      var son = new Date(pzt.getTime()); son.setDate(son.getDate() + 6);
+      baslik = GV.d(A.isoYaz(pzt)) + ' – ' + GV.d(A.isoYaz(son));
+      kap.innerHTML = gunListesi(pzt, 7);
+    } else if (gorunum === 'aylik') {
+      baslik = GV.ay[referans.getMonth()] + ' ' + referans.getFullYear();
+      var olayHarita = {};
+      olaylar.forEach(function(o){
+        (olayHarita[o.tarih] = olayHarita[o.tarih] || []).push({
+          baslik: o.saat + ' ' + o.lokasyonAd, detay: o.musteriAd,
+          ton: o.operasyonDurum === 'kontrol-tamamlandi' ? 'ok'
+             : o.operasyonDurum === 'yeniden-ziyaret' ? 'danger'
+             : (!o.musteriTarihOnayi || o.hazirlikTamam === false) ? 'warn' : 'info',
+          link: o.link });
+      });
+      kap.innerHTML = '<div id="otTakvim"></div>';
+      gvCalendar('#otTakvim', { olaylar: olayHarita, yil: referans.getFullYear(), ay: referans.getMonth() });
+    } else if (gorunum === 'ekip') {
+      baslik = 'Ekip bazlı görünüm';
+      kap.innerHTML = gruplu(
+        function(o){ return (o.ekipAdlari && o.ekipAdlari.length) ? o.ekipAdlari[0] : (o.taseronAd || 'Atanmamış'); },
+        function(k){ return k; });
+    } else if (gorunum === 'bolge') {
+      baslik = 'Bölge bazlı görünüm';
+      kap.innerHTML = gruplu(function(o){ return o.bolge; }, function(k){ return k; });
+    } else if (gorunum === 'proje') {
+      baslik = 'Proje bazlı görünüm';
+      kap.innerHTML = gruplu(function(o){ return o.projeId || 'projesiz'; },
+        function(k){ var p = A.kayit('projeler', k); return p ? p.kod + ' — ' + p.ad : 'Projesiz'; });
+    } else {
+      baslik = 'Liste görünümü';
+      kap.innerHTML = '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+        + '<th scope="col">Tarih</th><th scope="col">Saat</th><th scope="col">Lokasyon</th>'
+        + '<th scope="col">Müşteri</th><th scope="col">Bölge</th><th scope="col">Ekip</th>'
+        + '<th scope="col">Durum</th><th scope="col">Onay</th></tr></thead><tbody>'
+        + olaylar.slice().sort(function(a,b){ return String(a.tarih).localeCompare(String(b.tarih)); }).map(function(o){
+            return '<tr><td data-lbl="Tarih">' + GV.d(o.tarih) + '</td>'
+              + '<td data-lbl="Saat">' + GV.esc(o.saat) + '</td>'
+              + '<td data-lbl="Lokasyon"><a href="' + o.link + '">' + GV.esc(o.lokasyonAd) + '</a></td>'
+              + '<td data-lbl="Müşteri">' + GV.esc(o.musteriAd) + '</td>'
+              + '<td data-lbl="Bölge">' + GV.esc(o.bolge) + '</td>'
+              + '<td data-lbl="Ekip">' + GV.esc((o.ekipAdlari || []).join(', ') || o.taseronAd || '—') + '</td>'
+              + '<td data-lbl="Durum">' + GV.rozet('operasyon', o.operasyonDurum) + '</td>'
+              + '<td data-lbl="Onay">' + (o.musteriTarihOnayi ? GV.rozetOzel('ok','fa-check','Onaylı')
+                  : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor')) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+    }
+    document.getElementById('otDonem').textContent = baslik;
+    GV.rolBaglantilariniIsle(kap);
+    surukleBagla();
+  }
+
+  /* --- sürükle-bırak ile tarih değiştirme --- */
+  var suruklenen = null;
+  function surukleBagla(){
+    document.querySelectorAll('.ot-kart[draggable="true"]').forEach(function(k){
+      k.addEventListener('dragstart', function(e){
+        suruklenen = k;
+        k.classList.add('is-drag');
+        try { e.dataTransfer.setData('text/plain', k.getAttribute('data-id')); e.dataTransfer.effectAllowed = 'move'; } catch(_){}
+      });
+      k.addEventListener('dragend', function(){ k.classList.remove('is-drag'); suruklenen = null; });
+    });
+    document.querySelectorAll('[data-gun]').forEach(function(g){
+      g.addEventListener('dragover', function(e){ e.preventDefault(); g.classList.add('ot-birak'); });
+      g.addEventListener('dragleave', function(){ g.classList.remove('ot-birak'); });
+      g.addEventListener('drop', function(e){
+        e.preventDefault();
+        g.classList.remove('ot-birak');
+        if (!suruklenen) return;
+        var id = suruklenen.getAttribute('data-id');
+        var eski = suruklenen.getAttribute('data-tarih');
+        var yeni = g.getAttribute('data-gun');
+        if (eski === yeni) return;
+        tarihDegistir(id, eski, yeni);
+      });
+    });
+  }
+
+  function tarihDegistir(id, eski, yeni){
+    var o = olaylar.filter(function(x){ return x.id === id; })[0];
+    if (!o) return;
+    gvConfirm({
+      baslik:'Kontrol tarihi değiştirilsin mi?',
+      metin:'<b>' + GV.esc(o.lokasyonAd) + '</b> için planlanan tarih <b>' + GV.d(eski) + '</b> yerine <b>' + GV.d(yeni)
+        + '</b> olarak güncellenecek. Müşteri tarih onayı sıfırlanır ve yeniden onay istenir.',
+      ton:'warn', onayEtiket:'Tarihi değiştir', onayIkon:'fa-calendar-check',
+      notAlani:true, notYer:'Değişiklik gerekçesi (müşteriye iletilir)…'
+    }).then(function(s){
+      if (!s.onay) { ciz(); return; }
+      var koleksiyon = o.yenidenMi ? 'yenidenKontroller' : 'isEmirleri';
+      var alan = o.yenidenMi ? 'planTarihi' : 'tarih';
+      var yama = {}; yama[alan] = yeni;
+      if (!o.yenidenMi) yama.musteriTarihOnayi = false;
+      A.guncelle(koleksiyon, id, yama).then(function(){
+        A.kayitAt('tarih-degisikligi', 'Operasyon Takvimi', id, eski, yeni, s.not || 'Takvimde sürüklenerek taşındı.');
+        gvToast('Kontrol tarihi ' + GV.d(yeni) + ' olarak güncellendi.', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 900);
+      });
+    });
+  }
+
+  document.querySelectorAll('[data-gorunum]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-gorunum]').forEach(function(x){ x.classList.remove('is-on'); });
+      b.classList.add('is-on');
+      gorunum = b.getAttribute('data-gorunum');
+      ciz();
+    });
+  });
+  document.getElementById('otGeri').addEventListener('click', function(){
+    var adim = gorunum === 'gunluk' ? 1 : gorunum === 'aylik' ? 0 : 7;
+    if (gorunum === 'aylik') referans.setMonth(referans.getMonth() - 1);
+    else referans.setDate(referans.getDate() - adim);
+    ciz();
+  });
+  document.getElementById('otIleri').addEventListener('click', function(){
+    var adim = gorunum === 'gunluk' ? 1 : gorunum === 'aylik' ? 0 : 7;
+    if (gorunum === 'aylik') referans.setMonth(referans.getMonth() + 1);
+    else referans.setDate(referans.getDate() + adim);
+    ciz();
+  });
+  document.getElementById('otBugun').addEventListener('click', function(){ referans = A.tariheCevir(BUGUN); ciz(); });
+
+  /* --- özel durumlu lokasyonlar --- */
+  var ozel = A.lokasyonlar().filter(function(l){
+    return ['tadilatta','tasiniyor','bilgi-bekleniyor','envanter-bekleniyor','yeniden-ziyaret','kapsam-disi','iptal'].indexOf(l.operasyonDurum) !== -1; });
+  document.getElementById('otOzel').innerHTML = ozel.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Lokasyon</th><th scope="col">Müşteri</th><th scope="col">Bölge</th>'
+      + '<th scope="col">Durum</th><th scope="col">Açıklama</th><th scope="col">Etki</th></tr></thead><tbody>'
+      + ozel.map(function(l){
+          var etki = {
+            'tadilatta':['warn','fa-trowel-bricks','Plan ertelendi'],
+            'tasiniyor':['warn','fa-truck-moving','Adres güncellenmeli'],
+            'bilgi-bekleniyor':['info','fa-circle-question','Planlanamıyor'],
+            'envanter-bekleniyor':['info','fa-clipboard-list','Süre hesaplanamıyor'],
+            'yeniden-ziyaret':['danger','fa-rotate-right','Tekrar planlanacak'],
+            'kapsam-disi':['off','fa-ban','Bu dönem hariç'],
+            'iptal':['off','fa-xmark','Kapsamdan çıktı']
+          }[l.operasyonDurum] || ['off','fa-circle','—'];
+          return '<tr><td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
+            + '<td data-lbl="Müşteri">' + GV.esc(l.musteriAd) + '</td>'
+            + '<td data-lbl="Bölge">' + GV.esc(l.bolge + ' / ' + l.il) + '</td>'
+            + '<td data-lbl="Durum">' + GV.rozet('operasyon', l.operasyonDurum) + '</td>'
+            + '<td data-lbl="Açıklama">' + GV.esc(l.not || '—') + '</td>'
+            + '<td data-lbl="Etki">' + GV.rozetOzel(etki[0], etki[1], etki[2]) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-circle-check', baslik:'Özel durumlu lokasyon yok',
+        metin:'Planlamayı etkileyen tadilat, taşınma veya bilgi eksikliği bulunmuyor.' });
+
+  ciz();
+})();
+</script>
+</body>
+</html>

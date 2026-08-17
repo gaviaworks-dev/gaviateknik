@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>İş Emri Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="operasyon" data-screen="is-emirleri">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Operasyon</div>
+        <h1><span id="ifBaslik">Yeni İş Emri</span></h1>
+        <p class="ph-sub">Lokasyon, tarih, ekip, taşeron ve ölçüm cihazı ataması. Yetkinliği olmayan personel ve kalibrasyonu geçmiş cihaz atanamaz.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>İş Emri Bilgileri</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield full">
+                <label for="iLokasyon">Lokasyon <span class="req" aria-hidden="true">*</span></label>
+                <select id="iLokasyon" name="lokasyonId" required><option value="">Seçin…</option></select>
+                <span class="gf-hint">Yalnız bir projeye dâhil edilmiş lokasyonlar için iş emri açılabilir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="iTarih">Kontrol Tarihi <span class="req" aria-hidden="true">*</span></label>
+                <input type="date" id="iTarih" name="tarih" required>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="iSaat">Başlangıç Saati <span class="req" aria-hidden="true">*</span></label>
+                <input type="time" id="iSaat" name="saat" required value="09:00">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="iTaseron">Taşeron</label>
+                <select id="iTaseron" name="taseronId"><option value="">GAVIA ekibi (taşeronsuz)</option></select>
+                <span class="gf-hint" id="iTaseronUyari">Taşeronun bölge ve hizmet kapsamı kontrol edilir.</span>
+              </div>
+              <div class="gfield">
+                <label for="iDurum">Operasyon Durumu</label>
+                <select id="iDurum" name="operasyonDurum"></select>
+              </div>
+              <div class="gfield full">
+                <label for="iNot">Not</label>
+                <textarea id="iNot" name="not" placeholder="Saha giriş şartları, özel uyarılar, erişim kısıtları"></textarea>
+              </div>
+              <div class="gfield full">
+                <label class="gfield-inline"><input type="checkbox" id="iOnay" name="musteriTarihOnayi">
+                  Müşteri kontrol tarihini onayladı</label>
+                <span class="gf-hint">Onay alınmadan ekip sahaya çıkarılmamalıdır.</span>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-users" aria-hidden="true"></i>Ekip Ataması</h2>
+            </div>
+          <div class="gc-body" id="ifEkipKap"><div id="ifEkip"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Ölçüm Cihazı Ataması</h2>
+            </div>
+          <div class="gc-body"><div id="ifCihaz"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kontrol Edilecek Hizmetler</h2>
+            </div>
+          <div class="gc-body"><div id="ifHizmet"></div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>İş Emri Özeti</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="ifOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Uygunluk Kontrolü</h2>
+            </div>
+          <div class="gc-body"><div id="ifKontrol"></div></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('isEmirleri', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'is-emirleri.html', listeEtiket:'İş emirleri' }); return; }
+
+  var secilenEkip = mevcut ? (mevcut.ekipId || []).slice() : [];
+  var secilenCihaz = mevcut ? (mevcut.cihazlar || []).slice() : [];
+
+  document.getElementById('iLokasyon').innerHTML = '<option value="">Seçin…</option>'
+    + A.lokasyonlar().filter(function(l){ return l.projeId; })
+        .map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad + ' — ' + l.musteriAd + ' (' + l.bolge + ')') + '</option>'; }).join('');
+  document.getElementById('iTaseron').innerHTML = '<option value="">GAVIA ekibi (taşeronsuz)</option>'
+    + A.liste('taseronlar').filter(function(t){ return t.durum === 'aktif'; })
+        .map(function(t){ return '<option value="' + t.id + '">' + GV.esc(t.kisaAd + ' — ' + t.bolgeler.join(', ')) + '</option>'; }).join('');
+  document.getElementById('iDurum').innerHTML = A.durumListesi('operasyon')
+    .filter(function(d){ return ['tarih-onayi-bekleniyor','planlandi','sahada','kontrol-tamamlandi','yeniden-ziyaret','iptal'].indexOf(d.k) !== -1; })
+    .map(function(d){ return '<option value="' + d.k + '"' + (d.k === 'planlandi' ? ' selected' : '') + '>' + GV.esc(d.ad) + '</option>'; }).join('');
+
+  function gerekliYetkinlikler(){
+    var lid = document.getElementById('iLokasyon').value;
+    if (!lid) return [];
+    return Array.from(new Set(A.lokasyonHizmetleri(lid).map(function(h){
+      var hz = A.kayit('hizmetler', h.hizmetId); return hz ? hz.yetkinlik : null; }).filter(Boolean)));
+  }
+  function gerekliKategoriler(){
+    var lid = document.getElementById('iLokasyon').value;
+    if (!lid) return [];
+    return Array.from(new Set(A.lokasyonHizmetleri(lid).map(function(h){ return h.kat; })));
+  }
+
+  function ekipCiz(){
+    var gerekli = gerekliYetkinlikler();
+    var kap = document.getElementById('ifEkip');
+    if (!document.getElementById('iLokasyon').value) {
+      kap.innerHTML = '<p class="muted" style="font-size:13px">Ekip listesi için önce lokasyon seçin.</p>';
+      return;
+    }
+    kap.innerHTML =
+      '<p class="gf-hint" style="margin-bottom:12px">Bu iş emri <b>' + gerekli.length + ' farklı yetkinlik</b> gerektiriyor. '
+      + 'Yetkinliği olmayan veya belgesi geçersiz personel <b>atanamaz</b>.</p>'
+      + '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+      + '<th scope="col">Seç</th><th scope="col">Personel</th><th scope="col">Yetkinlik Uyumu</th>'
+      + '<th scope="col" class="num">İş Yükü</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + A.liste('personeller').filter(function(p){ return ['Teknik','Operasyon'].indexOf(p.birim) !== -1; }).map(function(p){
+          var uygunlar = gerekli.filter(function(y){ return A.personelAtanabilir(p.id, y).uygun; });
+          var genel = A.personelAtanabilir(p.id, null);
+          var atanabilir = genel.uygun && (gerekli.length === 0 || uygunlar.length > 0);
+          var sebep = !genel.uygun ? genel.sebep
+            : (gerekli.length && !uygunlar.length) ? 'Gerekli yetkinliklerin hiçbirine sahip değil' : null;
+          return '<tr><td><span class="row-chk"><input type="checkbox" class="if-pers" value="' + p.id + '"'
+            + (atanabilir ? '' : ' disabled') + (secilenEkip.indexOf(p.id) !== -1 ? ' checked' : '')
+            + ' aria-label="' + GV.esc(p.ad) + ' ata"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
+            + '<td><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
+            + '<td>' + (gerekli.length
+                ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + (uygunlar.length ? '' : ' <span class="gtag danger">yetersiz</span>')
+                : '<span class="muted">Yetkinlik gerekmiyor</span>') + '</td>'
+            + '<td class="num">' + GV.n(p.isYuku) + '</td>'
+            + '<td>' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir') : GV.rozetOzel('danger','fa-ban', sebep || 'Atanamaz')) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+    kap.querySelectorAll('.if-pers').forEach(function(c){
+      c.addEventListener('change', function(){
+        var i = secilenEkip.indexOf(c.value);
+        if (c.checked && i === -1) secilenEkip.push(c.value);
+        else if (!c.checked && i !== -1) secilenEkip.splice(i, 1);
+        ozetCiz();
+      });
+    });
+  }
+
+  function cihazCiz(){
+    var kategoriler = gerekliKategoriler();
+    var kap = document.getElementById('ifCihaz');
+    kap.innerHTML =
+      '<p class="gf-hint" style="margin-bottom:12px"><b>Kalibrasyon süresi dolmuş cihaz atanamaz.</b> '
+      + 'Kalibrasyonu 30 gün içinde dolacak cihazlar uyarı ile işaretlenir.</p>'
+      + '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+      + '<th scope="col">Seç</th><th scope="col">Cihaz</th><th scope="col">Kapsam</th>'
+      + '<th scope="col">Kalibrasyon Bitişi</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + A.liste('olcumCihazlari').map(function(c){
+          var k = A.cihazAtanabilir(c.id);
+          var gerekliMi = c.kapsam.some(function(x){ return kategoriler.indexOf(x) !== -1; });
+          return '<tr><td><span class="row-chk"><input type="checkbox" class="if-cihaz" value="' + c.id + '"'
+            + (k.uygun ? '' : ' disabled') + (secilenCihaz.indexOf(c.id) !== -1 ? ' checked' : '')
+            + ' aria-label="' + GV.esc(c.ad) + ' ata"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
+            + '<td><b>' + GV.esc(c.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</span></td>'
+            + '<td>' + (gerekliMi ? '<span class="gtag mint">Bu iş için gerekli</span>' : '<span class="gtag">Kapsam dışı</span>') + '</td>'
+            + '<td>' + GV.d(c.kalibrasyonBitis) + '</td>'
+            + '<td>' + (k.uygun
+                ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.kalanGun + ' gün kaldı') : GV.rozetOzel('ok','fa-check','Geçerli'))
+                : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+    kap.querySelectorAll('.if-cihaz').forEach(function(c){
+      c.addEventListener('change', function(){
+        var i = secilenCihaz.indexOf(c.value);
+        if (c.checked && i === -1) secilenCihaz.push(c.value);
+        else if (!c.checked && i !== -1) secilenCihaz.splice(i, 1);
+        ozetCiz();
+      });
+    });
+  }
+
+  function hizmetCiz(){
+    var lid = document.getElementById('iLokasyon').value;
+    var kap = document.getElementById('ifHizmet');
+    if (!lid) { kap.innerHTML = '<p class="muted" style="font-size:13px">Hizmet listesi için önce lokasyon seçin.</p>'; return; }
+    var h = A.lokasyonHizmetleri(lid);
+    var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+    kap.innerHTML = h.length
+      ? '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Miktar</th>'
+        + '<th scope="col">Birim</th><th scope="col" class="num">Süre</th></tr></thead><tbody>'
+        + h.map(function(x){
+            var hz = A.kayit('hizmetler', x.hizmetId);
+            var sure = hz ? hz.sure * (hz.birim === 'adet' ? x.planlananMiktar : 1) : 0;
+            return '<tr><td><b>' + GV.esc(x.poz) + '</b></td><td>' + GV.esc(x.hizmetAd) + '</td>'
+              + '<td class="num">' + GV.n(x.planlananMiktar) + '</td>'
+              + '<td>' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
+              + '<td class="num">' + GV.n(Math.round(sure / 60)) + ' saat</td></tr>';
+          }).join('') + '</tbody></table></div>'
+      : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+        + '<span>Bu lokasyon için hizmet kapsamı tanımlı değil. Ön envanter oluşturulmadan iş emri açılırsa '
+        + 'saha ekibi neyi kontrol edeceğini bilemez.</span></div>';
+  }
+
+  function lokasyonDegisti(){
+    var lid = document.getElementById('iLokasyon').value;
+    var l = lid ? A.lokasyon(lid) : null;
+    if (l && l.taseronId && !document.getElementById('iTaseron').value) {
+      document.getElementById('iTaseron').value = l.taseronId;
+    }
+    ekipCiz(); cihazCiz(); hizmetCiz(); ozetCiz();
+  }
+
+  function ozetCiz(){
+    var v = form.veri();
+    var l = v.lokasyonId ? A.lokasyon(v.lokasyonId) : null;
+    var t = v.taseronId ? A.kayit('taseronlar', v.taseronId) : null;
+    var h = v.lokasyonId ? A.lokasyonHizmetleri(v.lokasyonId) : [];
+    var sure = h.reduce(function(x,k){
+      var hz = A.kayit('hizmetler', k.hizmetId);
+      return x + (hz ? hz.sure * (hz.birim === 'adet' ? k.planlananMiktar : 1) : 0); }, 0);
+
+    var uyari = document.getElementById('iTaseronUyari');
+    if (t && l && t.bolgeler.indexOf(l.bolge) === -1) {
+      uyari.innerHTML = '<span style="color:var(--warning);font-weight:600">' + GV.esc(t.kisaAd)
+        + ' bu bölgede (' + GV.esc(l.bolge) + ') hizmet vermiyor. Atama yapılabilir, ulaşım maliyeti artar.</span>';
+    } else {
+      uyari.textContent = 'Taşeronun bölge ve hizmet kapsamı kontrol edilir.';
+    }
+
+    document.getElementById('ifOzet').innerHTML =
+      '<div class="info-row"><dt>Lokasyon</dt><dd>' + GV.esc(l ? l.ad : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Müşteri</dt><dd>' + GV.esc(l ? l.musteriAd : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Proje</dt><dd>' + GV.esc(l && l.projeKod ? l.projeKod : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Tarih / saat</dt><dd>' + (v.tarih ? GV.d(v.tarih) + ' · ' + (v.saat || '') : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Hizmet kalemi</dt><dd>' + GV.n(h.length) + '</dd></div>'
+      + '<div class="info-row"><dt>Tahmini miktar</dt><dd>' + GV.n(h.reduce(function(x,k){ return x + k.planlananMiktar; }, 0)) + '</dd></div>'
+      + '<div class="info-row"><dt>Tahmini süre</dt><dd>' + GV.n(Math.round(sure / 60)) + ' saat (' + Math.max(1, Math.ceil(sure / 480)) + ' gün)</dd></div>'
+      + '<div class="info-row"><dt>Atanan personel</dt><dd>' + GV.n(secilenEkip.length) + '</dd></div>'
+      + '<div class="info-row"><dt>Atanan cihaz</dt><dd>' + GV.n(secilenCihaz.length) + '</dd></div>'
+      + '<div class="info-row"><dt>Taşeron</dt><dd>' + GV.esc(t ? t.kisaAd : 'GAVIA ekibi') + '</dd></div>';
+
+    /* uygunluk kontrolü */
+    var sorunlar = [];
+    if (!v.lokasyonId) sorunlar.push(['danger','Lokasyon seçilmedi']);
+    if (!v.tarih) sorunlar.push(['danger','Kontrol tarihi girilmedi']);
+    if (!secilenEkip.length) sorunlar.push(['danger','Ekip atanmadı — saha kontrolü başlatılamaz']);
+    if (!h.length && v.lokasyonId) sorunlar.push(['warn','Lokasyonun hizmet kapsamı tanımsız']);
+    if (!v.musteriTarihOnayi) sorunlar.push(['warn','Müşteri tarih onayı işaretlenmedi']);
+    var gerekli = gerekliYetkinlikler();
+    var karsilanan = gerekli.filter(function(y){
+      return secilenEkip.some(function(pid){ return A.personelAtanabilir(pid, y).uygun; }); });
+    if (gerekli.length && karsilanan.length < gerekli.length) {
+      sorunlar.push(['warn', (gerekli.length - karsilanan.length) + ' yetkinlik atanan ekipte karşılanmıyor']);
+    }
+    if (v.tarih && GV.gun(BUGUN, v.tarih) < 0) sorunlar.push(['warn','Seçilen tarih geçmişte']);
+
+    document.getElementById('ifKontrol').innerHTML = sorunlar.length
+      ? sorunlar.map(function(s){
+          var renk = s[0] === 'danger' ? 'danger' : 'warning';
+          return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-2)">'
+            + '<i class="fa-solid fa-' + (s[0] === 'danger' ? 'circle-xmark' : 'triangle-exclamation')
+            + '" style="color:var(--' + renk + ');margin-top:2px" aria-hidden="true"></i><span>' + GV.esc(s[1]) + '</span></div>';
+        }).join('')
+        + '<p class="gf-hint" style="margin-top:12px">Kırmızı işaretli maddeler giderilmeden iş emri kaydedilemez.</p>'
+      : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+        + '<span>Bütün uygunluk koşulları sağlandı. İş emri kaydedilebilir.</span></div>';
+  }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'is-emri-form' + (id ? '-' + id : ''), iptalHref:'is-emirleri.html',
+    gonder: function(veri, aksiyon, yardim){
+      if (!secilenEkip.length) {
+        gvToast('Ekip atanmadan iş emri kaydedilemez. En az bir personel seçin.', { ton:'danger' });
+        return;
+      }
+      var gecersizCihaz = secilenCihaz.filter(function(c){ return !A.cihazAtanabilir(c).uygun; });
+      if (gecersizCihaz.length) {
+        gvToast('Kalibrasyonu geçersiz cihaz atanamaz. Seçimi düzeltin.', { ton:'danger' });
+        return;
+      }
+      veri.ekipId = secilenEkip;
+      veri.cihazlar = secilenCihaz;
+      veri.musteriTarihOnayi = !!veri.musteriTarihOnayi;
+      var l = A.kayit('lokasyonlar', veri.lokasyonId);
+      veri.projeId = l ? l.projeId : null;
+      if (!mevcut) { veri.raporDurum = 'baslatilmadi'; veri.hazirlikTamam = false; veri.bitis = null; veri.raporId = null; }
+
+      var islem = mevcut
+        ? A.guncelle('isEmirleri', mevcut.id, veri)
+        : A.ekle('isEmirleri', Object.assign({
+            id:'IE-2026-Y' + String(A.liste('isEmirleri').length + 1).padStart(3,'0') }, veri));
+
+      islem.then(function(r){
+        var iid = mevcut ? mevcut.id : r.kayit.id;
+        return A.guncelle('lokasyonlar', veri.lokasyonId, {
+          operasyonDurum: veri.operasyonDurum,
+          kontrolTarihi: veri.operasyonDurum === 'planlandi' || veri.operasyonDurum === 'sahada' ? veri.tarih : undefined
+        }).then(function(){ return iid; });
+      }).then(function(iid){
+        yardim.taslakSil(); yardim.kirliSifirla();
+        gvResult(true, {
+          baslik: mevcut ? 'İş emri güncellendi' : 'İş emri oluşturuldu',
+          metin:'<b>' + GV.esc(iid) + '</b> kaydı ' + (mevcut ? 'güncellendi' : 'oluşturuldu')
+            + '. ' + secilenEkip.length + ' personel ve ' + secilenCihaz.length + ' cihaz atandı.'
+            + (veri.musteriTarihOnayi ? '' : ' Müşteri tarih onayı henüz alınmadı.'),
+          butonlar:[
+            { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('is-emirleri.html'); } },
+            { etiket:'İş emrine git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
+                location.href = GV.href('is-emri-detay.html?id=' + iid); } }
+          ]
+        });
+      });
+    }
+  });
+
+  document.getElementById('iLokasyon').addEventListener('change', lokasyonDegisti);
+  document.getElementById('gvFormu').addEventListener('input', ozetCiz);
+  document.getElementById('gvFormu').addEventListener('change', ozetCiz);
+
+  if (mevcut) {
+    document.getElementById('ifBaslik').textContent = mevcut.id + ' — Düzenle';
+    document.title = mevcut.id + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.id);
+    form.doldur(mevcut);
+    document.getElementById('iOnay').checked = !!mevcut.musteriTarihOnayi;
+    lokasyonDegisti();
+    form.kirliSifirla();
+  } else {
+    var lSuz = GV.q('lokasyon');
+    document.getElementById('iTarih').value = BUGUN;
+    if (lSuz) { document.getElementById('iLokasyon').value = lSuz; }
+    lokasyonDegisti();
+    form.kirliSifirla();
+  }
+})();
+</script>
+</body>
+</html>
