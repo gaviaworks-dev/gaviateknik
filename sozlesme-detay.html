@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Sözleşme Detayı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="sozlesmeler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="rec-head" id="recHead"></div>
+
+    <div class="gv-cols">
+      <div>
+        <div class="gv-tabbar" role="tablist" aria-label="Kayıt sekmeleri">
+      <button class="gv-tab" role="tab" id="tb_genel" aria-controls="pn_genel" aria-selected="true">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>Genel Bilgiler</button>
+      <button class="gv-tab" role="tab" id="tb_proje" aria-controls="pn_proje" aria-selected="false">
+        <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Projeler<span class="tb-cnt" id="cnt_proje">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_poz" aria-controls="pn_poz" aria-selected="false">
+        <i class="fa-solid fa-list-check" aria-hidden="true"></i>Hizmet Pozisyonları<span class="tb-cnt" id="cnt_poz">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_fatura" aria-controls="pn_fatura" aria-selected="false">
+        <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Faturalama</button>
+      <button class="gv-tab" role="tab" id="tb_taseron" aria-controls="pn_taseron" aria-selected="false">
+        <i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeron Koşulları</button>
+        </div>
+      <div id="pn_genel" role="tabpanel" aria-labelledby="tb_genel">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>Sözleşme Bilgileri</h2>
+            </div>
+          <div class="gc-body"><dl class="info-grid" id="sdBilgi"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-handshake" aria-hidden="true"></i>Ticari Koşullar</h2>
+            </div>
+          <div class="gc-body"><div id="sdKosul"></div></div>
+        </section>
+      </div>
+      <div id="pn_proje" role="tabpanel" aria-labelledby="tb_proje" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Sözleşmeye Bağlı Projeler</h2>
+            </div>
+          <div class="gc-body flush" id="sdProje"></div>
+        </section>
+      </div>
+      <div id="pn_poz" role="tabpanel" aria-labelledby="tb_poz" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kapsamdaki Pozisyonlar</h2>
+            </div>
+          <div class="gc-body flush" id="sdPoz"></div>
+        </section>
+      </div>
+      <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Toplu Faturalama Kuralı</h2>
+            </div>
+          <div class="gc-body"><div id="sdFaturaKural"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Kesilen Faturalar</h2>
+            </div>
+          <div class="gc-body flush" id="sdFatura"></div>
+        </section>
+      </div>
+      <div id="pn_taseron" role="tabpanel" aria-labelledby="tb_taseron" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-link" aria-hidden="true"></i>Taşeron Ödeme Kuralı</h2>
+            </div>
+          <div class="gc-body"><div id="sdTaseron"></div></div>
+        </section>
+      </div>
+      </div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Özet</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="sdOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-line" aria-hidden="true"></i>Gerçekleşme</h2>
+            </div>
+          <div class="gc-body"><div id="sdGerceklesme"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>İşlemler</h2>
+            </div>
+          <div class="gc-body"><div class="gv-stack" id="sdIslem"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id') || 'SZL-2026-001';
+  var s = A.kayit('sozlesmeler', id);
+  if (!s) { gvNotFound({ kod:id, listeHref:'sozlesmeler.html', listeEtiket:'Sözleşmeler' }); return; }
+  GV.crumb(s.no);
+  document.title = s.no + ' — GAVIA Periyodik Kontrol Yönetimi';
+
+  var m = A.kayit('musteriler', s.musteriId);
+  var teklif = s.teklifId ? A.kayit('teklifler', s.teklifId) : null;
+  var fl = A.kayit('fiyatListeleri', s.fiyatListesiId);
+  var projeler = A.liste('projeler').filter(function(p){ return p.sozlesmeId === s.id; });
+  var loklar = A.lokasyonlar().filter(function(l){ return projeler.some(function(p){ return p.id === l.projeId; }); });
+  var faturalar = A.liste('faturalar').filter(function(f){ return projeler.some(function(p){ return p.id === f.projeId; }); });
+  var gruplar = A.liste('faturaGruplari').filter(function(g){ return projeler.some(function(p){ return p.id === g.projeId; }); });
+  var thakedis = A.liste('taseronHakedisleri').filter(function(t){ return projeler.some(function(p){ return p.id === t.projeId; }); });
+  var kalanGun = GV.gun(BUGUN, s.bitis);
+  var faturalanan = faturalar.reduce(function(t,f){ return t + f.araToplam; }, 0);
+
+  document.getElementById('recHead').innerHTML =
+    '<div class="rec-mark"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></div>'
+    + '<div class="rec-id"><div class="rc-code">' + GV.esc(s.no) + '</div><h1>' + GV.esc(s.ad) + '</h1>'
+    + '<div class="rc-meta">'
+    + (s.durum === 'yururlukte' ? GV.rozetOzel('ok','fa-file-signature','Yürürlükte') : GV.rozetOzel('off','fa-clock-rotate-left','Sona erdi'))
+    + '<span><i class="fa-solid fa-building" aria-hidden="true"></i><a href="musteri-detay.html?id=' + s.musteriId + '">'
+    + GV.esc(m ? m.kisaAd : '—') + '</a></span>'
+    + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i>' + GV.d(s.baslangic) + ' – ' + GV.d(s.bitis) + '</span>'
+    + '<span><i class="fa-solid fa-coins" aria-hidden="true"></i>' + GV.tl(s.bedel) + '</span>'
+    + (s.durum === 'yururlukte' && kalanGun <= 90
+      ? GV.rozetOzel('warn','fa-clock', kalanGun < 0 ? Math.abs(kalanGun) + ' gün geçti' : kalanGun + ' gün kaldı') : '')
+    + '</div></div>'
+    + '<div class="rec-acts no-print">'
+    + '<a class="btn btn-ghost" href="sozlesmeler.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
+    + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
+    + '<button class="btn btn-acc" type="button" id="sdYenile"><i class="fa-solid fa-rotate" aria-hidden="true"></i>Yenile</button></div>';
+
+  gvTabs('.gv-tabbar');
+  document.getElementById('cnt_proje').textContent = GV.n(projeler.length);
+
+  function bilgi(a,b){ return '<div class="info-item"><dt>' + GV.esc(a) + '</dt><dd' + (b ? '' : ' class="empty"') + '>' + (b || GV.bos) + '</dd></div>'; }
+  document.getElementById('sdBilgi').innerHTML =
+    bilgi('Sözleşme No', '<b>' + GV.esc(s.no) + '</b>')
+    + bilgi('Müşteri', '<a href="musteri-detay.html?id=' + s.musteriId + '">' + GV.esc(m ? m.unvan : '—') + '</a>')
+    + bilgi('Kaynak Teklif', teklif ? '<a href="teklif-detay.html?id=' + teklif.id + '">' + GV.esc(teklif.no) + '</a>' : 'Teklifsiz')
+    + bilgi('Başlangıç', GV.dUzun(s.baslangic))
+    + bilgi('Bitiş', GV.dUzun(s.bitis))
+    + bilgi('Sözleşme Bedeli', '<b>' + GV.tl(s.bedel) + '</b>')
+    + bilgi('Fiyat Listesi', fl ? '<a href="fiyat-listeleri.html?id=' + fl.id + '">' + GV.esc(fl.ad + ' · ' + fl.versiyon) + '</a>' : null)
+    + bilgi('Yenileme', { otomatik:'Otomatik yenilenir', 'otomatik-degil':'Manuel yenilenir', yenilendi:'Yenilendi' }[s.yenileme] || s.yenileme)
+    + '<div class="info-item" style="grid-column:1/-1"><dt>Hizmet Kapsamı</dt><dd>' + GV.esc(s.kapsam) + '</dd></div>'
+    + '<div class="info-item" style="grid-column:1/-1"><dt>Notlar</dt><dd>' + GV.esc(s.notlar) + '</dd></div>';
+
+  document.getElementById('sdKosul').innerHTML =
+    '<div class="gv-grid-2">'
+    + [['fa-layer-group','Fatura Parti Büyüklüğü', GV.n(s.partiBuyuklugu) + ' lokasyon',
+        'Her ' + s.partiBuyuklugu + ' lokasyon tamamlandığında toplu fatura kesilir. Sistem 30 ve 50 lokasyonluk partileri de destekler.'],
+       ['fa-calendar-day','Ödeme Vadesi', GV.n(s.odemeVadesi) + ' gün', 'Fatura tarihinden itibaren müşteri ödeme süresi.'],
+       ['fa-hourglass-half','Rapor Teslim Süresi', GV.n(s.raporSlaGun) + ' gün',
+        'Saha kontrolü bittikten sonra raporun teslim edileceği süre. Aşımda otomatik uyarı üretilir.'],
+       ['fa-money-bill-wave','Masraf Sorumluluğu',
+        { gavia:'GAVIA Teknik', musteri:'Müşteri', taseron:'Taşeron', paylasimli:'Paylaşımlı' }[s.masrafSahibi] || s.masrafSahibi,
+        'Ulaşım, konaklama ve diğer saha masraflarının hangi tarafa ait olduğu.']]
+      .map(function(c){
+        return '<div style="padding:16px 18px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg)">'
+          + '<i class="fa-solid ' + c[0] + '" style="color:var(--gv-action);font-size:15px;margin-bottom:10px;display:block" aria-hidden="true"></i>'
+          + '<span style="display:block;font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--muted);margin-bottom:5px">' + GV.esc(c[1]) + '</span>'
+          + '<b style="display:block;font-size:18px;font-weight:800;color:var(--ink);margin-bottom:8px">' + GV.esc(c[2]) + '</b>'
+          + '<span style="display:block;font-size:12px;color:var(--muted);line-height:1.6">' + GV.esc(c[3]) + '</span></div>';
+      }).join('') + '</div>';
+
+  /* --- projeler --- */
+  document.getElementById('sdProje').innerHTML = projeler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Proje</th><th scope="col" class="num">Lokasyon</th><th scope="col" class="num">Tamamlanan</th>'
+      + '<th scope="col">İlerleme</th><th scope="col" class="num">Gelir</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + projeler.map(function(p){
+          var o = A.projeOzet(p.id);
+          return '<tr><td data-lbl="Proje"><a href="proje-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.kod) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(p.ad) + '</span></td>'
+            + '<td data-lbl="Lokasyon" class="num">' + GV.n(o.toplam) + '</td>'
+            + '<td data-lbl="Tamamlanan" class="num">' + GV.n(o.tamamlanan) + '</td>'
+            + '<td data-lbl="İlerleme">' + GV.bar(o.ilerleme) + '</td>'
+            + '<td data-lbl="Gelir" class="num">' + GV.tl(o.gelir) + '</td>'
+            + '<td data-lbl="Durum">' + (p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
+                : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
+                : GV.rozetOzel('warn','fa-pen-ruler','Planlama')) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-diagram-project', baslik:'Proje yok', metin:'Bu sözleşmeye bağlı proje açılmadı.' });
+
+  /* --- pozisyonlar --- */
+  var pozlar = {};
+  loklar.forEach(function(l){
+    A.lokasyonHizmetleri(l.id).forEach(function(h){
+      if (!pozlar[h.hizmetId]) pozlar[h.hizmetId] = { miktar:0, lokasyon:0 };
+      pozlar[h.hizmetId].miktar += h.planlananMiktar;
+      pozlar[h.hizmetId].lokasyon++;
+    });
+  });
+  var pozListe = Object.keys(pozlar).map(function(hid){
+    var h = A.kayit('hizmetler', hid);
+    return { h: h, hid: hid, miktar: pozlar[hid].miktar, lokasyon: pozlar[hid].lokasyon,
+      fiyat: A.birimSatisFiyati(hid, s.fiyatListesiId) };
+  }).filter(function(x){ return x.h; }).sort(function(a,b){ return a.h.poz.localeCompare(b.h.poz); });
+  document.getElementById('cnt_poz').textContent = GV.n(pozListe.length);
+
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+  document.getElementById('sdPoz').innerHTML = pozListe.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Lokasyon</th>'
+      + '<th scope="col" class="num">Miktar</th><th scope="col">Birim</th>'
+      + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
+      + pozListe.map(function(x){
+          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.h.poz) + '</b></td>'
+            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + x.hid + '">' + GV.esc(x.h.ad) + '</a></td>'
+            + '<td data-lbl="Lokasyon" class="num">' + GV.n(x.lokasyon) + '</td>'
+            + '<td data-lbl="Miktar" class="num">' + GV.n(x.miktar) + '</td>'
+            + '<td data-lbl="Birim">' + GV.esc(birimAd[x.h.birim] || x.h.birim) + '</td>'
+            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(x.fiyat) + '</td>'
+            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(x.fiyat * x.miktar) + '</b></td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td class="num">'
+      + GV.tl(pozListe.reduce(function(t,x){ return t + x.fiyat * x.miktar; }, 0)) + '</td></tr></tfoot></table></div>'
+    : gvEmpty({ ikon:'fa-list-check', baslik:'Pozisyon yok', metin:'Bu sözleşme kapsamında hizmet pozisyonu tanımlanmadı.' });
+
+  /* --- faturalama --- */
+  document.getElementById('sdFaturaKural').innerHTML =
+    '<div class="gv-note"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>'
+    + '<span><b>Her ' + s.partiBuyuklugu + ' lokasyonda bir toplu fatura kesilir.</b> '
+    + 'Bir lokasyon veya hizmet kalemi birden fazla faturaya bölünebilir; bunun için lokasyon adı değiştirilmez '
+    + 'veya “ikinci fatura” adıyla yeni lokasyon açılmaz. Kısmi faturalamada kalan miktar mutabakat tablosunda izlenir.</span></div>'
+    + (gruplar.length
+      ? '<div style="margin-top:18px">' + gruplar.map(function(g){
+          var d = A.faturaGrubuDoluluk(g.id);
+          return '<div class="fill-meter" style="padding:13px 0;border-bottom:1px solid var(--line)">'
+            + '<div class="fill-meter-top"><b><a href="fatura-grubu-detay.html?id=' + g.id + '">' + GV.esc(g.ad) + '</a></b>'
+            + '<span>' + d.eklenen + ' / ' + d.hedef + ' lokasyon</span></div>'
+            + GV.bar(d.doluluk, { ton: d.hedefeUlasti ? 'ok' : '', etiket: GV.pct(d.doluluk, true, 0) })
+            + '<div class="fill-meter-note">' + d.faturayaUygun + ' faturaya uygun · ' + d.mutabakatBekleyen
+            + ' mutabakat bekliyor · toplam ' + GV.tl(d.toplamTutar) + '</div></div>';
+        }).join('') + '</div>'
+      : '<p class="muted" style="font-size:13px;margin-top:16px">Bu sözleşme için henüz fatura grubu açılmadı.</p>');
+
+  document.getElementById('sdFatura').innerHTML = faturalar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Fatura</th><th scope="col">Tarih</th><th scope="col">Vade</th>'
+      + '<th scope="col" class="num">Tutar</th><th scope="col" class="num">Tahsil</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + faturalar.map(function(f){
+          return '<tr><td data-lbl="Fatura"><a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a></td>'
+            + '<td data-lbl="Tarih">' + GV.d(f.tarih) + '</td>'
+            + '<td data-lbl="Vade">' + GV.d(f.vade) + '</td>'
+            + '<td data-lbl="Tutar" class="num">' + GV.tl(f.toplam) + '</td>'
+            + '<td data-lbl="Tahsil" class="num">' + GV.tl(f.tahsilEdilen) + '</td>'
+            + '<td data-lbl="Durum">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu sözleşme kapsamında henüz fatura kesilmedi.' });
+
+  /* --- taşeron koşulları --- */
+  var tahsilatBagli = s.taseronOdemeKurali === 'musteri-tahsilati-sonrasi';
+  document.getElementById('sdTaseron').innerHTML =
+    '<div class="gv-note ' + (tahsilatBagli ? 'warn' : '') + '">'
+    + '<i class="fa-solid fa-' + (tahsilatBagli ? 'link' : 'calendar') + '" aria-hidden="true"></i>'
+    + '<span>' + (tahsilatBagli
+        ? '<b>Taşeron ödemesi müşteri tahsilatına bağlıdır.</b> Müşteriden tahsilat yapılmadan taşeron hakedişi '
+          + '“ödemeye uygun” duruma geçmez. Kısmi tahsilatta taşerona aynı oranda ödeme yapılabilir. '
+          + 'Gerçek ödeme ayrıca yetkili kullanıcı onayına bağlıdır.'
+        : '<b>Taşeron ödemesi fatura vadesinde yapılır.</b> Müşteri tahsilatından bağımsız olarak '
+          + 'taşeron hakedişi vade tarihinde ödemeye uygun hâle gelir.') + '</span></div>'
+    + (thakedis.length
+      ? '<div class="gv-tscroll" style="margin-top:18px"><table class="gtable gtable-cards"><thead><tr>'
+        + '<th scope="col">Hakediş</th><th scope="col">Taşeron</th><th scope="col">Dönem</th>'
+        + '<th scope="col" class="num">Tutar</th><th scope="col">Ödeme Durumu</th><th scope="col">Engel</th></tr></thead><tbody>'
+        + thakedis.map(function(t){
+            var ts = A.kayit('taseronlar', t.taseronId);
+            var kural = A.taseronOdenebilirMi(t.id);
+            return '<tr><td data-lbl="Hakediş"><a href="taseron-hakedisleri.html?id=' + t.id + '">' + GV.esc(t.no) + '</a></td>'
+              + '<td data-lbl="Taşeron">' + GV.esc(ts ? ts.kisaAd : '—') + '</td>'
+              + '<td data-lbl="Dönem">' + GV.esc(t.donem) + '</td>'
+              + '<td data-lbl="Tutar" class="num">' + GV.tl(t.tutar) + '</td>'
+              + '<td data-lbl="Ödeme Durumu">' + GV.rozet('taseronOdeme', t.durum) + '</td>'
+              + '<td data-lbl="Engel">' + (kural.uygun
+                  ? (kural.kismi ? GV.rozetOzel('warn','fa-circle-half-stroke','Kısmi ödeme') : GV.rozetOzel('ok','fa-check','Engel yok'))
+                  : GV.rozetOzel('danger','fa-ban', kural.sebep)) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+      : '<p class="muted" style="font-size:13px;margin-top:16px">Bu sözleşme kapsamında taşeron hakedişi oluşmadı.</p>');
+
+  /* --- sağ kolon --- */
+  document.getElementById('sdOzet').innerHTML =
+    '<div class="info-row"><dt>Proje</dt><dd>' + GV.n(projeler.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Lokasyon</dt><dd>' + GV.n(loklar.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Hizmet pozisyonu</dt><dd>' + GV.n(pozListe.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Fatura grubu</dt><dd>' + GV.n(gruplar.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Kesilen fatura</dt><dd>' + GV.n(faturalar.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Sözleşme bedeli</dt><dd>' + GV.tl(s.bedel) + '</dd></div>'
+    + '<div class="info-row"><dt>Faturalanan</dt><dd>' + GV.tl(faturalanan) + '</dd></div>'
+    + '<div class="info-row"><dt>Kalan süre</dt><dd>' + (kalanGun == null ? GV.bos
+        : kalanGun < 0 ? Math.abs(kalanGun) + ' gün geçti' : GV.n(kalanGun) + ' gün') + '</dd></div>';
+
+  document.getElementById('sdGerceklesme').innerHTML =
+    '<div class="fill-meter"><div class="fill-meter-top"><b>Faturalama gerçekleşmesi</b>'
+    + '<span>' + GV.tl(faturalanan) + ' / ' + GV.tl(s.bedel) + '</span></div>'
+    + GV.bar(s.bedel ? Math.min(1, faturalanan / s.bedel) : 0)
+    + '<div class="fill-meter-note">Sözleşme bedelinin ' + GV.pct(s.bedel ? faturalanan / s.bedel : 0) + ' kadarı faturalandı.</div></div>'
+    + '<div class="fill-meter" style="margin-top:16px"><div class="fill-meter-top"><b>Lokasyon tamamlanma</b>'
+    + '<span>' + GV.n(loklar.filter(function(l){ return l.operasyonDurum === 'kontrol-tamamlandi'; }).length)
+    + ' / ' + GV.n(loklar.length) + '</span></div>'
+    + GV.bar(loklar.length ? loklar.filter(function(l){ return l.operasyonDurum === 'kontrol-tamamlandi'; }).length / loklar.length : 0)
+    + '<div class="fill-meter-note">Kontrolü tamamlanan lokasyon oranı.</div></div>'
+    + (s.durum === 'yururlukte' && kalanGun <= 90
+      ? '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-clock" aria-hidden="true"></i>'
+        + '<span>Sözleşme <b>' + (kalanGun < 0 ? Math.abs(kalanGun) + ' gün önce sona erdi' : kalanGun + ' gün içinde bitiyor') + '</b>. '
+        + (s.yenileme === 'otomatik' ? 'Otomatik yenileme tanımlı.' : 'Yenileme görüşmesi başlatılmalı.') + '</span></div>' : '');
+
+  document.getElementById('sdIslem').innerHTML =
+    '<button class="btn btn-acc btn-block" type="button" id="sdYenile2"><i class="fa-solid fa-rotate" aria-hidden="true"></i>Sözleşmeyi Yenile</button>'
+    + '<a class="btn btn-ghost btn-block" href="fatura-gruplari.html"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Fatura Grupları</a>'
+    + '<a class="btn btn-ghost btn-block" href="fiyat-listeleri.html?id=' + s.fiyatListesiId + '"><i class="fa-solid fa-tags" aria-hidden="true"></i>Fiyat Listesi</a>'
+    + '<button class="btn btn-ghost btn-block" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>';
+
+  function yenile(){
+    gvConfirm({ baslik:'Sözleşme yenilensin mi?',
+      metin:'<b>' + GV.esc(s.no) + '</b> sona erdi olarak işaretlenecek ve koşulları yeni bir sözleşmeye kopyalanacak. '
+        + 'Yürürlükteki projeler eski sözleşmeye bağlı kalır.',
+      onayEtiket:'Yenile', onayIkon:'fa-rotate' }).then(function(r){
+        if (!r.onay) return;
+        var bas = s.bitis;
+        var bit = A.tariheCevir(bas); bit.setFullYear(bit.getFullYear() + 1);
+        var yil = bas.substring(0,4);
+        A.guncelle('sozlesmeler', s.id, { durum:'sona-erdi', yenileme:'yenilendi' }).then(function(){
+          return A.ekle('sozlesmeler', Object.assign({}, s, {
+            id:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+            no:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+            baslangic: bas, bitis: A.isoYaz(bit), durum:'yururlukte', yenileme:'otomatik-degil',
+            notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
+          }));
+        }).then(function(){
+          gvToast('Sözleşme yenilendi.', { ton:'ok' });
+          setTimeout(function(){ location.href = GV.href('sozlesmeler.html'); }, 900);
+        });
+      });
+  }
+  ['sdYenile','sdYenile2'].forEach(function(b){ var e = document.getElementById(b); if (e) e.addEventListener('click', yenile); });
+})();
+</script>
+</body>
+</html>

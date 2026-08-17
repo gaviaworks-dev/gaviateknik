@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Tahsilatlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="tahsilatlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ticari Süreçler</div>
+        <h1>Tahsilatlar</h1>
+        <p class="ph-sub">Fatura bazlı tahsilat takibi; vade, tahsil edilen, kalan, gecikme ve taşeron ödemesine etkisi ile birlikte.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="thDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="thYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Tahsilat Kaydet</button></div>
+    </div>
+    <div class="kpi-grid" id="thKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Tahsilat görünümleri">
+      <button class="gv-tab" role="tab" id="tbF" aria-controls="pnF" aria-selected="true">
+        <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Fatura Bazlı</button>
+      <button class="gv-tab" role="tab" id="tbT" aria-controls="pnT" aria-selected="false">
+        <i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>Tahsilat Hareketleri<span class="tb-cnt" id="cntT">0</span></button>
+      <button class="gv-tab" role="tab" id="tbY" aria-controls="pnY" aria-selected="false">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Yaşlandırma</button>
+    </div>
+
+    <div id="pnF" role="tabpanel" aria-labelledby="tbF">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Fatura no, müşteri…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div class="gc-body flush" id="thTablo"></div>
+        <div class="gv-pager" id="thPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnT" role="tabpanel" aria-labelledby="tbT" hidden>
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>Tahsilat Hareketleri</h2></div>
+        <div class="gc-body flush" id="thHareket"></div>
+      </section>
+    </div>
+
+    <div id="pnY" role="tabpanel" aria-labelledby="tbY" hidden>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Alacak Yaşlandırma</h2></div>
+          <div class="gc-body"><div class="chart-box" id="thYaslandirma"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-building" aria-hidden="true"></i>Müşteri Bazlı Alacak</h2></div>
+          <div class="gc-body" id="thMusteri"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  gvTabs('.gv-tabbar');
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var faturalar = A.liste('faturalar').filter(function(f){
+    return kapsam.tur !== 'musteri' || f.musteriId === kapsam.musteriId;
+  }).map(function(f){
+    var m = A.kayit('musteriler', f.musteriId);
+    var gecikme = f.kalan > 0 ? GV.gun(BUGUN, f.vade) : null;
+    var bagliHakedis = A.liste('taseronHakedisleri').filter(function(t){ return t.musteriFaturaId === f.id; });
+    return Object.assign({}, f, {
+      musteriAd: m ? m.kisaAd : '—',
+      gecikmeGun: gecikme != null && gecikme < 0 ? Math.abs(gecikme) : 0,
+      kalanGun: gecikme,
+      tahsilOran: f.toplam ? f.tahsilEdilen / f.toplam : 0,
+      taseronEtkisi: bagliHakedis,
+      taseronTutar: bagliHakedis.reduce(function(t,x){ return t + x.tutar; }, 0)
+    });
+  }).sort(function(a,b){ return b.gecikmeGun - a.gecikmeGun; });
+
+  var acikFaturalar = faturalar.filter(function(f){ return f.kalan > 0; });
+
+  gvKpi('#thKpi', [
+    { ikon:'fa-coins', sayi: GV.tlKisa(faturalar.reduce(function(t,f){ return t + f.toplam; }, 0)), etiket:'Toplam faturalanan' },
+    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(faturalar.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)),
+      etiket:'Tahsil edilen', ton:'ok',
+      delta:{ yon:'up', metin: GV.pct(faturalar.reduce(function(t,f){ return t + f.toplam; }, 0)
+        ? faturalar.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0) / faturalar.reduce(function(t,f){ return t + f.toplam; }, 0) : 0)
+        + ' tahsilat oranı' } },
+    { ikon:'fa-hourglass-half', sayi: GV.tlKisa(acikFaturalar.reduce(function(t,f){ return t + f.kalan; }, 0)),
+      etiket:'Açık alacak', ton:'warn' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.tlKisa(acikFaturalar.filter(function(f){ return f.gecikmeGun > 0; })
+        .reduce(function(t,f){ return t + f.kalan; }, 0)), etiket:'Vadesi geçmiş alacak', ton:'danger',
+      delta:{ yon:'down', metin: acikFaturalar.filter(function(f){ return f.gecikmeGun > 0; }).length + ' fatura gecikmede' } }
+  ]);
+
+  var tablo = gvTable({ hedef:'#thTablo', satirId: function(f){ return f.id; },
+    kolonlar: [
+      { k:'no', ad:'Fatura', ciz: function(f){
+          return '<div class="gcell-info"><div class="gcell-name"><a href="faturalar.html?id=' + f.id + '">' + GV.esc(f.no) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.d(f.tarih) + '</div></div>'; } },
+      { k:'musteriAd', ad:'Müşteri', ciz: function(f){
+          return '<a href="musteri-detay.html?id=' + f.musteriId + '">' + GV.esc(f.musteriAd) + '</a>'; } },
+      { k:'vade', ad:'Vade', ciz: function(f){ return GV.d(f.vade); } },
+      { k:'toplam', ad:'Toplam', sinif:'num', ciz: function(f){ return GV.tl(f.toplam); } },
+      { k:'tahsilEdilen', ad:'Tahsil Edilen', sinif:'num', ciz: function(f){ return GV.tl(f.tahsilEdilen); } },
+      { k:'kalan', ad:'Kalan', sinif:'num', ciz: function(f){
+          return f.kalan ? '<b style="color:var(--danger)">' + GV.tl(f.kalan) + '</b>' : GV.tl(0); } },
+      { k:'gecikmeGun', ad:'Gecikme', sinif:'num', ciz: function(f){
+          if (!f.kalan) return '<span class="muted">—</span>';
+          return f.gecikmeGun > 0 ? GV.rozetOzel('danger','fa-clock', f.gecikmeGun + ' gün')
+            : GV.rozetOzel('info','fa-hourglass-half', f.kalanGun + ' gün kaldı'); } },
+      { k:'tahsilOran', ad:'Tahsilat', ciz: function(f){ return GV.bar(f.tahsilOran, { etiket: GV.pct(f.tahsilOran, true, 0) }); } },
+      { k:'taseronTutar', ad:'Taşeron Ödemesine Etkisi', ciz: function(f){
+          if (!f.taseronEtkisi.length) return '<span class="muted">Bağlı hakediş yok</span>';
+          var uygun = f.taseronEtkisi.filter(function(t){ return A.taseronOdenebilirMi(t.id).uygun; }).length;
+          return uygun === f.taseronEtkisi.length
+            ? GV.rozetOzel('ok','fa-link', GV.tl(f.taseronTutar) + ' ödemeye uygun')
+            : GV.rozetOzel('warn','fa-link', GV.tl(f.taseronTutar) + ' bekliyor'); } },
+      { k:'tahsilatDurum', ad:'Durum', ciz: function(f){ return GV.rozet('tahsilat', f.tahsilatDurum); } },
+      { k:'__islem', ad:'İşlem', ciz: function(f){
+          return '<div class="row-acts">'
+            + (f.kalan > 0
+              ? '<button class="ia-btn" type="button" data-tahsilat="' + f.id + '" aria-label="Tahsilat kaydet">'
+                + '<i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i></button>'
+                + '<button class="ia-btn" type="button" data-hatirlat="' + f.id + '" aria-label="Hatırlatma gönder">'
+                + '<i class="fa-solid fa-bell" aria-hidden="true"></i></button>'
+              : '<span class="gtag ok">Kapandı</span>')
+            + '</div>'; } }
+    ],
+    bosDurum:{ ikon:'fa-money-bill-transfer', baslik:'Fatura bulunamadı', metin:'Filtrelerinize uyan fatura yok.' },
+    altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="3">Toplam</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.toplam; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.kalan; }, 0)) + '</td>'
+        + '<td colspan="5"></td></tr>';
+    } });
+
+  var pager = gvPager({ hedef:'#thPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = faturalar;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-tahsilat]').forEach(function(b){
+      b.addEventListener('click', function(){ tahsilatKaydet(b.getAttribute('data-tahsilat')); });
+    });
+    document.querySelectorAll('[data-hatirlat]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var f = A.kayit('faturalar', b.getAttribute('data-hatirlat'));
+        var m = A.kayit('musteriler', f.musteriId);
+        A.ekle('iletisimGecmisi', {
+          id:'ILT-TH' + Date.now().toString().slice(-5),
+          musteriId: f.musteriId, lokasyonId: null, kisiId: null,
+          tur:'fatura-bildirimi', tarih: BUGUN + 'T10:00:00',
+          kullaniciId: (GV.rolBilgi || {}).personelId,
+          konu:'Ödeme hatırlatması — ' + f.no,
+          ozet:'Vade ' + GV.d(f.vade) + ', kalan bakiye ' + GV.tl(f.kalan) + '.'
+        }).then(function(){
+          gvToast((m ? m.kisaAd : 'Müşteri') + ' için ödeme hatırlatması gönderildi.', { ton:'ok' });
+        });
+      });
+    });
+  }
+
+  function tahsilatKaydet(fid){
+    var f = A.kayit('faturalar', fid);
+    var m = A.kayit('musteriler', f.musteriId);
+    var bagli = A.liste('taseronHakedisleri').filter(function(t){ return t.musteriFaturaId === fid; });
+    gvModal({
+      baslik:'Tahsilat kaydet', ikon:'fa-money-bill-transfer', genislik:'gv-modal-lg',
+      metin:'<b>' + GV.esc(f.no) + '</b> · ' + GV.esc(m ? m.kisaAd : '') + ' · kalan bakiye <b>' + GV.tl(f.kalan) + '</b>',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="thTutar">Tahsil edilen tutar (₺) *</label>'
+        + '<input type="number" id="thTutar" min="1" max="' + f.kalan + '" value="' + f.kalan + '"></div>'
+        + '<div class="gfield"><label for="thTarih">Tahsilat tarihi</label><input type="date" id="thTarih" value="' + BUGUN + '"></div>'
+        + '<div class="gfield"><label for="thYontem">Ödeme yöntemi</label><select id="thYontem">'
+        + '<option value="havale">Havale / EFT</option><option value="cek">Çek</option>'
+        + '<option value="senet">Senet</option><option value="nakit">Nakit</option></select></div>'
+        + '<div class="gfield"><label for="thRef">Referans no</label><input type="text" id="thRef" placeholder="Dekont / çek no"></div>'
+        + '<div class="gfield full"><label for="thAciklama">Açıklama</label><textarea id="thAciklama"></textarea></div></div>'
+        + '<div id="thEtki" style="margin-top:14px"></div>',
+      acildi: function(kap){
+        function etkiCiz(){
+          var t = Number(kap.querySelector('#thTutar').value || 0);
+          var yeniTahsil = f.tahsilEdilen + t;
+          var oran = f.toplam ? yeniTahsil / f.toplam : 0;
+          var tamMi = yeniTahsil >= f.toplam;
+          kap.querySelector('#thEtki').innerHTML =
+            '<div class="fill-meter"><div class="fill-meter-top"><b>Tahsilat sonrası durum</b>'
+            + '<span>' + GV.tl(yeniTahsil) + ' / ' + GV.tl(f.toplam) + '</span></div>'
+            + GV.bar(Math.min(1, oran), { ton: tamMi ? 'ok' : 'warn', etiket: GV.pct(Math.min(1, oran), true, 0) })
+            + '<div class="fill-meter-note">Kalan bakiye ' + GV.tl(Math.max(0, f.toplam - yeniTahsil)) + '</div></div>'
+            + (bagli.length
+              ? '<div class="gv-note ' + (tamMi ? 'ok' : 'warn') + '" style="margin-top:14px">'
+                + '<i class="fa-solid fa-link" aria-hidden="true"></i>'
+                + '<span><b>Taşeron ödemesine etkisi:</b> Bu faturaya bağlı ' + bagli.length + ' taşeron hakedişi ('
+                + GV.tl(bagli.reduce(function(x,h){ return x + h.tutar; }, 0)) + ') '
+                + (tamMi
+                  ? 'tam tahsilat sonrası <b>ödemeye uygun</b> duruma geçecek.'
+                  : 'kısmi tahsilat oranında (<b>' + GV.pct(oran) + '</b>) ödenebilir hâle gelecek. '
+                    + 'Gerçek ödeme ayrıca yetkili onayına bağlıdır.') + '</span></div>'
+              : '');
+        }
+        kap.querySelector('#thTutar').addEventListener('input', etkiCiz);
+        etkiCiz();
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Tahsilatı Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var t = Number(kap.querySelector('#thTutar').value || 0);
+            if (t <= 0) { gvToast('Tahsilat tutarı sıfırdan büyük olmalıdır.', { ton:'danger' }); return false; }
+            if (t > f.kalan) { gvToast('Tahsilat tutarı kalan bakiyeyi aşamaz.', { ton:'danger' }); return false; }
+            var yeniTahsil = f.tahsilEdilen + t;
+            var yeniKalan = f.toplam - yeniTahsil;
+            var yeniDurum = yeniKalan <= 0 ? 'tam-tahsil'
+              : (GV.gun(BUGUN, f.vade) < 0 ? 'vadesi-gecti' : 'kismen-tahsil');
+            A.ekle('tahsilatlar', {
+              id:'THS-Y' + String(A.liste('tahsilatlar').length + 1).padStart(3,'0'),
+              faturaId: fid, musteriId: f.musteriId,
+              tarih: kap.querySelector('#thTarih').value || BUGUN, tutar: t,
+              yontem: kap.querySelector('#thYontem').value,
+              aciklama: kap.querySelector('#thAciklama').value.trim()
+                || (kap.querySelector('#thRef').value.trim() ? 'Referans: ' + kap.querySelector('#thRef').value.trim() : 'Tahsilat kaydedildi.'),
+              tam: yeniKalan <= 0
+            }).then(function(){
+              return A.guncelle('faturalar', fid, {
+                tahsilEdilen: yeniTahsil, kalan: Math.max(0, yeniKalan), tahsilatDurum: yeniDurum });
+            }).then(function(){
+              /* taşeron hakedişlerini güncelle */
+              return Promise.all(bagli.map(function(h){
+                var yeni = yeniKalan <= 0 ? 'odemeye-uygun'
+                  : (h.durum === 'musteri-tahsilati-bekleniyor' ? 'odemeye-uygun' : h.durum);
+                return A.durumDegistir('taseronHakedisleri', h.id, 'durum', yeni,
+                  'Müşteri tahsilatı güncellendi (' + GV.tl(t) + ').');
+              }));
+            }).then(function(){
+              gvResult(true, { baslik:'Tahsilat kaydedildi',
+                metin: GV.tl(t) + ' tahsilat işlendi. Fatura durumu <b>'
+                  + GV.esc(A.durum('tahsilat', yeniDurum).ad) + '</b> olarak güncellendi.'
+                  + (bagli.length ? ' Bağlı ' + bagli.length + ' taşeron hakedişinin ödeme durumu yeniden değerlendirildi.' : ''),
+                butonlar:[{ etiket:'Tamam', sinif:'btn-acc', tikla: function(){ location.reload(); } }] });
+            });
+          } }]
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return faturalar; },
+    arama: ['no','musteriAd','aciklama'],
+    cipler: { alan:'tahsilatDurum', secenekler: A.durumListesi('tahsilat').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'vade', ad:'Vade tarihi', tur:'tarih' },
+      { k:'kalan', ad:'Kalan bakiye (₺)', tur:'aralik' },
+      { k:'gecikmeGun', ad:'Yalnız gecikmiş olanlar', tur:'toggle',
+        suz: function(f,v){ return v !== 'evet' || f.gecikmeGun > 0; }, secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('thDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'tahsilatlar', modul:'Tahsilat' });
+  });
+  document.getElementById('thYeni').addEventListener('click', function(){
+    var acik = faturalar.filter(function(f){ return f.kalan > 0; });
+    if (!acik.length) { gvToast('Açık bakiyeli fatura yok.', { ton:'info' }); return; }
+    gvModal({
+      baslik:'Tahsilat kaydedilecek faturayı seçin', ikon:'fa-money-bill-transfer',
+      govde:'<div class="gfield"><label for="thFaturaSec">Fatura</label><select id="thFaturaSec">'
+        + acik.map(function(f){ return '<option value="' + f.id + '">' + GV.esc(f.no + ' — ' + f.musteriAd + ' · ' + GV.tl(f.kalan)) + '</option>'; }).join('')
+        + '</select></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Devam', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(kap){
+            var fid = kap.querySelector('#thFaturaSec').value;
+            setTimeout(function(){ tahsilatKaydet(fid); }, 300);
+          } }]
+    });
+  });
+
+  /* --- hareketler --- */
+  var hareketler = A.liste('tahsilatlar').filter(function(t){
+    return kapsam.tur !== 'musteri' || t.musteriId === kapsam.musteriId;
+  }).sort(function(a,b){ return String(b.tarih).localeCompare(String(a.tarih)); });
+  document.getElementById('cntT').textContent = GV.n(hareketler.length);
+
+  var yontemAd = { havale:'Havale / EFT', cek:'Çek', senet:'Senet', nakit:'Nakit' };
+  document.getElementById('thHareket').innerHTML = hareketler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Tahsilat No</th><th scope="col">Fatura</th><th scope="col">Müşteri</th>'
+      + '<th scope="col">Tarih</th><th scope="col">Yöntem</th><th scope="col" class="num">Tutar</th>'
+      + '<th scope="col">Tür</th><th scope="col">Açıklama</th></tr></thead><tbody>'
+      + hareketler.map(function(t){
+          var f = A.kayit('faturalar', t.faturaId), m = A.kayit('musteriler', t.musteriId);
+          return '<tr><td data-lbl="Tahsilat No"><b class="t-strong">' + GV.esc(t.id) + '</b></td>'
+            + '<td data-lbl="Fatura">' + (f ? '<a href="faturalar.html?id=' + f.id + '">' + GV.esc(f.no) + '</a>' : GV.esc(t.faturaId)) + '</td>'
+            + '<td data-lbl="Müşteri">' + GV.esc(m ? m.kisaAd : '—') + '</td>'
+            + '<td data-lbl="Tarih">' + GV.d(t.tarih) + '</td>'
+            + '<td data-lbl="Yöntem"><span class="gtag">' + GV.esc(yontemAd[t.yontem] || t.yontem) + '</span></td>'
+            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(t.tutar) + '</b></td>'
+            + '<td data-lbl="Tür">' + (t.tam ? GV.rozetOzel('ok','fa-circle-check','Tam tahsilat')
+                : GV.rozetOzel('warn','fa-circle-half-stroke','Kısmi tahsilat')) + '</td>'
+            + '<td data-lbl="Açıklama">' + GV.esc(t.aciklama) + '</td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="5">Toplam</td>'
+      + '<td class="num">' + GV.tl(hareketler.reduce(function(x,t){ return x + t.tutar; }, 0)) + '</td>'
+      + '<td colspan="2"></td></tr></tfoot></table></div>'
+    : gvEmpty({ ikon:'fa-money-bill-transfer', baslik:'Tahsilat hareketi yok',
+        metin:'Henüz kaydedilmiş tahsilat bulunmuyor.' });
+
+  /* --- yaşlandırma --- */
+  var kovalar = [
+    { ad:'Vadesi gelmedi', min:-99999, max:0, ton:'ok' },
+    { ad:'1–30 gün', min:1, max:30, ton:'warn' },
+    { ad:'31–60 gün', min:31, max:60, ton:'turuncu' },
+    { ad:'61–90 gün', min:61, max:90, ton:'danger' },
+    { ad:'90+ gün', min:91, max:99999, ton:'danger' }
+  ];
+  gvBar('#thYaslandirma', kovalar.map(function(k){
+    return { etiket: k.ad,
+      deger: Math.round(acikFaturalar.filter(function(f){ return f.gecikmeGun >= k.min && f.gecikmeGun <= k.max; })
+        .reduce(function(t,f){ return t + f.kalan; }, 0) / 1000),
+      ton: k.ton };
+  }), { baslik:'Alacak yaşlandırma', birim:'bin ₺', yukseklik:220 });
+
+  var musteriAlacak = {};
+  acikFaturalar.forEach(function(f){
+    if (!musteriAlacak[f.musteriAd]) musteriAlacak[f.musteriAd] = { kalan:0, gecikmis:0 };
+    musteriAlacak[f.musteriAd].kalan += f.kalan;
+    if (f.gecikmeGun > 0) musteriAlacak[f.musteriAd].gecikmis += f.kalan;
+  });
+  gvBarList('#thMusteri', Object.keys(musteriAlacak).sort(function(a,b){ return musteriAlacak[b].kalan - musteriAlacak[a].kalan; })
+    .map(function(m){
+      return { etiket: m, deger: musteriAlacak[m].kalan,
+        gosterim: GV.tl(musteriAlacak[m].kalan) + (musteriAlacak[m].gecikmis ? ' · ' + GV.tl(musteriAlacak[m].gecikmis) + ' gecikmiş' : ''),
+        ton: musteriAlacak[m].gecikmis ? 'danger' : 'warn' };
+    }));
+
+  var acilis = GV.q('id');
+  if (acilis && A.kayit('faturalar', acilis)) {
+    var f0 = A.kayit('faturalar', acilis);
+    if (f0.kalan > 0) setTimeout(function(){ tahsilatKaydet(acilis); }, 300);
+  }
+})();
+</script>
+</body>
+</html>

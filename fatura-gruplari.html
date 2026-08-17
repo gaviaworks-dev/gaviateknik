@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Fatura Grupları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.fg-kart{padding:18px 20px;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--paper);
+  box-shadow:var(--shadow-sm);margin-bottom:16px}
+.fg-ust{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.fg-ust h3{font-size:15.5px;margin-bottom:4px}
+.fg-ust .fg-alt{font-size:12.5px;color:var(--muted)}
+.fg-sayac{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;margin:14px 0}
+.fg-hucre{background:var(--bg);padding:11px 13px}
+.fg-hucre b{display:block;font-size:18px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.fg-hucre span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.fg-hucre.ok b{color:var(--success)} .fg-hucre.warn b{color:var(--warning)} .fg-hucre.danger b{color:var(--danger)}
+.fg-lok{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.fg-lok:last-child{border-bottom:none}
+.fg-lok-ico{width:30px;height:30px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:11px}
+</style>
+</head>
+<body data-sec="ticari" data-screen="fatura-gruplari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ticari Süreçler</div>
+        <h1>Fatura Grupları</h1>
+        <p class="ph-sub">Sözleşmedeki parti büyüklüğüne göre toplanan lokasyonlar. Doluluk göstergesi, faturaya uygunluk ve engelleyen nedenler grup bazında izlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="fgDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="fgYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Fatura Grubu</button></div>
+    </div>
+    <div class="kpi-grid" id="fgKpi"></div>
+
+    <div class="gv-note" style="margin-bottom:20px">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <span>Bir lokasyon veya hizmet kalemi <b>birden fazla faturaya bölünebilir</b>. Bunun için lokasyon adı
+      değiştirilmez veya “ikinci fatura” adıyla yeni lokasyon açılmaz; kalan miktar mutabakat tablosunda izlenir.
+      Sistem <b>mükerrer faturalamayı engeller</b>.</span>
+    </div>
+
+    <div class="gv-cols">
+      <div id="fgListe"></div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Gruba Alınmayı Bekleyenler</h3></div>
+          <div class="gc-body" id="fgBekleyen"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Doluluk Özeti</h3></div>
+          <div class="gc-body" id="fgOzet"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  var gruplar = A.liste('faturaGruplari').map(function(g){
+    var d = A.faturaGrubuDoluluk(g.id);
+    var p = A.kayit('projeler', g.projeId), m = A.kayit('musteriler', g.musteriId);
+    return Object.assign({}, g, d, { projeAd: p ? p.kod : '—', musteriAd: m ? m.kisaAd : '—', proje: p });
+  });
+
+  gvKpi('#fgKpi', [
+    { ikon:'fa-layer-group', sayi: GV.n(gruplar.length), etiket:'Aktif fatura grubu',
+      delta:{ yon:'flat', metin: gruplar.filter(function(g){ return g.hedefeUlasti; }).length + ' grup hedefe ulaştı' } },
+    { ikon:'fa-file-circle-check', sayi: GV.n(gruplar.reduce(function(t,g){ return t + g.faturayaUygun; }, 0)),
+      etiket:'Faturaya uygun lokasyon', ton:'ok' },
+    { ikon:'fa-scale-balanced', sayi: GV.n(gruplar.reduce(function(t,g){ return t + g.mutabakatBekleyen; }, 0)),
+      etiket:'Mutabakat bekleyen', ton:'warn' },
+    { ikon:'fa-coins', sayi: GV.tlKisa(gruplar.reduce(function(t,g){ return t + g.toplamTutar; }, 0)),
+      etiket:'Faturalanabilir tutar', ton:'info' }
+  ]);
+
+  function grupCiz(){
+    document.getElementById('fgListe').innerHTML = gruplar.length ? gruplar.map(function(g){
+      var durumRozet = g.durum === 'kismen-faturalandi' ? GV.rozetOzel('warn','fa-circle-half-stroke','Kısmen faturalandı')
+        : g.durum === 'hedefe-ulasti' ? GV.rozetOzel('info','fa-bullseye','Hedefe ulaştı')
+        : g.durum === 'doluyor' ? GV.rozetOzel('off','fa-hourglass-half','Doluyor')
+        : GV.rozetOzel('ok','fa-circle-check','Tamamlandı');
+      var faturalar = A.liste('faturalar').filter(function(f){ return f.grupId === g.id; });
+      return '<div class="fg-kart">'
+        + '<div class="fg-ust"><div><h3><a href="fatura-grubu-detay.html?id=' + g.id + '">' + GV.esc(g.ad) + '</a></h3>'
+        + '<div class="fg-alt">' + GV.esc(g.no + ' · ' + g.musteriAd + ' · ' + g.projeAd + ' · açılış ' + GV.d(g.acilis)) + '</div></div>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + durumRozet + '</div></div>'
+
+        + '<div class="fill-meter"><div class="fill-meter-top"><b>Parti doluluğu</b>'
+        + '<span>' + GV.n(g.eklenen) + ' / ' + GV.n(g.hedef) + ' lokasyon</span></div>'
+        + GV.bar(g.doluluk, { buyuk:true, ton: g.hedefeUlasti ? 'ok' : g.doluluk >= 0.5 ? '' : 'warn',
+            etiket: GV.pct(g.doluluk, true, 0) })
+        + '<div class="fill-meter-note">' + (g.hedefeUlasti
+            ? 'Parti hedefine ulaşıldı; faturaya uygun lokasyonlar için fatura kesilebilir.'
+            : 'Hedefe ' + GV.n(g.hedef - g.eklenen) + ' lokasyon kaldı. Erken faturalama için kısmi fatura kesilebilir.') + '</div></div>'
+
+        + '<div class="fg-sayac">'
+        + '<div class="fg-hucre"><b>' + GV.n(g.eklenen) + '</b><span>Eklenen lokasyon</span></div>'
+        + '<div class="fg-hucre ok"><b>' + GV.n(g.faturayaUygun) + '</b><span>Faturaya uygun</span></div>'
+        + '<div class="fg-hucre warn"><b>' + GV.n(g.mutabakatBekleyen) + '</b><span>Mutabakat bekleyen</span></div>'
+        + '<div class="fg-hucre danger"><b>' + GV.n(g.eksikRapor) + '</b><span>Eksik rapor</span></div>'
+        + '<div class="fg-hucre"><b>' + GV.tlKisa(g.toplamTutar) + '</b><span>Faturalanabilir tutar</span></div>'
+        + '</div>'
+
+        + '<div style="margin-bottom:14px">' + g.lokasyonlar.map(function(lid){
+            var l = A.lokasyon(lid);
+            if (!l) return '';
+            var k = A.lokasyonFaturalanabilirMi(lid);
+            var ton = k.uygun ? 'success' : (k.sebep && k.sebep.indexOf('mutabakat') !== -1) ? 'warning' : 'danger';
+            var rozet = k.uygun ? GV.rozetOzel('ok','fa-circle-check','Faturaya uygun')
+              : GV.rozetOzel(ton === 'warning' ? 'warn' : 'danger',
+                  ton === 'warning' ? 'fa-scale-balanced' : 'fa-circle-xmark', k.sebep);
+            return '<div class="fg-lok">'
+              + '<span class="fg-lok-ico" style="background:var(--' + ton + '-tint);color:var(--' + ton + ')">'
+              + '<i class="fa-solid fa-' + (k.uygun ? 'check' : 'xmark') + '" aria-hidden="true"></i></span>'
+              + '<span style="flex:1;min-width:0;line-height:1.4">'
+              + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+              + '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></b>'
+              + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(l.kod + ' · ' + l.bolge) + '</span></span>'
+              + '<span style="flex:none">' + rozet + '</span></div>';
+          }).join('') + '</div>'
+
+        + (faturalar.length
+          ? '<div style="padding:12px 0;border-top:1px solid var(--line);margin-bottom:12px">'
+            + '<b style="display:block;font-size:12.5px;color:var(--ink);margin-bottom:8px">Kesilen faturalar</b>'
+            + faturalar.map(function(f){
+                return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:12.5px">'
+                  + '<a href="faturalar.html?id=' + f.id + '">' + GV.esc(f.no) + '</a>'
+                  + '<span style="color:var(--muted)">' + GV.d(f.tarih) + '</span>'
+                  + '<b style="font-variant-numeric:tabular-nums">' + GV.tl(f.toplam) + '</b>'
+                  + GV.rozet('tahsilat', f.tahsilatDurum) + '</div>';
+              }).join('') + '</div>' : '')
+
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+        + '<a class="btn btn-sm btn-ghost" href="fatura-grubu-detay.html?id=' + g.id + '">'
+        + '<i class="fa-solid fa-eye" aria-hidden="true"></i>Detay</a>'
+        + '<button class="btn btn-sm btn-ghost" type="button" data-lok-ekle="' + g.id + '">'
+        + '<i class="fa-solid fa-plus" aria-hidden="true"></i>Lokasyon Ekle</button>'
+        + '<button class="btn btn-sm btn-acc" type="button" data-fatura="' + g.id + '"' + (g.faturayaUygun ? '' : ' disabled') + '>'
+        + '<i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Fatura Kes</button>'
+        + '</div></div>';
+    }).join('')
+      : gvEmpty({ ikon:'fa-layer-group', baslik:'Fatura grubu yok',
+          metin:'Henüz fatura grubu açılmadı. Sözleşmedeki parti büyüklüğüne göre grup oluşturun.' });
+
+    document.querySelectorAll('[data-lok-ekle]').forEach(function(b){
+      b.addEventListener('click', function(){ lokasyonEkle(b.getAttribute('data-lok-ekle')); });
+    });
+    document.querySelectorAll('[data-fatura]').forEach(function(b){
+      if (b.disabled) return;
+      b.addEventListener('click', function(){ faturaKes(b.getAttribute('data-fatura')); });
+    });
+    GV.rolBaglantilariniIsle(document.getElementById('fgListe'));
+  }
+  grupCiz();
+
+  function lokasyonEkle(gid){
+    var g = A.kayit('faturaGruplari', gid);
+    var aday = A.lokasyonlar().filter(function(l){
+      if (l.projeId !== g.projeId) return false;
+      if (g.lokasyonlar.indexOf(l.id) !== -1) return false;
+      return A.mutabakatSatirlari(l.id).length > 0;
+    });
+    gvModal({
+      baslik:'Fatura grubuna lokasyon ekle', ikon:'fa-plus', genislik:'gv-modal-lg',
+      metin:'<b>' + GV.esc(g.ad) + '</b> grubuna lokasyon eklenecek. '
+        + 'Hedef parti büyüklüğü ' + g.hedefParti + ' lokasyon; şu an ' + g.lokasyonlar.length + ' lokasyon var.',
+      govde: aday.length
+        ? '<div class="gv-tscroll gv-cap"><table class="gtable"><thead><tr>'
+          + '<th scope="col">Seç</th><th scope="col">Lokasyon</th><th scope="col">Fatura Durumu</th>'
+          + '<th scope="col" class="num">Tutar</th></tr></thead><tbody>'
+          + aday.map(function(l){
+              var k = A.lokasyonFaturalanabilirMi(l.id);
+              return '<tr><td><span class="row-chk"><input type="checkbox" class="fg-lok-sec" value="' + l.id + '"'
+                + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
+                + '<td><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
+                + '<td>' + (k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun')
+                    : GV.rozetOzel('warn','fa-hourglass-half', k.sebep)) + '</td>'
+                + '<td class="num">' + GV.tl(A.lokasyonFaturaTutari(l.id, g.projeId)) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : '<div class="gv-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+          + '<span>Bu projede gruba eklenebilecek başka lokasyon kalmadı.</span></div>',
+      butonlar: aday.length
+        ? [{ etiket:'Vazgeç', sinif:'btn-ghost' },
+           { etiket:'Gruba Ekle', sinif:'btn-acc', ikon:'fa-plus', tikla: function(kap){
+              var sec = Array.prototype.slice.call(kap.querySelectorAll('.fg-lok-sec:checked')).map(function(c){ return c.value; });
+              if (!sec.length) { gvToast('En az bir lokasyon seçin.', { ton:'warn' }); return false; }
+              if (g.lokasyonlar.length + sec.length > g.hedefParti) {
+                gvToast('Seçim parti büyüklüğünü aşıyor (' + g.hedefParti + '). Yeni grup açmayı değerlendirin.', { ton:'warn' });
+              }
+              A.guncelle('faturaGruplari', gid, { lokasyonlar: g.lokasyonlar.concat(sec) }).then(function(){
+                return Promise.all(sec.map(function(lid){ return A.guncelle('lokasyonlar', lid, { faturaDurum:'fatura-grubunda' }); }));
+              }).then(function(){
+                gvToast(sec.length + ' lokasyon gruba eklendi.', { ton:'ok' });
+                setTimeout(function(){ location.reload(); }, 800);
+              });
+            } }]
+        : [{ etiket:'Kapat', sinif:'btn-ghost' }]
+    });
+  }
+
+  function faturaKes(gid){
+    var g = A.kayit('faturaGruplari', gid);
+    var d = A.faturaGrubuDoluluk(gid);
+    var proje = A.kayit('projeler', g.projeId);
+    var uygunLoklar = g.lokasyonlar.filter(function(lid){ return A.lokasyonFaturalanabilirMi(lid).uygun; });
+    var engelliler = g.lokasyonlar.filter(function(lid){ return !A.lokasyonFaturalanabilirMi(lid).uygun; });
+
+    if (!uygunLoklar.length) {
+      gvResult(false, { baslik:'Faturaya uygun lokasyon yok',
+        metin:'Bu grupta faturalanabilir lokasyon bulunmuyor. Mutabakat onayı ve rapor teslimi tamamlanmadan fatura kesilemez.' });
+      return;
+    }
+
+    /* satır bazlı kalan miktarlar */
+    var satirlar = [];
+    uygunLoklar.forEach(function(lid){
+      A.mutabakatSatirlari(lid).filter(function(m){ return m.kalan > 0; }).forEach(function(m){
+        satirlar.push({ mtb: m, lokasyonId: lid, lokasyonAd: (A.lokasyon(lid) || {}).ad,
+          birimFiyat: A.birimSatisFiyati(m.hizmetId, proje ? proje.fiyatListesiId : null),
+          miktar: m.kalan });
+      });
+    });
+
+    gvModal({
+      baslik:'Fatura kes', ikon:'fa-file-invoice-dollar', genislik:'gv-modal-xl',
+      metin:'<b>' + uygunLoklar.length + ' lokasyon</b> faturalanacak.'
+        + (engelliler.length ? ' <b>' + engelliler.length + ' lokasyon</b> mutabakat veya rapor eksikliği nedeniyle kapsam dışı.' : '')
+        + ' Miktarları düşürerek <b>kısmi fatura</b> kesebilirsiniz; kalan miktar grupta izlenmeye devam eder.',
+      govde:'<div class="gv-tscroll gv-cap gv-cap-lg"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Lokasyon</th><th scope="col">Poz</th><th scope="col">Hizmet</th>'
+        + '<th scope="col" class="num">Faturalanabilir</th><th scope="col" class="num">Önceki Fatura</th>'
+        + '<th scope="col" class="num">Bu Fatura</th><th scope="col" class="num">Kalan</th>'
+        + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
+        + satirlar.map(function(x, i){
+            return '<tr data-satir="' + i + '"><td>' + GV.esc(x.lokasyonAd) + '</td>'
+              + '<td><b>' + GV.esc(x.mtb.poz) + '</b></td><td>' + GV.esc(x.mtb.hizmetAd) + '</td>'
+              + '<td class="num">' + GV.n(x.mtb.faturalanabilir) + '</td>'
+              + '<td class="num">' + GV.n(x.mtb.faturalanan) + '</td>'
+              + '<td class="num"><label class="gv-sr" for="fgM' + i + '">' + GV.esc(x.mtb.hizmetAd) + ' fatura miktarı</label>'
+              + '<input type="number" id="fgM' + i + '" data-miktar="' + i + '" min="0" max="' + x.mtb.kalan + '" value="' + x.mtb.kalan + '"'
+              + ' style="width:88px;padding:6px 8px;font-size:12.5px;border:1px solid var(--line);border-radius:6px;text-align:right"></td>'
+              + '<td class="num" data-kalan="' + i + '">0</td>'
+              + '<td class="num">' + GV.tl(x.birimFiyat) + '</td>'
+              + '<td class="num" data-tutar="' + i + '">' + GV.tl(x.birimFiyat * x.mtb.kalan) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+        + '<div id="fgOzetKutu" style="margin-top:16px"></div>'
+        + '<div id="fgUyari"></div>',
+      acildi: function(kap){
+        function hesapla(){
+          var ara = 0, hataliVar = false;
+          satirlar.forEach(function(x, i){
+            var inp = kap.querySelector('[data-miktar="' + i + '"]');
+            var m = Number(inp.value || 0);
+            var kontrol = A.faturaMiktariGecerliMi(x.mtb.id, m);
+            if (m > 0 && !kontrol.gecerli) { hataliVar = true; inp.style.borderColor = 'var(--danger)'; }
+            else { inp.style.borderColor = ''; }
+            var kalan = x.mtb.kalan - m;
+            kap.querySelector('[data-kalan="' + i + '"]').innerHTML = kalan > 0
+              ? '<b style="color:var(--warning)">' + GV.n(kalan) + '</b>' : GV.n(0);
+            kap.querySelector('[data-tutar="' + i + '"]').textContent = GV.tl(x.birimFiyat * m);
+            ara += x.birimFiyat * m;
+          });
+          var kdv = Math.round(ara * 0.20);
+          var kismiVar = satirlar.some(function(x, i){
+            return Number(kap.querySelector('[data-miktar="' + i + '"]').value || 0) < x.mtb.kalan; });
+          kap.querySelector('#fgOzetKutu').innerHTML =
+            '<div class="sum-list">'
+            + '<div class="sum-row"><span>Ara toplam</span><b>' + GV.tl(ara) + '</b></div>'
+            + '<div class="sum-row"><span>KDV (%20)</span><b>' + GV.tl(kdv) + '</b></div>'
+            + '<div class="sum-row total"><span>Genel toplam</span><b>' + GV.tl(ara + kdv) + '</b></div></div>';
+          kap.querySelector('#fgUyari').innerHTML =
+            (hataliVar ? '<div class="gv-note danger" style="margin-top:14px"><i class="fa-solid fa-ban" aria-hidden="true"></i>'
+              + '<span><b>Mükerrer faturalama engellendi.</b> Kırmızı işaretli satırlarda girilen miktar '
+              + 'faturalanabilir bakiyeyi aşıyor. Fatura kesilemez.</span></div>' : '')
+            + (kismiVar && !hataliVar ? '<div class="gv-note warn" style="margin-top:14px">'
+              + '<i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>'
+              + '<span><b>Kısmi faturalama.</b> Kalan miktarlar mutabakat tablosunda izlenmeye devam eder ve '
+              + 'sonraki faturaya aktarılır. Lokasyon adı değiştirilmez, yeni lokasyon açılmaz.</span></div>' : '');
+          return { ara: ara, kdv: kdv, hataliVar: hataliVar, kismiVar: kismiVar };
+        }
+        kap.querySelectorAll('[data-miktar]').forEach(function(i){ i.addEventListener('input', hesapla); });
+        hesapla();
+        kap.__hesapla = hesapla;
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Faturayı Kes', sinif:'btn-acc', ikon:'fa-file-invoice-dollar', tikla: function(kap){
+            var h = kap.__hesapla();
+            if (h.hataliVar) {
+              gvToast('Mükerrer faturalama engeli: miktarları düzeltin.', { ton:'danger' });
+              return false;
+            }
+            if (!h.ara) { gvToast('Faturalanacak miktar girin.', { ton:'danger' }); return false; }
+
+            var no = 'GVT-A-2026-' + String(900000 + A.liste('faturalar').length + 1).slice(-6);
+            var fid = 'FTR-2026-Y' + String(A.liste('faturalar').length + 1).padStart(3,'0');
+            var vade = A.tariheCevir(BUGUN);
+            var sozlesme = proje ? A.kayit('sozlesmeler', proje.sozlesmeId) : null;
+            vade.setDate(vade.getDate() + (sozlesme ? sozlesme.odemeVadesi : 30));
+
+            var islemler = [];
+            satirlar.forEach(function(x, i){
+              var m = Number(kap.querySelector('[data-miktar="' + i + '"]').value || 0);
+              if (!m) return;
+              islemler.push(A.guncelle('mutabakat', x.mtb.id, {
+                faturalanan: x.mtb.faturalanan + m, kalan: x.mtb.kalan - m }));
+              islemler.push(A.ekle('faturaSatirlari', {
+                id:'FST-Y' + Date.now().toString().slice(-6) + i,
+                faturaId: fid, lokasyonId: x.lokasyonId, hizmetId: x.mtb.hizmetId,
+                faturalanabilir: x.mtb.faturalanabilir, oncekiFaturalanan: x.mtb.faturalanan,
+                buFaturaMiktar: m, kalanMiktar: x.mtb.kalan - m,
+                birimFiyat: x.birimFiyat, tutar: x.birimFiyat * m,
+                birimMaliyet: A.birimMaliyet(x.mtb.hizmetId) }));
+            });
+
+            islemler.push(A.ekle('faturalar', {
+              id: fid, no: no, grupId: gid, musteriId: g.musteriId, projeId: g.projeId,
+              lokasyonlar: uygunLoklar, tarih: BUGUN, vade: A.isoYaz(vade), kdvOran: 0.20,
+              araToplam: h.ara, kdv: h.kdv, toplam: h.ara + h.kdv,
+              tahsilEdilen: 0, kalan: h.ara + h.kdv, durum:'kesildi', tahsilatDurum:'bekleniyor',
+              aciklama: g.ad + (h.kismiVar ? ' — kısmi fatura' : '')
+            }));
+
+            Promise.all(islemler).then(function(){
+              return A.guncelle('faturaGruplari', gid, {
+                durum: h.kismiVar ? 'kismen-faturalandi' : 'faturalandi',
+                faturaIds: (g.faturaIds || []).concat([fid]) });
+            }).then(function(){
+              return Promise.all(uygunLoklar.map(function(lid){
+                var kalanVar = A.mutabakatSatirlari(lid).some(function(m){ return m.kalan > 0; });
+                return A.guncelle('lokasyonlar', lid, {
+                  faturaDurum: kalanVar ? 'kismen-faturalandi' : 'tam-faturalandi' });
+              }));
+            }).then(function(){
+              gvResult(true, { baslik:'Fatura kesildi',
+                metin:'<b>' + no + '</b> numaralı fatura ' + GV.tl(h.ara + h.kdv) + ' tutarla oluşturuldu.'
+                  + (h.kismiVar ? ' Kısmi faturalama uygulandı; kalan miktarlar grupta izlenmeye devam ediyor.' : ''),
+                butonlar:[
+                  { etiket:'Gruba dön', sinif:'btn-ghost', tikla: function(){ location.reload(); } },
+                  { etiket:'Faturayı aç', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
+                      location.href = GV.href('faturalar.html?id=' + fid); } }
+                ] });
+            });
+          } }]
+    });
+  }
+
+  /* --- gruba alınmayı bekleyenler --- */
+  var grupluLok = {};
+  gruplar.forEach(function(g){ g.lokasyonlar.forEach(function(l){ grupluLok[l] = true; }); });
+  var bekleyenler = A.lokasyonlar().filter(function(l){
+    return l.projeId && !grupluLok[l.id] && A.lokasyonFaturalanabilirMi(l.id).uygun; });
+
+  document.getElementById('fgBekleyen').innerHTML = bekleyenler.length
+    ? bekleyenler.map(function(l){
+        return '<div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="flex:1;min-width:0;line-height:1.4">'
+          + '<b style="display:block;font-size:12.5px;font-weight:700;color:var(--ink)">'
+          + '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></b>'
+          + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(l.projeKod + ' · ' + l.musteriAd) + '</span></span>'
+          + '<span style="flex:none;font-size:12.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">'
+          + GV.tlKisa(A.lokasyonFaturaTutari(l.id, l.projeId)) + '</span></div>';
+      }).join('')
+      + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span>' + bekleyenler.length + ' lokasyon faturaya hazır ancak hiçbir gruba eklenmemiş.</span></div>'
+    : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+      + '<span>Faturaya hazır bütün lokasyonlar bir fatura grubuna eklenmiş durumda.</span></div>';
+
+  /* --- doluluk özeti --- */
+  gvBarList('#fgOzet', gruplar.map(function(g){
+    return { etiket: g.ad, deger: g.eklenen,
+      gosterim: g.eklenen + ' / ' + g.hedef + ' · ' + GV.pct(g.doluluk, true, 0),
+      ton: g.hedefeUlasti ? 'ok' : g.doluluk >= 0.5 ? '' : 'warn' };
+  }));
+
+  document.getElementById('fgDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: gruplar.length, dosyaAdi:'fatura-gruplari', modul:'Fatura Grubu' });
+  });
+
+  document.getElementById('fgYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni fatura grubu', ikon:'fa-plus',
+      metin:'Parti büyüklüğü sözleşmeden gelir; gerekirse bu grup için değiştirebilirsiniz.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="fyProje">Proje *</label><select id="fyProje">'
+        + A.liste('projeler').filter(function(p){ return p.durum !== 'tamamlandi'; })
+            .map(function(p){ return '<option value="' + p.id + '" data-parti="' + p.partiBuyuklugu + '" data-musteri="' + p.musteriId + '">'
+              + GV.esc(p.kod + ' — ' + p.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield full"><label for="fyAd">Grup adı *</label><input type="text" id="fyAd" placeholder="Örnek Market — 3. Parti"></div>'
+        + '<div class="gfield"><label for="fyHedef">Hedef parti büyüklüğü *</label><input type="number" id="fyHedef" min="1" max="200" value="6"></div>'
+        + '<div class="gfield"><label for="fyAcilis">Açılış tarihi</label><input type="date" id="fyAcilis" value="' + BUGUN + '"></div></div>',
+      acildi: function(kap){
+        function guncelle(){
+          var o = kap.querySelector('#fyProje').selectedOptions[0];
+          if (o) kap.querySelector('#fyHedef').value = o.getAttribute('data-parti') || 6;
+        }
+        kap.querySelector('#fyProje').addEventListener('change', guncelle);
+        guncelle();
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#fyAd').value.trim();
+            if (!ad) { gvToast('Grup adı zorunludur.', { ton:'danger' }); return false; }
+            var o = kap.querySelector('#fyProje').selectedOptions[0];
+            var no = 'FGR-2026-Y' + String(A.liste('faturaGruplari').length + 1).padStart(2,'0');
+            A.ekle('faturaGruplari', {
+              id: no, no: no, projeId: kap.querySelector('#fyProje').value,
+              musteriId: o.getAttribute('data-musteri'), ad: ad,
+              hedefParti: Number(kap.querySelector('#fyHedef').value),
+              lokasyonlar: [], acilis: kap.querySelector('#fyAcilis').value || BUGUN,
+              durum:'doluyor', faturaIds: [], not:'Yeni açılan fatura grubu.'
+            }).then(function(){
+              gvToast('Fatura grubu oluşturuldu.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

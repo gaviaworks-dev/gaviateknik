@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Teklif Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="teklifler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ticari Süreçler</div>
+        <h1><span id="tfBaslik">Yeni Teklif</span></h1>
+        <p class="ph-sub">Dinamik hizmet satırları; adet, birim, müşteri satış fiyatı, taşeron maliyeti, ek giderler ve kârlılık aynı ekranda hesaplanır.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-contract" aria-hidden="true"></i>Teklif Bilgileri</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="tMusteri">Müşteri <span class="req" aria-hidden="true">*</span></label>
+                <select id="tMusteri" name="musteriId" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="tProje">İlgili Proje</label>
+                <select id="tProje" name="projeId"><option value="">Proje bağlı değil</option></select>
+                <span class="gf-hint">Proje seçilirse fiyatlar o projenin fiyat listesinden gelir.</span>
+              </div>
+              <div class="gfield full">
+                <label for="tKonu">Teklif Konusu <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="tKonu" name="konu" required minlength="5" placeholder="Örnek Market 2027 Yıllık Periyodik Kontrol Hizmeti">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="tTarih">Teklif Tarihi <span class="req" aria-hidden="true">*</span></label>
+                <input type="date" id="tTarih" name="tarih" required>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="tGecerlilik">Geçerlilik Tarihi <span class="req" aria-hidden="true">*</span></label>
+                <input type="date" id="tGecerlilik" name="gecerlilik" required>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="tLokasyon">Lokasyon Sayısı <span class="req" aria-hidden="true">*</span></label>
+                <input type="number" id="tLokasyon" name="lokasyonSayisi" required min="1" max="500" value="1">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="tFiyatListesi">Fiyat Listesi</label>
+                <select id="tFiyatListesi" name="fiyatListesiId"></select>
+                <span class="gf-hint">Satır eklerken birim fiyat bu listeden önerilir.</span>
+              </div>
+              <div class="gfield full">
+                <label for="tNotlar">Notlar</label>
+                <textarea id="tNotlar" name="notlar" placeholder="İskonto, ödeme koşulu, kapsam dışı kalemler"></textarea>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-list" aria-hidden="true"></i>Hizmet Kalemleri</h2>
+            </div>
+          <div class="gc-body"><p class="gf-hint" style="margin-bottom:14px">Hizmet seçtiğinizde satış fiyatı ve taşeron maliyeti fiyat listesinden otomatik gelir; ikisi de satır bazında değiştirilebilir.</p><div id="tfSatirlar"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i>Ek Giderler</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="tUlasim">Ulaşım Gideri (₺)</label>
+                <input type="number" id="tUlasim" name="ulasim" min="0" value="0">
+              </div>
+              <div class="gfield">
+                <label for="tKonaklama">Konaklama Gideri (₺)</label>
+                <input type="number" id="tKonaklama" name="konaklama" min="0" value="0">
+              </div>
+              <div class="gfield">
+                <label for="tDiger">Diğer Giderler (₺)</label>
+                <input type="number" id="tDiger" name="diger" min="0" value="0">
+              </div>
+              <div class="gfield">
+                <label for="tMasrafSahibi">Masraf Sorumluluğu</label>
+                <select id="tMasrafSahibi" name="masrafSahibi">
+                  <option value="gavia">GAVIA Teknik karşılar</option>
+                  <option value="musteri">Müşteriye yansıtılır</option>
+                  <option value="taseron">Taşeron karşılar</option>
+                </select>
+                <span class="gf-hint">Sözleşmede parametrik olarak tanımlanır.</span>
+              </div>
+            </div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-calculator" aria-hidden="true"></i>Teklif Özeti</h2>
+            </div>
+          <div class="gc-body"><div id="gvLineSum"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Kârlılık Uyarısı</h2>
+            </div>
+          <div class="gc-body"><div id="tfUyari"></div></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        <button class="btn btn-dark" type="button" data-form-aksiyon="gonder"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Kaydet ve Gönder</button>
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('teklifler', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'teklifler.html', listeEtiket:'Teklifler' }); return; }
+
+  document.getElementById('tMusteri').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('musteriler').map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.unvan) + '</option>'; }).join('');
+  document.getElementById('tFiyatListesi').innerHTML =
+    A.liste('fiyatListeleri').filter(function(f){ return f.tur === 'satis' && f.durum === 'aktif'; })
+      .map(function(f){ return '<option value="' + f.id + '">' + GV.esc(f.ad) + '</option>'; }).join('');
+
+  var hizmetler = A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif'; });
+  var satirMotoru = null;
+
+  function musteriDegisti(){
+    var mid = document.getElementById('tMusteri').value;
+    document.getElementById('tProje').innerHTML = '<option value="">Proje bağlı değil</option>'
+      + A.liste('projeler').filter(function(p){ return p.musteriId === mid; })
+          .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.kod + ' — ' + p.ad) + '</option>'; }).join('');
+    var ozelListe = A.liste('fiyatListeleri').filter(function(f){ return f.tur === 'satis' && f.musteriId === mid && f.durum === 'aktif'; })[0];
+    if (ozelListe) document.getElementById('tFiyatListesi').value = ozelListe.id;
+    hesapla();
+  }
+
+  function ekGider(){
+    return Number(document.getElementById('tUlasim').value || 0)
+      + Number(document.getElementById('tKonaklama').value || 0)
+      + Number(document.getElementById('tDiger').value || 0);
+  }
+
+  function baslangicSatirlari(){
+    if (!mevcut || !mevcut.projeId) return [];
+    var proje = A.kayit('projeler', mevcut.projeId);
+    if (!proje) return [];
+    var toplam = {};
+    A.liste('lokasyonlar').filter(function(l){ return l.projeId === proje.id; }).forEach(function(l){
+      A.lokasyonHizmetleri(l.id).forEach(function(h){ toplam[h.hizmetId] = (toplam[h.hizmetId] || 0) + h.planlananMiktar; });
+    });
+    return Object.keys(toplam).slice(0, 12).map(function(hid){
+      return { hizmetId: hid, miktar: toplam[hid],
+        satis: A.birimSatisFiyati(hid, proje.fiyatListesiId), maliyet: A.birimMaliyet(hid) };
+    });
+  }
+
+  satirMotoru = gvLineRows({
+    hedef:'#tfSatirlar', ozetHedef:'#gvLineSum', hizmetler: hizmetler,
+    baslangic: baslangicSatirlari(),
+    ekGider: ekGider,
+    fiyatBul: function(hid){
+      var fl = document.getElementById('tFiyatListesi').value;
+      return { satis: A.birimSatisFiyati(hid, fl), maliyet: A.birimMaliyet(hid) };
+    },
+    degisti: function(satirlar, t){ uyariCiz(t); }
+  });
+
+  function uyariCiz(t){
+    var uyarilar = [];
+    if (!t.satirSayisi) uyarilar.push(['warn','fa-table-list','Henüz hizmet satırı eklenmedi','Teklif tutarı hesaplanamıyor.']);
+    if (t.satis && t.karOran < 0.25) uyarilar.push(['danger','fa-triangle-exclamation','Kârlılık düşük',
+      'Brüt marj ' + GV.pct(t.karOran) + '. Firma politikası asgari %25 marj öngörüyor.']);
+    else if (t.satis && t.karOran < 0.35) uyarilar.push(['warn','fa-circle-exclamation','Kârlılık sınırda',
+      'Brüt marj ' + GV.pct(t.karOran) + '. Ek gider artışında zarara dönebilir.']);
+    if (t.ekGider > t.satis * 0.12) uyarilar.push(['warn','fa-money-bill-wave','Ek giderler yüksek',
+      'Ek giderler satış tutarının ' + GV.pct(t.satis ? t.ekGider / t.satis : 0) + ' kadarı.']);
+    var masraf = document.getElementById('tMasrafSahibi').value;
+    if (masraf === 'gavia' && t.ekGider > 0) uyarilar.push(['info','fa-circle-info','Masraf GAVIA\'ya ait',
+      'Ulaşım ve konaklama giderleri kâr hesabına dâhil edildi.']);
+
+    document.getElementById('tfUyari').innerHTML = uyarilar.length
+      ? uyarilar.map(function(u){
+          var renk = u[0] === 'danger' ? 'danger' : u[0] === 'warn' ? 'warning' : 'info';
+          return '<div style="display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)">'
+            + '<span style="width:28px;height:28px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:11px;'
+            + 'background:var(--' + renk + '-tint);color:var(--' + renk + ')"><i class="fa-solid ' + u[1] + '" aria-hidden="true"></i></span>'
+            + '<span style="min-width:0;line-height:1.45"><b style="display:block;font-size:12.5px;font-weight:700;color:var(--ink)">' + GV.esc(u[2]) + '</b>'
+            + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(u[3]) + '</span></span></div>';
+        }).join('')
+      : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+        + '<span>Kârlılık ve gider dengesi uygun. Teklif gönderilebilir.</span></div>';
+  }
+
+  function hesapla(){ if (satirMotoru) satirMotoru.hesapla(); }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'teklif-form' + (id ? '-' + id : ''), iptalHref:'teklifler.html',
+    ozelDogrula: function(kural, deger, f){
+      if (kural === 'gecerlilik') {
+        var t = f.querySelector('#tTarih').value;
+        if (t && deger && deger <= t) return 'Geçerlilik tarihi teklif tarihinden sonra olmalıdır.';
+      }
+      return '';
+    },
+    gonder: function(veri, aksiyon, yardim){
+      var t = satirMotoru.toplamlar();
+      if (!t.satirSayisi) { gvToast('En az bir hizmet satırı ekleyin.', { ton:'danger' }); return; }
+
+      function kaydet(){
+        veri.lokasyonSayisi = Number(veri.lokasyonSayisi || 1);
+        veri.hizmetSayisi = t.satirSayisi;
+        veri.toplamSatis = t.satis;
+        veri.toplamMaliyet = t.maliyet;
+        veri.ekGider = t.ekGider;
+        veri.durum = aksiyon === 'gonder' ? 'gonderildi' : (mevcut ? mevcut.durum : 'hazirlaniyor');
+        veri.projeId = veri.projeId || null;
+        var islem = mevcut
+          ? A.guncelle('teklifler', mevcut.id, Object.assign({}, veri, { revizyon: (mevcut.revizyon || 0) + 1 }))
+          : A.ekle('teklifler', Object.assign({
+              id:'TKL-2026-Y' + String(A.liste('teklifler').length + 1).padStart(2,'0'),
+              no:'TKL-2026-Y' + String(A.liste('teklifler').length + 1).padStart(2,'0'),
+              revizyon: 0 }, veri));
+        islem.then(function(r){
+          yardim.taslakSil(); yardim.kirliSifirla();
+          gvResult(true, {
+            baslik: aksiyon === 'gonder' ? 'Teklif kaydedildi ve gönderildi'
+              : mevcut ? 'Teklif güncellendi' : 'Teklif oluşturuldu',
+            metin:'<b>' + GV.esc(veri.konu) + '</b> · ' + GV.tl(t.satis) + ' satış tutarı, '
+              + GV.pct(t.karOran) + ' brüt marj ile kaydedildi.',
+            butonlar:[
+              { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('teklifler.html'); } },
+              { etiket:'Teklife git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
+                  location.href = GV.href('teklif-detay.html?id=' + (mevcut ? mevcut.id : r.kayit.id)); } }
+            ]
+          });
+        });
+      }
+
+      if (t.karOran < 0.25) {
+        gvConfirm({ baslik:'Kârlılık eşiğin altında', ton:'danger',
+          metin:'Brüt marj <b>' + GV.pct(t.karOran) + '</b>; firma politikası asgari %25 öngörüyor. '
+            + 'Yine de kaydetmek istiyor musunuz?',
+          onayEtiket:'Yine de kaydet', onayIkon:'fa-check',
+          notAlani:true, notZorunlu:true, notYer:'Düşük marj gerekçesi (yönetim onayı için)…'
+        }).then(function(s){ if (s.onay) kaydet(); });
+        return;
+      }
+      kaydet();
+    }
+  });
+
+  document.getElementById('tGecerlilik').setAttribute('data-dogrula', 'gecerlilik');
+  document.getElementById('tMusteri').addEventListener('change', musteriDegisti);
+  document.getElementById('tFiyatListesi').addEventListener('change', hesapla);
+  ['tUlasim','tKonaklama','tDiger','tMasrafSahibi'].forEach(function(x){
+    document.getElementById(x).addEventListener('input', hesapla);
+    document.getElementById(x).addEventListener('change', hesapla);
+  });
+
+  if (mevcut) {
+    document.getElementById('tfBaslik').textContent = mevcut.no + ' — Düzenle';
+    document.title = mevcut.no + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.no);
+    form.doldur(mevcut);
+    musteriDegisti();
+    document.getElementById('tProje').value = mevcut.projeId || '';
+    document.getElementById('tDiger').value = mevcut.ekGider || 0;
+    form.kirliSifirla();
+  } else {
+    document.getElementById('tTarih').value = BUGUN;
+    var g = A.tariheCevir(BUGUN); g.setDate(g.getDate() + 30);
+    document.getElementById('tGecerlilik').value = A.isoYaz(g);
+  }
+  hesapla();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Teklif Detayı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="teklifler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="rec-head" id="recHead"></div>
+
+    <div class="gv-cols">
+      <div>
+        <div class="gv-tabbar" role="tablist" aria-label="Kayıt sekmeleri">
+      <button class="gv-tab" role="tab" id="tb_genel" aria-controls="pn_genel" aria-selected="true">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>Genel Bilgiler</button>
+      <button class="gv-tab" role="tab" id="tb_kalem" aria-controls="pn_kalem" aria-selected="false">
+        <i class="fa-solid fa-table-list" aria-hidden="true"></i>Hizmet Kalemleri<span class="tb-cnt" id="cnt_kalem">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_karlilik" aria-controls="pn_karlilik" aria-selected="false">
+        <i class="fa-solid fa-coins" aria-hidden="true"></i>Kârlılık</button>
+      <button class="gv-tab" role="tab" id="tb_gecmis" aria-controls="pn_gecmis" aria-selected="false">
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Süreç</button>
+        </div>
+      <div id="pn_genel" role="tabpanel" aria-labelledby="tb_genel">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-contract" aria-hidden="true"></i>Teklif Bilgileri</h2>
+            </div>
+          <div class="gc-body"><dl class="info-grid" id="tdBilgi"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kapsam</h2>
+            </div>
+          <div class="gc-body"><div id="tdKapsam"></div></div>
+        </section>
+      </div>
+      <div id="pn_kalem" role="tabpanel" aria-labelledby="tb_kalem" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-list" aria-hidden="true"></i>Teklif Kalemleri</h2>
+            </div>
+          <div class="gc-body flush" id="tdKalem"></div>
+        </section>
+      </div>
+      <div id="pn_karlilik" role="tabpanel" aria-labelledby="tb_karlilik" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-coins" aria-hidden="true"></i>Gelir, Maliyet ve Kârlılık</h2>
+            </div>
+          <div class="gc-body"><div id="tdKar"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Kategori Bazlı Dağılım</h2>
+            </div>
+          <div class="gc-body"><div id="tdKategori"></div></div>
+        </section>
+      </div>
+      <div id="pn_gecmis" role="tabpanel" aria-labelledby="tb_gecmis" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Teklif Süreci</h2>
+            </div>
+          <div class="gc-body"><div id="tdSurec"></div></div>
+        </section>
+      </div>
+      </div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Özet</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="tdOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>İşlemler</h2>
+            </div>
+          <div class="gc-body"><div class="gv-stack" id="tdIslem"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id') || 'TKL-2026-001';
+  var t = A.kayit('teklifler', id);
+  if (!t) { gvNotFound({ kod:id, listeHref:'teklifler.html', listeEtiket:'Teklifler' }); return; }
+  GV.crumb(t.no);
+  document.title = t.no + ' — GAVIA Periyodik Kontrol Yönetimi';
+
+  var durumAd = { kazanildi:['ok','fa-trophy','Kazanıldı'], gonderildi:['info','fa-paper-plane','Gönderildi'],
+    hazirlaniyor:['warn','fa-pen-ruler','Hazırlanıyor'], kaybedildi:['danger','fa-xmark','Kaybedildi'] };
+  var d = durumAd[t.durum] || durumAd.hazirlaniyor;
+  var m = A.kayit('musteriler', t.musteriId);
+  var proje = t.projeId ? A.kayit('projeler', t.projeId) : null;
+  var hazirlayan = A.kayit('personeller', t.hazirlayanId);
+  var sozlesme = A.liste('sozlesmeler').filter(function(s){ return s.teklifId === t.id; })[0];
+  var kar = t.toplamSatis - t.toplamMaliyet - t.ekGider;
+
+  /* teklif kalemleri — projeden türetilir */
+  var kalemler = [];
+  if (proje) {
+    var toplamlar = {};
+    A.liste('lokasyonlar').filter(function(l){ return l.projeId === proje.id; }).forEach(function(l){
+      A.lokasyonHizmetleri(l.id).forEach(function(h){
+        if (!toplamlar[h.hizmetId]) toplamlar[h.hizmetId] = { miktar:0, lokasyon:0 };
+        toplamlar[h.hizmetId].miktar += h.planlananMiktar;
+        toplamlar[h.hizmetId].lokasyon++;
+      });
+    });
+    kalemler = Object.keys(toplamlar).map(function(hid){
+      var h = A.kayit('hizmetler', hid);
+      var satis = A.birimSatisFiyati(hid, proje.fiyatListesiId);
+      var maliyet = A.birimMaliyet(hid);
+      return { hizmetId:hid, hizmet:h, miktar: toplamlar[hid].miktar, lokasyon: toplamlar[hid].lokasyon,
+        satis: satis, maliyet: maliyet, tutar: satis * toplamlar[hid].miktar,
+        maliyetTutar: maliyet * toplamlar[hid].miktar };
+    }).sort(function(a,b){ return b.tutar - a.tutar; });
+  }
+
+  document.getElementById('recHead').innerHTML =
+    '<div class="rec-mark"><i class="fa-solid fa-file-contract" aria-hidden="true"></i></div>'
+    + '<div class="rec-id"><div class="rc-code">' + GV.esc(t.no) + (t.revizyon ? ' · revizyon ' + t.revizyon : '') + '</div>'
+    + '<h1>' + GV.esc(t.konu) + '</h1>'
+    + '<div class="rc-meta">' + GV.rozetOzel(d[0], d[1], d[2])
+    + '<span><i class="fa-solid fa-building" aria-hidden="true"></i><a href="musteri-detay.html?id=' + t.musteriId + '">'
+    + GV.esc(m ? m.kisaAd : '—') + '</a></span>'
+    + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i>' + GV.d(t.tarih) + '</span>'
+    + '<span><i class="fa-solid fa-coins" aria-hidden="true"></i>' + GV.tl(t.toplamSatis) + '</span>'
+    + '<span><i class="fa-solid fa-user-tie" aria-hidden="true"></i>' + GV.esc(hazirlayan ? hazirlayan.ad : '—') + '</span>'
+    + '</div></div>'
+    + '<div class="rec-acts no-print">'
+    + '<a class="btn btn-ghost" href="teklifler.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
+    + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
+    + '<a class="btn btn-ghost" href="teklif-form.html?id=' + t.id + '"><i class="fa-solid fa-pen" aria-hidden="true"></i>Düzenle</a>'
+    + (t.durum === 'gonderildi'
+      ? '<button class="btn btn-acc" type="button" id="tdKazandi"><i class="fa-solid fa-trophy" aria-hidden="true"></i>Kazanıldı İşaretle</button>'
+      : t.durum === 'hazirlaniyor'
+      ? '<button class="btn btn-acc" type="button" id="tdGonder"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Gönder</button>'
+      : '') + '</div>';
+
+  gvTabs('.gv-tabbar');
+  document.getElementById('cnt_kalem').textContent = GV.n(kalemler.length);
+
+  function bilgi(a,b){ return '<div class="info-item"><dt>' + GV.esc(a) + '</dt><dd' + (b ? '' : ' class="empty"') + '>' + (b || GV.bos) + '</dd></div>'; }
+  document.getElementById('tdBilgi').innerHTML =
+    bilgi('Teklif No', '<b>' + GV.esc(t.no) + '</b>')
+    + bilgi('Revizyon', t.revizyon ? GV.n(t.revizyon) + '. revizyon' : 'İlk sürüm')
+    + bilgi('Müşteri', '<a href="musteri-detay.html?id=' + t.musteriId + '">' + GV.esc(m ? m.unvan : '—') + '</a>')
+    + bilgi('Konu', GV.esc(t.konu))
+    + bilgi('Teklif Tarihi', GV.dUzun(t.tarih))
+    + bilgi('Geçerlilik Tarihi', GV.dUzun(t.gecerlilik))
+    + bilgi('Hazırlayan', hazirlayan ? '<a href="personel-detay.html?id=' + hazirlayan.id + '">' + GV.esc(hazirlayan.ad) + '</a>' : null)
+    + bilgi('Bağlı Proje', proje ? '<a href="proje-detay.html?id=' + proje.id + '">' + GV.esc(proje.kod) + '</a>' : 'Henüz proje açılmadı')
+    + bilgi('Sözleşme', sozlesme ? '<a href="sozlesme-detay.html?id=' + sozlesme.id + '">' + GV.esc(sozlesme.no) + '</a>' : 'Sözleşme yok')
+    + bilgi('Durum', GV.rozetOzel(d[0], d[1], d[2]))
+    + '<div class="info-item" style="grid-column:1/-1"><dt>Notlar</dt><dd>' + GV.esc(t.notlar) + '</dd></div>';
+
+  document.getElementById('tdKapsam').innerHTML =
+    '<div class="gv-grid-3">'
+    + [['fa-location-dot', GV.n(t.lokasyonSayisi), 'Lokasyon'],
+       ['fa-list-check', GV.n(t.hizmetSayisi), 'Hizmet pozisyonu'],
+       ['fa-boxes-stacked', GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)), 'Toplam miktar']]
+      .map(function(c){
+        return '<div style="padding:15px 17px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg)">'
+          + '<i class="fa-solid ' + c[0] + '" style="color:var(--gv-action);font-size:15px;margin-bottom:9px;display:block" aria-hidden="true"></i>'
+          + '<b style="display:block;font-size:21px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums">' + c[1] + '</b>'
+          + '<span style="font-size:12px;color:var(--muted)">' + c[2] + '</span></div>';
+      }).join('') + '</div>';
+
+  /* --- kalemler --- */
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+  document.getElementById('tdKalem').innerHTML = kalemler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Adet</th>'
+      + '<th scope="col">Birim</th><th scope="col" class="num">Müşteri Satış Fiyatı</th>'
+      + '<th scope="col" class="num">Taşeron Maliyeti</th><th scope="col" class="num">Tutar</th>'
+      + '<th scope="col" class="num">Marj</th></tr></thead><tbody>'
+      + kalemler.map(function(k){
+          var marj = k.satis ? (k.satis - k.maliyet) / k.satis : 0;
+          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(k.hizmet ? k.hizmet.poz : '—') + '</b></td>'
+            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + k.hizmetId + '">' + GV.esc(k.hizmet ? k.hizmet.ad : k.hizmetId) + '</a></td>'
+            + '<td data-lbl="Adet" class="num">' + GV.n(k.miktar) + '</td>'
+            + '<td data-lbl="Birim">' + GV.esc(k.hizmet ? (birimAd[k.hizmet.birim] || k.hizmet.birim) : '—') + '</td>'
+            + '<td data-lbl="Satış Fiyatı" class="num">' + GV.tl(k.satis) + '</td>'
+            + '<td data-lbl="Taşeron Maliyeti" class="num"><span style="color:var(--warning)">' + GV.tl(k.maliyet) + '</span></td>'
+            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(k.tutar) + '</b></td>'
+            + '<td data-lbl="Marj" class="num">' + GV.pct(marj) + '</td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td>'
+      + '<td class="num">' + GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)) + '</td>'
+      + '<td></td><td></td>'
+      + '<td class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.maliyetTutar; }, 0)) + '</td>'
+      + '<td class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.tutar; }, 0)) + '</td>'
+      + '<td></td></tr></tfoot></table></div>'
+      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i>'
+      + '<span><b>Taşeron maliyeti kolonu yalnız iç kullanım içindir.</b> Müşteriye gönderilen teklif çıktısında '
+      + 've müşteri portalında bu kolon görünmez.</span></div>'
+    : gvEmpty({ ikon:'fa-table-list', baslik:'Kalem listesi oluşmadı',
+        metin:'Bu teklife henüz proje bağlanmadığı için kalem dökümü üretilemedi. Teklif toplamları özet alanlarda görüntülenir.' });
+
+  /* --- kârlılık --- */
+  document.getElementById('tdKar').innerHTML =
+    '<div class="gv-grid-2"><div>'
+    + '<div class="sum-list">'
+    + '<div class="sum-row"><span>Müşteri satış tutarı</span><b>' + GV.tl(t.toplamSatis) + '</b></div>'
+    + '<div class="sum-row cost"><span>Taşeron maliyeti</span><b>' + GV.tl(t.toplamMaliyet) + '</b></div>'
+    + '<div class="sum-row cost"><span>Ek giderler (ulaşım, konaklama)</span><b>' + GV.tl(t.ekGider) + '</b></div>'
+    + '<div class="sum-row profit"><span>Brüt kâr</span><b>' + GV.tl(kar) + '</b></div>'
+    + '<div class="sum-row"><span>KDV (%20)</span><b>' + GV.tl(Math.round(t.toplamSatis * 0.20)) + '</b></div>'
+    + '<div class="sum-row total"><span>Genel toplam (KDV dâhil)</span><b>' + GV.tl(t.toplamSatis + Math.round(t.toplamSatis * 0.20)) + '</b></div>'
+    + '</div>'
+    + '<dl class="info-rows" style="margin-top:18px">'
+    + '<div class="info-row"><dt>Kârlılık oranı</dt><dd>' + GV.pct(t.toplamSatis ? kar / t.toplamSatis : 0) + '</dd></div>'
+    + '<div class="info-row"><dt>Maliyet oranı</dt><dd>' + GV.pct(t.toplamSatis ? t.toplamMaliyet / t.toplamSatis : 0) + '</dd></div>'
+    + '<div class="info-row"><dt>Lokasyon başına gelir</dt><dd>' + GV.tl(t.lokasyonSayisi ? Math.round(t.toplamSatis / t.lokasyonSayisi) : 0) + '</dd></div>'
+    + '<div class="info-row"><dt>Lokasyon başına kâr</dt><dd>' + GV.tl(t.lokasyonSayisi ? Math.round(kar / t.lokasyonSayisi) : 0) + '</dd></div>'
+    + '</dl></div>'
+    + '<div><div class="chart-box" id="tdKarGrafik"></div></div></div>';
+  gvDonut('#tdKarGrafik', [
+    { etiket:'Taşeron maliyeti', deger: t.toplamMaliyet, ton:'warn' },
+    { etiket:'Ek giderler', deger: t.ekGider, ton:'turuncu' },
+    { etiket:'Brüt kâr', deger: Math.max(0, kar), ton:'ok' }
+  ], { merkez: Math.round(t.toplamSatis / 1000), merkezEtiket:'bin ₺ satış' });
+
+  var katTutar = {};
+  kalemler.forEach(function(k){
+    if (!k.hizmet) return;
+    katTutar[k.hizmet.kat] = (katTutar[k.hizmet.kat] || 0) + k.tutar;
+  });
+  gvBarList('#tdKategori', A.liste('hizmetKategorileri').filter(function(k){ return katTutar[k.id]; })
+    .sort(function(a,b){ return katTutar[b.id] - katTutar[a.id]; })
+    .map(function(k){ return { etiket:k.ad, deger:katTutar[k.id], gosterim: GV.tl(katTutar[k.id]) }; }));
+
+  /* --- süreç --- */
+  gvChain('#tdSurec', [
+    { ton:'ok', ikon:'fa-pen-ruler', baslik:'Teklif hazırlandı', altBaslik: hazirlayan ? hazirlayan.ad : '—',
+      aksiyon:'Hazırlandı', tarih: t.tarih },
+    { ton: ['gonderildi','kazanildi','kaybedildi'].indexOf(t.durum) !== -1 ? 'ok' : 'idle',
+      simdi: t.durum === 'hazirlaniyor',
+      ikon:'fa-paper-plane', baslik:'Müşteriye gönderildi', altBaslik: m ? m.unvan : '—',
+      aksiyon: ['gonderildi','kazanildi','kaybedildi'].indexOf(t.durum) !== -1 ? 'Gönderildi' : 'Bekliyor',
+      tarih: ['gonderildi','kazanildi','kaybedildi'].indexOf(t.durum) !== -1 ? t.tarih : null },
+    { ton: t.durum === 'kazanildi' ? 'ok' : t.durum === 'kaybedildi' ? 'danger' : 'warn',
+      simdi: t.durum === 'gonderildi',
+      ikon: t.durum === 'kaybedildi' ? 'fa-xmark' : 'fa-trophy',
+      baslik:'Müşteri kararı', altBaslik:'Geçerlilik: ' + GV.d(t.gecerlilik),
+      aksiyon: t.durum === 'kazanildi' ? 'Kazanıldı' : t.durum === 'kaybedildi' ? 'Kaybedildi' : 'Bekliyor',
+      tarih: null,
+      not: t.durum === 'kaybedildi' ? t.notlar : null, notTon:'danger' },
+    { ton: sozlesme ? 'ok' : 'idle', ikon:'fa-file-signature', baslik:'Sözleşme imzalandı',
+      altBaslik: sozlesme ? sozlesme.no : 'Sözleşme açılmadı',
+      aksiyon: sozlesme ? 'İmzalandı' : 'Bekliyor', tarih: sozlesme ? sozlesme.baslangic : null },
+    { ton: proje ? 'ok' : 'idle', ikon:'fa-diagram-project', baslik:'Proje açıldı',
+      altBaslik: proje ? proje.ad : 'Proje açılmadı',
+      aksiyon: proje ? 'Açıldı' : 'Bekliyor', tarih: proje ? proje.baslangic : null }
+  ]);
+
+  document.getElementById('tdOzet').innerHTML =
+    '<div class="info-row"><dt>Satış tutarı</dt><dd>' + GV.tl(t.toplamSatis) + '</dd></div>'
+    + '<div class="info-row"><dt>Brüt kâr</dt><dd>' + GV.tl(kar) + '</dd></div>'
+    + '<div class="info-row"><dt>Kârlılık</dt><dd>' + GV.pct(t.toplamSatis ? kar / t.toplamSatis : 0) + '</dd></div>'
+    + '<div class="info-row"><dt>Lokasyon</dt><dd>' + GV.n(t.lokasyonSayisi) + '</dd></div>'
+    + '<div class="info-row"><dt>Hizmet pozisyonu</dt><dd>' + GV.n(t.hizmetSayisi) + '</dd></div>'
+    + '<div class="info-row"><dt>Geçerlilik</dt><dd>' + (function(){
+        if (!t.gecerlilik) return GV.bos;
+        var g = GV.gun(BUGUN, t.gecerlilik);
+        return g < 0 ? Math.abs(g) + ' gün önce doldu' : GV.n(g) + ' gün kaldı'; })() + '</dd></div>';
+
+  var islemler = ['<button class="btn btn-ghost btn-block" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Teklifi Yazdır</button>'];
+  if (t.durum === 'hazirlaniyor') islemler.push('<button class="btn btn-acc btn-block" type="button" id="tdGonder2"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Gönder</button>');
+  if (t.durum === 'gonderildi') {
+    islemler.push('<button class="btn btn-acc btn-block" type="button" id="tdKazandi2"><i class="fa-solid fa-trophy" aria-hidden="true"></i>Kazanıldı İşaretle</button>');
+    islemler.push('<button class="btn btn-ghost btn-block" type="button" id="tdKaybettik"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Kaybedildi İşaretle</button>');
+  }
+  if (t.durum === 'kazanildi' && !sozlesme) islemler.push('<a class="btn btn-ghost btn-block" href="sozlesmeler.html"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>Sözleşme Oluştur</a>');
+  islemler.push('<a class="btn btn-ghost btn-block" href="teklif-form.html?id=' + t.id + '"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>Revizyon Hazırla</a>');
+  document.getElementById('tdIslem').innerHTML = islemler.join('');
+
+  function gonder(){
+    gvConfirm({ baslik:'Teklif müşteriye gönderilsin mi?',
+      metin:'<b>' + GV.esc(t.no) + '</b> müşteriye gönderilecek ve durumu “gönderildi” olarak güncellenecek. '
+        + 'Çıktıda taşeron maliyeti kolonu yer almaz.',
+      onayEtiket:'Gönder', onayIkon:'fa-paper-plane' }).then(function(s){
+        if (!s.onay) return;
+        A.durumDegistir('teklifler', t.id, 'durum', 'gonderildi', 'Teklif müşteriye iletildi.').then(function(){
+          gvToast('Teklif gönderildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      });
+  }
+  ['tdGonder','tdGonder2'].forEach(function(b){ var e = document.getElementById(b); if (e) e.addEventListener('click', gonder); });
+
+  function kazandi(){
+    gvConfirm({ baslik:'Teklif kazanıldı olarak işaretlensin mi?',
+      metin:'<b>' + GV.esc(t.no) + '</b> kazanıldı olarak kaydedilecek. Sonraki adım sözleşme oluşturmak ve proje açmaktır.',
+      onayEtiket:'Kazanıldı', onayIkon:'fa-trophy', notAlani:true, notYer:'Müşteri geri bildirimi…'
+    }).then(function(s){
+      if (!s.onay) return;
+      A.durumDegistir('teklifler', t.id, 'durum', 'kazanildi', s.not).then(function(){
+        gvToast('Teklif kazanıldı olarak işaretlendi.', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 800);
+      });
+    });
+  }
+  ['tdKazandi','tdKazandi2'].forEach(function(b){ var e = document.getElementById(b); if (e) e.addEventListener('click', kazandi); });
+
+  var kaybettik = document.getElementById('tdKaybettik');
+  if (kaybettik) kaybettik.addEventListener('click', function(){
+    gvConfirm({ baslik:'Teklif kaybedildi olarak işaretlensin mi?', ton:'danger',
+      metin:'<b>' + GV.esc(t.no) + '</b> kaybedildi olarak kaydedilecek. Kayıp nedeni analiz için zorunludur.',
+      onayEtiket:'Kaybedildi', onayIkon:'fa-xmark', notAlani:true, notZorunlu:true,
+      notYer:'Kayıp nedeni (fiyat, kapsam, rakip, zamanlama…)' }).then(function(s){
+        if (!s.onay) return;
+        A.durumDegistir('teklifler', t.id, 'durum', 'kaybedildi', s.not).then(function(){
+          gvToast('Teklif kaybedildi olarak işaretlendi.', { ton:'warn' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      });
+  });
+})();
+</script>
+</body>
+</html>

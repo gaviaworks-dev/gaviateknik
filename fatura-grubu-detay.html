@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Fatura Grubu Detayı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="fatura-gruplari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="rec-head" id="recHead"></div>
+
+    <div class="gv-cols">
+      <div>
+        <div class="gv-tabbar" role="tablist" aria-label="Kayıt sekmeleri">
+      <button class="gv-tab" role="tab" id="tb_lokasyon" aria-controls="pn_lokasyon" aria-selected="true">
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyonlar<span class="tb-cnt" id="cnt_lokasyon">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_kalem" aria-controls="pn_kalem" aria-selected="false">
+        <i class="fa-solid fa-table-list" aria-hidden="true"></i>Hizmet Pozisyonları<span class="tb-cnt" id="cnt_kalem">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_fatura" aria-controls="pn_fatura" aria-selected="false">
+        <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Kesilen Faturalar<span class="tb-cnt" id="cnt_fatura">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_engel" aria-controls="pn_engel" aria-selected="false">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Engeller</button>
+        </div>
+      <div id="pn_lokasyon" role="tabpanel" aria-labelledby="tb_lokasyon">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Gruptaki Lokasyonlar</h2>
+            </div>
+          <div class="gc-body flush" id="fdLokasyon"></div>
+        </section>
+      </div>
+      <div id="pn_kalem" role="tabpanel" aria-labelledby="tb_kalem" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-list" aria-hidden="true"></i>Faturalanabilir Miktarlar</h2>
+            </div>
+          <div class="gc-body flush" id="fdKalem"></div>
+        </section>
+      </div>
+      <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Bu Gruptan Kesilen Faturalar</h2>
+            </div>
+          <div class="gc-body flush" id="fdFatura"></div>
+        </section>
+      </div>
+      <div id="pn_engel" role="tabpanel" aria-labelledby="tb_engel" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Faturalamayı Engelleyen Nedenler</h2>
+            </div>
+          <div class="gc-body"><div id="fdEngel"></div></div>
+        </section>
+      </div>
+      </div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-gauge" aria-hidden="true"></i>Doluluk</h2>
+            </div>
+          <div class="gc-body"><div id="fdDoluluk"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Özet</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="fdOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>İşlemler</h2>
+            </div>
+          <div class="gc-body"><div class="gv-stack" id="fdIslem"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id') || 'FGR-2026-001';
+  var g = A.kayit('faturaGruplari', id);
+  if (!g) { gvNotFound({ kod:id, listeHref:'fatura-gruplari.html', listeEtiket:'Fatura grupları' }); return; }
+  GV.crumb(g.no);
+  document.title = g.ad + ' — GAVIA Periyodik Kontrol Yönetimi';
+
+  var d = A.faturaGrubuDoluluk(g.id);
+  var proje = A.kayit('projeler', g.projeId);
+  var m = A.kayit('musteriler', g.musteriId);
+  var sozlesme = proje && proje.sozlesmeId ? A.kayit('sozlesmeler', proje.sozlesmeId) : null;
+  var faturalar = A.liste('faturalar').filter(function(f){ return f.grupId === g.id; });
+
+  var durumRozet = g.durum === 'kismen-faturalandi' ? GV.rozetOzel('warn','fa-circle-half-stroke','Kısmen faturalandı')
+    : g.durum === 'hedefe-ulasti' ? GV.rozetOzel('info','fa-bullseye','Hedefe ulaştı')
+    : g.durum === 'doluyor' ? GV.rozetOzel('off','fa-hourglass-half','Doluyor')
+    : GV.rozetOzel('ok','fa-circle-check','Faturalandı');
+
+  document.getElementById('recHead').innerHTML =
+    '<div class="rec-mark"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>'
+    + '<div class="rec-id"><div class="rc-code">' + GV.esc(g.no) + '</div><h1>' + GV.esc(g.ad) + '</h1>'
+    + '<div class="rc-meta">' + durumRozet
+    + '<span><i class="fa-solid fa-building" aria-hidden="true"></i><a href="musteri-detay.html?id=' + g.musteriId + '">'
+    + GV.esc(m ? m.kisaAd : '—') + '</a></span>'
+    + (proje ? '<span><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><a href="proje-detay.html?id=' + proje.id + '">'
+      + GV.esc(proje.kod) + '</a></span>' : '')
+    + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i>Açılış ' + GV.d(g.acilis) + '</span>'
+    + '<span><i class="fa-solid fa-bullseye" aria-hidden="true"></i>' + GV.n(d.eklenen) + ' / ' + GV.n(d.hedef) + ' lokasyon</span>'
+    + '</div></div>'
+    + '<div class="rec-acts no-print">'
+    + '<a class="btn btn-ghost" href="fatura-gruplari.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
+    + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
+    + '<a class="btn btn-acc" href="fatura-gruplari.html"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Fatura Kes</a></div>';
+
+  gvTabs('.gv-tabbar');
+  document.getElementById('cnt_lokasyon').textContent = GV.n(g.lokasyonlar.length);
+  document.getElementById('cnt_fatura').textContent = GV.n(faturalar.length);
+
+  /* --- lokasyonlar --- */
+  document.getElementById('fdLokasyon').innerHTML = g.lokasyonlar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Lokasyon</th><th scope="col">Rapor Durumu</th><th scope="col">Mutabakat</th>'
+      + '<th scope="col">Fatura Durumu</th><th scope="col" class="num">Faturalanabilir Tutar</th>'
+      + '<th scope="col">Uygunluk</th></tr></thead><tbody>'
+      + g.lokasyonlar.map(function(lid){
+          var l = A.lokasyon(lid);
+          if (!l) return '';
+          var k = A.lokasyonFaturalanabilirMi(lid);
+          var mtb = A.mutabakatSatirlari(lid);
+          var onayli = mtb.filter(function(x){ return x.durum === 'onayli'; }).length;
+          return '<tr><td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.bolge) + '</span></td>'
+            + '<td data-lbl="Rapor Durumu">' + GV.rozet('rapor', l.raporDurum) + '</td>'
+            + '<td data-lbl="Mutabakat">' + (mtb.length
+                ? (onayli === mtb.length ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
+                   : GV.rozetOzel('warn','fa-hourglass-half', onayli + '/' + mtb.length + ' onaylı'))
+                : '<span class="muted">Kayıt yok</span>') + '</td>'
+            + '<td data-lbl="Fatura Durumu">' + GV.rozet('fatura', l.faturaDurum) + '</td>'
+            + '<td data-lbl="Faturalanabilir Tutar" class="num">' + GV.tl(A.lokasyonFaturaTutari(lid, g.projeId)) + '</td>'
+            + '<td data-lbl="Uygunluk">' + (k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun')
+                : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="4">Toplam faturalanabilir</td>'
+      + '<td class="num">' + GV.tl(d.toplamTutar) + '</td><td></td></tr></tfoot></table></div>'
+    : gvEmpty({ ikon:'fa-location-dot', baslik:'Grupta lokasyon yok',
+        metin:'Bu fatura grubuna henüz lokasyon eklenmedi.' });
+
+  /* --- kalemler --- */
+  var kalemler = [];
+  g.lokasyonlar.forEach(function(lid){
+    var l = A.lokasyon(lid);
+    A.mutabakatSatirlari(lid).forEach(function(x){
+      var bf = A.birimSatisFiyati(x.hizmetId, proje ? proje.fiyatListesiId : null);
+      kalemler.push({ lokasyonAd: l ? l.ad : lid, lokasyonId: lid, mtb: x, birimFiyat: bf });
+    });
+  });
+  document.getElementById('cnt_kalem').textContent = GV.n(kalemler.length);
+
+  document.getElementById('fdKalem').innerHTML = kalemler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Lokasyon</th><th scope="col">Poz</th><th scope="col">Hizmet</th>'
+      + '<th scope="col" class="num">Faturalanabilir</th><th scope="col" class="num">Önceki Faturalanan</th>'
+      + '<th scope="col" class="num">Kalan</th><th scope="col" class="num">Birim Fiyat</th>'
+      + '<th scope="col" class="num">Kalan Tutar</th></tr></thead><tbody>'
+      + kalemler.map(function(k){
+          return '<tr><td data-lbl="Lokasyon">' + GV.esc(k.lokasyonAd) + '</td>'
+            + '<td data-lbl="Poz"><b class="t-strong">' + GV.esc(k.mtb.poz) + '</b></td>'
+            + '<td data-lbl="Hizmet">' + GV.esc(k.mtb.hizmetAd) + '</td>'
+            + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(k.mtb.faturalanabilir) + '</td>'
+            + '<td data-lbl="Önceki Faturalanan" class="num">' + (k.mtb.faturalanan
+                ? '<span class="diff done"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>' + GV.n(k.mtb.faturalanan) + '</span>'
+                : GV.n(0)) + '</td>'
+            + '<td data-lbl="Kalan" class="num">' + (k.mtb.kalan
+                ? '<b class="t-strong">' + GV.n(k.mtb.kalan) + '</b>' : '<span class="muted">0</span>') + '</td>'
+            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(k.birimFiyat) + '</td>'
+            + '<td data-lbl="Kalan Tutar" class="num">' + GV.tl(k.birimFiyat * k.mtb.kalan) + '</td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="3">Toplam</td>'
+      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanabilir; }, 0)) + '</td>'
+      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanan; }, 0)) + '</td>'
+      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.kalan; }, 0)) + '</td>'
+      + '<td></td><td class="num">' + GV.tl(kalemler.reduce(function(t,k){ return t + k.birimFiyat * k.mtb.kalan; }, 0)) + '</td></tr></tfoot></table></div>'
+      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>'
+      + '<span><b>Mükerrer faturalama engeli:</b> her satırda <i>önceki faturalanan + bu fatura</i> toplamı '
+      + '<i>faturalanabilir</i> miktarı aşamaz. Kalan miktar sonraki faturaya devreder.</span></div>'
+    : gvEmpty({ ikon:'fa-table-list', baslik:'Kalem yok',
+        metin:'Gruptaki lokasyonlarda mutabakat kaydı bulunmadığı için faturalanabilir kalem oluşmadı.' });
+
+  /* --- faturalar --- */
+  document.getElementById('fdFatura').innerHTML = faturalar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Fatura No</th><th scope="col">Tarih</th><th scope="col">Vade</th>'
+      + '<th scope="col" class="num">Ara Toplam</th><th scope="col" class="num">KDV</th>'
+      + '<th scope="col" class="num">Genel Toplam</th><th scope="col">Tahsilat</th></tr></thead><tbody>'
+      + faturalar.map(function(f){
+          return '<tr><td data-lbl="Fatura No"><a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(f.aciklama) + '</span></td>'
+            + '<td data-lbl="Tarih">' + GV.d(f.tarih) + '</td>'
+            + '<td data-lbl="Vade">' + GV.d(f.vade) + '</td>'
+            + '<td data-lbl="Ara Toplam" class="num">' + GV.tl(f.araToplam) + '</td>'
+            + '<td data-lbl="KDV" class="num">' + GV.tl(f.kdv) + '</td>'
+            + '<td data-lbl="Genel Toplam" class="num"><b class="t-strong">' + GV.tl(f.toplam) + '</b></td>'
+            + '<td data-lbl="Tahsilat">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura kesilmedi',
+        metin:'Bu gruptan henüz fatura kesilmedi. Faturaya uygun lokasyon oluştuğunda kesebilirsiniz.' });
+
+  /* --- engeller --- */
+  var engeller = g.lokasyonlar.map(function(lid){
+    var l = A.lokasyon(lid);
+    var k = A.lokasyonFaturalanabilirMi(lid);
+    return { l: l, k: k };
+  }).filter(function(x){ return x.l && !x.k.uygun; });
+
+  document.getElementById('fdEngel').innerHTML = engeller.length
+    ? engeller.map(function(x){
+        var mutabakatEngeli = x.k.sebep.indexOf('mutabakat') !== -1;
+        var bakiyeEngeli = x.k.sebep.indexOf('bakiye') !== -1;
+        var renk = bakiyeEngeli ? 'info' : mutabakatEngeli ? 'warning' : 'danger';
+        return '<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;'
+          + 'background:var(--' + renk + '-tint);color:var(--' + renk + ')">'
+          + '<i class="fa-solid fa-' + (bakiyeEngeli ? 'circle-check' : mutabakatEngeli ? 'scale-balanced' : 'file-circle-xmark') + '" aria-hidden="true"></i></span>'
+          + '<span style="flex:1;min-width:0;line-height:1.5">'
+          + '<b style="display:block;font-size:13px;font-weight:700;color:var(--ink)">'
+          + '<a href="lokasyon-detay.html?id=' + x.l.id + '">' + GV.esc(x.l.ad) + '</a></b>'
+          + '<span style="display:block;font-size:12px;color:var(--muted)">' + GV.esc(x.k.sebep) + '</span></span>'
+          + '<span style="flex:none">'
+          + (mutabakatEngeli
+            ? '<a class="btn btn-sm btn-ghost" href="envanter-mutabakati.html?lokasyon=' + x.l.id + '">Mutabakat</a>'
+            : bakiyeEngeli ? '<span class="gtag ok">Tamamen faturalandı</span>'
+            : '<a class="btn btn-sm btn-ghost" href="teknik-raporlar.html">Rapor</a>')
+          + '</span></div>';
+      }).join('')
+      + '<div class="gv-note warn" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+      + '<span><b>Mutabakat onaylanmadan faturaya geçilemez.</b> Miktar farkları müşteriyle mutabık kalınmadan '
+      + 'faturalanan kalemler itiraza ve iade faturasına yol açar.</span></div>'
+    : '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+      + '<span>Bu grupta faturalamayı engelleyen kayıt yok. Bütün lokasyonlar faturaya uygun durumda.</span></div>';
+
+  /* --- sağ kolon --- */
+  document.getElementById('fdDoluluk').innerHTML =
+    '<div class="fill-meter"><div class="fill-meter-top"><b>Parti doluluğu</b>'
+    + '<span>' + GV.n(d.eklenen) + ' / ' + GV.n(d.hedef) + '</span></div>'
+    + GV.bar(d.doluluk, { buyuk:true, ton: d.hedefeUlasti ? 'ok' : d.doluluk >= 0.5 ? '' : 'warn',
+        etiket: GV.pct(d.doluluk, true, 0) })
+    + '<div class="fill-meter-note">' + (d.hedefeUlasti
+        ? 'Parti hedefine ulaşıldı.'
+        : 'Hedefe ' + GV.n(d.hedef - d.eklenen) + ' lokasyon kaldı.') + '</div></div>'
+    + '<div class="fill-meter" style="margin-top:16px"><div class="fill-meter-top"><b>Faturaya uygunluk</b>'
+    + '<span>' + GV.n(d.faturayaUygun) + ' / ' + GV.n(d.eklenen) + '</span></div>'
+    + GV.bar(d.eklenen ? d.faturayaUygun / d.eklenen : 0,
+        { ton: d.faturayaUygun === d.eklenen ? 'ok' : 'warn' })
+    + '<div class="fill-meter-note">' + GV.n(d.mutabakatBekleyen) + ' mutabakat, '
+    + GV.n(d.eksikRapor) + ' rapor bekliyor.</div></div>'
+    + (sozlesme ? '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>'
+      + '<span>Sözleşme <b><a href="sozlesme-detay.html?id=' + sozlesme.id + '">' + GV.esc(sozlesme.no) + '</a></b> gereği '
+      + 'her <b>' + sozlesme.partiBuyuklugu + ' lokasyonda</b> bir fatura kesilir. Ödeme vadesi '
+      + sozlesme.odemeVadesi + ' gündür.</span></div>' : '');
+
+  document.getElementById('fdOzet').innerHTML =
+    '<div class="info-row"><dt>Grup no</dt><dd>' + GV.esc(g.no) + '</dd></div>'
+    + '<div class="info-row"><dt>Hedef parti</dt><dd>' + GV.n(d.hedef) + ' lokasyon</dd></div>'
+    + '<div class="info-row"><dt>Eklenen lokasyon</dt><dd>' + GV.n(d.eklenen) + '</dd></div>'
+    + '<div class="info-row"><dt>Faturaya uygun</dt><dd>' + GV.n(d.faturayaUygun) + '</dd></div>'
+    + '<div class="info-row"><dt>Mutabakat bekleyen</dt><dd>' + GV.n(d.mutabakatBekleyen) + '</dd></div>'
+    + '<div class="info-row"><dt>Eksik rapor</dt><dd>' + GV.n(d.eksikRapor) + '</dd></div>'
+    + '<div class="info-row"><dt>Faturalanabilir tutar</dt><dd>' + GV.tl(d.toplamTutar) + '</dd></div>'
+    + '<div class="info-row"><dt>Kesilen fatura</dt><dd>' + GV.n(faturalar.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Faturalanan tutar</dt><dd>' + GV.tl(faturalar.reduce(function(t,f){ return t + f.araToplam; }, 0)) + '</dd></div>';
+
+  document.getElementById('fdIslem').innerHTML =
+    '<a class="btn btn-acc btn-block" href="fatura-gruplari.html"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Fatura Kes</a>'
+    + '<a class="btn btn-ghost btn-block" href="fatura-gruplari.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Lokasyon Ekle</a>'
+    + (proje ? '<a class="btn btn-ghost btn-block" href="proje-detay.html?id=' + proje.id + '"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Projeye Git</a>' : '')
+    + '<button class="btn btn-ghost btn-block" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>';
+})();
+</script>
+</body>
+</html>

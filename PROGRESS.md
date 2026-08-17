@@ -70,11 +70,11 @@
 - [x] Onaylı raporda "Düzenle" yok → "Yeni Revizyon Oluştur"
 
 ## FAZ 7 — Ticari
-- [ ] teklifler / teklif-detay / teklif-form
-- [ ] sozlesmeler / sozlesme-detay
-- [ ] hakedisler
-- [ ] fatura-gruplari / fatura-grubu-detay (parti, doluluk, kısmi, mükerrer engeli)
-- [ ] faturalar / tahsilatlar
+- [x] teklifler / teklif-detay / teklif-form
+- [x] sozlesmeler / sozlesme-detay
+- [x] hakedisler
+- [x] fatura-gruplari / fatura-grubu-detay (parti, doluluk, kısmi, mükerrer engeli)
+- [x] faturalar / tahsilatlar
 
 ## FAZ 8 — Kaynak Yönetimi
 - [ ] taseronlar / taseron-detay / taseron-hakedisleri

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Hakedişler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="hakedisler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ticari Süreçler</div>
+        <h1>Müşteri Hakedişleri</h1>
+        <p class="ph-sub">Tamamlanan kontrollerin dönemsel hakediş özetleri. Onaylanan hakedişler fatura grubuna aktarılır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="hkDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="hkYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Hakediş</button></div>
+    </div>
+    <div class="kpi-grid" id="hkKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Hakediş no, müşteri, proje…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="hkTablo"></div>
+      <div class="gv-pager" id="hkPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var kaynak = A.liste('hakedisler').map(function(h){
+    var m = A.kayit('musteriler', h.musteriId), p = A.kayit('projeler', h.projeId);
+    var hz = A.kayit('personeller', h.hazirlayanId), on = h.onaylayanId ? A.kayit('personeller', h.onaylayanId) : null;
+    var f = h.faturaId ? A.kayit('faturalar', h.faturaId) : null;
+    return Object.assign({}, h, {
+      musteriAd: m ? m.kisaAd : '—', projeKod: p ? p.kod : '—',
+      hazirlayanAd: hz ? hz.ad : '—', onaylayanAd: on ? on.ad : null,
+      tutar: f ? f.araToplam : 0, faturaNo: f ? f.no : null
+    });
+  });
+
+  gvKpi('#hkKpi', [
+    { ikon:'fa-calculator', sayi: GV.n(kaynak.length), etiket:'Toplam hakediş' },
+    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(h){ return h.durum === 'onay-bekliyor'; }).length),
+      etiket:'Onay bekleyen', ton:'warn' },
+    { ikon:'fa-file-invoice-dollar', sayi: GV.n(kaynak.filter(function(h){ return h.durum === 'faturalandi'; }).length),
+      etiket:'Faturalandı', ton:'ok' },
+    { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,h){ return t + h.tutar; }, 0)), etiket:'Toplam hakediş tutarı' }
+  ]);
+
+  var tablo = gvTable({ hedef:'#hkTablo', satirId: function(h){ return h.id; },
+    kolonlar: [
+      { k:'no', ad:'Hakediş No', ciz: function(h){
+          return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(h.no) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(h.donem) + ' dönemi</div></div>'; } },
+      { k:'musteriAd', ad:'Müşteri', ciz: function(h){
+          return '<a href="musteri-detay.html?id=' + h.musteriId + '">' + GV.esc(h.musteriAd) + '</a>'; } },
+      { k:'projeKod', ad:'Proje', ciz: function(h){
+          return '<a href="proje-detay.html?id=' + h.projeId + '">' + GV.esc(h.projeKod) + '</a>'; } },
+      { k:'lokasyonSayisi', ad:'Lokasyon', sinif:'num', ciz: function(h){ return GV.n(h.lokasyonSayisi); } },
+      { k:'tarih', ad:'Hakediş Tarihi', ciz: function(h){ return GV.d(h.tarih); } },
+      { k:'hazirlayanAd', ad:'Hazırlayan' },
+      { k:'onaylayanAd', ad:'Onaylayan', ciz: function(h){
+          return h.onaylayanAd ? GV.esc(h.onaylayanAd) : '<span class="muted">Onaylanmadı</span>'; } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz: function(h){
+          return h.tutar ? '<b class="t-strong">' + GV.tl(h.tutar) + '</b>' : '<span class="muted">Hesaplanmadı</span>'; } },
+      { k:'faturaNo', ad:'Fatura', ciz: function(h){
+          return h.faturaId ? '<a href="faturalar.html?id=' + h.faturaId + '">' + GV.esc(h.faturaNo) + '</a>'
+            : '<span class="muted">Kesilmedi</span>'; } },
+      { k:'durum', ad:'Durum', ciz: function(h){
+          return h.durum === 'faturalandi' ? GV.rozetOzel('ok','fa-file-invoice-dollar','Faturalandı')
+            : h.durum === 'onay-bekliyor' ? GV.rozetOzel('warn','fa-hourglass-half','Onay bekliyor')
+            : GV.rozetOzel('off','fa-file-pen','Hazırlanıyor'); } },
+      { k:'__islem', ad:'İşlem', ciz: function(h){
+          return '<div class="row-acts">'
+            + (h.durum === 'onay-bekliyor'
+              ? '<button class="ia-btn" type="button" data-onay="' + h.id + '" aria-label="Onayla"><i class="fa-solid fa-check" aria-hidden="true"></i></button>'
+              : '')
+            + '<a class="ia-btn" href="proje-detay.html?id=' + h.projeId + '" aria-label="Projeye git">'
+            + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a></div>'; } }
+    ],
+    bosDurum:{ ikon:'fa-calculator', baslik:'Hakediş bulunamadı', metin:'Filtrelerinize uyan hakediş yok.' },
+    altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="7">Toplam</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,h){ return t + h.tutar; }, 0)) + '</td>'
+        + '<td colspan="3"></td></tr>';
+    } });
+
+  var pager = gvPager({ hedef:'#hkPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-onay]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var h = A.kayit('hakedisler', b.getAttribute('data-onay'));
+        gvConfirm({ baslik:'Hakediş onaylansın mı?',
+          metin:'<b>' + GV.esc(h.no) + '</b> onaylanacak ve faturalamaya hazır hâle gelecek. ' + GV.esc(h.not),
+          onayEtiket:'Onayla', onayIkon:'fa-check', notAlani:true, notYer:'Onay notu…'
+        }).then(function(s){
+          if (!s.onay) return;
+          A.guncelle('hakedisler', h.id, { onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-003' }).then(function(){
+            A.kayitAt('onay', 'Hakediş', h.no, 'Onay bekliyor', 'Onaylandı', s.not);
+            gvToast('Hakediş onaylandı.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        });
+      });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['no','musteriAd','projeKod','donem','not'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'hazirlaniyor', ad:'Hazırlanıyor', ikon:'fa-file-pen' },
+      { k:'onay-bekliyor', ad:'Onay bekliyor', ikon:'fa-hourglass-half' },
+      { k:'faturalandi', ad:'Faturalandı', ikon:'fa-file-invoice-dollar' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
+      { k:'donem', ad:'Dönem', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(h){ return h.donem; }))).sort()
+          .map(function(d){ return { deger:d, ad:d }; }) }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('hkDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'hakedisler', modul:'Hakediş' });
+  });
+  document.getElementById('hkYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni hakediş', ikon:'fa-plus',
+      metin:'Hakediş, seçilen dönemde tamamlanan ve mutabakatı onaylanan lokasyonlardan oluşturulur.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="hyProje">Proje *</label><select id="hyProje">'
+        + A.liste('projeler').filter(function(p){ return p.durum === 'aktif'; })
+            .map(function(p){ return '<option value="' + p.id + '" data-musteri="' + p.musteriId + '">'
+              + GV.esc(p.kod + ' — ' + p.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="hyDonem">Dönem *</label><input type="month" id="hyDonem" value="2026-08"></div>'
+        + '<div class="gfield"><label for="hyTarih">Hakediş tarihi</label><input type="date" id="hyTarih" value="' + BUGUN + '"></div>'
+        + '<div class="gfield full"><label for="hyNot">Not</label><textarea id="hyNot"></textarea></div></div>'
+        + '<div id="hyOnizleme" style="margin-top:14px"></div>',
+      acildi: function(kap){
+        function onizle(){
+          var pid = kap.querySelector('#hyProje').value;
+          var uygun = A.lokasyonlar().filter(function(l){
+            return l.projeId === pid && A.lokasyonFaturalanabilirMi(l.id).uygun; });
+          var tutar = uygun.reduce(function(t,l){ return t + A.lokasyonFaturaTutari(l.id, pid); }, 0);
+          kap.querySelector('#hyOnizleme').innerHTML = uygun.length
+            ? '<div class="gv-note ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>'
+              + '<span><b>' + uygun.length + ' lokasyon</b> hakedişe alınabilir. Tahmini tutar <b>' + GV.tl(tutar) + '</b>.</span></div>'
+            : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+              + '<span>Bu projede hakedişe alınabilecek lokasyon yok. Mutabakat onayı ve rapor teslimi tamamlanmalı.</span></div>';
+        }
+        kap.querySelector('#hyProje').addEventListener('change', onizle);
+        onizle();
+      },
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var pid = kap.querySelector('#hyProje').value;
+            var uygun = A.lokasyonlar().filter(function(l){
+              return l.projeId === pid && A.lokasyonFaturalanabilirMi(l.id).uygun; });
+            if (!uygun.length) { gvToast('Hakedişe alınabilecek lokasyon yok.', { ton:'danger' }); return false; }
+            var o = kap.querySelector('#hyProje').selectedOptions[0];
+            var no = 'HKD-2026-Y' + String(A.liste('hakedisler').length + 1).padStart(2,'0');
+            A.ekle('hakedisler', {
+              id: no, no: no, projeId: pid, musteriId: o.getAttribute('data-musteri'),
+              donem: kap.querySelector('#hyDonem').value, lokasyonSayisi: uygun.length,
+              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-012', onaylayanId: null,
+              tarih: kap.querySelector('#hyTarih').value || BUGUN, durum:'onay-bekliyor', faturaId: null,
+              not: kap.querySelector('#hyNot').value.trim() || uygun.length + ' lokasyon hakedişe alındı.'
+            }).then(function(){
+              gvToast('Hakediş oluşturuldu, onaya gönderildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

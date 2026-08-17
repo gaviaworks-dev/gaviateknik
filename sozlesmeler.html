@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Sözleşmeler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="ticari" data-screen="sozlesmeler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Ticari Süreçler</div>
+        <h1>Sözleşmeler</h1>
+        <p class="ph-sub">Müşteri sözleşmeleri; hizmet kapsamı, fatura parti büyüklüğü, ödeme vadesi, taşeron ödeme kuralı, fiyat listesi sürümü ve yenileme durumu.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="szDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="szYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Sözleşme</button></div>
+    </div>
+    <div class="kpi-grid" id="szKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Sözleşme no, müşteri, kapsam…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="szTablo"></div>
+      <div class="gv-pager" id="szPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var kaynak = A.liste('sozlesmeler').map(function(s){
+    var m = A.kayit('musteriler', s.musteriId);
+    var projeler = A.liste('projeler').filter(function(p){ return p.sozlesmeId === s.id; });
+    var kalanGun = GV.gun(BUGUN, s.bitis);
+    var faturalanan = A.liste('faturalar').filter(function(f){
+      return projeler.some(function(p){ return p.id === f.projeId; }); })
+      .reduce(function(t,f){ return t + f.araToplam; }, 0);
+    return Object.assign({}, s, {
+      musteriAd: m ? m.kisaAd : '—',
+      projeSayisi: projeler.length,
+      lokasyonSayisi: A.liste('lokasyonlar').filter(function(l){
+        return projeler.some(function(p){ return p.id === l.projeId; }); }).length,
+      kalanGun: kalanGun,
+      yenilemeYaklasti: s.durum === 'yururlukte' && kalanGun != null && kalanGun <= 90,
+      faturalanan: faturalanan,
+      gerceklesme: s.bedel ? faturalanan / s.bedel : 0
+    });
+  });
+
+  gvKpi('#szKpi', [
+    { ikon:'fa-file-signature', sayi: GV.n(kaynak.filter(function(s){ return s.durum === 'yururlukte'; }).length), etiket:'Yürürlükteki sözleşme',
+      delta:{ yon:'flat', metin: kaynak.filter(function(s){ return s.durum !== 'yururlukte'; }).length + ' sona erdi' } },
+    { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.filter(function(s){ return s.durum === 'yururlukte'; })
+        .reduce(function(t,s){ return t + s.bedel; }, 0)), etiket:'Sözleşme portföyü', ton:'ok' },
+    { ikon:'fa-calendar-xmark', sayi: GV.n(kaynak.filter(function(s){ return s.yenilemeYaklasti; }).length),
+      etiket:'90 gün içinde bitecek', ton:'warn' },
+    { ikon:'fa-rotate', sayi: GV.pct((function(){
+        var biten = kaynak.filter(function(s){ return s.durum === 'sona-erdi'; });
+        var yenilenen = biten.filter(function(s){ return s.yenileme === 'yenilendi'; });
+        return biten.length ? yenilenen.length / biten.length : 0; })()),
+      etiket:'Sözleşme yenileme oranı', ton:'info' }
+  ]);
+
+  var kolonlar = [
+    { k:'no', ad:'Sözleşme', kilitli:true, ciz: function(s){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="sozlesme-detay.html?id=' + s.id + '">' + GV.esc(s.no) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(s.ad) + '</div></div>'; } },
+    { k:'musteriAd', ad:'Müşteri', ciz: function(s){
+        return '<a href="musteri-detay.html?id=' + s.musteriId + '">' + GV.esc(s.musteriAd) + '</a>'; } },
+    { k:'baslangic', ad:'Başlangıç', ciz: function(s){ return GV.d(s.baslangic); } },
+    { k:'bitis', ad:'Bitiş', ciz: function(s){
+        return GV.d(s.bitis) + (s.yenilemeYaklasti ? ' ' + GV.rozetOzel('warn','fa-clock', s.kalanGun + ' gün') : ''); } },
+    { k:'kapsam', ad:'Hizmet Kapsamı', ciz: function(s){
+        return '<span class="gv-ellip" style="max-width:280px;display:block">' + GV.esc(s.kapsam) + '</span>'; } },
+    { k:'partiBuyuklugu', ad:'Fatura Partisi', sinif:'num', ciz: function(s){
+        return '<b class="t-strong">' + GV.n(s.partiBuyuklugu) + '</b> lokasyon'; } },
+    { k:'odemeVadesi', ad:'Ödeme Vadesi', sinif:'num', ciz: function(s){ return GV.n(s.odemeVadesi) + ' gün'; } },
+    { k:'taseronOdemeKurali', ad:'Taşeron Ödeme Kuralı', ciz: function(s){
+        return s.taseronOdemeKurali === 'musteri-tahsilati-sonrasi'
+          ? GV.rozetOzel('warn','fa-link','Tahsilat sonrası')
+          : GV.rozetOzel('info','fa-calendar','Vade tarihinde'); } },
+    { k:'masrafSahibi', ad:'Masraf Sorumluluğu', varsayilanGizli:true, gizli:true, ciz: function(s){
+        return '<span class="gtag">' + GV.esc({ gavia:'GAVIA', musteri:'Müşteri', taseron:'Taşeron' }[s.masrafSahibi] || s.masrafSahibi) + '</span>'; } },
+    { k:'fiyatListesiId', ad:'Fiyat Listesi', ciz: function(s){
+        var f = A.kayit('fiyatListeleri', s.fiyatListesiId);
+        return f ? '<a href="fiyat-listeleri.html?id=' + f.id + '">' + GV.esc(f.versiyon) + '</a>' : GV.bos; } },
+    { k:'raporSlaGun', ad:'Rapor SLA', sinif:'num', ciz: function(s){ return GV.n(s.raporSlaGun) + ' gün'; } },
+    { k:'bedel', ad:'Sözleşme Bedeli', sinif:'num', ciz: function(s){ return '<b class="t-strong">' + GV.tl(s.bedel) + '</b>'; } },
+    { k:'gerceklesme', ad:'Faturalanan', ciz: function(s){
+        return GV.bar(Math.min(1, s.gerceklesme), { etiket: GV.pct(Math.min(1, s.gerceklesme), true, 0) }); } },
+    { k:'yenileme', ad:'Yenileme', ciz: function(s){
+        return s.yenileme === 'otomatik' ? GV.rozetOzel('ok','fa-rotate','Otomatik')
+          : s.yenileme === 'yenilendi' ? GV.rozetOzel('ok','fa-check','Yenilendi')
+          : GV.rozetOzel('off','fa-hand','Manuel'); } },
+    { k:'durum', ad:'Durum', ciz: function(s){
+        return s.durum === 'yururlukte' ? GV.rozetOzel('ok','fa-file-signature','Yürürlükte')
+          : GV.rozetOzel('off','fa-clock-rotate-left','Sona erdi'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(s){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="sozlesme-detay.html?id=' + s.id + '" aria-label="' + GV.esc(s.no) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<button class="ia-btn" type="button" data-yenile="' + s.id + '" aria-label="' + GV.esc(s.no) + ' yenile"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#szTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
+    bosDurum:{ ikon:'fa-file-signature', baslik:'Sözleşme bulunamadı', metin:'Filtrelerinize uyan sözleşme yok.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesmeler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#szPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-yenile]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var s = A.kayit('sozlesmeler', b.getAttribute('data-yenile'));
+        gvModal({
+          baslik:'Sözleşmeyi yenile', ikon:'fa-rotate',
+          metin:'<b>' + GV.esc(s.no) + '</b> sözleşmesi yeni dönem için yenilenecek. '
+            + 'Mevcut sözleşme sona erdi olarak işaretlenir, koşullar yeni kayda kopyalanır.',
+          govde:'<div class="gform">'
+            + '<div class="gfield"><label for="szYeniBas">Yeni başlangıç</label><input type="date" id="szYeniBas" value="' + GV.esc(s.bitis) + '"></div>'
+            + '<div class="gfield"><label for="szYeniBit">Yeni bitiş</label><input type="date" id="szYeniBit"></div>'
+            + '<div class="gfield"><label for="szYeniParti">Fatura partisi</label><input type="number" id="szYeniParti" min="1" value="' + s.partiBuyuklugu + '"></div>'
+            + '<div class="gfield"><label for="szYeniVade">Ödeme vadesi (gün)</label><input type="number" id="szYeniVade" min="0" value="' + s.odemeVadesi + '"></div>'
+            + '<div class="gfield full"><label for="szYeniBedel">Sözleşme bedeli (₺)</label><input type="number" id="szYeniBedel" min="0" value="' + s.bedel + '"></div></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Yenile', sinif:'btn-acc', ikon:'fa-rotate', tikla: function(kap){
+                var bas = kap.querySelector('#szYeniBas').value, bit = kap.querySelector('#szYeniBit').value;
+                if (!bas || !bit || bit <= bas) { gvToast('Geçerli bir dönem girin.', { ton:'danger' }); return false; }
+                var yil = bas.substring(0,4);
+                A.guncelle('sozlesmeler', s.id, { durum:'sona-erdi', yenileme:'yenilendi' }).then(function(){
+                  return A.ekle('sozlesmeler', Object.assign({}, s, {
+                    id:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+                    no:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+                    baslangic: bas, bitis: bit, durum:'yururlukte', yenileme:'otomatik-degil',
+                    partiBuyuklugu: Number(kap.querySelector('#szYeniParti').value),
+                    odemeVadesi: Number(kap.querySelector('#szYeniVade').value),
+                    bedel: Number(kap.querySelector('#szYeniBedel').value),
+                    notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
+                  }));
+                }).then(function(){
+                  gvToast('Sözleşme yenilendi.', { ton:'ok' });
+                  setTimeout(function(){ location.reload(); }, 800);
+                });
+              } }]
+        });
+      });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['no','ad','musteriAd','kapsam','notlar'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yururlukte', ad:'Yürürlükte', ikon:'fa-file-signature' },
+      { k:'sona-erdi', ad:'Sona erdi', ikon:'fa-clock-rotate-left' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'taseronOdemeKurali', ad:'Taşeron ödeme kuralı', tur:'secim', secenekler:[
+        { deger:'musteri-tahsilati-sonrasi', ad:'Müşteri tahsilatı sonrası' },
+        { deger:'fatura-vadesinde', ad:'Fatura vadesinde' }] },
+      { k:'partiBuyuklugu', ad:'Fatura partisi (lokasyon)', tur:'aralik' },
+      { k:'bedel', ad:'Sözleşme bedeli (₺)', tur:'aralik' },
+      { k:'yenilemeYaklasti', ad:'Yalnız bitişi yaklaşanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('szDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'sozlesmeler', modul:'Sözleşme' });
+  });
+  document.getElementById('szYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni sözleşme', ikon:'fa-plus', genislik:'gv-modal-lg',
+      metin:'Toplu faturalama, ödeme vadesi ve taşeron ödeme kuralı sözleşme bazında tanımlanır.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="syAd">Sözleşme adı *</label><input type="text" id="syAd" placeholder="Örnek Market 2027 Periyodik Kontrol Sözleşmesi"></div>'
+        + '<div class="gfield"><label for="syMusteri">Müşteri *</label><select id="syMusteri">'
+        + A.liste('musteriler').map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.unvan) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="syTeklif">Kaynak teklif</label><select id="syTeklif"><option value="">Teklifsiz</option>'
+        + A.liste('teklifler').filter(function(t){ return t.durum === 'kazanildi'; })
+            .map(function(t){ return '<option value="' + t.id + '">' + GV.esc(t.no + ' — ' + t.konu) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="syBas">Başlangıç *</label><input type="date" id="syBas" value="' + BUGUN + '"></div>'
+        + '<div class="gfield"><label for="syBit">Bitiş *</label><input type="date" id="syBit"></div>'
+        + '<div class="gfield"><label for="syParti">Fatura parti büyüklüğü *</label><input type="number" id="syParti" min="1" max="200" value="6"></div>'
+        + '<div class="gfield"><label for="syVade">Ödeme vadesi (gün) *</label><input type="number" id="syVade" min="0" max="180" value="45"></div>'
+        + '<div class="gfield"><label for="sySla">Rapor teslim süresi (gün)</label><input type="number" id="sySla" min="1" max="60" value="7"></div>'
+        + '<div class="gfield"><label for="syBedel">Sözleşme bedeli (₺)</label><input type="number" id="syBedel" min="0" value="0"></div>'
+        + '<div class="gfield"><label for="syOdeme">Taşeron ödeme kuralı</label><select id="syOdeme">'
+        + '<option value="musteri-tahsilati-sonrasi">Müşteri tahsilatı sonrası</option>'
+        + '<option value="fatura-vadesinde">Fatura vadesinde</option></select></div>'
+        + '<div class="gfield"><label for="syMasraf">Masraf sorumluluğu</label><select id="syMasraf">'
+        + '<option value="gavia">GAVIA Teknik</option><option value="musteri">Müşteri</option>'
+        + '<option value="taseron">Taşeron</option><option value="paylasimli">Paylaşımlı</option></select></div>'
+        + '<div class="gfield full"><label for="syKapsam">Hizmet kapsamı *</label>'
+        + '<textarea id="syKapsam" placeholder="Sözleşme kapsamındaki hizmet kategorileri"></textarea></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#syAd').value.trim();
+            var bas = kap.querySelector('#syBas').value, bit = kap.querySelector('#syBit').value;
+            var kapsam = kap.querySelector('#syKapsam').value.trim();
+            if (!ad || !bas || !bit || !kapsam) { gvToast('Ad, dönem ve kapsam zorunludur.', { ton:'danger' }); return false; }
+            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
+            var mid = kap.querySelector('#syMusteri').value;
+            var fl = A.liste('fiyatListeleri').filter(function(f){ return f.tur === 'satis' && f.musteriId === mid && f.durum === 'aktif'; })[0];
+            var yil = bas.substring(0,4);
+            A.ekle('sozlesmeler', {
+              id:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+              no:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+              musteriId: mid, teklifId: kap.querySelector('#syTeklif').value || null, ad: ad,
+              baslangic: bas, bitis: bit, kapsam: kapsam,
+              fiyatListesiId: fl ? fl.id : 'FL-2026-STD',
+              partiBuyuklugu: Number(kap.querySelector('#syParti').value),
+              odemeVadesi: Number(kap.querySelector('#syVade').value),
+              taseronOdemeKurali: kap.querySelector('#syOdeme').value,
+              masrafSahibi: kap.querySelector('#syMasraf').value,
+              raporSlaGun: Number(kap.querySelector('#sySla').value),
+              yenileme:'otomatik-degil', durum:'yururlukte',
+              bedel: Number(kap.querySelector('#syBedel').value || 0),
+              notlar:'Yeni oluşturulan sözleşme.'
+            }).then(function(){
+              gvToast('Sözleşme oluşturuldu.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>
