@@ -64,10 +64,10 @@
 - [x] eksik-ekipmanlar / yeniden-kontroller
 
 ## FAZ 6 — Teknik Rapor ve Uygunsuzluk
-- [ ] teknik-raporlar / rapor-detay / rapor-onaylari / rapor-sablonlari
-- [ ] uygunsuzluklar / uygunsuzluk-detay
-- [ ] print.css yazdırma düzeni doğrulandı
-- [ ] Onaylı raporda "Düzenle" yok → "Yeni Revizyon Oluştur"
+- [x] teknik-raporlar / rapor-detay / rapor-onaylari / rapor-sablonlari
+- [x] uygunsuzluklar / uygunsuzluk-detay
+- [x] print.css yazdırma düzeni doğrulandı
+- [x] Onaylı raporda "Düzenle" yok → "Yeni Revizyon Oluştur"
 
 ## FAZ 7 — Ticari
 - [ ] teklifler / teklif-detay / teklif-form

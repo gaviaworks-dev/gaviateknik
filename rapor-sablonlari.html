@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Rapor Şablonları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="teknik" data-screen="rapor-sablonlari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Teknik Süreçler</div>
+        <h1>Rapor Şablonları</h1>
+        <p class="ph-sub">Hizmet kategorisine göre kullanılan rapor şablonları; sürüm, yayın tarihi, hazırlayan ve onaylayan bilgileriyle.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="rsDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="rsYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Şablon</button></div>
+    </div>
+    <div class="kpi-grid" id="rsKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Şablon adı, kategori…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="rsTablo"></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var kaynak = A.liste('raporSablonlari').map(function(s){
+    var kat = A.kayit('hizmetKategorileri', s.kategoriId);
+    var h = A.kayit('personeller', s.hazirlayanId), o = A.kayit('personeller', s.onaylayanId);
+    var kullanan = A.liste('hizmetler').filter(function(x){ return x.sablonId === s.id; });
+    var raporSay = A.liste('raporlar').filter(function(r){ return r.sablonId === s.id; }).length;
+    return Object.assign({}, s, {
+      katAd: kat ? kat.ad : '—', katIkon: kat ? kat.ikon : 'fa-file', katRenk: kat ? kat.renk : '#69708A',
+      hazirlayanAd: h ? h.ad : '—', onaylayanAd: o ? o.ad : '—',
+      hizmetSayisi: kullanan.length, raporSayisi: raporSay
+    });
+  });
+
+  gvKpi('#rsKpi', [
+    { ikon:'fa-file-code', sayi: GV.n(kaynak.filter(function(s){ return s.durum === 'yayinda'; }).length), etiket:'Yayındaki şablon',
+      delta:{ yon:'flat', metin: kaynak.filter(function(s){ return s.durum !== 'yayinda'; }).length + ' taslak' } },
+    { ikon:'fa-layer-group', sayi: GV.n(Array.from(new Set(kaynak.map(function(s){ return s.kategoriId; }))).length), etiket:'Kapsanan kategori', ton:'info' },
+    { ikon:'fa-list-check', sayi: GV.n(kaynak.reduce(function(t,s){ return t + s.hizmetSayisi; }, 0)), etiket:'Şablona bağlı hizmet' },
+    { ikon:'fa-file-lines', sayi: GV.n(kaynak.reduce(function(t,s){ return t + s.raporSayisi; }, 0)), etiket:'Üretilen rapor', ton:'ok' }
+  ]);
+
+  var tablo = gvTable({ hedef:'#rsTablo', satirId: function(s){ return s.id; },
+    kolonlar: [
+      { k:'ad', ad:'Şablon', ciz: function(s){
+          return '<div class="gcell"><div class="gcell-mark" style="background:' + s.katRenk + '1f;color:' + s.katRenk + '">'
+            + '<i class="fa-solid ' + s.katIkon + '" aria-hidden="true"></i></div>'
+            + '<div class="gcell-info"><div class="gcell-name">' + GV.esc(s.ad) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(s.id + ' · ' + s.katAd) + '</div></div></div>'; } },
+      { k:'versiyon', ad:'Sürüm', ciz: function(s){ return '<b class="t-strong">' + GV.esc(s.versiyon) + '</b>'; } },
+      { k:'yayin', ad:'Yayın Tarihi', ciz: function(s){ return GV.d(s.yayin); } },
+      { k:'bolumSayisi', ad:'Bölüm', sinif:'num', ciz: function(s){ return GV.n(s.bolumSayisi); } },
+      { k:'hazirlayanAd', ad:'Hazırlayan' },
+      { k:'onaylayanAd', ad:'Onaylayan' },
+      { k:'hizmetSayisi', ad:'Bağlı Hizmet', sinif:'num', ciz: function(s){
+          return s.hizmetSayisi ? '<a href="hizmet-katalogu.html">' + GV.n(s.hizmetSayisi) + '</a>' : '<span class="muted">—</span>'; } },
+      { k:'raporSayisi', ad:'Üretilen Rapor', sinif:'num', ciz: function(s){ return GV.n(s.raporSayisi); } },
+      { k:'durum', ad:'Durum', ciz: function(s){
+          return s.durum === 'yayinda' ? GV.rozetOzel('ok','fa-circle-check','Yayında') : GV.rozetOzel('warn','fa-pen-ruler','Taslak'); } },
+      { k:'__islem', ad:'İşlem', ciz: function(s){
+          return '<div class="row-acts">'
+            + '<button class="ia-btn" type="button" data-onizle="' + s.id + '" aria-label="' + GV.esc(s.ad) + ' önizle">'
+            + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+            + '<button class="ia-btn" type="button" data-surum="' + s.id + '" aria-label="' + GV.esc(s.ad) + ' yeni sürüm">'
+            + '<i class="fa-solid fa-code-branch" aria-hidden="true"></i></button></div>'; } }
+    ],
+    bosDurum:{ ikon:'fa-file-code', baslik:'Şablon bulunamadı', metin:'Filtrelerinize uyan rapor şablonu yok.' } });
+
+  function ciz(v){
+    tablo.ciz(v);
+    document.querySelectorAll('[data-onizle]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var s = A.kayit('raporSablonlari', b.getAttribute('data-onizle'));
+        var maddeler = window.DEMO.kontrolMaddeleri[s.kategoriId] || [];
+        gvModal({
+          baslik: s.ad + ' — ' + s.versiyon, ikon:'fa-file-code', genislik:'gv-modal-lg',
+          metin: s.bolumSayisi + ' bölümlü şablon. Yayın: ' + GV.d(s.yayin) + '.',
+          govde:'<div class="gv-cap gv-cap-lg">'
+            + '<b style="display:block;font-size:13px;color:var(--ink);margin-bottom:10px">Rapor bölümleri</b>'
+            + '<ol style="padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.9">'
+            + ['Kurumsal rapor üst bilgisi','Müşteri ve lokasyon bilgileri','Muayene kapsamı','Ekipman / tesis listesi',
+               'Kontrol kriterleri ve sonuçları','Ölçüm sonuçları','Kullanılan ölçüm cihazları','Tespit edilen uygunsuzluklar',
+               'Fotoğraflar','Sonuç ve değerlendirme','İmzalar','Notlar ve yasal uyarılar','Sonraki kontrol tarihi']
+              .slice(0, s.bolumSayisi).map(function(x){ return '<li>' + GV.esc(x) + '</li>'; }).join('')
+            + '</ol>'
+            + (maddeler.length
+              ? '<b style="display:block;font-size:13px;color:var(--ink);margin:16px 0 10px">Kontrol kriterleri ('
+                + maddeler.length + ')</b><div class="gv-tscroll"><table class="gtable"><thead><tr>'
+                + '<th scope="col">Kod</th><th scope="col">Kriter</th><th scope="col">Ölçüm</th></tr></thead><tbody>'
+                + maddeler.map(function(m){
+                    return '<tr><td><b>' + GV.esc(m.k) + '</b></td><td>' + GV.esc(m.ad) + '</td>'
+                      + '<td>' + (m.olcum ? GV.esc(m.olcum.ad + (m.olcum.birim ? ' (' + m.olcum.birim + ')' : '')) : '—') + '</td></tr>';
+                  }).join('') + '</tbody></table></div>'
+              : '') + '</div>',
+          butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+        });
+      });
+    });
+    document.querySelectorAll('[data-surum]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var s = A.kayit('raporSablonlari', b.getAttribute('data-surum'));
+        gvConfirm({ baslik:'Yeni şablon sürümü açılsın mı?',
+          metin:'<b>' + GV.esc(s.ad) + '</b> şablonunun ' + GV.esc(s.versiyon) + ' sürümü yayından kalkacak ve '
+            + 'içeriği kopyalanarak yeni sürüm taslak olarak açılacak. '
+            + 'Mevcut sürümle üretilmiş raporlar değişmez.',
+          onayEtiket:'Yeni sürüm aç', onayIkon:'fa-code-branch', notAlani:true, notYer:'Sürüm değişiklik notu…'
+        }).then(function(r){
+          if (!r.onay) return;
+          var yeniV = 'v' + (Number(String(s.versiyon).replace('v','')) + 1);
+          A.ekle('raporSablonlari', Object.assign({}, s, {
+            id: s.id + '-' + yeniV, versiyon: yeniV, yayin: null, durum:'taslak',
+            hazirlayanId: (GV.rolBilgi || {}).personelId || s.hazirlayanId, onaylayanId: null
+          })).then(function(){
+            gvToast('Yeni şablon sürümü açıldı: ' + yeniV, { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        });
+      });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','ad','katAd','hazirlayanAd'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' }, { k:'taslak', ad:'Taslak', ikon:'fa-pen-ruler' }] },
+    alanlar: [
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) }
+    ],
+    degisti: ciz
+  });
+
+  document.getElementById('rsDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: kaynak.length, dosyaAdi:'rapor-sablonlari', modul:'Rapor Şablonu' });
+  });
+  document.getElementById('rsYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni rapor şablonu', ikon:'fa-plus',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="rsAd">Şablon adı *</label><input type="text" id="rsAd" placeholder="Yürüyen Merdiven Muayene Raporu"></div>'
+        + '<div class="gfield"><label for="rsKat">Hizmet kategorisi *</label><select id="rsKat">'
+        + A.liste('hizmetKategorileri').map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="rsBolum">Bölüm sayısı</label><input type="number" id="rsBolum" min="3" max="20" value="9"></div>'
+        + '<div class="gfield full"><label for="rsOnay">Onaylayacak kişi</label><select id="rsOnay">'
+        + A.liste('personeller').filter(function(p){ return ['Teknik','Kalite','Yönetim'].indexOf(p.birim) !== -1; })
+            .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('') + '</select></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#rsAd').value.trim();
+            if (!ad) { gvToast('Şablon adı zorunludur.', { ton:'danger' }); return false; }
+            A.ekle('raporSablonlari', {
+              id:'SBL-Y' + String(A.liste('raporSablonlari').length + 1).padStart(2,'0'),
+              ad: ad, kategoriId: kap.querySelector('#rsKat').value, versiyon:'v1', yayin: null,
+              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-004',
+              onaylayanId: kap.querySelector('#rsOnay').value,
+              bolumSayisi: Number(kap.querySelector('#rsBolum').value || 9), durum:'taslak'
+            }).then(function(){
+              gvToast('Rapor şablonu oluşturuldu (taslak).', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Teknik Raporlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="teknik" data-screen="teknik-raporlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Teknik Süreçler</div>
+        <h1>Teknik Raporlar</h1>
+        <p class="ph-sub">Saha kontrolü sonrası düzenlenen muayene raporları; teknik onay durumu, teslim SLA süresi ve revizyon sürümleri ile birlikte.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="trDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <a class="btn btn-acc" href="rapor-onaylari.html"><i class="fa-solid fa-stamp" aria-hidden="true"></i>Onay Kuyruğu</a></div>
+    </div>
+    <div class="kpi-grid" id="trKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Rapor görünümleri">
+      <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-list" aria-hidden="true"></i>Liste</button>
+      <button class="gv-tab" role="tab" id="tbG" aria-controls="pnG" aria-selected="false"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Grafikler</button>
+    </div>
+
+    <div id="pnL" role="tabpanel" aria-labelledby="tbL">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Rapor no, lokasyon, müşteri, personel…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div id="trBulk"></div>
+        <div class="gc-body flush" id="trTablo"></div>
+        <div class="gv-pager" id="trPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnG" role="tabpanel" aria-labelledby="tbG" hidden>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Rapor Durumu Dağılımı</h2></div>
+          <div class="gc-body"><div class="chart-box" id="trDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>SLA Performansı</h2></div>
+          <div class="gc-body"><div class="chart-box" id="trSla"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Kontrol Sonuçları</h2></div>
+          <div class="gc-body"><div class="chart-box" id="trSonuc"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-user-gear" aria-hidden="true"></i>Personel Bazlı Rapor Sayısı</h2></div>
+          <div class="gc-body" id="trPersonel"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var kaynak = A.raporlar().filter(function(r){
+    if (kapsam.tur === 'musteri') return r.musteriId === kapsam.musteriId;
+    if (kapsam.tur === 'taseron') {
+      var ie = r.isEmriId ? A.kayit('isEmirleri', r.isEmriId) : null;
+      return ie && ie.taseronId === kapsam.taseronId;
+    }
+    return true;
+  }).map(function(r){
+    return Object.assign({}, r, {
+      slaGosterim: r.sla ? (r.slaDurum === 'asildi' ? Math.abs(r.sla.kalanGun) + ' gün gecikme'
+        : r.teslimTarihi ? 'Süresinde teslim' : r.sla.kalanGun + ' gün kaldı') : '—',
+      arsivMi: r.durum === 'arsiv'
+    });
+  });
+
+  gvKpi('#trKpi', [
+    { ikon:'fa-file-lines', sayi: GV.n(kaynak.filter(function(r){ return !r.arsivMi; }).length), etiket:'Aktif rapor',
+      delta:{ yon:'flat', metin: kaynak.filter(function(r){ return r.arsivMi; }).length + ' arşiv sürümü' } },
+    { ikon:'fa-stamp', sayi: GV.n(kaynak.filter(function(r){ return r.durum === 'teknik-incelemede'; }).length), etiket:'Teknik onay bekleyen', ton:'warn' },
+    { ikon:'fa-hourglass-end', sayi: GV.n(kaynak.filter(function(r){ return r.slaDurum === 'asildi' && !r.teslimTarihi; }).length),
+      etiket:'SLA süresi aşan', ton:'danger' },
+    { ikon:'fa-paper-plane', sayi: GV.n(kaynak.filter(function(r){ return r.durum === 'teslim-edildi'; }).length), etiket:'Müşteriye teslim edilen', ton:'ok' }
+  ]);
+
+  var kolonlar = [
+    { k:'no', ad:'Rapor No', kilitli:true, ciz: function(r){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="rapor-detay.html?id=' + r.id + '">' + GV.esc(r.no) + '</a>'
+          + (r.versiyon > 1 ? ' <span class="gtag">v' + r.versiyon + '</span>' : '') + '</div>'
+          + '<div class="gcell-sub">' + GV.esc(r.kategoriAd) + '</div></div>'; } },
+    { k:'musteriAd', ad:'Müşteri', ciz: function(r){
+        return r.musteriId ? '<a href="musteri-detay.html?id=' + r.musteriId + '">' + GV.esc(r.musteriAd) + '</a>' : GV.esc(r.musteriAd); } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(r){
+        return '<a href="lokasyon-detay.html?id=' + r.lokasyonId + '">' + GV.esc(r.lokasyonAd) + '</a>'; } },
+    { k:'kategoriAd', ad:'Hizmet Kategorisi' },
+    { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz: function(r){ return GV.d(r.kontrolTarihi); } },
+    { k:'raporTarihi', ad:'Rapor Tarihi', varsayilanGizli:true, gizli:true, ciz: function(r){ return GV.d(r.raporTarihi); } },
+    { k:'teslimTarihi', ad:'Teslim Tarihi', ciz: function(r){ return GV.d(r.teslimTarihi); } },
+    { k:'personelAd', ad:'Kontrol Personeli' },
+    { k:'onaylayanAd', ad:'Teknik Onaylayan', ciz: function(r){
+        return r.onaylayanAd ? GV.esc(r.onaylayanAd) : '<span class="muted">Onaylanmadı</span>'; } },
+    { k:'sonuc', ad:'Sonuç', ciz: function(r){
+        return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+          : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+          : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+    { k:'uygunsuzlukSayisi', ad:'Uygunsuzluk', sinif:'num', ciz: function(r){
+        return r.uygunsuzlukSayisi ? '<span class="gtag danger">' + GV.n(r.uygunsuzlukSayisi) + '</span>' : GV.n(0); } },
+    { k:'durum', ad:'Rapor Durumu', ciz: function(r){
+        return r.arsivMi ? GV.rozetOzel('off','fa-box-archive','Arşiv sürümü') : GV.rozet('rapor', r.durum); } },
+    { k:'slaGosterim', ad:'SLA', ciz: function(r){
+        if (!r.sla) return '<span class="muted">—</span>';
+        return r.slaDurum === 'asildi' ? GV.rozetOzel('danger','fa-hourglass-end', r.slaGosterim)
+          : r.teslimTarihi ? GV.rozetOzel('ok','fa-check','Süresinde')
+          : r.slaDurum === 'yaklasti' ? GV.rozetOzel('warn','fa-clock', r.slaGosterim)
+          : GV.rozetOzel('ok','fa-clock', r.slaGosterim); } },
+    { k:'versiyon', ad:'Sürüm', sinif:'num', ciz: function(r){ return 'v' + r.versiyon; } },
+    { k:'__islem', ad:'İşlem', ciz: function(r){
+        var duz = A.raporDuzenlenebilirMi(r.id);
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="rapor-detay.html?id=' + r.id + '" aria-label="' + GV.esc(r.no) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="rapor-detay.html?id=' + r.id + '&yazdir=1" aria-label="' + GV.esc(r.no) + ' yazdır"><i class="fa-solid fa-print" aria-hidden="true"></i></a>'
+          + (duz.uygun
+            ? '<a class="ia-btn" href="rapor-detay.html?id=' + r.id + '#duzenle" aria-label="' + GV.esc(r.no) + ' düzenle"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>'
+            : '<button class="ia-btn" type="button" disabled aria-label="Onaylı rapor düzenlenemez" title="Onaylanmış rapor düzenlenemez; yeni revizyon oluşturun">'
+              + '<i class="fa-solid fa-lock" aria-hidden="true"></i></button>')
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#trTablo', kolonlar:kolonlar, secim:true, satirId: function(r){ return r.id; },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor bulunamadı', metin:'Filtrelerinize uyan teknik rapor yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#trBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'teknik-raporlar', modul:'Teknik Rapor' }); } },
+    { etiket:'Müşteriye gönder', ikon:'fa-paper-plane', tikla: function(s){
+        var uygun = s.filter(function(rid){
+          var r = A.kayit('raporlar', rid);
+          return r && ['onaylandi','imzalandi'].indexOf(r.durum) !== -1; });
+        if (!uygun.length) {
+          gvResult(false, { baslik:'Gönderilebilir rapor yok',
+            metin:'Seçilen raporların hiçbiri onaylanmış veya imzalanmış durumda değil. '
+              + 'Yalnız teknik onayı tamamlanmış raporlar müşteriye teslim edilebilir.' });
+          return;
+        }
+        gvConfirm({ baslik:'Raporlar müşteriye gönderilsin mi?',
+          metin:'<b>' + uygun.length + '</b> rapor müşteriye teslim edilecek.'
+            + (uygun.length < s.length ? ' Seçilen ' + (s.length - uygun.length) + ' rapor onaylı olmadığı için atlanacak.' : ''),
+          onayEtiket:'Gönder', onayIkon:'fa-paper-plane' }).then(function(r){
+            if (!r.onay) return;
+            Promise.all(uygun.map(function(rid){
+              return A.guncelle('raporlar', rid, { durum:'teslim-edildi', teslimTarihi: A.bugun() }); }))
+              .then(function(){ gvToast(uygun.length + ' rapor müşteriye teslim edildi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 800); });
+          });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'teknik-raporlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#trPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['no','id','lokasyonAd','musteriAd','personelAd','kategoriAd'],
+    arsivAlani:'arsivMi',
+    cipler: { alan:'durum', secenekler: A.durumListesi('rapor').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'kontrolPersoneliId', ad:'Kontrol personeli', tur:'coklu', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'sonuc', ad:'Kontrol sonucu', tur:'secim', secenekler:[
+        { deger:'uygun', ad:'Uygun' }, { deger:'sartli-uygun', ad:'Şartlı uygun' }, { deger:'uygun-degil', ad:'Uygun değil' }] },
+      { k:'slaDurum', ad:'SLA durumu', tur:'secim', secenekler:[
+        { deger:'uygun', ad:'Süre içinde' }, { deger:'yaklasti', ad:'Süre yaklaştı' }, { deger:'asildi', ad:'Süre aşıldı' }] },
+      { k:'kontrolTarihi', ad:'Kontrol tarihi', tur:'tarih' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('trDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'teknik-raporlar', modul:'Teknik Rapor' });
+  });
+
+  /* --- grafikler --- */
+  var aktif = kaynak.filter(function(r){ return !r.arsivMi; });
+  var durumSay = {};
+  aktif.forEach(function(r){ durumSay[r.durum] = (durumSay[r.durum] || 0) + 1; });
+  gvDonut('#trDonut', A.durumListesi('rapor').filter(function(d){ return durumSay[d.k]; }).map(function(d){
+    return { etiket:d.ad, deger:durumSay[d.k],
+      ton: d.ton === 'ok' ? 'ok' : d.ton === 'danger' ? 'danger' : d.ton === 'warn' ? 'warn' : d.ton === 'info' ? 'info' : 'gri' };
+  }), { merkezEtiket:'rapor' });
+
+  var slaSay = { uygun:0, yaklasti:0, asildi:0 };
+  aktif.forEach(function(r){ if (slaSay[r.slaDurum] != null) slaSay[r.slaDurum]++; });
+  gvBar('#trSla', [
+    { etiket:'Süre içinde', deger: slaSay.uygun, ton:'ok' },
+    { etiket:'Süre yaklaştı', deger: slaSay.yaklasti, ton:'warn' },
+    { etiket:'Süre aşıldı', deger: slaSay.asildi, ton:'danger' }
+  ], { baslik:'SLA performansı', birim:'rapor', yukseklik:200 });
+
+  var sonucSay = { uygun:0, 'sartli-uygun':0, 'uygun-degil':0 };
+  aktif.forEach(function(r){ if (sonucSay[r.sonuc] != null) sonucSay[r.sonuc]++; });
+  gvDonut('#trSonuc', [
+    { etiket:'Uygun', deger: sonucSay.uygun, ton:'ok' },
+    { etiket:'Şartlı uygun', deger: sonucSay['sartli-uygun'], ton:'warn' },
+    { etiket:'Uygun değil', deger: sonucSay['uygun-degil'], ton:'danger' }
+  ].filter(function(d){ return d.deger; }), { merkezEtiket:'rapor' });
+
+  var persSay = {};
+  aktif.forEach(function(r){ persSay[r.personelAd] = (persSay[r.personelAd] || 0) + 1; });
+  gvBarList('#trPersonel', Object.keys(persSay).sort(function(a,b){ return persSay[b] - persSay[a]; })
+    .map(function(p){ return { etiket:p, deger:persSay[p], gosterim: GV.n(persSay[p]) + ' rapor' }; }));
+})();
+</script>
+</body>
+</html>

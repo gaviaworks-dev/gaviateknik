@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Uygunsuzluklar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="teknik" data-screen="uygunsuzluklar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Teknik Süreçler</div>
+        <h1>Uygunsuzluklar</h1>
+        <p class="ph-sub">Saha kontrollerinde tespit edilen uygunsuzluklar; önem derecesi, sorumlu taraf, termin, müşteri bildirimi ve yeniden kontrol durumu ile izlenir.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="uyDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="uyBildir"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button></div>
+    </div>
+    <div class="kpi-grid" id="uyKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Uygunsuzluk görünümleri">
+      <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-list" aria-hidden="true"></i>Liste</button>
+      <button class="gv-tab" role="tab" id="tbG" aria-controls="pnG" aria-selected="false"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Grafikler</button>
+    </div>
+
+    <div id="pnL" role="tabpanel" aria-labelledby="tbL">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Uygunsuzluk, lokasyon, ekipman…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div id="uyBulk"></div>
+        <div class="gc-body flush" id="uyTablo"></div>
+        <div class="gv-pager" id="uyPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnG" role="tabpanel" aria-labelledby="tbG" hidden>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Önem Derecesi Dağılımı</h2></div>
+          <div class="gc-body"><div class="chart-box" id="uyDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Hizmet Kategorisine Göre</h2></div>
+          <div class="gc-body" id="uyKategori"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyon Bazlı</h2></div>
+          <div class="gc-body" id="uyLokasyon"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clock" aria-hidden="true"></i>Kapanma Süreleri</h2></div>
+          <div class="gc-body"><div class="chart-box" id="uySure"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  gvTabs('.gv-tabbar');
+  var kapsam = A.rolKapsami(GV.rol);
+  var raporSuz = GV.q('rapor'), ekipmanSuz = GV.q('ekipman');
+
+  var onemAd = { kritik:['danger','fa-fire','Kritik',0], yuksek:['danger','fa-triangle-exclamation','Yüksek',1],
+    orta:['warn','fa-circle-exclamation','Orta',2], dusuk:['info','fa-circle-info','Düşük',3] };
+
+  var kaynak = A.liste('uygunsuzluklar').map(function(u){
+    var l = A.lokasyon(u.lokasyonId), h = A.kayit('hizmetler', u.hizmetId);
+    var r = u.raporId ? A.rapor(u.raporId) : null;
+    var kisi = u.sorumluKisi ? A.kayit('iletisimKisileri', u.sorumluKisi) : null;
+    var kalanGun = u.termin ? GV.gun(BUGUN, u.termin) : null;
+    return Object.assign({}, u, {
+      lokasyonAd: l ? l.ad : '—', musteriAd: l ? l.musteriAd : '—', musteriId: l ? l.musteriId : null,
+      hizmetAd: h ? h.ad : '—', kategoriId: h ? h.kat : null,
+      kategoriAd: h ? (A.kayit('hizmetKategorileri', h.kat) || {}).ad || '—' : '—',
+      raporNo: r ? r.no : null, sorumluAd: kisi ? kisi.ad : null,
+      kalanGun: kalanGun,
+      kapanmaSuresi: u.kapanis ? GV.gun(u.tespit, u.kapanis) : null,
+      gecikmisMi: u.durum !== 'kapandi' && kalanGun != null && kalanGun < 0
+    });
+  }).filter(function(u){
+    if (kapsam.tur === 'musteri' && u.musteriId !== kapsam.musteriId) return false;
+    if (raporSuz && u.raporId !== raporSuz) return false;
+    if (ekipmanSuz && u.ekipmanId !== ekipmanSuz) return false;
+    return true;
+  }).sort(function(a,b){
+    var pa = (onemAd[a.onem] || onemAd.orta)[3], pb = (onemAd[b.onem] || onemAd.orta)[3];
+    if (pa !== pb) return pa - pb;
+    return (a.kalanGun == null ? 999 : a.kalanGun) - (b.kalanGun == null ? 999 : b.kalanGun);
+  });
+
+  if (raporSuz) { var rr = A.rapor(raporSuz); if (rr) GV.crumb(rr.no); }
+
+  gvKpi('#uyKpi', [
+    { ikon:'fa-circle-exclamation', sayi: GV.n(kaynak.filter(function(u){ return u.durum !== 'kapandi'; }).length), etiket:'Açık uygunsuzluk',
+      delta:{ yon:'flat', metin: kaynak.filter(function(u){ return u.durum === 'kapandi'; }).length + ' kapandı' } },
+    { ikon:'fa-fire', sayi: GV.n(kaynak.filter(function(u){ return u.onem === 'kritik' && u.durum !== 'kapandi'; }).length),
+      etiket:'Açık kritik uygunsuzluk', ton:'danger' },
+    { ikon:'fa-clock', sayi: GV.n(kaynak.filter(function(u){ return u.gecikmisMi; }).length), etiket:'Termini geçen', ton:'danger' },
+    { ikon:'fa-rotate-right', sayi: GV.n(kaynak.filter(function(u){ return u.yenidenKontrol === 'gerekli'; }).length),
+      etiket:'Yeniden kontrol gerekli', ton:'warn' }
+  ]);
+
+  var kolonlar = [
+    { k:'baslik', ad:'Uygunsuzluk', kilitli:true, ciz: function(u){
+        var o = onemAd[u.onem] || onemAd.orta;
+        return '<div class="gcell"><div class="gcell-mark ' + (o[0] === 'danger' ? 'danger' : o[0] === 'warn' ? 'warn' : 'info') + '">'
+          + '<i class="fa-solid ' + o[1] + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="uygunsuzluk-detay.html?id=' + u.id + '">' + GV.esc(u.baslik) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(u.id + ' · ' + u.hizmetAd) + '</div></div></div>'; } },
+    { k:'onem', ad:'Önem', ciz: function(u){
+        var o = onemAd[u.onem] || onemAd.orta;
+        return GV.rozetOzel(o[0], o[1], o[2]); } },
+    { k:'lokasyonAd', ad:'Lokasyon', ciz: function(u){
+        return '<a href="lokasyon-detay.html?id=' + u.lokasyonId + '">' + GV.esc(u.lokasyonAd) + '</a>'
+          + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.musteriAd) + '</span>'; } },
+    { k:'kategoriAd', ad:'Kategori', varsayilanGizli:true, gizli:true },
+    { k:'raporNo', ad:'Rapor', ciz: function(u){
+        return u.raporId ? '<a href="rapor-detay.html?id=' + u.raporId + '">' + GV.esc(u.raporNo) + '</a>' : '<span class="muted">—</span>'; } },
+    { k:'tespit', ad:'Tespit Tarihi', ciz: function(u){ return GV.d(u.tespit); } },
+    { k:'termin', ad:'Termin', ciz: function(u){
+        if (!u.termin) return '<span class="muted">Termin yok</span>';
+        if (u.durum === 'kapandi') return GV.d(u.termin);
+        return GV.d(u.termin) + ' ' + (u.kalanGun < 0
+          ? GV.rozetOzel('danger','fa-clock', Math.abs(u.kalanGun) + ' gün geçti')
+          : u.kalanGun <= 7 ? GV.rozetOzel('warn','fa-clock', u.kalanGun + ' gün')
+          : ''); } },
+    { k:'sorumluAd', ad:'Sorumlu', ciz: function(u){
+        return '<span class="gtag">' + (u.sorumluTaraf === 'musteri' ? 'Müşteri' : 'GAVIA') + '</span>'
+          + (u.sorumluAd ? '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.sorumluAd) + '</span>' : ''); } },
+    { k:'musteriBildirimi', ad:'Müşteri Bildirimi', ciz: function(u){
+        return u.musteriBildirimi ? GV.rozetOzel('ok','fa-paper-plane', GV.d(u.musteriBildirimi))
+          : GV.rozetOzel('warn','fa-hourglass-half','Bildirilmedi'); } },
+    { k:'yenidenKontrol', ad:'Yeniden Kontrol', ciz: function(u){
+        return u.yenidenKontrol === 'gerekli' ? GV.rozetOzel('danger','fa-rotate-right','Gerekli')
+          : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
+          : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
+          : '<span class="muted">Gerekmiyor</span>'; } },
+    { k:'durum', ad:'Durum', ciz: function(u){
+        return u.durum === 'kapandi' ? GV.rozetOzel('ok','fa-circle-check','Kapandı')
+          : u.durum === 'gecikti' || u.gecikmisMi ? GV.rozetOzel('danger','fa-clock','Gecikti')
+          : GV.rozetOzel('warn','fa-circle-dot','Açık'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(u){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="uygunsuzluk-detay.html?id=' + u.id + '" aria-label="' + GV.esc(u.baslik) + ' detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + (u.durum !== 'kapandi'
+            ? '<button class="ia-btn" type="button" data-kapat="' + u.id + '" aria-label="Kapat"><i class="fa-solid fa-check" aria-hidden="true"></i></button>'
+            : '') + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#uyTablo', kolonlar:kolonlar, secim:true, satirId: function(u){ return u.id; },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Filtrelerinize uyan uygunsuzluk kaydı bulunmuyor.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#uyBulk', aksiyonlar:[
+    { etiket:'Müşteriye bildir', ikon:'fa-paper-plane', tikla: function(s){ bildir(s); } },
+    { etiket:'Yeniden kontrol talebi', ikon:'fa-rotate-right', tikla: function(s){
+        gvConfirm({ baslik:'Yeniden kontrol talebi açılsın mı?',
+          metin:'<b>' + s.length + '</b> uygunsuzluk için yeniden kontrol talebi oluşturulacak.',
+          onayEtiket:'Talep aç', onayIkon:'fa-rotate-right' }).then(function(r){
+            if (!r.onay) return;
+            Promise.all(s.map(function(uid){
+              var u = A.kayit('uygunsuzluklar', uid);
+              return A.ekle('yenidenKontroller', {
+                id:'YKN-U' + Date.now().toString().slice(-5) + uid.slice(-2),
+                uygunsuzlukId: uid, lokasyonId: u.lokasyonId, talepTarihi: BUGUN,
+                talepEden:'GAVIA Teknik', planTarihi: null, durum:'talep-edildi', ucretli: false,
+                aciklama:'Uygunsuzluk düzeltme doğrulaması: ' + u.baslik
+              }).then(function(){ return A.guncelle('uygunsuzluklar', uid, { yenidenKontrol:'gerekli' }); });
+            })).then(function(){
+              gvToast(s.length + ' yeniden kontrol talebi açıldı.', { ton:'ok' });
+              setTimeout(function(){ location.href = GV.href('yeniden-kontroller.html'); }, 900);
+            });
+          });
+      } },
+    { etiket:'Dışa aktar', ikon:'fa-file-export', sinif:'btn-ghost', tikla: function(s){
+        GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'uygunsuzluklar', modul:'Uygunsuzluk' }); } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'uygunsuzluklar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#uyPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-kapat]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var u = A.kayit('uygunsuzluklar', b.getAttribute('data-kapat'));
+        gvConfirm({ baslik:'Uygunsuzluk kapatılsın mı?',
+          metin:'<b>' + GV.esc(u.baslik) + '</b> kapatılacak. '
+            + (u.yenidenKontrol === 'gerekli'
+              ? '<b>Bu kayıt yeniden kontrol gerektiriyor;</b> doğrulama yapılmadan kapatılması önerilmez.' : ''),
+          ton: u.yenidenKontrol === 'gerekli' ? 'warn' : '',
+          onayEtiket:'Kapat', onayIkon:'fa-check', notAlani:true, notZorunlu:true,
+          notYer:'Düzeltmenin nasıl doğrulandığı…'
+        }).then(function(s){
+          if (!s.onay) return;
+          A.guncelle('uygunsuzluklar', u.id, { durum:'kapandi', kapanis: BUGUN }).then(function(){
+            A.kayitAt('kapatma', 'Uygunsuzluk', u.id, u.durum, 'Kapandı', s.not);
+            gvToast('Uygunsuzluk kapatıldı.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        });
+      });
+    });
+  }
+
+  function bildir(idler){
+    var kayitlar = idler.map(function(i){ return A.kayit('uygunsuzluklar', i); }).filter(Boolean);
+    gvModal({
+      baslik:'Uygunsuzluk bildirimi', ikon:'fa-paper-plane', genislik:'gv-modal-lg',
+      metin: kayitlar.length + ' uygunsuzluk müşteriye bildirilecek. Kritik uygunsuzluklar ayrıca telefonla teyit edilmelidir.',
+      govde:'<div class="gv-tscroll gv-cap"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Uygunsuzluk</th><th scope="col">Önem</th><th scope="col">Lokasyon</th>'
+        + '<th scope="col">Termin</th></tr></thead><tbody>'
+        + kayitlar.map(function(u){
+            var l = A.lokasyon(u.lokasyonId);
+            var o = onemAd[u.onem] || onemAd.orta;
+            return '<tr><td>' + GV.esc(u.baslik) + '</td><td>' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
+              + '<td>' + GV.esc(l ? l.ad : '—') + '</td><td>' + GV.d(u.termin) + '</td></tr>';
+          }).join('') + '</tbody></table></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(){
+            Promise.all(idler.map(function(uid){ return A.guncelle('uygunsuzluklar', uid, { musteriBildirimi: BUGUN }); }))
+              .then(function(){
+                gvToast(idler.length + ' uygunsuzluk müşteriye bildirildi.', { ton:'ok' });
+                setTimeout(function(){ location.reload(); }, 800);
+              });
+          } }]
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','baslik','aciklama','lokasyonAd','musteriAd','hizmetAd'],
+    cipler: { alan:'onem', secenekler: ['kritik','yuksek','orta','dusuk'].map(function(k){
+      return { k:k, ad: onemAd[k][2], ikon: onemAd[k][1] }; }) },
+    alanlar: [
+      { k:'durum', ad:'Durum', tur:'coklu', secenekler:[
+        { deger:'acik', ad:'Açık' }, { deger:'gecikti', ad:'Gecikti' }, { deger:'kapandi', ad:'Kapandı' }] },
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'yenidenKontrol', ad:'Yeniden kontrol', tur:'secim', secenekler:[
+        { deger:'gerekli', ad:'Gerekli' }, { deger:'planlandi', ad:'Planlandı' },
+        { deger:'tamamlandi', ad:'Tamamlandı' }, { deger:'gerekmiyor', ad:'Gerekmiyor' }] },
+      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
+      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('uyDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'uygunsuzluklar', modul:'Uygunsuzluk' });
+  });
+  document.getElementById('uyBildir').addEventListener('click', function(){
+    var bildirilmemis = kaynak.filter(function(u){ return !u.musteriBildirimi; }).map(function(u){ return u.id; });
+    if (!bildirilmemis.length) { gvToast('Bildirilmemiş uygunsuzluk yok.', { ton:'info' }); return; }
+    bildir(bildirilmemis);
+  });
+
+  /* --- grafikler --- */
+  gvDonut('#uyDonut', ['kritik','yuksek','orta','dusuk'].map(function(k){
+    return { etiket: onemAd[k][2], deger: kaynak.filter(function(u){ return u.onem === k; }).length,
+      ton: k === 'kritik' ? 'danger' : k === 'yuksek' ? 'turuncu' : k === 'orta' ? 'warn' : 'info' };
+  }).filter(function(d){ return d.deger; }), { merkezEtiket:'uygunsuzluk' });
+
+  var katSay = {};
+  kaynak.forEach(function(u){ katSay[u.kategoriAd] = (katSay[u.kategoriAd] || 0) + 1; });
+  gvBarList('#uyKategori', Object.keys(katSay).sort(function(a,b){ return katSay[b] - katSay[a]; })
+    .map(function(k){ return { etiket:k, deger:katSay[k], gosterim: GV.n(katSay[k]) + ' kayıt' }; }));
+
+  var lokSay = {};
+  kaynak.forEach(function(u){
+    if (!lokSay[u.lokasyonAd]) lokSay[u.lokasyonAd] = { toplam:0, acik:0 };
+    lokSay[u.lokasyonAd].toplam++;
+    if (u.durum !== 'kapandi') lokSay[u.lokasyonAd].acik++;
+  });
+  gvBarList('#uyLokasyon', Object.keys(lokSay).sort(function(a,b){ return lokSay[b].toplam - lokSay[a].toplam; })
+    .map(function(l){
+      return { etiket:l, deger: lokSay[l].toplam,
+        gosterim: lokSay[l].acik + ' açık / ' + lokSay[l].toplam + ' toplam',
+        ton: lokSay[l].acik ? 'danger' : 'ok' };
+    }));
+
+  var kapananlar = kaynak.filter(function(u){ return u.kapanmaSuresi != null; });
+  gvBar('#uySure', kapananlar.length
+    ? [{ etiket:'0–15 gün', deger: kapananlar.filter(function(u){ return u.kapanmaSuresi <= 15; }).length, ton:'ok' },
+       { etiket:'16–30 gün', deger: kapananlar.filter(function(u){ return u.kapanmaSuresi > 15 && u.kapanmaSuresi <= 30; }).length, ton:'acc' },
+       { etiket:'31–60 gün', deger: kapananlar.filter(function(u){ return u.kapanmaSuresi > 30 && u.kapanmaSuresi <= 60; }).length, ton:'warn' },
+       { etiket:'60+ gün', deger: kapananlar.filter(function(u){ return u.kapanmaSuresi > 60; }).length, ton:'danger' }]
+    : [{ etiket:'Kapanan kayıt yok', deger:0, ton:'gri' }],
+    { baslik:'Uygunsuzluk kapanma süreleri', birim:'kayıt', yukseklik:200 });
+})();
+</script>
+</body>
+</html>
