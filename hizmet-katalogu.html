@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Hizmet Kataloğu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.hk-kat{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px;margin-bottom:24px}
+.hk-kart{display:flex;align-items:center;gap:13px;padding:15px 17px;border-radius:var(--radius-md);
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s var(--ease);text-align:left;width:100%;font-family:inherit}
+.hk-kart:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.hk-kart.is-on{border-color:var(--gv-action);background:rgba(63,213,173,.06)}
+.hk-ico{width:42px;height:42px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px}
+.hk-txt{min-width:0;line-height:1.35}
+.hk-txt b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.hk-txt span{display:block;font-size:11.5px;color:var(--muted)}
+</style>
+</head>
+<body data-sec="hizmet" data-screen="hizmet-katalogu">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1>Hizmet Kataloğu</h1>
+        <p class="ph-sub">Sunulan bütün periyodik kontrol hizmetleri; sözleşme pozisyon kodu, fiyatlandırma birimi, kontrol periyodu, kontrol formu, rapor şablonu ve gerekli yetkinlik ile birlikte.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="hkDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="hkYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Hizmet</button></div>
+    </div>
+    <div class="kpi-grid" id="hkKpi"></div>
+    <h2 class="gv-sr">Hizmet kategorileri</h2>
+    <div class="hk-kat" id="hkKategori"></div>
+
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Hizmet kodu, pozisyon, ad…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="hkBulk"></div>
+      <div class="gc-body flush" id="hkTablo"></div>
+      <div class="gv-pager" id="hkPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+
+  var kaynak = A.liste('hizmetler').map(function(h){
+    var kat = A.kayit('hizmetKategorileri', h.kat);
+    var y = h.yetkinlik ? A.kayit('yetkinlikler', h.yetkinlik) : null;
+    var kullanim = A.liste('lokasyonHizmetleri').filter(function(x){ return x.hizmetId === h.id; });
+    var f = window.DEMO.hizmetFiyatlari[h.id] || { satis:0, maliyet:0 };
+    return Object.assign({}, h, {
+      katAd: kat ? kat.ad : '—', katIkon: kat ? kat.ikon : 'fa-list', katRenk: kat ? kat.renk : '#69708A',
+      yetkinlikAd: y ? y.ad : null,
+      birimAd: birimAd[h.birim] || h.birim,
+      kullanimSayisi: kullanim.length,
+      toplamMiktar: kullanim.reduce(function(t,x){ return t + x.planlananMiktar; }, 0),
+      satisFiyat: f.satis, taseronMaliyet: f.maliyet,
+      marj: f.satis ? (f.satis - f.maliyet) / f.satis : 0
+    });
+  });
+
+  gvKpi('#hkKpi', [
+    { ikon:'fa-list-check', sayi: GV.n(kaynak.filter(function(h){ return h.durum === 'aktif'; }).length), etiket:'Aktif hizmet pozisyonu',
+      delta:{ yon:'flat', metin: kaynak.filter(function(h){ return h.durum === 'pasif'; }).length + ' pasif kayıt' } },
+    { ikon:'fa-layer-group', sayi: GV.n(A.liste('hizmetKategorileri').length), etiket:'Hizmet kategorisi', ton:'info' },
+    { ikon:'fa-ruler', sayi: GV.n(Object.keys(birimAd).length), etiket:'Fiyatlandırma birimi' },
+    { ikon:'fa-percent', sayi: GV.pct(kaynak.reduce(function(t,h){ return t + h.marj; }, 0) / (kaynak.length || 1)), etiket:'Ortalama brüt marj', ton:'ok' }
+  ]);
+
+  var aktifKat = null;
+  function katCiz(){
+    document.getElementById('hkKategori').innerHTML = A.liste('hizmetKategorileri').map(function(k){
+      var n = kaynak.filter(function(h){ return h.kat === k.id; }).length;
+      return '<button type="button" class="hk-kart' + (aktifKat === k.id ? ' is-on' : '') + '" data-kat="' + k.id + '"'
+        + ' aria-pressed="' + (aktifKat === k.id ? 'true' : 'false') + '">'
+        + '<span class="hk-ico" style="background:' + k.renk + '1f;color:' + k.renk + '">'
+        + '<i class="fa-solid ' + k.ikon + '" aria-hidden="true"></i></span>'
+        + '<span class="hk-txt"><b>' + GV.esc(k.ad) + '</b><span>' + GV.n(n) + ' hizmet pozisyonu</span></span></button>';
+    }).join('');
+    document.querySelectorAll('[data-kat]').forEach(function(b){
+      b.addEventListener('click', function(){
+        aktifKat = aktifKat === b.getAttribute('data-kat') ? null : b.getAttribute('data-kat');
+        katCiz(); filtre.uygula();
+      });
+    });
+  }
+  katCiz();
+
+  var kolonlar = [
+    { k:'poz', ad:'Poz Kodu', kilitli:true, ciz: function(h){
+        return '<div class="gcell"><div class="gcell-mark" style="background:' + h.katRenk + '1f;color:' + h.katRenk + '">'
+          + '<i class="fa-solid ' + h.katIkon + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="hizmet-detay.html?id=' + h.id + '">' + GV.esc(h.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(h.poz + ' · ' + h.id) + '</div></div></div>'; } },
+    { k:'katAd', ad:'Kategori' },
+    { k:'birimAd', ad:'Birim', ciz: function(h){ return '<span class="gtag">' + GV.esc(h.birimAd) + '</span>'; } },
+    { k:'periyotAy', ad:'Periyot', sinif:'num', ciz: function(h){
+        return h.periyotAy ? GV.n(h.periyotAy) + ' ay' : '<span class="muted">Periyodik değil</span>'; } },
+    { k:'satisFiyat', ad:'Satış Fiyatı', sinif:'num', ciz: function(h){ return GV.tl(h.satisFiyat); } },
+    { k:'taseronMaliyet', ad:'Taşeron Maliyeti', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(h){
+        return '<span style="color:var(--warning)">' + GV.tl(h.taseronMaliyet) + '</span>'; } },
+    { k:'marj', ad:'Brüt Marj', sinif:'num', ciz: function(h){ return GV.pct(h.marj); } },
+    { k:'formId', ad:'Kontrol Formu', varsayilanGizli:true, gizli:true, ciz: function(h){ return GV.esc(h.formId || GV.bos); } },
+    { k:'sablonId', ad:'Rapor Şablonu', ciz: function(h){
+        if (!h.sablonId) return '<span class="muted">Şablonsuz</span>';
+        var s = A.kayit('raporSablonlari', h.sablonId);
+        return s ? '<a href="rapor-sablonlari.html?id=' + s.id + '">' + GV.esc(s.ad) + '</a>' : GV.esc(h.sablonId); } },
+    { k:'yetkinlikAd', ad:'Yetkinlik', ciz: function(h){
+        return h.yetkinlikAd ? '<a href="yetkinlikler.html?id=' + h.yetkinlik + '">' + GV.esc(h.yetkinlikAd) + '</a>'
+          : '<span class="muted">Yetkinlik gerekmiyor</span>'; } },
+    { k:'sure', ad:'Süre (dk)', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(h){ return GV.n(h.sure); } },
+    { k:'kullanimSayisi', ad:'Kullanım', sinif:'num', ciz: function(h){
+        return h.kullanimSayisi ? GV.n(h.kullanimSayisi) + ' lokasyon' : '<span class="muted">Kullanılmıyor</span>'; } },
+    { k:'durum', ad:'Durum', ciz: function(h){
+        return h.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif') : GV.rozetOzel('off','fa-circle-minus','Pasif'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(h){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="hizmet-detay.html?id=' + h.id + '" aria-label="' + GV.esc(h.ad) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="fiyat-listeleri.html?hizmet=' + h.id + '" aria-label="' + GV.esc(h.ad) + ' fiyatları"><i class="fa-solid fa-tags" aria-hidden="true"></i></a>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#hkTablo', kolonlar:kolonlar, secim:true, satirId: function(h){ return h.id; },
+    bosDurum:{ ikon:'fa-list-check', baslik:'Hizmet bulunamadı', metin:'Filtrelerinize uyan hizmet pozisyonu yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#hkBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'hizmet-katalogu', modul:'Hizmet' }); } },
+    { etiket:'Pasife al', ikon:'fa-circle-minus', sinif:'btn-ghost', tikla: function(s){
+        var kullanilan = s.filter(function(hid){
+          return A.liste('lokasyonHizmetleri').some(function(x){ return x.hizmetId === hid; }); });
+        gvConfirm({ baslik:'Hizmetler pasife alınsın mı?', ton:'warn',
+          metin: '<b>' + s.length + '</b> hizmet pasife alınacak. Pasif hizmet yeni tekliflere ve projelere eklenemez.'
+            + (kullanilan.length ? ' <b>Dikkat:</b> ' + kullanilan.length + ' tanesi hâlen aktif lokasyon kapsamında kullanılıyor; mevcut kayıtlar etkilenmez.' : ''),
+          onayEtiket:'Pasife al', onayIkon:'fa-circle-minus' }).then(function(r){
+            if (!r.onay) return;
+            Promise.all(s.map(function(hid){ return A.guncelle('hizmetler', hid, { durum:'pasif' }); }))
+              .then(function(){ gvToast(s.length + ' hizmet pasife alındı.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+          });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'hizmet-katalogu', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#hkPager', boyut:20, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  var filtre = gvFilter({
+    veri: function(){ return aktifKat ? kaynak.filter(function(h){ return h.kat === aktifKat; }) : kaynak; },
+    arama: ['id','poz','ad','katAd','yetkinlikAd'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' }, { k:'pasif', ad:'Pasif', ikon:'fa-circle-minus' }] },
+    alanlar: [
+      { k:'kat', ad:'Kategori', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'birim', ad:'Fiyatlandırma birimi', tur:'coklu', secenekler: Object.keys(birimAd).map(function(b){ return { deger:b, ad:birimAd[b] }; }) },
+      { k:'periyotAy', ad:'Kontrol periyodu (ay)', tur:'aralik' },
+      { k:'yetkinlik', ad:'Gerekli yetkinlik', tur:'secim', secenekler: A.liste('yetkinlikler').map(function(y){ return { deger:y.id, ad:y.ad }; }) },
+      { k:'satisFiyat', ad:'Satış fiyatı (₺)', tur:'aralik' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('hkDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'hizmet-katalogu', modul:'Hizmet' });
+  });
+
+  document.getElementById('hkYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni hizmet pozisyonu', ikon:'fa-plus', genislik:'gv-modal-lg',
+      metin:'Aynı isimli fakat farklı teknik içeriğe sahip hizmetler <b>benzersiz pozisyon kodu</b> ile ayrılır (örneğin dizel ve akülü forklift).',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="hyAd">Hizmet adı *</label><input type="text" id="hyAd" placeholder="Forklift Periyodik Kontrolü (LPG)"></div>'
+        + '<div class="gfield"><label for="hyKat">Kategori *</label><select id="hyKat">'
+        + A.liste('hizmetKategorileri').map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="hyPoz">Pozisyon kodu *</label><input type="text" id="hyPoz" placeholder="PZ.01.11"></div>'
+        + '<div class="gfield"><label for="hyBirim">Fiyatlandırma birimi *</label><select id="hyBirim">'
+        + Object.keys(birimAd).map(function(b){ return '<option value="' + b + '">' + GV.esc(birimAd[b]) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="hyPeriyot">Kontrol periyodu (ay) *</label><input type="number" id="hyPeriyot" min="0" max="120" value="12"></div>'
+        + '<div class="gfield"><label for="hySatis">Satış fiyatı (₺) *</label><input type="number" id="hySatis" min="0" placeholder="1450"></div>'
+        + '<div class="gfield"><label for="hyMaliyet">Taşeron maliyeti (₺)</label><input type="number" id="hyMaliyet" min="0" placeholder="620"></div>'
+        + '<div class="gfield"><label for="hyYetkinlik">Gerekli yetkinlik</label><select id="hyYetkinlik"><option value="">Gerekmiyor</option>'
+        + A.liste('yetkinlikler').map(function(y){ return '<option value="' + y.id + '">' + GV.esc(y.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="hySablon">Rapor şablonu</label><select id="hySablon"><option value="">Şablonsuz</option>'
+        + A.liste('raporSablonlari').map(function(s){ return '<option value="' + s.id + '">' + GV.esc(s.ad) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="gfield"><label for="hySure">Tahmini süre (dk)</label><input type="number" id="hySure" min="0" value="30"></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#hyAd').value.trim();
+            var poz = kap.querySelector('#hyPoz').value.trim();
+            var satis = Number(kap.querySelector('#hySatis').value || 0);
+            if (!ad || !poz || !satis) { gvToast('Hizmet adı, pozisyon kodu ve satış fiyatı zorunludur.', { ton:'danger' }); return false; }
+            if (A.liste('hizmetler').some(function(h){ return h.poz === poz; })) {
+              gvToast('Bu pozisyon kodu zaten kullanılıyor. Benzersiz bir kod girin.', { ton:'danger' }); return false;
+            }
+            var kat = kap.querySelector('#hyKat').value;
+            var yeniId = 'HZM-Y' + String(A.liste('hizmetler').length + 1).padStart(3,'0');
+            window.DEMO.hizmetFiyatlari[yeniId] = { satis: satis, maliyet: Number(kap.querySelector('#hyMaliyet').value || 0) };
+            A.ekle('hizmetler', {
+              id: yeniId, poz: poz, ad: ad, kat: kat,
+              birim: kap.querySelector('#hyBirim').value,
+              periyotAy: Number(kap.querySelector('#hyPeriyot').value || 0),
+              formId: null, sablonId: kap.querySelector('#hySablon').value || null,
+              yetkinlik: kap.querySelector('#hyYetkinlik').value || null,
+              sure: Number(kap.querySelector('#hySure').value || 30), durum:'aktif'
+            }).then(function(){
+              gvToast('Hizmet pozisyonu eklendi: ' + poz, { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

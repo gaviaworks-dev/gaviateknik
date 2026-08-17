@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Sözleşme Pozları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="hizmet" data-screen="sozlesme-pozlari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1>Sözleşme Pozları</h1>
+        <p class="ph-sub">Sözleşmelerde kullanılan hizmet pozisyonları; hangi sözleşmede, hangi fiyatla ve hangi miktarda yer aldığı. Aynı isimli farklı teknik içerikli hizmetler benzersiz pozisyon kodlarıyla ayrılır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="spDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button></div>
+    </div>
+    <div class="kpi-grid" id="spKpi"></div>
+
+    <div class="gv-note" style="margin-bottom:20px">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <span><b>Pozisyon kodu benzersizdir.</b> Aynı ada sahip fakat teknik içeriği farklı hizmetler
+      (örneğin dizel ve akülü forklift kontrolü) ayrı pozisyon kodları taşır; mutabakat ve faturalama bu kod üzerinden yürür.</span>
+    </div>
+
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Poz kodu, hizmet adı, sözleşme…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="spTablo"></div>
+      <div class="gv-pager" id="spPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Benzer Adlı Pozisyonlar
+        <span class="bs-sub">Karıştırılma riski taşıyan, ayrı kodla izlenen hizmetler</span></h2>
+      <section class="gv-card"><div class="gc-body flush" id="spBenzer"></div></section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var hizmetSuz = GV.q('hizmet');
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+
+  /* poz × sözleşme kırılımı */
+  var kaynak = [];
+  A.liste('sozlesmeler').forEach(function(s){
+    var projeler = A.liste('projeler').filter(function(p){ return p.sozlesmeId === s.id; });
+    var pozlar = {};
+    projeler.forEach(function(p){
+      A.liste('lokasyonlar').filter(function(l){ return l.projeId === p.id; }).forEach(function(l){
+        A.lokasyonHizmetleri(l.id).forEach(function(h){
+          if (!pozlar[h.hizmetId]) pozlar[h.hizmetId] = { miktar:0, lokasyon:0, projeId:p.id, fl:p.fiyatListesiId };
+          pozlar[h.hizmetId].miktar += h.planlananMiktar;
+          pozlar[h.hizmetId].lokasyon++;
+        });
+      });
+    });
+    Object.keys(pozlar).forEach(function(hid){
+      var h = A.kayit('hizmetler', hid);
+      if (!h) return;
+      var m = A.kayit('musteriler', s.musteriId);
+      var bf = A.birimSatisFiyati(hid, pozlar[hid].fl);
+      kaynak.push({
+        id: s.id + '_' + hid, hizmetId: hid, poz: h.poz, hizmetAd: h.ad, kat: h.kat,
+        birim: h.birim, birimAd: birimAd[h.birim] || h.birim, periyotAy: h.periyotAy,
+        sozlesmeId: s.id, sozlesmeNo: s.no, sozlesmeAd: s.ad, sozlesmeDurum: s.durum,
+        musteriId: s.musteriId, musteriAd: m ? m.kisaAd : '—',
+        lokasyonSayisi: pozlar[hid].lokasyon, miktar: pozlar[hid].miktar,
+        birimFiyat: bf, tutar: bf * pozlar[hid].miktar,
+        maliyet: A.birimMaliyet(hid) * pozlar[hid].miktar
+      });
+    });
+  });
+  if (hizmetSuz) {
+    var hh = A.kayit('hizmetler', hizmetSuz);
+    if (hh) GV.crumb(hh.poz);
+    kaynak = kaynak.filter(function(x){ return x.hizmetId === hizmetSuz; });
+  }
+
+  gvKpi('#spKpi', [
+    { ikon:'fa-file-signature', sayi: GV.n(Array.from(new Set(kaynak.map(function(x){ return x.poz; }))).length), etiket:'Sözleşmedeki poz sayısı' },
+    { ikon:'fa-handshake', sayi: GV.n(Array.from(new Set(kaynak.map(function(x){ return x.sozlesmeId; }))).length), etiket:'Sözleşme', ton:'info' },
+    { ikon:'fa-boxes-stacked', sayi: GV.n(kaynak.reduce(function(t,x){ return t + x.miktar; }, 0)), etiket:'Toplam planlanan miktar' },
+    { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,x){ return t + x.tutar; }, 0)), etiket:'Sözleşme poz tutarı', ton:'ok' }
+  ]);
+
+  var kolonlar = [
+    { k:'poz', ad:'Poz Kodu', kilitli:true, ciz: function(x){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="hizmet-detay.html?id=' + x.hizmetId + '">' + GV.esc(x.poz) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(x.hizmetId) + '</div></div>'; } },
+    { k:'hizmetAd', ad:'Hizmet' },
+    { k:'sozlesmeNo', ad:'Sözleşme', ciz: function(x){
+        return '<a href="sozlesme-detay.html?id=' + x.sozlesmeId + '">' + GV.esc(x.sozlesmeNo) + '</a>'
+          + (x.sozlesmeDurum === 'yururlukte' ? '' : ' <span class="gtag">Sona erdi</span>'); } },
+    { k:'musteriAd', ad:'Müşteri' },
+    { k:'birimAd', ad:'Birim', ciz: function(x){ return '<span class="gtag">' + GV.esc(x.birimAd) + '</span>'; } },
+    { k:'lokasyonSayisi', ad:'Lokasyon', sinif:'num', ciz: function(x){ return GV.n(x.lokasyonSayisi); } },
+    { k:'miktar', ad:'Planlanan Miktar', sinif:'num', ciz: function(x){ return GV.n(x.miktar); } },
+    { k:'birimFiyat', ad:'Birim Fiyat', sinif:'num', ciz: function(x){ return GV.tl(x.birimFiyat); } },
+    { k:'tutar', ad:'Tutar', sinif:'num', ciz: function(x){ return '<b class="t-strong">' + GV.tl(x.tutar) + '</b>'; } },
+    { k:'periyotAy', ad:'Periyot', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(x){
+        return x.periyotAy ? x.periyotAy + ' ay' : '—'; } },
+    { k:'maliyet', ad:'Taşeron Maliyeti', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(x){
+        return '<span style="color:var(--warning)">' + GV.tl(x.maliyet) + '</span>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#spTablo', kolonlar:kolonlar, satirId: function(x){ return x.id; },
+    bosDurum:{ ikon:'fa-file-signature', baslik:'Sözleşme pozu bulunamadı', metin:'Filtrelerinize uyan sözleşme pozisyonu yok.' },
+    altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="6">Toplam</td>'
+        + '<td class="num">' + GV.n(v.reduce(function(t,x){ return t + x.miktar; }, 0)) + '</td>'
+        + '<td></td><td class="num">' + GV.tl(v.reduce(function(t,x){ return t + x.tutar; }, 0)) + '</td></tr>';
+    } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesme-pozlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#spPager', boyut:20, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['poz','hizmetAd','sozlesmeNo','sozlesmeAd','musteriAd'],
+    cipler: { alan:'musteriId', secenekler: A.liste('musteriler').map(function(m){ return { k:m.id, ad:m.kisaAd }; }) },
+    alanlar: [
+      { k:'sozlesmeId', ad:'Sözleşme', tur:'coklu', secenekler: A.liste('sozlesmeler').map(function(s){ return { deger:s.id, ad:s.no }; }) },
+      { k:'kat', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'birim', ad:'Fiyatlandırma birimi', tur:'coklu', secenekler: Object.keys(birimAd).map(function(b){ return { deger:b, ad:birimAd[b] }; }) },
+      { k:'tutar', ad:'Tutar (₺)', tur:'aralik' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('spDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'sozlesme-pozlari', modul:'Sözleşme Pozu' });
+  });
+
+  /* --- benzer adlı pozisyonlar --- */
+  function sadelestir(s){
+    return s.toLocaleLowerCase('tr-TR').replace(/\(.*?\)/g,'').replace(/periyodik|kontrolü|kontrol|testi|ölçümü|muayenesi/g,'').replace(/\s+/g,' ').trim();
+  }
+  var gruplar = {};
+  A.liste('hizmetler').forEach(function(h){
+    var anahtar = sadelestir(h.ad);
+    (gruplar[anahtar] = gruplar[anahtar] || []).push(h);
+  });
+  var benzer = Object.keys(gruplar).filter(function(k){ return gruplar[k].length > 1; });
+
+  document.getElementById('spBenzer').innerHTML = benzer.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Poz Kodu</th><th scope="col">Hizmet Adı</th><th scope="col">Ayırt Edici Özellik</th>'
+      + '<th scope="col">Birim</th><th scope="col" class="num">Fiyat</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + benzer.map(function(k){
+          return gruplar[k].map(function(h, i){
+            var f = window.DEMO.hizmetFiyatlari[h.id] || { satis:0 };
+            var ozel = (h.ad.match(/\((.*?)\)/) || [null, h.periyotAy + ' ay periyot'])[1];
+            return '<tr' + (i === 0 ? ' style="border-top:2px solid var(--line-2)"' : '') + '>'
+              + '<td data-lbl="Poz Kodu"><a href="hizmet-detay.html?id=' + h.id + '"><b class="t-strong">' + GV.esc(h.poz) + '</b></a></td>'
+              + '<td data-lbl="Hizmet Adı">' + GV.esc(h.ad) + '</td>'
+              + '<td data-lbl="Ayırt Edici Özellik"><span class="gtag mint">' + GV.esc(ozel) + '</span></td>'
+              + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
+              + '<td data-lbl="Fiyat" class="num">' + GV.tl(f.satis) + '</td>'
+              + '<td data-lbl="Durum">' + (h.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif') : GV.rozetOzel('off','fa-circle-minus','Pasif')) + '</td></tr>';
+          }).join('');
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-circle-check', baslik:'Karıştırılma riski yok',
+        metin:'Katalogdaki hizmet adları birbirinden yeterince ayrışıyor; benzer adlı pozisyon bulunmuyor.' });
+})();
+</script>
+</body>
+</html>

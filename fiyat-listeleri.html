@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Fiyat Listeleri — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="hizmet" data-screen="fiyat-listeleri">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1>Fiyat Listeleri</h1>
+        <p class="ph-sub">Müşteri satış fiyat listeleri ile taşeron maliyet listeleri tamamen ayrı yönetilir. Taşeron maliyeti hiçbir müşteri ekranında görünmez.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="flDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="flYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Liste</button></div>
+    </div>
+    <div class="kpi-grid" id="flKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Fiyat listesi görünümleri">
+      <button class="gv-tab" role="tab" id="tbSatis" aria-controls="pnSatis" aria-selected="true">
+        <i class="fa-solid fa-tags" aria-hidden="true"></i>Satış Listeleri<span class="tb-cnt" id="cntSatis">0</span></button>
+      <button class="gv-tab" role="tab" id="tbMaliyet" aria-controls="pnMaliyet" aria-selected="false">
+        <i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeron Maliyet Listeleri<span class="tb-cnt" id="cntMaliyet">0</span></button>
+      <button class="gv-tab" role="tab" id="tbKarsi" aria-controls="pnKarsi" aria-selected="false">
+        <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Fiyat Karşılaştırma</button>
+    </div>
+
+    <div id="pnSatis" role="tabpanel" aria-labelledby="tbSatis">
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-tags" aria-hidden="true"></i>Müşteri Satış Fiyat Listeleri</h2></div>
+        <div class="gc-body flush" id="flSatis"></div>
+      </section>
+    </div>
+
+    <div id="pnMaliyet" role="tabpanel" aria-labelledby="tbMaliyet" hidden>
+      <div class="gv-note warn" style="margin-bottom:18px">
+        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+        <span>Bu bölümdeki fiyatlar <b>taşeron alış maliyetidir</b>; müşteri portalında, tekliflerde ve faturalarda gösterilmez.
+        Yalnız yönetim, operasyon ve finans rollerine açıktır.</span>
+      </div>
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeron Maliyet Listeleri</h2></div>
+        <div class="gc-body flush" id="flMaliyet"></div>
+      </section>
+    </div>
+
+    <div id="pnKarsi" role="tabpanel" aria-labelledby="tbKarsi" hidden>
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Hizmet Bazlı Fiyat Karşılaştırma</h2>
+          <div class="gc-head-acts no-print">
+            <label class="gv-sr" for="flKarsiKat">Kategori süz</label>
+            <select id="flKarsiKat" style="padding:8px 12px;font-size:13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg)"></select>
+          </div></div>
+        <div class="gc-body flush" id="flKarsi"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+
+  var listeler = A.liste('fiyatListeleri');
+  var satis = listeler.filter(function(f){ return f.tur === 'satis'; });
+  var maliyet = listeler.filter(function(f){ return f.tur === 'maliyet'; });
+  document.getElementById('cntSatis').textContent = GV.n(satis.length);
+  document.getElementById('cntMaliyet').textContent = GV.n(maliyet.length);
+
+  gvKpi('#flKpi', [
+    { ikon:'fa-tags', sayi: GV.n(satis.filter(function(f){ return f.durum === 'aktif'; }).length), etiket:'Aktif satış listesi',
+      delta:{ yon:'flat', metin: satis.filter(function(f){ return f.durum === 'arsiv'; }).length + ' arşiv listesi' } },
+    { ikon:'fa-people-carry-box', sayi: GV.n(maliyet.length), etiket:'Taşeron maliyet listesi', ton:'warn' },
+    { ikon:'fa-list-check', sayi: GV.n(A.liste('hizmetler').length), etiket:'Fiyatlandırılmış hizmet', ton:'info' },
+    { ikon:'fa-percent', sayi: (function(){
+        var t = 0, n = 0;
+        A.liste('hizmetler').forEach(function(h){
+          var f = window.DEMO.hizmetFiyatlari[h.id];
+          if (f && f.satis) { t += (f.satis - f.maliyet) / f.satis; n++; }
+        });
+        return GV.pct(n ? t / n : 0); })(), etiket:'Ortalama brüt marj', ton:'ok' }
+  ]);
+
+  function listeTablo(kayitlar, satisMi){
+    if (!kayitlar.length) {
+      return gvEmpty({ ikon:'fa-tags', baslik:'Fiyat listesi yok', metin:'Tanımlı fiyat listesi bulunmuyor.' });
+    }
+    return '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Liste</th><th scope="col">' + (satisMi ? 'Müşteri' : 'Taşeron') + '</th>'
+      + '<th scope="col" class="num">Sürüm</th><th scope="col">Geçerlilik</th>'
+      + '<th scope="col" class="num">Katsayı</th><th scope="col">Durum</th><th scope="col">İşlem</th></tr></thead><tbody>'
+      + kayitlar.map(function(f){
+          var sahip = satisMi
+            ? (f.musteriId ? A.kayit('musteriler', f.musteriId) : null)
+            : (f.taseronId ? A.kayit('taseronlar', f.taseronId) : null);
+          var kat = window.DEMO.listeKatsayilari[f.id];
+          return '<tr><td data-lbl="Liste"><div class="gcell-info"><div class="gcell-name">' + GV.esc(f.ad) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(f.id) + ' · ' + GV.esc(f.aciklama) + '</div></div></td>'
+            + '<td data-lbl="' + (satisMi ? 'Müşteri' : 'Taşeron') + '">' + (sahip
+                ? '<a href="' + (satisMi ? 'musteri-detay.html?id=' : 'taseron-detay.html?id=') + sahip.id + '">'
+                  + GV.esc(sahip.kisaAd) + '</a>'
+                : '<span class="muted">Bütün ' + (satisMi ? 'müşteriler' : 'taşeronlar') + '</span>') + '</td>'
+            + '<td data-lbl="Sürüm" class="num">' + GV.esc(f.versiyon) + '</td>'
+            + '<td data-lbl="Geçerlilik">' + GV.d(f.gecerli) + ' – ' + GV.d(f.bitis) + '</td>'
+            + '<td data-lbl="Katsayı" class="num">' + (kat != null ? GV.n(kat, 2) : '<span class="muted">—</span>') + '</td>'
+            + '<td data-lbl="Durum">' + (f.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif') : GV.rozetOzel('off','fa-box-archive','Arşiv')) + '</td>'
+            + '<td data-lbl="İşlem"><div class="row-acts">'
+            + '<button class="ia-btn" type="button" data-liste="' + f.id + '" aria-label="' + GV.esc(f.ad) + ' fiyatlarını gör">'
+            + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+            + '<button class="ia-btn" type="button" data-yeniversiyon="' + f.id + '" aria-label="' + GV.esc(f.ad) + ' yeni sürüm">'
+            + '<i class="fa-solid fa-code-branch" aria-hidden="true"></i></button></div></td></tr>';
+        }).join('') + '</tbody></table></div>';
+  }
+
+  document.getElementById('flSatis').innerHTML = listeTablo(satis, true);
+  document.getElementById('flMaliyet').innerHTML = listeTablo(maliyet, false);
+
+  function bagla(){
+    document.querySelectorAll('[data-liste]').forEach(function(b){
+      b.addEventListener('click', function(){ listeAc(b.getAttribute('data-liste')); });
+    });
+    document.querySelectorAll('[data-yeniversiyon]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var f = A.kayit('fiyatListeleri', b.getAttribute('data-yeniversiyon'));
+        gvConfirm({ baslik:'Yeni sürüm oluşturulsun mu?',
+          metin:'<b>' + GV.esc(f.ad) + '</b> listesinin mevcut sürümü (' + GV.esc(f.versiyon) + ') arşive alınacak ve '
+            + 'içeriği kopyalanarak yeni sürüm açılacak. Yürürlükteki sözleşmeler eski sürümü kullanmaya devam eder.',
+          onayEtiket:'Yeni sürüm aç', onayIkon:'fa-code-branch' }).then(function(s){
+            if (!s.onay) return;
+            var yeniV = 'v' + (Number(String(f.versiyon).replace('v','')) + 1);
+            A.ekle('fiyatListeleri', Object.assign({}, f, {
+              id: f.id + '-' + yeniV, ad: f.ad, versiyon: yeniV, gecerli: A.bugun(), durum:'aktif',
+              aciklama: f.aciklama + ' (' + f.versiyon + ' sürümünden türetildi)'
+            })).then(function(){
+              gvToast('Yeni sürüm oluşturuldu: ' + yeniV, { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          });
+      });
+    });
+  }
+  bagla();
+
+  function listeAc(fid){
+    var f = A.kayit('fiyatListeleri', fid);
+    if (!f) return;
+    var satisMi = f.tur === 'satis';
+    gvModal({
+      baslik: f.ad, ikon:'fa-tags', genislik:'gv-modal-xl',
+      metin: GV.esc(f.aciklama) + ' Geçerlilik: ' + GV.d(f.gecerli) + ' – ' + GV.d(f.bitis) + '.',
+      govde:'<div class="gv-tscroll gv-cap gv-cap-lg"><table class="gtable"><thead><tr>'
+        + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col">Birim</th>'
+        + '<th scope="col" class="num">' + (satisMi ? 'Satış Fiyatı' : 'Taşeron Maliyeti') + '</th></tr></thead><tbody>'
+        + A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif'; }).map(function(h){
+            var deger = satisMi ? A.birimSatisFiyati(h.id, f.id) : A.birimMaliyet(h.id);
+            return '<tr><td><b>' + GV.esc(h.poz) + '</b></td><td>' + GV.esc(h.ad) + '</td>'
+              + '<td>' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
+              + '<td class="num">' + GV.tl(deger) + '</td></tr>';
+          }).join('') + '</tbody></table></div>',
+      butonlar:[
+        { etiket:'Kapat', sinif:'btn-ghost' },
+        { etiket:'Dışa Aktar', sinif:'btn-acc', ikon:'fa-file-export', kapat:false, tikla: function(){
+            GV.disaAktar({ kayitSayisi: A.liste('hizmetler').length, dosyaAdi: fid.toLowerCase(), modul:'Fiyat Listesi' });
+          } }
+      ]
+    });
+  }
+
+  /* --- karşılaştırma --- */
+  var katSec = document.getElementById('flKarsiKat');
+  katSec.innerHTML = '<option value="">Bütün kategoriler</option>'
+    + A.liste('hizmetKategorileri').map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('');
+
+  function karsiCiz(){
+    var kat = katSec.value;
+    var hizmetler = A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif' && (!kat || h.kat === kat); });
+    var aktifSatis = satis.filter(function(f){ return f.durum === 'aktif'; });
+    document.getElementById('flKarsi').innerHTML = hizmetler.length
+      ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+        + '<th scope="col">Poz</th><th scope="col">Hizmet</th>'
+        + aktifSatis.map(function(f){ return '<th scope="col" class="num">' + GV.esc(f.id.replace('FL-2026-','')) + '</th>'; }).join('')
+        + '<th scope="col" class="num">Taşeron Maliyeti</th><th scope="col" class="num">Marj</th></tr></thead><tbody>'
+        + hizmetler.map(function(h){
+            var mal = A.birimMaliyet(h.id);
+            var std = A.birimSatisFiyati(h.id, 'FL-2026-STD');
+            return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(h.poz) + '</b></td>'
+              + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + h.id + '">' + GV.esc(h.ad) + '</a></td>'
+              + aktifSatis.map(function(f){
+                  return '<td data-lbl="' + GV.esc(f.id.replace('FL-2026-','')) + '" class="num">' + GV.tl(A.birimSatisFiyati(h.id, f.id)) + '</td>';
+                }).join('')
+              + '<td data-lbl="Taşeron Maliyeti" class="num"><span style="color:var(--warning)">' + GV.tl(mal) + '</span></td>'
+              + '<td data-lbl="Marj" class="num">' + (std ? GV.pct((std - mal) / std) : GV.bos) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+      : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Hizmet yok', metin:'Seçtiğiniz kategoride aktif hizmet bulunmuyor.' });
+  }
+  katSec.addEventListener('change', karsiCiz);
+  karsiCiz();
+
+  var hizmetSuz = GV.q('hizmet');
+  if (hizmetSuz) {
+    var h = A.kayit('hizmetler', hizmetSuz);
+    if (h) { GV.crumb(h.poz + ' fiyatları'); katSec.value = h.kat; karsiCiz(); }
+  }
+
+  document.getElementById('flDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: listeler.length, dosyaAdi:'fiyat-listeleri', modul:'Fiyat Listesi' });
+  });
+
+  document.getElementById('flYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni fiyat listesi', ikon:'fa-plus',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="fyAd">Liste adı *</label><input type="text" id="fyAd" placeholder="2027 Standart Satış Fiyat Listesi"></div>'
+        + '<div class="gfield"><label for="fyTur">Liste türü *</label><select id="fyTur">'
+        + '<option value="satis">Müşteri satış listesi</option><option value="maliyet">Taşeron maliyet listesi</option></select></div>'
+        + '<div class="gfield"><label for="fyKat">Katsayı (standart listeye göre)</label><input type="number" id="fyKat" step="0.01" min="0.3" max="2" value="1.00"></div>'
+        + '<div class="gfield"><label for="fyBas">Geçerlilik başlangıcı *</label><input type="date" id="fyBas" value="' + A.bugun() + '"></div>'
+        + '<div class="gfield"><label for="fyBit">Geçerlilik bitişi *</label><input type="date" id="fyBit"></div>'
+        + '<div class="gfield full"><label for="fyAciklama">Açıklama</label><textarea id="fyAciklama" placeholder="Listenin hangi sözleşme veya müşteri için kullanılacağı"></textarea></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#fyAd').value.trim();
+            var bas = kap.querySelector('#fyBas').value, bit = kap.querySelector('#fyBit').value;
+            if (!ad || !bas || !bit) { gvToast('Liste adı ve geçerlilik tarihleri zorunludur.', { ton:'danger' }); return false; }
+            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
+            var yeniId = 'FL-Y' + String(A.liste('fiyatListeleri').length + 1).padStart(2,'0');
+            window.DEMO.listeKatsayilari[yeniId] = Number(kap.querySelector('#fyKat').value || 1);
+            A.ekle('fiyatListeleri', {
+              id: yeniId, ad: ad, tur: kap.querySelector('#fyTur').value, versiyon:'v1',
+              gecerli: bas, bitis: bit, paraBirimi:'TRY', durum:'aktif',
+              aciklama: kap.querySelector('#fyAciklama').value.trim() || 'Yeni oluşturulan fiyat listesi.'
+            }).then(function(){
+              gvToast('Fiyat listesi oluşturuldu.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

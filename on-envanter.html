@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ön Envanter — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.oe-akis{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.oe-adim{flex:1 1 168px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--paper);position:relative}
+.oe-adim .oe-n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;
+  background:var(--gv-action);color:#fff;margin-bottom:9px}
+.oe-adim b{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.35}
+.oe-adim span{display:block;font-size:11.5px;color:var(--muted);line-height:1.5}
+.oe-sablon{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.oe-skart{padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--paper);box-shadow:var(--shadow-sm)}
+.oe-skart h3{font-size:14.5px;margin-bottom:6px}
+.oe-skart p{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.oe-skart .oe-meta{display:flex;gap:8px 14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:13px}
+</style>
+</head>
+<body data-sec="hizmet" data-screen="on-envanter">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1>Ön Envanter</h1>
+        <p class="ph-sub">Müşteri envanter sağlayamadığında temsilî lokasyon keşfinden şablon üretilir ve benzer lokasyonlara ön envanter olarak uygulanır. Miktarlar saha kontrolünde doğrulanır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="oeDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="oeUygula"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>Şablon Uygula</button></div>
+    </div>
+    <div class="kpi-grid" id="oeKpi"></div>
+
+    <h2 class="gv-botsec-h" style="margin-bottom:14px"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Envanter Oluşturma Akışı</h2>
+    <div class="oe-akis" id="oeAkis"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Ön envanter görünümleri">
+      <button class="gv-tab" role="tab" id="tbLok" aria-controls="pnLok" aria-selected="true">
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyon Envanterleri</button>
+      <button class="gv-tab" role="tab" id="tbSab" aria-controls="pnSab" aria-selected="false">
+        <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Envanter Şablonları<span class="tb-cnt" id="cntSab">0</span></button>
+    </div>
+
+    <div id="pnLok" role="tabpanel" aria-labelledby="tbLok">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Lokasyon adı, kod, müşteri…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div id="oeBulk"></div>
+        <div class="gc-body flush" id="oeTablo"></div>
+        <div class="gv-pager" id="oePager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnSab" role="tabpanel" aria-labelledby="tbSab" hidden>
+      <div class="oe-sablon" id="oeSablonlar"></div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+
+  document.getElementById('oeAkis').innerHTML = [
+    ['Temsilî lokasyon seçimi','Müşterinin lokasyon ağından iki veya üç temsilî nokta belirlenir.'],
+    ['Örnek lokasyon keşfi','Seçilen lokasyonlarda saha keşfi yapılır, ekipman ve hizmet kalemleri sayılır.'],
+    ['Şablon oluşturma','Keşif sonucu, lokasyon türüne göre yeniden kullanılabilir şablona dönüştürülür.'],
+    ['Şablonu uygulama','Benzer lokasyonlara ön envanter olarak uygulanır; metrekare bazlı kalemler alana göre ölçeklenir.'],
+    ['Sahada doğrulama','Gerçek kontrolde miktarlar doğrulanır, eksik ve ilave tespitler kaydedilir.'],
+    ['Mutabakata sunma','Farklar müşteriye sunulur; onaylanmadan faturalamaya geçilmez.']
+  ].map(function(a,i){
+    return '<div class="oe-adim"><div class="oe-n">' + (i + 1) + '</div><b>' + GV.esc(a[0]) + '</b><span>' + GV.esc(a[1]) + '</span></div>';
+  }).join('');
+
+  var lokSuz = GV.q('lokasyon');
+  var kaynak = A.lokasyonlar().map(function(l){
+    var h = A.lokasyonHizmetleri(l.id);
+    var ayar = window.DEMO.lokasyonKapsamAyarlari[l.id];
+    var sablon = ayar ? A.kayit('envanterSablonlari', ayar.sablon) : null;
+    var kaynakTur = h.length ? h[0].kaynak : null;
+    var proje = l.projeId ? A.kayit('projeler', l.projeId) : null;
+    return Object.assign({}, l, {
+      kalemSayisi: h.length,
+      toplamMiktar: h.reduce(function(t,x){ return t + x.planlananMiktar; }, 0),
+      kaynakTur: kaynakTur,
+      kaynakAd: kaynakTur ? ({ sablon:'Şablon uygulaması', musteri:'Müşteri bildirimi', kesif:'Saha keşfi' }[kaynakTur]) : 'Envanter yok',
+      sablonAd: sablon ? sablon.ad : null,
+      tutar: h.reduce(function(t,x){ return t + A.birimSatisFiyati(x.hizmetId, proje ? proje.fiyatListesiId : null) * x.planlananMiktar; }, 0),
+      dogrulandi: A.mutabakatSatirlari(l.id).length > 0
+    });
+  }).filter(function(l){ return !lokSuz || l.id === lokSuz; });
+
+  if (lokSuz) { var ll = A.lokasyon(lokSuz); if (ll) GV.crumb(ll.kod); }
+
+  gvKpi('#oeKpi', [
+    { ikon:'fa-clipboard-list', sayi: GV.n(kaynak.filter(function(l){ return l.kalemSayisi; }).length), etiket:'Envanteri tanımlı lokasyon',
+      delta:{ yon:'flat', metin: kaynak.filter(function(l){ return !l.kalemSayisi; }).length + ' lokasyonda envanter yok' } },
+    { ikon:'fa-wand-magic-sparkles', sayi: GV.n(kaynak.filter(function(l){ return l.kaynakTur === 'sablon'; }).length), etiket:'Şablondan uygulanan', ton:'warn',
+      delta:{ yon:'flat', metin:'Saha doğrulaması bekliyor' } },
+    { ikon:'fa-magnifying-glass-location', sayi: GV.n(kaynak.filter(function(l){ return l.kaynakTur === 'kesif'; }).length), etiket:'Saha keşfiyle çıkarılan', ton:'ok' },
+    { ikon:'fa-boxes-stacked', sayi: GV.n(kaynak.reduce(function(t,l){ return t + l.toplamMiktar; }, 0)), etiket:'Toplam planlanan miktar', ton:'info' }
+  ]);
+
+  var kolonlar = [
+    { k:'kod', ad:'Lokasyon', kilitli:true, ciz: function(l){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriAd) + '</div></div>'; } },
+    { k:'tur', ad:'Tür' },
+    { k:'m2', ad:'Alan (m²)', sinif:'num', ciz: function(l){ return GV.n(l.m2); } },
+    { k:'kalemSayisi', ad:'Hizmet Kalemi', sinif:'num', ciz: function(l){
+        return l.kalemSayisi ? GV.n(l.kalemSayisi) : '<span class="gtag warn">Envanter yok</span>'; } },
+    { k:'toplamMiktar', ad:'Planlanan Miktar', sinif:'num', ciz: function(l){ return GV.n(l.toplamMiktar); } },
+    { k:'kaynakAd', ad:'Envanter Kaynağı', ciz: function(l){
+        if (!l.kaynakTur) return '<span class="muted">—</span>';
+        var t = l.kaynakTur === 'kesif' ? 'ok' : l.kaynakTur === 'musteri' ? 'info' : 'warn';
+        var i = l.kaynakTur === 'kesif' ? 'fa-magnifying-glass-location' : l.kaynakTur === 'musteri' ? 'fa-file-import' : 'fa-wand-magic-sparkles';
+        return GV.rozetOzel(t, i, l.kaynakAd); } },
+    { k:'sablonAd', ad:'Kullanılan Şablon', varsayilanGizli:true, gizli:true, ciz: function(l){
+        return l.sablonAd ? GV.esc(l.sablonAd) : '<span class="muted">—</span>'; } },
+    { k:'dogrulandi', ad:'Saha Doğrulaması', ciz: function(l){
+        return l.dogrulandi ? GV.rozetOzel('ok','fa-circle-check','Doğrulandı')
+          : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor'); } },
+    { k:'tutar', ad:'Tahmini Tutar', sinif:'num', ciz: function(l){ return GV.tl(l.tutar); } },
+    { k:'__islem', ad:'İşlem', ciz: function(l){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-envanter="' + l.id + '" aria-label="' + GV.esc(l.ad) + ' envanterini gör">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
+          + '<a class="ia-btn" href="envanter-mutabakati.html?lokasyon=' + l.id + '" aria-label="' + GV.esc(l.ad) + ' mutabakatı">'
+          + '<i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></a></div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#oeTablo', kolonlar:kolonlar, secim:true, satirId: function(l){ return l.id; },
+    bosDurum:{ ikon:'fa-clipboard-list', baslik:'Lokasyon bulunamadı', metin:'Filtrelerinize uyan lokasyon yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#oeBulk', aksiyonlar:[
+    { etiket:'Şablon uygula', ikon:'fa-wand-magic-sparkles', tikla: function(s){ sablonUygula(s); } },
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'on-envanter', modul:'Ön Envanter' }); } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'on-envanter', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#oePager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-envanter]').forEach(function(b){
+      b.addEventListener('click', function(){ envanterAc(b.getAttribute('data-envanter')); });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['kod','ad','musteriAd','il','tur'],
+    cipler: { alan:'kaynakTur', secenekler:[
+      { k:'kesif', ad:'Saha keşfi', ikon:'fa-magnifying-glass-location' },
+      { k:'musteri', ad:'Müşteri bildirimi', ikon:'fa-file-import' },
+      { k:'sablon', ad:'Şablon uygulaması', ikon:'fa-wand-magic-sparkles' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'tur', ad:'Lokasyon türü', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(l){ return l.tur; }))).map(function(t){ return { deger:t, ad:t }; }) },
+      { k:'dogrulandi', ad:'Yalnız doğrulananlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
+      { k:'kalemSayisi', ad:'Hizmet kalemi sayısı', tur:'aralik' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  function envanterAc(lid){
+    var l = A.lokasyon(lid);
+    var h = A.lokasyonHizmetleri(lid);
+    var proje = l.projeId ? A.kayit('projeler', l.projeId) : null;
+    gvModal({
+      baslik: l.ad + ' — Ön Envanter', ikon:'fa-clipboard-list', genislik:'gv-modal-xl',
+      metin: h.length
+        ? h.length + ' hizmet kalemi, toplam ' + GV.n(h.reduce(function(t,x){ return t + x.planlananMiktar; }, 0)) + ' birim. '
+          + 'Kaynak: ' + ({ sablon:'şablon uygulaması', musteri:'müşteri bildirimi', kesif:'saha keşfi' }[h[0].kaynak] || h[0].kaynak) + '.'
+        : 'Bu lokasyon için ön envanter tanımlanmamış.',
+      govde: h.length
+        ? '<div class="gv-tscroll gv-cap gv-cap-lg"><table class="gtable"><thead><tr>'
+          + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Miktar</th>'
+          + '<th scope="col">Birim</th><th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
+          + h.map(function(x){
+              var bf = A.birimSatisFiyati(x.hizmetId, proje ? proje.fiyatListesiId : null);
+              return '<tr><td><b>' + GV.esc(x.poz) + '</b></td><td>' + GV.esc(x.hizmetAd) + '</td>'
+                + '<td class="num">' + GV.n(x.planlananMiktar) + '</td>'
+                + '<td>' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
+                + '<td class="num">' + GV.tl(bf) + '</td>'
+                + '<td class="num">' + GV.tl(bf * x.planlananMiktar) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+          + '<span>Ön envanter olmadan planlama ve fiyatlandırma yapılamaz. Uygun bir şablon uygulayın veya saha keşfi planlayın.</span></div>',
+      butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+        { etiket:'Mutabakata git', sinif:'btn-acc', ikon:'fa-scale-balanced', tikla: function(){
+            location.href = GV.href('envanter-mutabakati.html?lokasyon=' + lid); } }]
+    });
+  }
+
+  function sablonUygula(secililer){
+    var hedefler = secililer || [];
+    gvModal({
+      baslik:'Envanter şablonu uygula', ikon:'fa-wand-magic-sparkles', genislik:'gv-modal-lg',
+      metin: hedefler.length
+        ? '<b>' + hedefler.length + ' lokasyona</b> şablon uygulanacak. Metrekare bazlı kalemler lokasyon alanına göre ölçeklenir.'
+        : 'Şablon uygulanacak lokasyonları ve şablonu seçin.',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="oeSablonSec">Şablon *</label><select id="oeSablonSec">'
+        + A.liste('envanterSablonlari').map(function(s){
+            return '<option value="' + s.id + '">' + GV.esc(s.ad + ' (' + s.kalemler.length + ' kalem)') + '</option>'; }).join('')
+        + '</select></div>'
+        + (hedefler.length ? '' : '<div class="gfield full"><label for="oeHedefSec">Hedef lokasyonlar *</label>'
+            + '<select id="oeHedefSec" multiple size="8" style="min-height:160px">'
+            + A.lokasyonlar().filter(function(l){ return !A.lokasyonHizmetleri(l.id).length; })
+                .map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad + ' — ' + l.musteriAd) + '</option>'; }).join('')
+            + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim yapabilirsiniz. Yalnız envanteri olmayan lokasyonlar listelenir.</span></div>')
+        + '</div>'
+        + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+        + '<span>Şablondan gelen miktarlar <b>ön envanterdir</b>, kesin değildir. Saha kontrolünde doğrulanır; '
+        + 'fark çıkarsa müşteriyle mutabakata sunulur.</span></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Uygula', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var sid = kap.querySelector('#oeSablonSec').value;
+            var hedef = hedefler.length ? hedefler
+              : Array.prototype.slice.call(kap.querySelectorAll('#oeHedefSec option:checked')).map(function(o){ return o.value; });
+            if (!hedef.length) { gvToast('En az bir hedef lokasyon seçin.', { ton:'danger' }); return false; }
+            var s = A.kayit('envanterSablonlari', sid);
+            var temelM2 = { 'SBL-ENV-MARKET':1750, 'SBL-ENV-DEPO':5800, 'SBL-ENV-FABRIKA':21500 }[sid] || 1750;
+            var islemler = [];
+            hedef.forEach(function(lid){
+              var l = A.kayit('lokasyonlar', lid);
+              var olcek = l && l.m2 ? Math.max(0.15, Math.min(4, l.m2 / temelM2)) : 1;
+              s.kalemler.forEach(function(k, i){
+                var hz = A.kayit('hizmetler', k.hizmetId);
+                if (!hz) return;
+                var miktar = hz.birim === 'metrekare' ? Math.round(k.miktar * olcek / 10) * 10 : Math.max(1, Math.round(k.miktar * olcek));
+                islemler.push(A.ekle('lokasyonHizmetleri', {
+                  id:'LHZ-U' + lid.slice(-4) + '-' + String(i + 1).padStart(2,'0'),
+                  lokasyonId: lid, hizmetId: k.hizmetId,
+                  onEnvanterMiktar: miktar, planlananMiktar: miktar, kaynak:'sablon', sablonId: sid
+                }));
+              });
+            });
+            Promise.all(islemler).then(function(){
+              gvToast(hedef.length + ' lokasyona şablon uygulandı (' + islemler.length + ' kalem).', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  document.getElementById('oeUygula').addEventListener('click', function(){ sablonUygula(null); });
+  document.getElementById('oeDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'on-envanter', modul:'Ön Envanter' });
+  });
+
+  /* --- şablonlar --- */
+  var sablonlar = A.liste('envanterSablonlari');
+  document.getElementById('cntSab').textContent = GV.n(sablonlar.length);
+  document.getElementById('oeSablonlar').innerHTML = sablonlar.map(function(s){
+    var kullanan = A.liste('lokasyonHizmetleri').filter(function(x){ return x.sablonId === s.id; });
+    var lokSay = Array.from(new Set(kullanan.map(function(x){ return x.lokasyonId; }))).length;
+    var olusturan = A.kayit('personeller', s.olusturanId);
+    var tutar = s.kalemler.reduce(function(t,k){ return t + A.birimSatisFiyati(k.hizmetId, 'FL-2026-STD') * k.miktar; }, 0);
+    return '<div class="oe-skart"><h3>' + GV.esc(s.ad) + '</h3>'
+      + '<p>' + GV.esc(s.aciklama) + '</p>'
+      + '<div class="oe-meta">'
+      + '<span><i class="fa-solid fa-list-check" aria-hidden="true"></i> ' + GV.n(s.kalemler.length) + ' kalem</span>'
+      + '<span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' + GV.n(lokSay) + ' lokasyonda kullanılıyor</span>'
+      + '<span><i class="fa-solid fa-coins" aria-hidden="true"></i> ' + GV.tl(tutar) + '</span>'
+      + '<span><i class="fa-solid fa-user" aria-hidden="true"></i> ' + GV.esc(olusturan ? olusturan.ad : '—') + '</span>'
+      + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i> ' + GV.d(s.olusturma) + '</span></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<button class="btn btn-sm btn-ghost" type="button" data-sablon-gor="' + s.id + '">'
+      + '<i class="fa-solid fa-eye" aria-hidden="true"></i>Kalemleri Gör</button>'
+      + '<button class="btn btn-sm btn-acc" type="button" data-sablon-uygula="' + s.id + '">'
+      + '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>Uygula</button></div></div>';
+  }).join('');
+
+  document.querySelectorAll('[data-sablon-gor]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = A.kayit('envanterSablonlari', b.getAttribute('data-sablon-gor'));
+      gvModal({
+        baslik: s.ad, ikon:'fa-clipboard-list', genislik:'gv-modal-xl',
+        metin:'Kaynak lokasyonlar: ' + GV.esc(s.kaynakLokasyonlar.map(function(lid){
+          var l = A.kayit('lokasyonlar', lid); return l ? l.ad : lid; }).join(', ')) + '.',
+        govde:'<div class="gv-tscroll gv-cap gv-cap-lg"><table class="gtable"><thead><tr>'
+          + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Temel Miktar</th>'
+          + '<th scope="col">Birim</th><th scope="col">Ölçeklenir mi?</th></tr></thead><tbody>'
+          + s.kalemler.map(function(k){
+              var h = A.kayit('hizmetler', k.hizmetId);
+              if (!h) return '';
+              return '<tr><td><b>' + GV.esc(h.poz) + '</b></td><td>' + GV.esc(h.ad) + '</td>'
+                + '<td class="num">' + GV.n(k.miktar) + '</td>'
+                + '<td>' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
+                + '<td>' + (h.birim === 'metrekare' ? '<span class="gtag mint">Alana göre ölçeklenir</span>'
+                    : h.birim === 'sistem' || h.birim === 'dokuman' ? '<span class="gtag">Sabit</span>'
+                    : '<span class="gtag">Orantılı</span>') + '</td></tr>';
+            }).join('') + '</tbody></table></div>',
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+      });
+    });
+  });
+  document.querySelectorAll('[data-sablon-uygula]').forEach(function(b){
+    b.addEventListener('click', function(){ sablonUygula(null); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ekipman Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="hizmet" data-screen="ekipmanlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1><span id="efBaslik">Yeni Ekipman</span></h1>
+        <p class="ph-sub">Tekil takip gerektiren ekipmanlar için kart açılır. Miktar bazlı hizmetler için ekipman kartı gerekmez; ön envanter yeterlidir.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-gears" aria-hidden="true"></i>Tanımlayıcı Bilgiler</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="eLokasyon">Lokasyon <span class="req" aria-hidden="true">*</span></label>
+                <select id="eLokasyon" name="lokasyonId" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="eHizmet">Hizmet Pozisyonu <span class="req" aria-hidden="true">*</span></label>
+                <select id="eHizmet" name="hizmetId" required><option value="">Seçin…</option></select>
+                <span class="gf-hint">Ekipmanın tabi olduğu kontrol hizmeti. Periyot bu seçimden gelir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield full">
+                <label for="eAd">Ekipman Adı <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="eAd" name="ad" required minlength="3" placeholder="Akülü Forklift">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="eKod">Ekipman Kodu</label>
+                <input type="text" id="eKod" name="kod" placeholder="Otomatik üretilir">
+              </div>
+              <div class="gfield">
+                <label for="eQr">QR / Barkod</label>
+                <input type="text" id="eQr" name="qr" placeholder="Lokasyon seçilince önerilir">
+                <span class="gf-hint">Saha ekibi bu kodu okutarak doğrudan kontrol formuna ulaşır.</span>
+              </div>
+              <div class="gfield">
+                <label for="eMarka">Marka <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="eMarka" name="marka" required placeholder="Fortek">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="eModel">Model <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="eModel" name="model" required placeholder="FA-18">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="eSeri">Seri Numarası</label>
+                <input type="text" id="eSeri" name="seri" placeholder="FO-2021-1234">
+              </div>
+              <div class="gfield">
+                <label for="eYil">Üretim Yılı</label>
+                <input type="number" id="eYil" name="uretimYili" min="1970" max="2026" placeholder="2021">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="eKapasite">Kapasite</label>
+                <input type="text" id="eKapasite" name="kapasite" placeholder="1.800 kg">
+                <span class="gf-hint">Yük testi bu değere göre uygulanır.</span>
+              </div>
+              <div class="gfield">
+                <label for="eDurum">Kullanım Durumu</label>
+                <select id="eDurum" name="durum">
+                  <option value="aktif">Aktif</option><option value="bakimda">Bakımda</option><option value="kullanim-disi">Kullanım dışı</option>
+                </select>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Kontrol Bilgileri</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="eSonKontrol">Son Kontrol Tarihi</label>
+                <input type="date" id="eSonKontrol" name="sonKontrol">
+                <span class="gf-hint">İlk kez kaydediliyorsa boş bırakın.</span>
+              </div>
+              <div class="gfield">
+                <label for="ePeriyot">Kontrol Periyodu (ay)</label>
+                <input type="number" id="ePeriyot" name="periyotAy" min="0" max="120" readonly>
+                <span class="gf-hint">Seçilen hizmet pozisyonundan gelir.</span>
+              </div>
+              <div class="gfield full">
+                <label for="eSonraki">Sonraki Kontrol Tarihi</label>
+                <input type="date" id="eSonraki" name="sonrakiKontrol" readonly>
+                <span class="gf-hint" id="eSonrakiNot">Son kontrol tarihi ve periyottan hesaplanır. Ana tarih boşsa boş kalır.</span>
+              </div>
+            </div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Kayıt Özeti</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="efOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Periyot Kuralı</h2>
+            </div>
+          <div class="gc-body">
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.65">
+              Sonraki kontrol tarihi <b style="color:var(--ink)">son kontrol tarihine hizmet periyodu eklenerek</b> hesaplanır.
+              Bütün kayıtlar için sabit “rapor tarihi + 365 gün” uygulanmaz.
+            </p>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.65;margin-top:12px">
+              Son kontrol tarihi girilmemişse sonraki tarih <b style="color:var(--ink)">boş bırakılır</b>;
+              1900 gibi sahte tarih üretilmez.
+            </p></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('ekipmanlar', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'ekipmanlar.html', listeEtiket:'Ekipman listesi' }); return; }
+
+  document.getElementById('eLokasyon').innerHTML = '<option value="">Seçin…</option>'
+    + A.lokasyonlar().map(function(l){ return '<option value="' + l.id + '">' + GV.esc(l.ad + ' — ' + l.musteriAd) + '</option>'; }).join('');
+  document.getElementById('eHizmet').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif' && h.birim === 'adet'; })
+        .map(function(h){ return '<option value="' + h.id + '" data-periyot="' + h.periyotAy + '">' + GV.esc(h.poz + ' · ' + h.ad) + '</option>'; }).join('');
+
+  function hizmetDegisti(){
+    var s = document.getElementById('eHizmet').selectedOptions[0];
+    var p = s ? Number(s.getAttribute('data-periyot') || 0) : 0;
+    document.getElementById('ePeriyot').value = p || '';
+    sonrakiHesapla();
+  }
+  function lokasyonDegisti(){
+    var lid = document.getElementById('eLokasyon').value;
+    var qrAlan = document.getElementById('eQr');
+    if (lid && !qrAlan.value) {
+      var l = A.kayit('lokasyonlar', lid);
+      var mevcutSayi = A.liste('ekipmanlar').filter(function(e){ return e.lokasyonId === lid; }).length;
+      qrAlan.value = 'GVT-' + (l ? l.kod.replace('LOK-','') : '0000') + '-' + String(mevcutSayi + 1).padStart(4,'0');
+    }
+    ozetCiz();
+  }
+  function sonrakiHesapla(){
+    var kt = document.getElementById('eSonKontrol').value;
+    var p = Number(document.getElementById('ePeriyot').value || 0);
+    var alan = document.getElementById('eSonraki'), not = document.getElementById('eSonrakiNot');
+    if (!kt) {
+      alan.value = '';
+      not.textContent = 'Son kontrol tarihi girilmedi; sonraki kontrol tarihi boş bırakıldı. Sahte tarih üretilmez.';
+    } else if (!p) {
+      alan.value = '';
+      not.textContent = 'Seçilen hizmet periyodik değil; sonraki kontrol tarihi üretilmez.';
+    } else {
+      alan.value = A.sonrakiKontrol(kt, p) || '';
+      not.textContent = GV.d(kt) + ' tarihine ' + p + ' ay eklenerek hesaplandı.';
+    }
+    ozetCiz();
+  }
+  function ozetCiz(){
+    var v = form.veri();
+    var l = v.lokasyonId ? A.lokasyon(v.lokasyonId) : null;
+    var h = v.hizmetId ? A.kayit('hizmetler', v.hizmetId) : null;
+    document.getElementById('efOzet').innerHTML =
+      '<div class="info-row"><dt>Ekipman</dt><dd>' + GV.esc(v.ad || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Marka / model</dt><dd>' + GV.esc(((v.marka || '') + ' ' + (v.model || '')).trim() || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Lokasyon</dt><dd>' + GV.esc(l ? l.ad : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Müşteri</dt><dd>' + GV.esc(l ? l.musteriAd : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Hizmet pozisyonu</dt><dd>' + GV.esc(h ? h.poz : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Periyot</dt><dd>' + (v.periyotAy ? GV.n(v.periyotAy) + ' ay' : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Son kontrol</dt><dd>' + GV.d(v.sonKontrol) + '</dd></div>'
+      + '<div class="info-row"><dt>Sonraki kontrol</dt><dd>' + GV.d(v.sonrakiKontrol) + '</dd></div>'
+      + '<div class="info-row"><dt>QR kodu</dt><dd>' + GV.esc(v.qr || GV.bos) + '</dd></div>';
+  }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'ekipman-form' + (id ? '-' + id : ''), iptalHref:'ekipmanlar.html',
+    gonder: function(veri, aksiyon, yardim){
+      veri.uretimYili = Number(veri.uretimYili || 0);
+      veri.periyotAy = Number(veri.periyotAy || 0);
+      if (!veri.sonKontrol) { veri.sonKontrol = null; veri.sonrakiKontrol = null; }
+      var h = A.kayit('hizmetler', veri.hizmetId);
+      veri.kategoriId = h ? h.kat : null;
+      var l = A.kayit('lokasyonlar', veri.lokasyonId);
+      veri.musteriId = l ? l.musteriId : null;
+
+      var islem = mevcut
+        ? A.guncelle('ekipmanlar', mevcut.id, veri)
+        : A.ekle('ekipmanlar', Object.assign({
+            id:'EKP-Y' + String(A.liste('ekipmanlar').length + 1).padStart(4,'0'),
+            kod: veri.kod || 'EKP-Y' + String(A.liste('ekipmanlar').length + 1).padStart(4,'0')
+          }, veri));
+
+      islem.then(function(r){
+        yardim.taslakSil(); yardim.kirliSifirla();
+        gvResult(true, {
+          baslik: mevcut ? 'Ekipman güncellendi' : 'Ekipman kaydedildi',
+          metin:'<b>' + GV.esc(veri.ad) + '</b> kartı ' + (mevcut ? 'güncellendi' : 'oluşturuldu')
+            + (veri.sonrakiKontrol ? '. Sonraki kontrol tarihi ' + GV.d(veri.sonrakiKontrol) + ' olarak hesaplandı.'
+               : '. Son kontrol tarihi girilmediği için sonraki kontrol tarihi boş bırakıldı.'),
+          butonlar:[
+            { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('ekipmanlar.html'); } },
+            { etiket:'Karta git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
+                location.href = GV.href('ekipman-detay.html?id=' + (mevcut ? mevcut.id : r.kayit.id)); } }
+          ]
+        });
+      });
+    }
+  });
+
+  document.getElementById('eHizmet').addEventListener('change', hizmetDegisti);
+  document.getElementById('eLokasyon').addEventListener('change', lokasyonDegisti);
+  document.getElementById('eSonKontrol').addEventListener('change', sonrakiHesapla);
+  document.getElementById('gvFormu').addEventListener('input', ozetCiz);
+
+  if (mevcut) {
+    document.getElementById('efBaslik').textContent = mevcut.ad + ' — Düzenle';
+    document.title = mevcut.ad + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.kod);
+    form.doldur(mevcut);
+    document.getElementById('ePeriyot').value = mevcut.periyotAy || '';
+    document.getElementById('eSonraki').value = A.sonrakiKontrol(mevcut.sonKontrol, mevcut.periyotAy) || '';
+    form.kirliSifirla();
+  } else {
+    var lSuz = GV.q('lokasyon');
+    if (lSuz) { document.getElementById('eLokasyon').value = lSuz; lokasyonDegisti(); }
+  }
+  sonrakiHesapla();
+})();
+</script>
+</body>
+</html>

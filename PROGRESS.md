@@ -51,11 +51,11 @@
 - [x] iletisim-kisileri
 
 ## FAZ 4 — Hizmet ve Envanter
-- [ ] hizmet-katalogu / hizmet-detay
-- [ ] sozlesme-pozlari / fiyat-listeleri
-- [ ] on-envanter
-- [ ] ekipmanlar / ekipman-detay / ekipman-form
-- [ ] envanter-mutabakati (13 kolon + renkli fark)
+- [x] hizmet-katalogu / hizmet-detay
+- [x] sozlesme-pozlari / fiyat-listeleri
+- [x] on-envanter
+- [x] ekipmanlar / ekipman-detay / ekipman-form
+- [x] envanter-mutabakati (13 kolon + renkli fark)
 
 ## FAZ 5 — Operasyon ve Saha
 - [ ] planlama / operasyon-takvimi

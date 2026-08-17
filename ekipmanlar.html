@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ekipmanlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="hizmet" data-screen="ekipmanlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Hizmet ve Envanter</div>
+        <h1>Ekipmanlar</h1>
+        <p class="ph-sub">Takip kartı açılmış tekil ekipmanlar. QR/barkod, seri numarası, kapasite ve periyot bilgisiyle izlenir; sonraki kontrol tarihi ekipman periyoduna göre hesaplanır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ekDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-ghost" type="button" id="ekQr"><i class="fa-solid fa-qrcode" aria-hidden="true"></i>QR Okut</button>
+      <a class="btn btn-acc" href="ekipman-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Ekipman</a></div>
+    </div>
+    <div class="kpi-grid" id="ekKpi"></div>
+
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Ekipman kodu, QR, seri no, marka, model…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="ekBulk"></div>
+      <div class="gc-body flush" id="ekTablo"></div>
+      <div class="gv-pager" id="ekPager" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var lokSuz = GV.q('lokasyon');
+
+  var kaynak = A.ekipmanlar().filter(function(e){ return !lokSuz || e.lokasyonId === lokSuz; }).map(function(e){
+    var l = A.lokasyon(e.lokasyonId);
+    var kat = A.kayit('hizmetKategorileri', e.kategoriId);
+    var kalan = e.sonrakiKontrol ? GV.gun(BUGUN, e.sonrakiKontrol) : null;
+    return Object.assign({}, e, {
+      lokasyonAdi: l ? l.ad : '—', bolge: l ? l.bolge : '—', il: l ? l.il : '—',
+      katAd: kat ? kat.ad : '—', katIkon: kat ? kat.ikon : 'fa-gears', katRenk: kat ? kat.renk : '#69708A',
+      kalanGun: kalan,
+      gecikti: kalan != null && kalan < 0
+    });
+  });
+
+  if (lokSuz) { var ll = A.lokasyon(lokSuz); if (ll) GV.crumb(ll.ad + ' ekipmanları'); }
+
+  gvKpi('#ekKpi', [
+    { ikon:'fa-gears', sayi: GV.n(kaynak.length), etiket:'Kayıtlı ekipman',
+      delta:{ yon:'flat', metin: Array.from(new Set(kaynak.map(function(e){ return e.lokasyonId; }))).length + ' lokasyona dağılmış' } },
+    { ikon:'fa-circle-check', sayi: GV.n(kaynak.filter(function(e){ return e.durum === 'aktif'; }).length), etiket:'Aktif kullanımda', ton:'ok' },
+    { ikon:'fa-screwdriver-wrench', sayi: GV.n(kaynak.filter(function(e){ return e.durum !== 'aktif'; }).length), etiket:'Bakımda / kullanım dışı', ton:'warn' },
+    { ikon:'fa-calendar-xmark', sayi: GV.n(kaynak.filter(function(e){ return e.gecikti; }).length), etiket:'Kontrol tarihi geçmiş', ton:'danger' }
+  ]);
+
+  var kolonlar = [
+    { k:'kod', ad:'Ekipman', kilitli:true, ciz: function(e){
+        return '<div class="gcell"><div class="gcell-mark" style="background:' + e.katRenk + '1f;color:' + e.katRenk + '">'
+          + '<i class="fa-solid ' + e.katIkon + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="ekipman-detay.html?id=' + e.id + '">' + GV.esc(e.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(e.kod + ' · ' + e.marka + ' ' + e.model) + '</div></div></div>'; } },
+    { k:'qr', ad:'QR / Barkod', ciz: function(e){ return '<code style="font-size:11.5px">' + GV.esc(e.qr) + '</code>'; } },
+    { k:'katAd', ad:'Kategori' },
+    { k:'seri', ad:'Seri No', ciz: function(e){ return GV.esc(e.seri); } },
+    { k:'kapasite', ad:'Kapasite', ciz: function(e){ return GV.esc(e.kapasite || GV.bos); } },
+    { k:'uretimYili', ad:'Üretim Yılı', sinif:'num', varsayilanGizli:true, gizli:true },
+    { k:'lokasyonAdi', ad:'Lokasyon', ciz: function(e){
+        return '<a href="lokasyon-detay.html?id=' + e.lokasyonId + '">' + GV.esc(e.lokasyonAdi) + '</a>'; } },
+    { k:'bolge', ad:'Bölge', varsayilanGizli:true, gizli:true },
+    { k:'durum', ad:'Kullanım Durumu', ciz: function(e){
+        return e.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif')
+          : e.durum === 'bakimda' ? GV.rozetOzel('warn','fa-screwdriver-wrench','Bakımda')
+          : GV.rozetOzel('off','fa-ban','Kullanım dışı'); } },
+    { k:'sonKontrol', ad:'Son Kontrol', ciz: function(e){ return GV.d(e.sonKontrol); } },
+    { k:'periyotAy', ad:'Periyot', sinif:'num', ciz: function(e){ return e.periyotAy ? e.periyotAy + ' ay' : GV.bos; } },
+    { k:'sonrakiKontrol', ad:'Sonraki Kontrol', ciz: function(e){
+        if (!e.sonrakiKontrol) return '<span class="muted">Ana tarih yok</span>';
+        var t = e.kalanGun < 0 ? 'danger' : e.kalanGun <= 60 ? 'warn' : 'ok';
+        return GV.d(e.sonrakiKontrol) + ' <span class="gtag ' + t + '">'
+          + (e.kalanGun < 0 ? Math.abs(e.kalanGun) + ' gün geçti' : e.kalanGun + ' gün') + '</span>'; } },
+    { k:'__islem', ad:'İşlem', ciz: function(e){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="ekipman-detay.html?id=' + e.id + '" aria-label="' + GV.esc(e.ad) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="ekipman-form.html?id=' + e.id + '" aria-label="' + GV.esc(e.ad) + ' düzenle"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>'
+          + '<button class="ia-btn" type="button" data-etiket="' + e.id + '" aria-label="' + GV.esc(e.ad) + ' QR etiketi"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></button>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ekTablo', kolonlar:kolonlar, secim:true, satirId: function(e){ return e.id; },
+    bosDurum:{ ikon:'fa-gears', baslik:'Ekipman bulunamadı', metin:'Filtrelerinize uyan ekipman kartı yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#ekBulk', aksiyonlar:[
+    { etiket:'QR etiketi yazdır', ikon:'fa-qrcode', tikla: function(s){
+        gvModal({ baslik:'QR etiketleri', ikon:'fa-qrcode', genislik:'gv-modal-lg',
+          metin: s.length + ' ekipman için etiket hazırlandı. Yazdır düğmesi tarayıcı yazdırma penceresini açar.',
+          govde:'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">'
+            + s.map(function(eid){
+                var e = A.kayit('ekipmanlar', eid);
+                if (!e) return '';
+                return '<div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;text-align:center">'
+                  + '<div style="width:64px;height:64px;margin:0 auto 8px;background-color:var(--gv-deep);color:var(--gv-mint);'
+                  + 'display:grid;place-items:center;font-size:26px;border-radius:8px"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></div>'
+                  + '<b style="display:block;font-size:11.5px;color:var(--ink)">' + GV.esc(e.kod) + '</b>'
+                  + '<code style="font-size:10px;color:var(--muted)">' + GV.esc(e.qr) + '</code></div>';
+              }).join('') + '</div>',
+          butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+            { etiket:'Yazdır', sinif:'btn-acc', ikon:'fa-print', kapat:false, tikla: function(){ window.print(); } }] });
+      } },
+    { etiket:'Durum değiştir', ikon:'fa-arrows-rotate', tikla: function(s){
+        gvModal({ baslik:'Kullanım durumunu değiştir', ikon:'fa-arrows-rotate',
+          metin: s.length + ' ekipmanın kullanım durumu güncellenecek.',
+          govde:'<div class="gfield"><label for="ekDurumSec">Yeni durum</label><select id="ekDurumSec">'
+            + '<option value="aktif">Aktif</option><option value="bakimda">Bakımda</option>'
+            + '<option value="kullanim-disi">Kullanım dışı</option></select></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Güncelle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+                var d = kap.querySelector('#ekDurumSec').value;
+                Promise.all(s.map(function(eid){ return A.guncelle('ekipmanlar', eid, { durum: d }); }))
+                  .then(function(){ gvToast(s.length + ' ekipmanın durumu güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+              } }] });
+      } },
+    { etiket:'Dışa aktar', ikon:'fa-file-export', sinif:'btn-ghost', tikla: function(s){
+        GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'ekipmanlar', modul:'Ekipman' }); } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'ekipmanlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#ekPager', boyut:20, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-etiket]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var e = A.kayit('ekipmanlar', b.getAttribute('data-etiket'));
+        gvModal({ baslik: e.ad + ' — QR Etiketi', ikon:'fa-qrcode',
+          govde:'<div style="text-align:center;padding:12px">'
+            + '<div style="width:132px;height:132px;margin:0 auto 14px;background-color:var(--gv-deep);color:var(--gv-mint);'
+            + 'display:grid;place-items:center;font-size:56px;border-radius:12px"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></div>'
+            + '<b style="display:block;font-size:15px;color:var(--ink);margin-bottom:4px">' + GV.esc(e.kod) + '</b>'
+            + '<code style="font-size:12.5px;color:var(--muted)">' + GV.esc(e.qr) + '</code>'
+            + '<p style="font-size:12px;color:var(--muted);margin-top:12px">' + GV.esc(e.marka + ' ' + e.model + ' · ' + e.seri) + '</p></div>',
+          butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+            { etiket:'Yazdır', sinif:'btn-acc', ikon:'fa-print', kapat:false, tikla: function(){ window.print(); } }] });
+      });
+    });
+  }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['kod','qr','ad','marka','model','seri','lokasyonAdi'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' },
+      { k:'bakimda', ad:'Bakımda', ikon:'fa-screwdriver-wrench' },
+      { k:'kullanim-disi', ad:'Kullanım dışı', ikon:'fa-ban' }] },
+    alanlar: [
+      { k:'kategoriId', ad:'Kategori', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'lokasyonId', ad:'Lokasyon', tur:'coklu', secenekler: A.lokasyonlar().map(function(l){ return { deger:l.id, ad:l.ad }; }) },
+      { k:'bolge', ad:'Bölge', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(e){ return e.bolge; }))).map(function(b){ return { deger:b, ad:b }; }) },
+      { k:'marka', ad:'Marka', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(e){ return e.marka; }))).sort().map(function(m){ return { deger:m, ad:m }; }) },
+      { k:'uretimYili', ad:'Üretim yılı', tur:'aralik' },
+      { k:'gecikti', ad:'Yalnız kontrol tarihi geçenler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('ekDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'ekipmanlar', modul:'Ekipman' });
+  });
+
+  document.getElementById('ekQr').addEventListener('click', function(){
+    gvModal({
+      baslik:'QR / barkod okut', ikon:'fa-qrcode',
+      metin:'Saha cihazında kamera açılır. Bu demo arayüzde kodu elle girerek ekipman kartına gidebilirsiniz.',
+      govde:'<div class="gfield"><label for="ekQrGiris">QR veya ekipman kodu</label>'
+        + '<input type="text" id="ekQrGiris" placeholder="GVT-0101-0001 veya EKP-0001" autocomplete="off"></div>'
+        + '<div id="ekQrSonuc" style="margin-top:14px"></div>',
+      acildi: function(kap){
+        var giris = kap.querySelector('#ekQrGiris'), sonuc = kap.querySelector('#ekQrSonuc');
+        giris.addEventListener('input', function(){
+          var q = giris.value.trim().toLocaleUpperCase('tr-TR');
+          if (q.length < 4) { sonuc.innerHTML = ''; return; }
+          var bulunan = kaynak.filter(function(e){
+            return e.qr.toLocaleUpperCase('tr-TR').indexOf(q) !== -1 || e.kod.toLocaleUpperCase('tr-TR').indexOf(q) !== -1; }).slice(0,5);
+          sonuc.innerHTML = bulunan.length
+            ? bulunan.map(function(e){
+                return '<a class="gs-item" href="' + GV.href('ekipman-detay.html?id=' + e.id) + '">'
+                  + '<span class="gs-ico"><i class="fa-solid fa-gears" aria-hidden="true"></i></span>'
+                  + '<span class="gs-txt"><b>' + GV.esc(e.ad) + '</b><span>' + GV.esc(e.kod + ' · ' + e.lokasyonAdi) + '</span></span></a>';
+              }).join('')
+            : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+              + '<span>Bu kodla eşleşen ekipman bulunamadı. Sahada yeni ekipman tespit ettiyseniz kayıt açabilirsiniz.</span></div>';
+        });
+      },
+      butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+        { etiket:'Yeni Ekipman', sinif:'btn-acc', ikon:'fa-plus', tikla: function(){ location.href = GV.href('ekipman-form.html'); } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>
