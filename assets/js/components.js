@@ -138,6 +138,15 @@
       return h;
     }
 
+    function basligiTazele() {
+      var hepsi = kap.querySelector('#gvChkAll');
+      if (!hepsi) return;
+      var tumu = kap.querySelectorAll('.gv-row-chk');
+      var sec = kap.querySelectorAll('.gv-row-chk:checked');
+      hepsi.checked = sec.length === tumu.length && tumu.length > 0;
+      hepsi.indeterminate = sec.length > 0 && sec.length < tumu.length;
+    }
+
     function ciz(veri) {
       if (!veri.length) {
         kap.innerHTML = '';
@@ -149,21 +158,23 @@
         + (secenek.altToplam ? '<tfoot>' + secenek.altToplam(veri) + '</tfoot>' : '')
         + '</table>';
       if (GV.rolBaglantilariniIsle) GV.rolBaglantilariniIsle(kap);
-      var hepsi = kap.querySelector('#gvChkAll');
-      if (hepsi) {
-        hepsi.addEventListener('change', function () {
-          kap.querySelectorAll('.gv-row-chk').forEach(function (c) { c.checked = hepsi.checked; });
-          if (secenek.secimDegisti) secenek.secimDegisti(secililer());
-        });
+      /* Seçim olayları kap üzerinde bir kez bağlanır; ciz() her çağrıldığında
+         yeniden bağlanırsa dinleyiciler birikir ve secimDegisti N kez tetiklenir. */
+      if (!kap.dataset.gvSecimBagli) {
+        kap.dataset.gvSecimBagli = '1';
         kap.addEventListener('change', function (e) {
-          if (!e.target.classList.contains('gv-row-chk')) return;
-          var tumu = kap.querySelectorAll('.gv-row-chk');
-          var sec = kap.querySelectorAll('.gv-row-chk:checked');
-          hepsi.checked = sec.length === tumu.length && tumu.length > 0;
-          hepsi.indeterminate = sec.length > 0 && sec.length < tumu.length;
+          var t = e.target;
+          if (t.id === 'gvChkAll') {
+            kap.querySelectorAll('.gv-row-chk').forEach(function (c) { c.checked = t.checked; });
+            if (secenek.secimDegisti) secenek.secimDegisti(secililer());
+            return;
+          }
+          if (!t.classList.contains('gv-row-chk')) return;
+          basligiTazele();
           if (secenek.secimDegisti) secenek.secimDegisti(secililer());
         });
       }
+      basligiTazele();
       if (secenek.satirTikla) {
         kap.querySelectorAll('tbody tr').forEach(function (tr) {
           tr.style.cursor = 'pointer';
