@@ -120,7 +120,22 @@
       doğrudan erişimi kalmadı (CLAUDE.md §7 istisnasız)
 - [x] Kalibrasyon uyarı eşiği artık Ayarlar'dan geliyor (3 sayfada 13 sabit değer bağlandı)
 
-## FAZ 11 — QA
+## FAZ 11 — QA  ⏳ DEVAM EDİYOR
+
+**Durum:** Faz 0–10 bitti ve push edildi (son commit `5b4e240`). BRIEF'in 73 sayfasının
+tamamı üretildi, eksik yok. Kendi jsdom tarayıcım (`scratchpad/qa.js`) 73 sayfada
+**0 bulgu** veriyor.
+
+**Çalışan 4 QA subagent'ı (yalnız rapor yazarlar, düzeltmeyi ANA AJAN yapar):**
+- Lens A — kırık link + konsol hatası + ölü etkileşim (13 rolle tarama)
+- Lens B — responsive 1100/980/640/480 + yatay taşma + yazdırma
+- Lens C — a11y + semantik HTML (modallar açılarak denetleniyor)
+- Lens D — Türkçe format + 5 durum akışı tutarlılığı + 10 iş kuralı ihlali
+
+**Devam ederken yapılacak:** raporlar geldiğinde bulguları önem sırasına göre BEN
+düzelteceğim, sonra `qa.js` ile yeniden tarayıp Faz 11 commit'i atacağım.
+
+### Kontrol listesi
 - [ ] Kırık link taraması (otomatik script) — 0 bulgu
 - [ ] Konsol hatası — 0
 - [ ] Yatay taşma — 0
