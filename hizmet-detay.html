@@ -162,7 +162,7 @@
     + A.liste('fiyatListeleri').filter(function(f){ return f.durum === 'aktif'; }).map(function(f){
         var deger = f.tur === 'satis' ? A.birimSatisFiyati(h.id, f.id) : fiyat.maliyet;
         return '<tr><td data-lbl="Fiyat Listesi"><a href="fiyat-listeleri.html?id=' + f.id + '">' + GV.esc(f.ad) + '</a></td>'
-          + '<td data-lbl="Tür">' + (f.tur === 'satis' ? '<span class="gtag mint">Müşteri satışı</span>' : '<span class="gtag warn">Taşeron maliyeti</span>') + '</td>'
+          + '<td data-lbl="Tür">' + (f.tur === 'satis' ? '<span class="gtag mint">Müşteri satışı</span>' : '<span class="gtag warn"><i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeron maliyeti</span>') + '</td>'
           + '<td data-lbl="Geçerlilik">' + GV.d(f.gecerli) + ' – ' + GV.d(f.bitis) + '</td>'
           + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(deger) + ' / ' + GV.esc(birimAd[h.birim] || h.birim) + '</td></tr>';
       }).join('')
@@ -182,9 +182,9 @@
           return '<tr><td data-lbl="Kod"><b class="t-strong">' + GV.esc(m.k) + '</b></td>'
             + '<td data-lbl="Kontrol Maddesi">' + GV.esc(m.ad) + '</td>'
             + '<td data-lbl="Ölçüm">' + (m.olcum
-                ? '<span class="gtag info">' + GV.esc(m.olcum.ad + (m.olcum.birim ? ' (' + m.olcum.birim + ')' : '')) + '</span>'
+                ? '<span class="gtag info"><i class="fa-solid fa-ruler" aria-hidden="true"></i>' + GV.esc(m.olcum.ad + (m.olcum.birim ? ' (' + m.olcum.birim + ')' : '')) + '</span>'
                 : '<span class="muted">Ölçüm yok</span>') + '</td>'
-            + '<td data-lbl="Değerlendirme"><span class="gtag ok">Uygun</span> <span class="gtag danger">Uygun değil</span> <span class="gtag">Uygulanamaz</span></td></tr>';
+            + '<td data-lbl="Değerlendirme"><span class="gtag ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Uygun</span> <span class="gtag danger"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Uygun değil</span> <span class="gtag">Uygulanamaz</span></td></tr>';
         }).join('') + '</tbody></table></div>'
     : gvEmpty({ ikon:'fa-clipboard-check', baslik:'Kontrol maddesi tanımlanmadı',
         metin:'Bu hizmet kategorisi için saha kontrol formu maddeleri henüz tanımlanmadı. Genel kontrol formu kullanılır.' });

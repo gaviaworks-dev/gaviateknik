@@ -499,7 +499,7 @@
                 return '<tr><td><b>' + x.satir + '</b></td>'
                   + '<td>' + GV.esc(x.kayit.ad || x.kayit.musteriKod || x.kayit.lokasyonKod || x.kayit.eposta || '—') + '</td>'
                   + '<td>' + x.sorunlar.map(function(s){
-                      return '<span class="gtag danger" style="margin:2px 3px 2px 0">' + GV.esc(s) + '</span>'; }).join('') + '</td></tr>';
+                      return '<span class="gtag danger" style="margin:2px 3px 2px 0"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>' + GV.esc(s) + '</span>'; }).join('') + '</td></tr>';
               }).join('') + '</tbody></table></div>'
             + '<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
             + '<button class="btn btn-ghost" type="button" id="vaHataliIndir">'

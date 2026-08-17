@@ -147,7 +147,7 @@
           : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
           : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
     { k:'uygunsuzlukSayisi', ad:'Uygunsuzluk', sinif:'num', ciz: function(r){
-        return r.uygunsuzlukSayisi ? '<span class="gtag danger">' + GV.n(r.uygunsuzlukSayisi) + '</span>' : GV.n(0); } },
+        return r.uygunsuzlukSayisi ? '<span class="gtag danger"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>' + GV.n(r.uygunsuzlukSayisi) + '</span>' : GV.n(0); } },
     { k:'durum', ad:'Rapor Durumu', ciz: function(r){
         return r.arsivMi ? GV.rozetOzel('off','fa-box-archive','Arşiv sürümü') : GV.rozet('rapor', r.durum); } },
     { k:'slaGosterim', ad:'SLA', ciz: function(r){

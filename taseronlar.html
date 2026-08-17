@@ -125,7 +125,7 @@
       { k:'lokasyonSayisi', ad:'Atanan Lokasyon', sinif:'num', ciz: function(t){ return GV.n(t.lokasyonSayisi); } },
       { k:'aktifIs', ad:'Aktif İş', sinif:'num', ciz: function(t){ return GV.n(t.aktifIs); } },
       { k:'bekleyenRapor', ad:'Bekleyen Rapor', sinif:'num', ciz: function(t){
-          return t.bekleyenRapor ? '<span class="gtag warn">' + GV.n(t.bekleyenRapor) + '</span>' : GV.n(0); } },
+          return t.bekleyenRapor ? '<span class="gtag warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>' + GV.n(t.bekleyenRapor) + '</span>' : GV.n(0); } },
       { k:'hakedisTutar', ad:'Toplam Hakediş', sinif:'num', ciz: function(t){ return GV.tl(t.hakedisTutar); } },
       { k:'odenmemisTutar', ad:'Ödenmemiş', sinif:'num', ciz: function(t){
           return t.odenmemisTutar ? '<b style="color:var(--warning)">' + GV.tl(t.odenmemisTutar) + '</b>' : GV.tl(0); } },

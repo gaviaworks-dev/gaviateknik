@@ -118,8 +118,11 @@
     { k:'periyotAy', ad:'Periyot', sinif:'num', ciz: function(e){ return e.periyotAy ? e.periyotAy + ' ay' : GV.bos; } },
     { k:'sonrakiKontrol', ad:'Sonraki Kontrol', ciz: function(e){
         if (!e.sonrakiKontrol) return '<span class="muted">Ana tarih yok</span>';
-        var t = e.kalanGun < 0 ? 'danger' : e.kalanGun <= 60 ? 'warn' : 'ok';
+        var t = e.kalanGun < 0 ? 'danger' : e.kalanGun <= GV.ayar('belgeEsik') ? 'warn' : 'ok';
+        var ik = e.kalanGun < 0 ? 'fa-calendar-xmark'
+          : t === 'warn' ? 'fa-hourglass-half' : 'fa-calendar-check';
         return GV.d(e.sonrakiKontrol) + ' <span class="gtag ' + t + '">'
+          + '<i class="fa-solid ' + ik + '" aria-hidden="true"></i>'
           + (e.kalanGun < 0 ? Math.abs(e.kalanGun) + ' gün geçti' : e.kalanGun + ' gün') + '</span>'; } },
     { k:'__islem', ad:'İşlem', ciz: function(e){
         return '<div class="row-acts">'

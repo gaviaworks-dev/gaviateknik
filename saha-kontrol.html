@@ -128,7 +128,7 @@
         return GV.bar(s.ilerleme, { etiket: s.tamamlanan + '/' + s.toplam }); } },
     { k:'fotograf', ad:'Fotoğraf', sinif:'num', ciz: function(s){ return GV.n(s.fotograf); } },
     { k:'uygunsuzluk', ad:'Uygunsuzluk', sinif:'num', ciz: function(s){
-        return s.uygunsuzluk ? '<span class="gtag danger">' + GV.n(s.uygunsuzluk) + '</span>' : GV.n(0); } },
+        return s.uygunsuzluk ? '<span class="gtag danger"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>' + GV.n(s.uygunsuzluk) + '</span>' : GV.n(0); } },
     { k:'cevrimdisi', ad:'Bağlantı', ciz: function(s){
         return s.cevrimdisi ? GV.rozetOzel('warn','fa-wifi','Çevrimdışı çalışıldı') : GV.rozetOzel('ok','fa-wifi','Çevrimiçi'); } },
     { k:'senkron', ad:'Senkronizasyon', ciz: function(s){

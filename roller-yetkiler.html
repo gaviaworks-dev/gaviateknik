@@ -288,7 +288,7 @@
         return '<code style="font-size:11.5px">' + GV.esc(acilisSayfasi(r.id)) + '</code>'; } },
     { k:'aciklama', ad:'Açıklama', ciz: function(r){
         return '<span class="muted">' + GV.esc(r.aciklama) + '</span>'
-          + (yetkiAl(r.id).ozel ? ' <span class="gtag warn">Yetkisi düzenlendi</span>' : ''); } },
+          + (yetkiAl(r.id).ozel ? ' <span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Yetkisi düzenlendi</span>' : ''); } },
     { k:'__islem', ad:'İşlem', ciz: function(r){
         return '<div class="row-acts">'
           + '<a class="btn btn-sm btn-ghost" href="' + GV.esc(acilisSayfasi(r.id)) + '?role=' + GV.esc(r.id) + '">'

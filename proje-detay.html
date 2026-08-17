@@ -421,7 +421,7 @@
             + '<td data-lbl="Lokasyon" class="num">' + GV.n(tsrSayac[tid]) + '</td>'
             + '<td data-lbl="Hakediş" class="num">' + GV.tl(hak.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
             + '<td data-lbl="Ödeme Kuralı">' + (t && t.odemeKurali === 'musteri-tahsilati-sonrasi'
-                ? '<span class="gtag warn">Tahsilat sonrası</span>' : '<span class="gtag">Vade tarihinde</span>') + '</td>'
+                ? '<span class="gtag warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>Tahsilat sonrası</span>' : '<span class="gtag">Vade tarihinde</span>') + '</td>'
             + '<td data-lbl="Performans" class="num">' + GV.bar((t ? t.performans : 0) / 100, { etiket: (t ? t.performans : 0) + '%' }) + '</td></tr>';
         }).join('') + '</tbody></table></div>'
     : gvEmpty({ ikon:'fa-people-carry-box', baslik:'Taşeron atanmadı', metin:'Bu projenin lokasyonlarına henüz taşeron atanmadı.' });

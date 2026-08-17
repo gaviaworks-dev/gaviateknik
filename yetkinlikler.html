@@ -231,7 +231,7 @@
             + (y.tanimliSayi > y.yetkinSayi
               ? ' <span class="gcell-sub">/ ' + GV.n(y.tanimliSayi) + ' tanımlı</span>' : ''); } },
       { k:'yaklasanSayi', ad:'Belgesi Dolan', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(y){
-          return y.yaklasanSayi ? '<span class="gtag warn">' + GV.n(y.yaklasanSayi) + '</span>' : GV.n(0); } },
+          return y.yaklasanSayi ? '<span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>' + GV.n(y.yaklasanSayi) + '</span>' : GV.n(0); } },
       { k:'hizmetSayisi', ad:'Gerektiren Hizmet', sinif:'num', ciz: function(y){ return GV.n(y.hizmetSayisi); } },
       { k:'pozisyonSayisi', ad:'Envanter Pozisyonu', sinif:'num', varsayilanGizli:true, gizli:true,
         ciz: function(y){ return GV.n(y.pozisyonSayisi); } },

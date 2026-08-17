@@ -297,7 +297,7 @@
           + durum.yeniEkipmanlar.map(function(y,i){
               return '<div class="fw-ozet-satir"><b>' + GV.esc(y.ad) + '<br>'
                 + '<span style="font-size:11.5px;font-weight:500;color:var(--muted)">' + GV.esc(y.hizmetAd) + '</span></b>'
-                + '<span><span class="gtag info">İlave tespit</span> '
+                + '<span><span class="gtag info"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i>İlave tespit</span> '
                 + '<button class="ia-btn danger" type="button" data-yeni-sil="' + i + '" aria-label="Kaldır">'
                 + '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></span></div>';
             }).join('') + '</div></section>'
@@ -393,7 +393,7 @@
       + '</div></section>'
       + '<section class="gv-card" style="margin-top:16px"><div class="gc-head">'
       + '<h2 class="gc-title"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>Gösterilmeyen / Eksik Ekipmanlar</h2>'
-      + '<span class="gtag warn">' + GV.n(Object.keys(durum.eksikler).length) + '</span></div><div class="gc-body">'
+      + '<span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>' + GV.n(Object.keys(durum.eksikler).length) + '</span></div><div class="gc-body">'
       + (Object.keys(durum.eksikler).length
         ? Object.keys(durum.eksikler).map(function(bid){
             var b = birimBul(bid);

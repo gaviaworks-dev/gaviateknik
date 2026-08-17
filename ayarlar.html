@@ -545,7 +545,7 @@
         + '<td data-lbl="Önem">' + GV.rozetOzel(tonSinif, t.ton === 'ok' ? 'fa-circle-check' : t.ton === 'info' ? 'fa-circle-info' : 'fa-triangle-exclamation', tonAd) + '</td>'
         + '<td data-lbl="Varsayılan kanallar">' + kanalRozet(t.kanallar) + '</td>'
         + '<td data-lbl="Etkin kanallar">' + kanalRozet(k.kanallar)
-        + (k.ozel ? ' <span class="gtag warn">Özelleştirildi</span>' : '') + '</td>'
+        + (k.ozel ? ' <span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Özelleştirildi</span>' : '') + '</td>'
         + '<td data-lbl="Hedef roller">' + rolRozet(k.roller) + '</td>'
         + '<td data-lbl="İşlem"><div class="row-acts">'
         + '<button class="btn btn-sm btn-ghost" type="button" data-kural="' + GV.esc(t.k) + '">'

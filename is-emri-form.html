@@ -174,7 +174,7 @@
             + ' aria-label="' + GV.esc(p.ad) + ' ata"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
             + '<td><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
             + '<td>' + (gerekli.length
-                ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + (uygunlar.length ? '' : ' <span class="gtag danger">yetersiz</span>')
+                ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + (uygunlar.length ? '' : ' <span class="gtag danger"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>yetersiz</span>')
                 : '<span class="muted">Yetkinlik gerekmiyor</span>') + '</td>'
             + '<td class="num">' + GV.n(p.isYuku) + '</td>'
             + '<td>' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir') : GV.rozetOzel('danger','fa-ban', sebep || 'Atanamaz')) + '</td></tr>';

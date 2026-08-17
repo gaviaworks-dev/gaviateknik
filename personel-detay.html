@@ -353,7 +353,7 @@
             + '<td data-lbl="Kategori">' + GV.esc(r.kategoriAd) + '</td>'
             + '<td data-lbl="Kontrol Tarihi">' + GV.d(r.kontrolTarihi) + '</td>'
             + '<td data-lbl="Sonuç">' + GV.rozetOzel(s[0], s[1], s[2])
-            + (r.uygunsuzlukSayisi ? ' <span class="gtag warn">' + GV.n(r.uygunsuzlukSayisi) + ' uygunsuzluk</span>' : '') + '</td>'
+            + (r.uygunsuzlukSayisi ? ' <span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>' + GV.n(r.uygunsuzlukSayisi) + ' uygunsuzluk</span>' : '') + '</td>'
             + '<td data-lbl="SLA Durumu">' + slaHucre + '</td>'
             + '<td data-lbl="Rapor Durumu">' + GV.rozet('rapor', r.durum) + '</td></tr>';
         }).join('') + '</tbody></table></div>'

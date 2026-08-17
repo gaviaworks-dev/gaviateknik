@@ -146,7 +146,7 @@
     { k:'tamamlanan', ad:'Tamamlanan', sinif:'num', ciz: function(p){ return GV.n(p.tamamlanan); } },
     { k:'planlananLok', ad:'Planlanan', sinif:'num', ciz: function(p){ return GV.n(p.planlananLok); } },
     { k:'bilgiBekleyen', ad:'Bilgi Bekleyen', sinif:'num', ciz: function(p){
-        return p.bilgiBekleyen ? '<span class="gtag warn">' + GV.n(p.bilgiBekleyen) + '</span>' : GV.n(0); } },
+        return p.bilgiBekleyen ? '<span class="gtag warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>' + GV.n(p.bilgiBekleyen) + '</span>' : GV.n(0); } },
     { k:'raporlanan', ad:'Raporlanan', sinif:'num', ciz: function(p){ return GV.n(p.raporlanan); } },
     { k:'faturalanan', ad:'Faturalanan', sinif:'num', ciz: function(p){ return GV.n(p.faturalanan); } },
     { k:'ilerleme', ad:'İlerleme', ciz: function(p){ return GV.bar(p.ilerleme); } },

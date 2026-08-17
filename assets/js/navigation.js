@@ -236,6 +236,24 @@
   })();
 
   /* ================= 1) RAIL ================= */
+  /* Klavye kullanıcısı her sayfada 76px rail + 264px menü + topbar'ı tab'layarak
+     geçmek zorunda kalmasın: içeriğe atla bağlantısı gövdenin ilk odaklanabilir
+     öğesidir, yalnız odaklandığında görünür. */
+  (function iceriyeAtla() {
+    if (document.getElementById('gvSkip')) return;
+    var ana = document.querySelector('.gv-main');
+    if (!ana) return;
+    if (!ana.id) ana.id = 'gvIcerik';
+    var a = document.createElement('a');
+    a.id = 'gvSkip'; a.className = 'gv-skip'; a.href = '#' + ana.id;
+    a.textContent = 'İçeriğe atla';
+    a.addEventListener('click', function () {
+      ana.setAttribute('tabindex', '-1');
+      ana.focus();
+    });
+    document.body.insertBefore(a, document.body.firstChild);
+  })();
+
   var railEl = document.getElementById('gvRail');
   if (railEl) {
     var h = '<a class="gv-rail-logo" href="' + rolluHref('panel.html') + '" data-tip="' + METIN.marka + ' — ' + METIN.urun + '" aria-label="Ana panel">G</a>'
@@ -294,7 +312,7 @@
     + '<div class="gv-top-tools">'
     +   '<button class="gv-iconbtn gv-langbtn" id="gvLang" data-tip="' + METIN.dil + '" aria-label="' + METIN.dil + '">TR</button>'
     +   '<a class="gv-iconbtn" href="' + rolluHref('bildirimler.html') + '" data-tip="' + METIN.bildirim + '" aria-label="' + METIN.bildirim + '">'
-    +     '<i class="fa-regular fa-bell" aria-hidden="true"></i><span class="gb-cnt" id="gvBellCount">5</span></a>'
+    +     '<i class="fa-regular fa-bell" aria-hidden="true"></i><span class="gb-cnt" id="gvBellCount" aria-live="polite" aria-atomic="true">5</span></a>'
     +   '<div style="position:relative">'
     +     '<button class="gv-me" id="gvMe" aria-haspopup="menu" aria-expanded="false">'
     +       '<span class="me-ava">' + kullanici.ini + '</span>'

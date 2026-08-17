@@ -103,7 +103,7 @@
     { k:'no', ad:'Fatura No', kilitli:true, ciz: function(f){
         return '<div class="gcell-info"><div class="gcell-name">'
           + '<button type="button" class="btn-link" data-fatura-ac="' + f.id + '">' + GV.esc(f.no) + '</button>'
-          + (f.kismiMi ? ' <span class="gtag warn">Kısmi</span>' : '') + '</div>'
+          + (f.kismiMi ? ' <span class="gtag warn"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>Kısmi</span>' : '') + '</div>'
           + '<div class="gcell-sub">' + GV.esc(f.aciklama) + '</div></div>'; } },
     { k:'musteriAd', ad:'Müşteri', ciz: function(f){
         return '<a href="musteri-detay.html?id=' + f.musteriId + '">' + GV.esc(f.musteriAd) + '</a>'; } },

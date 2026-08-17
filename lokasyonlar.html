@@ -154,7 +154,7 @@
     { k:'faturaDurum', ad:'Fatura', ciz: function(l){ return GV.rozet('fatura', l.faturaDurum); } },
     { k:'sonrakiKontrol', ad:'Sonraki Kontrol', ciz: function(l){ return GV.d(l.sonrakiKontrol); } },
     { k:'yetkiliAd', ad:'Yetkili Kişi', ciz: function(l){
-        return l.yetkiliAd ? GV.esc(l.yetkiliAd) : '<span class="gtag warn">Tanımsız</span>'; } },
+        return l.yetkiliAd ? GV.esc(l.yetkiliAd) : '<span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Tanımsız</span>'; } },
     { k:'m2', ad:'Alan (m²)', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(l){ return GV.n(l.m2); } },
     { k:'ekipmanMiktar', ad:'Ekipman Miktarı', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(l){ return GV.n(l.ekipmanMiktar); } },
     { k:'taseronAd', ad:'Taşeron', varsayilanGizli:true, gizli:true, ciz: function(l){ return GV.esc(l.taseronAd || GV.bos); } },

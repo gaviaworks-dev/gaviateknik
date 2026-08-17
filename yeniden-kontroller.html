@@ -106,7 +106,7 @@
     { k:'talepEden', ad:'Talep Eden', ciz: function(y){
         return '<span class="gtag">' + GV.esc(y.talepEden) + '</span>'; } },
     { k:'planTarihi', ad:'Planlanan Tarih', ciz: function(y){
-        return y.planTarihi ? GV.d(y.planTarihi) : '<span class="gtag warn">Planlanmadı</span>'; } },
+        return y.planTarihi ? GV.d(y.planTarihi) : '<span class="gtag warn"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>Planlanmadı</span>'; } },
     { k:'ucretli', ad:'Ücretlendirme', ciz: function(y){
         return y.ucretli ? GV.rozetOzel('info','fa-coins','Ücretli') : GV.rozetOzel('off','fa-gift','Ücretsiz'); } },
     { k:'bekleyenGun', ad:'Bekleme', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(y){

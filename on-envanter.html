@@ -151,7 +151,7 @@
     { k:'tur', ad:'Tür' },
     { k:'m2', ad:'Alan (m²)', sinif:'num', ciz: function(l){ return GV.n(l.m2); } },
     { k:'kalemSayisi', ad:'Hizmet Kalemi', sinif:'num', ciz: function(l){
-        return l.kalemSayisi ? GV.n(l.kalemSayisi) : '<span class="gtag warn">Envanter yok</span>'; } },
+        return l.kalemSayisi ? GV.n(l.kalemSayisi) : '<span class="gtag warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Envanter yok</span>'; } },
     { k:'toplamMiktar', ad:'Planlanan Miktar', sinif:'num', ciz: function(l){ return GV.n(l.toplamMiktar); } },
     { k:'kaynakAd', ad:'Envanter Kaynağı', ciz: function(l){
         if (!l.kaynakTur) return '<span class="muted">—</span>';
