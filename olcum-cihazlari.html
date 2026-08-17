@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Ölçüm Cihazları — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="kaynak" data-screen="olcum-cihazlari">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Personel ve Taşeron</div>
+        <h1>Ölçüm Cihazları</h1>
+        <p class="ph-sub">Saha kontrollerinde kullanılan ölçüm ve test cihazları; zimmet, kullanım kapsamı ve kalibrasyon geçerliliği ile izlenir. Kalibrasyon geçerliliği dolmuş cihaz iş emrine atanamaz.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ocDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-ghost" type="button" id="ocPlan"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>Kalibrasyon Planı</button>
+      <a class="btn btn-acc" href="kalibrasyonlar.html"><i class="fa-solid fa-vials" aria-hidden="true"></i>Kalibrasyon Kayıtları</a></div>
+    </div>
+    <div class="kpi-grid" id="ocKpi"></div>
+
+    <section class="gv-card">
+      <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Cihaz kodu, cihaz adı, marka, model, seri no…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div id="ocBulk"></div>
+      <div class="gc-body flush" id="ocTablo"></div>
+      <div class="gv-pager" id="ocPager" hidden></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Kalibrasyon Görünümü
+        <span class="bs-sub">Geçerlilik süresi ve kuruluş bazlı kalibrasyon maliyeti</span></h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Kalibrasyon Takvimi</h3></div>
+          <div class="gc-body" id="ocTakvim"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i>Kalibrasyon Maliyeti</h3></div>
+          <div class="gc-body"><div class="chart-box" id="ocMaliyet"></div><dl class="info-rows" id="ocMaliyetListe"></dl></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+
+  /* ---- kaynak: cihazlar + iş kuralı sonucu ---- */
+  var kaynak = A.liste('olcumCihazlari').map(function(c){
+    var uy = A.cihazAtanabilir(c.id);                 /* İŞ KURALI — tek kaynak */
+    var kalan = A.gunFarki(BUGUN, c.kalibrasyonBitis);
+    var p = A.kayit('personeller', c.zimmet);
+    var katlar = (c.kapsam || []).map(function(k){ var x = A.kayit('hizmetKategorileri', k); return x || { id:k, ad:k, ikon:'fa-gears', renk:'#69708A' }; });
+    return Object.assign({}, c, {
+      kalanGun: kalan,
+      zimmetAd: p ? p.ad : GV.bos,
+      zimmetGorev: p ? p.gorev : '',
+      katlar: katlar,
+      kapsamMetni: katlar.map(function(k){ return k.ad; }).join(', '),
+      uygunluk: uy,
+      atanamaz: !uy.uygun,
+      uyarili: uy.uygun && !!uy.uyari,
+      uygunlukMetin: uy.uygun ? (uy.uyari ? 'Uyarılı' : 'Uygun') : 'Atanamaz',
+      gecmis: kalan != null && kalan < 0
+    });
+  });
+
+  function kuruluslar(){
+    var s = {};
+    kaynak.forEach(function(c){ if (c.kurulus) s[c.kurulus] = 1; });
+    A.liste('kalibrasyonlar').forEach(function(k){ if (k.kurulus) s[k.kurulus] = 1; });
+    return Object.keys(s).sort();
+  }
+
+  /* ================= KPI ================= */
+  gvKpi('#ocKpi', [
+    { ikon:'fa-ruler-combined', sayi: GV.n(kaynak.length), etiket:'Kayıtlı ölçüm cihazı',
+      delta:{ yon:'flat', metin: GV.n(kuruluslar().length) + ' kalibrasyon kuruluşu ile çalışılıyor' } },
+    { ikon:'fa-circle-check', sayi: GV.n(kaynak.filter(function(c){ return c.durum === 'kullanimda'; }).length), etiket:'Kullanımda', ton:'ok' },
+    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= 30; }).length),
+      etiket:'Kalibrasyonu 30 gün içinde dolacak', ton:'warn' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.n(kaynak.filter(function(c){ return c.gecmis; }).length),
+      etiket:'Kalibrasyonu geçmiş — atanamaz', ton:'danger' }
+  ]);
+
+  /* ================= ORTAK ROZET / AKSİYON ÜRETİCİLERİ ================= */
+  function durumRozet(c){
+    return c.durum === 'kullanimda' ? GV.rozetOzel('ok','fa-circle-check','Kullanımda')
+      : c.durum === 'serviste' ? GV.rozetOzel('warn','fa-screwdriver-wrench','Serviste')
+      : GV.rozetOzel('danger','fa-ban','Kalibrasyon geçmiş');
+  }
+  /* Atama uygunluğu — renk tek başına gösterge değil: ikon + metin taşır */
+  function uygunlukRozet(c){
+    if (!c.uygunluk.uygun) return GV.rozetOzel('danger','fa-lock','Atanamaz — ' + c.uygunluk.sebep);
+    if (c.uygunluk.uyari) return GV.rozetOzel('warn','fa-triangle-exclamation', c.uygunluk.uyari);
+    return GV.rozetOzel('ok','fa-circle-check','İş emrine atanabilir');
+  }
+
+  /* İş emrine atama — kural dışı cihaz için buton hiç açılmaz */
+  function ataModal(cihazId){
+    var c = A.kayit('olcumCihazlari', cihazId);
+    if (!c) return;
+    var uy = A.cihazAtanabilir(cihazId);
+    if (!uy.uygun) {
+      gvResult(false, { baslik:'Cihaz iş emrine atanamaz',
+        metin: '<b>' + GV.esc(c.kod + ' · ' + c.ad) + '</b> atanamaz. Gerekçe: ' + GV.esc(uy.sebep) });
+      return;
+    }
+    var aday = A.isEmirleri().filter(function(ie){
+      return ['planlandi','sahada','tarih-onayi-bekleniyor'].indexOf(ie.operasyonDurum) !== -1; });
+    if (!aday.length) {
+      gvResult(false, { baslik:'Atanabilir iş emri yok',
+        metin:'Planlanmış veya sahadaki bir iş emri bulunmuyor. Önce iş emri oluşturun.',
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+          { etiket:'İş Emirleri', sinif:'btn-acc', ikon:'fa-clipboard-list',
+            tikla: function(){ location.href = GV.href('is-emirleri.html'); } }] });
+      return;
+    }
+    gvModal({
+      baslik:'İş emrine cihaz ata', ikon:'fa-clipboard-check',
+      metin:'<b>' + GV.esc(c.kod + ' · ' + c.ad) + '</b> seçtiğiniz iş emrinin cihaz listesine eklenecek.'
+        + (uy.uyari ? ' <b>Uyarı:</b> ' + GV.esc(uy.uyari) : ''),
+      govde:'<div class="gfield"><label for="ocAtaIe">İş emri</label><select id="ocAtaIe">'
+        + aday.map(function(ie){
+            return '<option value="' + GV.esc(ie.id) + '">' + GV.esc(ie.id + ' · ' + ie.lokasyonAd + ' · ' + GV.d(ie.tarih)) + '</option>';
+          }).join('') + '</select></div>'
+        + (uy.uyari ? '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+            + '<span>' + GV.esc(uy.uyari) + ' Atama yapılabilir; kontrol tarihinden önce kalibrasyon yenilenmelidir.</span></div>' : ''),
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'İş emrine ata', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ieId = kap.querySelector('#ocAtaIe').value;
+            var ie = A.kayit('isEmirleri', ieId);
+            var liste = (ie.cihazlar || []).slice();
+            if (liste.indexOf(cihazId) !== -1) { gvToast('Cihaz bu iş emrinde zaten kayıtlı.', { ton:'info' }); return; }
+            liste.push(cihazId);
+            A.guncelle('isEmirleri', ieId, { cihazlar: liste }).then(function(){
+              gvToast(c.kod + ' cihazı ' + ieId + ' iş emrine atandı.', { ton:'ok' });
+            });
+          } }]
+    });
+  }
+
+  /* Kalibrasyona gönder — durum 'serviste' olur */
+  function kalibrasyonModal(idler){
+    var adlar = idler.map(function(i){ var c = A.kayit('olcumCihazlari', i); return c ? c.kod + ' · ' + c.ad : i; });
+    gvModal({
+      baslik: idler.length > 1 ? idler.length + ' cihaz kalibrasyona gönderilsin' : 'Cihaz kalibrasyona gönderilsin',
+      ikon:'fa-vials', genislik:'gv-modal-lg',
+      metin:'Seçilen cihaz kalibrasyon sürecine alınır ve <b>serviste</b> durumuna geçer. Serviste olan cihaz iş emrine atanamaz.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="ocKlbKurulus">Kalibrasyon kuruluşu</label><select id="ocKlbKurulus">'
+        + kuruluslar().map(function(k){ return '<option value="' + GV.esc(k) + '">' + GV.esc(k) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="ocKlbTarih">Planlanan gönderim tarihi</label>'
+        + '<input type="date" id="ocKlbTarih" value="' + BUGUN + '"></div>'
+        + '<div class="gfield"><label for="ocKlbMaliyet">Tahmini maliyet (₺)</label>'
+        + '<input type="number" id="ocKlbMaliyet" min="0" step="50" value="2000" inputmode="numeric"></div>'
+        + '<div class="gfield full"><label for="ocKlbNot">Açıklama</label>'
+        + '<textarea id="ocKlbNot" rows="2" placeholder="Sevk gerekçesi, kargo/kurye bilgisi…"></textarea></div>'
+        + '</div>'
+        + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+        + '<span>Kapsam: ' + GV.esc(adlar.join(' · ')) + '</span></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kalibrasyona gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
+            var kurulus = kap.querySelector('#ocKlbKurulus').value;
+            var tarih = kap.querySelector('#ocKlbTarih').value || null;
+            var maliyet = Number(kap.querySelector('#ocKlbMaliyet').value) || 0;
+            var not = kap.querySelector('#ocKlbNot').value.trim();
+            Promise.all(idler.map(function(i){
+              return A.guncelle('olcumCihazlari', i, { durum:'serviste', kurulus: kurulus });
+            })).then(function(){
+              A.kayitAt('durum-degisikligi', 'olcumCihazlari', idler.join(','), 'kullanimda', 'serviste',
+                'Kalibrasyona gönderildi · ' + kurulus + ' · tahmini ' + maliyet + ' ₺' + (not ? ' · ' + not : ''));
+              gvToast(idler.length + ' cihaz kalibrasyona gönderildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  }
+
+  /* ================= TABLO ================= */
+  var kolonlar = [
+    { k:'ad', ad:'Cihaz', kilitli:true, ciz: function(c){
+        var k0 = c.katlar[0] || { renk:'#69708A', ikon:'fa-ruler-combined' };
+        return '<div class="gcell"><div class="gcell-mark" style="background:' + k0.renk + '1f;color:' + k0.renk + '">'
+          + '<i class="fa-solid ' + (c.atanamaz ? 'fa-lock' : k0.ikon) + '" aria-hidden="true"></i></div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="cihaz-detay.html?id=' + c.id + '">' + GV.esc(c.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</div></div></div>'; } },
+    { k:'kod', ad:'Cihaz Kodu', ciz: function(c){ return '<code style="font-size:11.5px">' + GV.esc(c.kod) + '</code>'; } },
+    { k:'marka', ad:'Marka / Model', ciz: function(c){ return GV.esc(c.marka + ' ' + c.model); } },
+    { k:'seri', ad:'Seri No', ciz: function(c){ return '<code style="font-size:11.5px">' + GV.esc(c.seri) + '</code>'; } },
+    { k:'zimmetAd', ad:'Zimmetli Personel', ciz: function(c){
+        if (!c.zimmet) return '<span class="muted">Zimmetsiz</span>';
+        return '<a href="personel-detay.html?id=' + c.zimmet + '">' + GV.esc(c.zimmetAd) + '</a>'
+          + '<div class="gcell-sub">' + GV.esc(c.zimmetGorev) + '</div>'; } },
+    { k:'kapsamMetni', ad:'Kullanım Kapsamı', ciz: function(c){
+        return c.katlar.length
+          ? '<span style="display:flex;flex-wrap:wrap;gap:4px">' + c.katlar.map(function(k){
+              return '<span class="gtag"><i class="fa-solid ' + k.ikon + '" aria-hidden="true"></i>' + GV.esc(k.ad) + '</span>';
+            }).join('') + '</span>'
+          : '<span class="muted">Kapsam tanımsız</span>'; } },
+    { k:'kalibrasyonTarihi', ad:'Kalibrasyon Tarihi', ciz: function(c){ return GV.d(c.kalibrasyonTarihi); } },
+    { k:'kalibrasyonBitis', ad:'Geçerlilik Bitişi', ciz: function(c){ return GV.d(c.kalibrasyonBitis); } },
+    { k:'kalanGun', ad:'Kalan Gün', sinif:'num', ciz: function(c){
+        if (c.kalanGun == null) return '<span class="muted">' + GV.bos + '</span>';
+        var t = c.kalanGun < 0 ? 'danger' : c.kalanGun <= 30 ? 'warn' : 'ok';
+        return '<span class="gtag ' + t + '">'
+          + '<i class="fa-solid ' + (c.kalanGun < 0 ? 'fa-calendar-xmark' : c.kalanGun <= 30 ? 'fa-hourglass-half' : 'fa-calendar-check') + '" aria-hidden="true"></i>'
+          + (c.kalanGun < 0 ? GV.n(Math.abs(c.kalanGun)) + ' gün geçti' : GV.n(c.kalanGun) + ' gün') + '</span>'; } },
+    { k:'durum', ad:'Kullanım Durumu', ciz: durumRozet },
+    { k:'uygunlukMetin', ad:'Atama Uygunluğu', ciz: uygunlukRozet },
+    { k:'__islem', ad:'İşlem', ciz: function(c){
+        var d = '<div class="row-acts">'
+          + '<a class="ia-btn" href="cihaz-detay.html?id=' + c.id + '" aria-label="' + GV.esc(c.ad) + ' cihaz detayı">'
+          + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a>';
+        if (c.atanamaz) {
+          /* İŞ KURALI: kalibrasyonu geçmiş / serviste cihazın atama butonu DEVRE DIŞI */
+          var sebep = c.ad + ' iş emrine atanamaz: ' + c.uygunluk.sebep;
+          d += '<button class="ia-btn" type="button" disabled title="' + GV.esc(sebep) + '" aria-label="' + GV.esc(sebep) + '">'
+            + '<i class="fa-solid fa-lock" aria-hidden="true"></i></button>';
+        } else {
+          d += '<button class="ia-btn" type="button" data-ata="' + c.id + '" aria-label="' + GV.esc(c.ad) + ' cihazını iş emrine ata"'
+            + ' title="' + GV.esc(c.uygunluk.uyari ? c.ad + ' atanabilir — ' + c.uygunluk.uyari : c.ad + ' iş emrine atanabilir') + '">'
+            + '<i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></button>';
+        }
+        d += '<button class="ia-btn" type="button" data-klb="' + c.id + '" aria-label="' + GV.esc(c.ad) + ' cihazını kalibrasyona gönder">'
+          + '<i class="fa-solid fa-vials" aria-hidden="true"></i></button></div>';
+        return d; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ocTablo', kolonlar:kolonlar, secim:true, satirId: function(c){ return c.id; },
+    bosDurum:{ ikon:'fa-ruler-combined', baslik:'Ölçüm cihazı bulunamadı', metin:'Filtrelerinize uyan ölçüm cihazı yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#ocBulk', aksiyonlar:[
+    { etiket:'Kalibrasyona gönder', ikon:'fa-vials', sinif:'btn-acc', tikla: function(s){ kalibrasyonModal(s); } },
+    { etiket:'Dışa aktar', ikon:'fa-file-export', sinif:'btn-ghost', tikla: function(s){
+        GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'olcum-cihazlari', modul:'Ölçüm Cihazı' }); } }
+  ]});
+
+  document.getElementById('ocTablo').addEventListener('click', function(e){
+    var a = e.target.closest('[data-ata]');
+    if (a) { ataModal(a.getAttribute('data-ata')); return; }
+    var k = e.target.closest('[data-klb]');
+    if (k) kalibrasyonModal([k.getAttribute('data-klb')]);
+  });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'olcum-cihazlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#ocPager', boyut:20, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['kod','ad','marka','model','seri','zimmetAd','kapsamMetni','kurulus'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'kullanimda', ad:'Kullanımda', ikon:'fa-circle-check' },
+      { k:'serviste', ad:'Serviste', ikon:'fa-screwdriver-wrench' },
+      { k:'kalibrasyon-gecmis', ad:'Kalibrasyon geçmiş', ikon:'fa-ban' }] },
+    alanlar: [
+      { k:'kapsam', ad:'Kullanım kapsamı', tur:'coklu',
+        secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad, ikon:k.ikon }; }),
+        suz: function(c, v){ return (c.kapsam || []).some(function(k){ return v.indexOf(k) !== -1; }); } },
+      { k:'zimmet', ad:'Zimmetli personel', tur:'secim',
+        secenekler: Array.from(new Set(kaynak.map(function(c){ return c.zimmet; }))).filter(Boolean)
+          .map(function(p){ var x = A.kayit('personeller', p); return { deger:p, ad: x ? x.ad : p }; }) },
+      { k:'kurulus', ad:'Kalibrasyon kuruluşu', tur:'coklu',
+        secenekler: kuruluslar().map(function(k){ return { deger:k, ad:k }; }) },
+      { k:'kalibrasyonBitis', ad:'Kalibrasyon bitişi', tur:'tarih' },
+      { k:'atanamaz', ad:'Yalnız atanamayan cihazlar', tur:'toggle',
+        secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* ================= ALT BÖLÜM — KALİBRASYON TAKVİMİ ================= */
+  var takvim = kaynak.slice().sort(function(a,b){
+    if (a.kalanGun == null) return 1;
+    if (b.kalanGun == null) return -1;
+    return a.kalanGun - b.kalanGun;
+  }).map(function(c){
+    return {
+      etiket: c.kod + ' · ' + c.ad,
+      deger: c.kalanGun == null ? 0 : Math.max(0, c.kalanGun),
+      ton: c.kalanGun == null ? 'warn' : c.kalanGun < 0 ? 'danger' : c.kalanGun <= 30 ? 'warn' : 'ok',
+      gosterim: c.kalanGun == null ? 'Kalibrasyon bilgisi eksik'
+        : c.kalanGun < 0 ? GV.n(Math.abs(c.kalanGun)) + ' gün geçti · ' + GV.d(c.kalibrasyonBitis)
+        : GV.n(c.kalanGun) + ' gün · ' + GV.d(c.kalibrasyonBitis)
+    };
+  });
+  gvBarList('#ocTakvim', takvim);
+
+  /* ---- kuruluş bazlı toplam kalibrasyon maliyeti ---- */
+  var tonlar = ['acc','info','warn','mor','turuncu','ok'];
+  var toplamlar = {};
+  A.liste('kalibrasyonlar').forEach(function(k){
+    if (!k.maliyet) return;
+    toplamlar[k.kurulus] = (toplamlar[k.kurulus] || 0) + k.maliyet;
+  });
+  var maliyetVeri = Object.keys(toplamlar).sort(function(a,b){ return toplamlar[b] - toplamlar[a]; })
+    .map(function(k, i){ return { etiket:k.replace(' (kurgusal)',''), deger: toplamlar[k], ton: tonlar[i % tonlar.length] }; });
+  var maliyetToplam = maliyetVeri.reduce(function(t,d){ return t + d.deger; }, 0);
+
+  if (maliyetVeri.length) {
+    gvDonut('#ocMaliyet', maliyetVeri, {
+      baslik:'Kuruluş bazlı kalibrasyon maliyeti', aciklama:false,
+      merkez: Math.round(maliyetToplam / 1000), merkezEtiket:'bin ₺ toplam' });
+    document.getElementById('ocMaliyetListe').innerHTML = maliyetVeri.map(function(d){
+      return '<div class="info-row"><dt><i class="fa-solid fa-circle" aria-hidden="true" style="font-size:8px;color:'
+        + GV.grafikTon[d.ton] + ';margin-right:7px"></i>' + GV.esc(d.etiket) + '</dt><dd>' + GV.tl(d.deger) + '</dd></div>';
+    }).join('') + '<div class="info-row"><dt><b>Toplam</b></dt><dd><b>' + GV.tl(maliyetToplam) + '</b></dd></div>';
+  } else {
+    document.getElementById('ocMaliyet').innerHTML = gvEmpty({ ikon:'fa-money-bill-wave', baslik:'Maliyet kaydı yok',
+      metin:'Kalibrasyon kayıtlarında maliyet bilgisi bulunmuyor.' });
+  }
+
+  /* ================= SAYFA AKSİYONLARI ================= */
+  document.getElementById('ocDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'olcum-cihazlari', modul:'Ölçüm Cihazı' });
+  });
+
+  document.getElementById('ocPlan').addEventListener('click', function(){
+    var kritik = kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun <= 30; })
+      .sort(function(a,b){ return a.kalanGun - b.kalanGun; });
+    gvModal({
+      baslik:'Kalibrasyon planı', ikon:'fa-calendar-check', genislik:'gv-modal-lg',
+      metin: kritik.length
+        ? '<b>' + GV.n(kritik.length) + '</b> cihazın kalibrasyon geçerliliği dolmuş ya da 30 gün içinde doluyor.'
+        : 'Önümüzdeki 30 gün içinde kalibrasyon geçerliliği dolacak cihaz yok.',
+      govde: kritik.length
+        ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+          + '<th scope="col">Cihaz</th><th scope="col">Geçerlilik Bitişi</th><th scope="col">Durum</th></tr></thead><tbody>'
+          + kritik.map(function(c){
+              return '<tr><td data-lbl="Cihaz"><b class="t-strong">' + GV.esc(c.kod) + '</b> · ' + GV.esc(c.ad) + '</td>'
+                + '<td data-lbl="Geçerlilik Bitişi">' + GV.d(c.kalibrasyonBitis) + '</td>'
+                + '<td data-lbl="Durum">' + (c.kalanGun < 0
+                    ? GV.rozetOzel('danger','fa-calendar-xmark', GV.n(Math.abs(c.kalanGun)) + ' gün geçti')
+                    : GV.rozetOzel('warn','fa-hourglass-half', GV.n(c.kalanGun) + ' gün kaldı')) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : gvEmpty({ ikon:'fa-calendar-check', baslik:'Kritik cihaz yok', metin:'Bütün cihazların kalibrasyon geçerliliği 30 günden uzun.' }),
+      butonlar: kritik.length
+        ? [{ etiket:'Kapat', sinif:'btn-ghost' },
+           { etiket:'Tümünü kalibrasyona gönder', sinif:'btn-acc', ikon:'fa-vials',
+             tikla: function(){ setTimeout(function(){ kalibrasyonModal(kritik.map(function(c){ return c.id; })); }, 280); } }]
+        : [{ etiket:'Kapat', sinif:'btn-ghost' }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

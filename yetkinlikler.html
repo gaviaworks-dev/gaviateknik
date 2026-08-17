@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Yetkinlikler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+  /* sayfaya özel: filtre kartı ve yetkinlik matrisi hücresi */
+  .yk-filtre .gv-listhead { border-bottom: 0 }
+  .mx-cell {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: var(--radius-sm); font-size: 12.5px;
+    background: var(--bg); color: var(--muted); border: 1px solid var(--line);
+  }
+  .mx-cell.ok { background: var(--success-tint); color: var(--success); border-color: transparent }
+  .mx-cell.warn { background: var(--warning-tint); color: var(--warning); border-color: transparent }
+  .mx-cell.danger { background: var(--danger-tint); color: var(--danger); border-color: transparent }
+</style>
+</head>
+<body data-sec="kaynak" data-screen="yetkinlikler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Personel ve Taşeron</div>
+        <h1>Yetkinlikler</h1>
+        <p class="ph-sub">Kontrol kapsamlarının personel yetki eşlemesi, belge geçerlilikleri ve kapsama riski. Yetkinliği olmayan personel ilgili kontrole atanamaz.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ykDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="ykYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Yetkinlik</button></div>
+    </div>
+    <div class="kpi-grid" id="ykKpi"></div>
+
+    <section class="gv-card yk-filtre">
+      <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Yetkinlik adı, belge türü, kategori…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+    </section>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Yetkinlik görünümleri">
+      <button class="gv-tab" role="tab" id="tbListe" aria-controls="pnListe" aria-selected="true">
+        <i class="fa-solid fa-certificate" aria-hidden="true"></i>Yetkinlikler<span class="tb-cnt" id="cntListe">0</span></button>
+      <button class="gv-tab" role="tab" id="tbMatris" aria-controls="pnMatris" aria-selected="false">
+        <i class="fa-solid fa-table-cells" aria-hidden="true"></i>Personel × Yetkinlik Matrisi</button>
+      <button class="gv-tab" role="tab" id="tbKapsama" aria-controls="pnKapsama" aria-selected="false">
+        <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Kapsama Analizi</button>
+    </div>
+
+    <div id="pnListe" role="tabpanel" aria-labelledby="tbListe">
+      <section class="gv-card">
+        <div class="gc-body flush" id="ykTablo"></div>
+      </section>
+    </div>
+
+    <div id="pnMatris" role="tabpanel" aria-labelledby="tbMatris" hidden>
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-cells" aria-hidden="true"></i>Personel × Yetkinlik Matrisi</h2></div>
+        <div class="gc-body" id="ykMatrisAcik"></div>
+        <div class="gc-body flush" id="ykMatris"></div>
+      </section>
+    </div>
+
+    <div id="pnKapsama" role="tabpanel" aria-labelledby="tbKapsama" hidden>
+      <div id="ykRisk"></div>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i>Yetkinlik Başına Yetkin Personel</h2></div>
+          <div class="gc-body" id="ykKapsamaPersonel"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Bu Yetkinliği Gerektiren Hizmet Pozisyonu</h2></div>
+          <div class="gc-body" id="ykKapsamaHizmet"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var personeller = A.liste('personeller');
+  var kategoriler = A.liste('hizmetKategorileri');
+  var hizmetler = A.liste('hizmetler');
+  var envanterSatirlari = A.liste('lokasyonHizmetleri');
+  var belgeler = A.liste('personelBelgeleri');
+  var taseronlar = A.liste('taseronlar');
+
+  function kat(kid){ for (var i=0;i<kategoriler.length;i++) if (kategoriler[i].id === kid) return kategoriler[i]; return null; }
+  function hizmet(hid){ for (var i=0;i<hizmetler.length;i++) if (hizmetler[i].id === hid) return hizmetler[i]; return null; }
+  function belgeBul(pid, yid){
+    for (var i=0;i<belgeler.length;i++) if (belgeler[i].personelId === pid && belgeler[i].yetkinlikId === yid) return belgeler[i];
+    return null;
+  }
+
+  /* ---------- kaynak veri ---------- */
+  var kaynak = A.liste('yetkinlikler').map(function(y){
+    var kk = kat(y.kategori);
+    var tanimli = personeller.filter(function(p){ return (p.yetkinlikler || []).indexOf(y.id) !== -1; });
+    var yetkin = tanimli.filter(function(p){ return p.durum === 'aktif' && A.personelAtanabilir(p.id, y.id).uygun; });
+    var yaklasan = yetkin.filter(function(p){
+      var b = belgeBul(p.id, y.id); if (!b) return false;
+      var k = GV.gun(BUGUN, b.bitis); return k != null && k >= 0 && k <= 60; });
+    var yetkinHizmetler = hizmetler.filter(function(h){ return h.yetkinlik === y.id && h.durum === 'aktif'; });
+    var hizmetIdleri = yetkinHizmetler.map(function(h){ return h.id; });
+    var pozisyon = envanterSatirlari.filter(function(s){ return hizmetIdleri.indexOf(s.hizmetId) !== -1; }).length;
+    var kapsamaDurum = yetkin.length === 0 ? 'yok' : yetkin.length === 1 ? 'tekil' : 'yeterli';
+    return Object.assign({}, y, {
+      kategoriAd: kk ? kk.ad : y.kategori,
+      kategoriIkon: kk ? kk.ikon : 'fa-list',
+      kategoriRenk: kk ? kk.renk : 'var(--muted)',
+      tanimliPersonel: tanimli,
+      tanimliSayi: tanimli.length,
+      yetkinPersonel: yetkin,
+      yetkinSayi: yetkin.length,
+      yaklasanSayi: yaklasan.length,
+      hizmetSayisi: yetkinHizmetler.length,
+      pozisyonSayisi: pozisyon,
+      kapsamaDurum: kapsamaDurum
+    });
+  });
+
+  /* ---------- KPI ---------- */
+  var yetkinToplam = kaynak.reduce(function(x,y){ return x + y.yetkinSayi; }, 0);
+  var belgesiDolacakPersonel = (function(){
+    var kume = {};
+    belgeler.forEach(function(b){
+      var k = GV.gun(BUGUN, b.bitis);
+      if (k != null && k >= 0 && k <= 60) kume[b.personelId] = true;
+    });
+    return Object.keys(kume).length;
+  })();
+  var kapsamaBosluk = kaynak.filter(function(y){ return y.yetkinSayi === 0; });
+
+  gvKpi('#ykKpi', [
+    { ikon:'fa-certificate', sayi: GV.n(kaynak.length), etiket:'Tanımlı yetkinlik' },
+    { ikon:'fa-users', sayi: GV.n(kaynak.length ? yetkinToplam / kaynak.length : 0, 1),
+      etiket:'Yetkinlik başına ortalama personel', ton:'info' },
+    { ikon:'fa-clock', sayi: GV.n(belgesiDolacakPersonel), etiket:'Belgesi 60 gün içinde dolacak personel', ton:'warn' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.n(kapsamaBosluk.length), etiket:'Yetkin personeli olmayan yetkinlik', ton:'danger' }
+  ]);
+
+  /* ---------- sekme 1: yetkinlik tablosu ---------- */
+  var kapsamaRozet = {
+    yok: ['danger','fa-ban','Yetkin personel yok'],
+    tekil: ['warn','fa-user-slash','Tek personele bağlı'],
+    yeterli: ['ok','fa-circle-check','Yeterli kapsama']
+  };
+
+  function personelListesiModali(y){
+    gvModal({
+      baslik: y.ad, ikon:'fa-users', genislik:'gv-modal-lg',
+      govde: y.tanimliSayi
+        ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+          + '<th scope="col">Personel</th><th scope="col">Görev</th><th scope="col">Belge No</th>'
+          + '<th scope="col">Belge Bitişi</th><th scope="col">Atanabilirlik</th></tr></thead><tbody>'
+          + y.tanimliPersonel.map(function(p){
+              var b = belgeBul(p.id, y.id), kural = A.personelAtanabilir(p.id, y.id);
+              var kalan = b ? GV.gun(BUGUN, b.bitis) : null;
+              return '<tr><td data-lbl="Personel"><a href="personel-detay.html?id=' + p.id + '">'
+                + '<b class="t-strong">' + GV.esc(p.ad) + '</b></a></td>'
+                + '<td data-lbl="Görev">' + GV.esc(p.gorev) + '</td>'
+                + '<td data-lbl="Belge No">' + (b ? GV.esc(b.belgeNo) : GV.bos) + '</td>'
+                + '<td data-lbl="Belge Bitişi">' + (b ? GV.d(b.bitis) : GV.bos) + '</td>'
+                + '<td data-lbl="Atanabilirlik">' + (!kural.uygun
+                    ? GV.rozetOzel('danger','fa-ban', kural.sebep)
+                    : (kalan != null && kalan <= 60)
+                      ? GV.rozetOzel('warn','fa-clock', kalan + ' gün kaldı')
+                      : GV.rozetOzel('ok','fa-circle-check','Atanabilir')) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : '<div class="gv-note danger"><i class="fa-solid fa-ban" aria-hidden="true"></i><span>'
+          + '<b>Bu yetkinlik hiçbir personele tanımlı değil.</b> Kapsamdaki hizmetler kendi ekibimizle '
+          + 'yapılamaz; yalnız yetkin taşerona verilebilir.</span></div>',
+      butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]
+    });
+  }
+
+  var tablo = gvTable({ hedef:'#ykTablo', satirId: function(y){ return y.id; },
+    kolonlar: [
+      { k:'ad', ad:'Yetkinlik', kilitli:true, ciz: function(y){
+          return '<div class="gcell"><div class="gcell-mark" style="background:' + y.kategoriRenk + '18;color:' + y.kategoriRenk + '">'
+            + '<i class="fa-solid ' + y.kategoriIkon + '" aria-hidden="true"></i></div>'
+            + '<div class="gcell-info"><div class="gcell-name">' + GV.esc(y.ad) + '</div>'
+            + '<div class="gcell-sub">' + GV.esc(y.id) + '</div></div></div>'; } },
+      { k:'kategoriAd', ad:'Hizmet Kategorisi', ciz: function(y){
+          return '<span class="gtag"><i class="fa-solid ' + y.kategoriIkon + '" style="color:' + y.kategoriRenk + '" aria-hidden="true"></i> '
+            + GV.esc(y.kategoriAd) + '</span>'; } },
+      { k:'belgeTuru', ad:'Belge Türü', ciz: function(y){
+          return '<span class="gv-ellip" style="max-width:250px;display:block" title="' + GV.esc(y.belgeTuru) + '">'
+            + GV.esc(y.belgeTuru) + '</span>'; } },
+      { k:'gecerlilikAy', ad:'Geçerlilik', sinif:'num', ciz: function(y){ return GV.n(y.gecerlilikAy) + ' ay'; } },
+      { k:'yetkinSayi', ad:'Yetkin Personel', sinif:'num', ciz: function(y){
+          return (y.yetkinSayi ? '<b class="t-strong">' + GV.n(y.yetkinSayi) + '</b>'
+                   : '<b style="color:var(--danger)">0</b>')
+            + (y.tanimliSayi > y.yetkinSayi
+              ? ' <span class="gcell-sub">/ ' + GV.n(y.tanimliSayi) + ' tanımlı</span>' : ''); } },
+      { k:'yaklasanSayi', ad:'Belgesi Dolan', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(y){
+          return y.yaklasanSayi ? '<span class="gtag warn">' + GV.n(y.yaklasanSayi) + '</span>' : GV.n(0); } },
+      { k:'hizmetSayisi', ad:'Gerektiren Hizmet', sinif:'num', ciz: function(y){ return GV.n(y.hizmetSayisi); } },
+      { k:'pozisyonSayisi', ad:'Envanter Pozisyonu', sinif:'num', varsayilanGizli:true, gizli:true,
+        ciz: function(y){ return GV.n(y.pozisyonSayisi); } },
+      { k:'kapsamaDurum', ad:'Kapsama Durumu', ciz: function(y){
+          var r = kapsamaRozet[y.kapsamaDurum];
+          return GV.rozetOzel(r[0], r[1], r[2]); } },
+      { k:'__islem', ad:'İşlem', ciz: function(y){
+          return '<div class="row-acts">'
+            + '<button class="ia-btn" type="button" data-personel="' + GV.esc(y.id) + '" aria-label="'
+            + GV.esc(y.ad) + ' yetkin personel listesi"><i class="fa-solid fa-users" aria-hidden="true"></i></button>'
+            + '<a class="ia-btn" href="hizmet-katalogu.html?f_yetkinlik=' + GV.esc(y.id) + '" aria-label="'
+            + GV.esc(y.ad) + ' gerektiren hizmetler"><i class="fa-solid fa-list" aria-hidden="true"></i></a></div>'; } }
+    ],
+    bosDurum:{ ikon:'fa-certificate', baslik:'Yetkinlik bulunamadı', metin:'Filtrelerinize uyan yetkinlik yok.' } });
+
+  document.getElementById('ykTablo').addEventListener('click', function(e){
+    var b = e.target.closest('[data-personel]');
+    if (!b) return;
+    var yid = b.getAttribute('data-personel');
+    for (var i=0;i<kaynak.length;i++) if (kaynak[i].id === yid) { personelListesiModali(kaynak[i]); return; }
+  });
+
+  /* ---------- sekme 2: matris ---------- */
+  var matrisPersonelleri = personeller.filter(function(p){ return (p.yetkinlikler || []).length > 0; });
+
+  function hucre(p, y){
+    var tanimli = (p.yetkinlikler || []).indexOf(y.id) !== -1;
+    var ad = p.ad + ' · ' + y.ad + ': ';
+    if (!tanimli) return { ton:'', ikon:'fa-minus', aria: ad + 'yetkinlik tanımlı değil, bu kontrole atanamaz' };
+    var kural = A.personelAtanabilir(p.id, y.id);
+    var b = belgeBul(p.id, y.id);
+    var kalan = b ? GV.gun(BUGUN, b.bitis) : null;
+    if (!kural.uygun) return { ton:'danger', ikon:'fa-ban', aria: ad + 'atanamaz — ' + kural.sebep };
+    if (kalan != null && kalan <= 60) return { ton:'warn', ikon:'fa-clock',
+      aria: ad + 'atanabilir, ancak belge ' + kalan + ' gün içinde doluyor (' + GV.d(b.bitis) + ')' };
+    return { ton:'ok', ikon:'fa-check', aria: ad + 'atanabilir, belge ' + (b ? GV.d(b.bitis) : '—') + ' tarihine kadar geçerli' };
+  }
+
+  function matrisCiz(veri){
+    var acik = document.getElementById('ykMatrisAcik');
+    acik.innerHTML =
+      '<div class="chips" role="list" aria-label="Matris gösterge açıklaması">'
+      + '<span class="chip" role="listitem" style="cursor:default"><span class="mx-cell ok" aria-hidden="true">'
+      + '<i class="fa-solid fa-check" aria-hidden="true"></i></span>Atanabilir</span>'
+      + '<span class="chip" role="listitem" style="cursor:default"><span class="mx-cell warn" aria-hidden="true">'
+      + '<i class="fa-solid fa-clock" aria-hidden="true"></i></span>Belge 60 gün içinde doluyor</span>'
+      + '<span class="chip" role="listitem" style="cursor:default"><span class="mx-cell danger" aria-hidden="true">'
+      + '<i class="fa-solid fa-ban" aria-hidden="true"></i></span>Atanamaz (belge geçersiz veya izinli)</span>'
+      + '<span class="chip" role="listitem" style="cursor:default"><span class="mx-cell" aria-hidden="true">'
+      + '<i class="fa-solid fa-minus" aria-hidden="true"></i></span>Yetkinlik tanımlı değil</span></div>'
+      + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>'
+      + 'Matriste yalnız en az bir yetkinliği tanımlı <b>' + GV.n(matrisPersonelleri.length) + ' teknik personel</b> listelenir. '
+      + 'Her hücrenin durumu <b>demoApi.personelAtanabilir()</b> kuralından okunur; renk tek başına gösterge değildir, '
+      + 'her hücre ikon ve okunabilir açıklama taşır.</span></div>';
+
+    var kap = document.getElementById('ykMatris');
+    if (!veri.length || !matrisPersonelleri.length) {
+      kap.innerHTML = gvEmpty({ ikon:'fa-table-cells', baslik:'Matris için veri yok',
+        metin:'Seçili filtrelere uyan yetkinlik veya yetkinliği tanımlı personel bulunmuyor.' });
+      return;
+    }
+    var h = '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+      + '<th scope="col" style="min-width:190px">Personel</th>'
+      + veri.map(function(y){
+          return '<th scope="col" style="min-width:132px">' + GV.esc(y.ad)
+            + '<span class="gcell-sub" style="display:block;white-space:normal">' + GV.esc(y.kategoriAd) + '</span></th>';
+        }).join('') + '</tr></thead><tbody>';
+    matrisPersonelleri.forEach(function(p){
+      h += '<tr><th scope="row" style="text-align:left">'
+        + '<a href="personel-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.ad) + '</b></a>'
+        + '<span class="gcell-sub" style="display:block;white-space:normal">' + GV.esc(p.gorev)
+        + (p.durum === 'izinli' ? ' · izinli' : '') + '</span></th>';
+      veri.forEach(function(y){
+        var c = hucre(p, y);
+        h += '<td style="text-align:center"><span class="mx-cell ' + c.ton + '" role="img" aria-label="'
+          + GV.esc(c.aria) + '" title="' + GV.esc(c.aria) + '"><i class="fa-solid ' + c.ikon + '" aria-hidden="true"></i></span></td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody><tfoot><tr><th scope="row" style="text-align:left">Atanabilir personel</th>'
+      + veri.map(function(y){
+          return '<td style="text-align:center">' + (y.yetkinSayi
+            ? '<b class="t-strong">' + GV.n(y.yetkinSayi) + '</b>'
+            : '<b style="color:var(--danger)">0</b>') + '</td>';
+        }).join('') + '</tr></tfoot></table></div>';
+    kap.innerHTML = h;
+  }
+
+  /* ---------- sekme 3: kapsama analizi ---------- */
+  function kapsamaCiz(veri){
+    var bosluk = veri.filter(function(y){ return y.yetkinSayi === 0; });
+    var tekil = veri.filter(function(y){ return y.yetkinSayi === 1; });
+
+    document.getElementById('ykRisk').innerHTML =
+      (bosluk.length
+        ? '<div class="gv-note danger" style="margin-bottom:16px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span>'
+          + '<b>' + GV.n(bosluk.length) + ' yetkinlikte yetkin personelimiz yok.</b> '
+          + bosluk.map(function(y){
+              var tsr = taseronlar.filter(function(t){
+                return t.durum === 'aktif' && (t.kapsam || []).indexOf(y.kategori) !== -1; });
+              return '<b>' + GV.esc(y.ad) + '</b> (' + GV.n(y.hizmetSayisi) + ' hizmet · '
+                + GV.n(y.pozisyonSayisi) + ' envanter pozisyonu) — '
+                + (tsr.length
+                  ? 'yalnız taşerona verilebilir: ' + GV.esc(tsr.map(function(t){ return t.kisaAd; }).join(', '))
+                  : 'kapsamı olan aktif taşeron da yok; bu hizmetler satılamaz');
+            }).join('<br>')
+          + '<br><b>Bu hizmetler kendi ekibimizle yapılamaz; yalnız yetkin taşerona verilebilir.</b> '
+          + 'Kapsamı kendi ekibimize almak için ilgili personele belge aldırılmalıdır.</span></div>'
+        : '<div class="gv-note ok" style="margin-bottom:16px"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>'
+          + 'Seçili yetkinliklerin tamamında en az bir yetkin personelimiz var; hiçbir kapsam zorunlu olarak '
+          + 'taşerona bağımlı değil.</span></div>')
+      + (tekil.length
+        ? '<div class="gv-note warn" style="margin-bottom:16px"><i class="fa-solid fa-user-slash" aria-hidden="true"></i><span>'
+          + '<b>' + GV.n(tekil.length) + ' yetkinlik tek personele bağlı:</b> '
+          + GV.esc(tekil.map(function(y){ return y.ad + ' (' + y.yetkinPersonel[0].ad + ')'; }).join(' · '))
+          + ' — bu personelin izni, ayrılması veya belgesinin dolması hâlinde kapsam durur.</span></div>'
+        : '');
+
+    gvBarList('#ykKapsamaPersonel', veri.slice().sort(function(a,b){ return b.yetkinSayi - a.yetkinSayi; })
+      .map(function(y){
+        return { etiket: y.ad, deger: y.yetkinSayi,
+          gosterim: GV.n(y.yetkinSayi) + ' yetkin / ' + GV.n(y.tanimliSayi) + ' tanımlı personel',
+          ton: y.yetkinSayi === 0 ? 'danger' : y.yetkinSayi === 1 ? 'warn' : 'ok' };
+      }));
+
+    gvBarList('#ykKapsamaHizmet', veri.slice().sort(function(a,b){ return b.pozisyonSayisi - a.pozisyonSayisi; })
+      .map(function(y){
+        return { etiket: y.ad, deger: y.pozisyonSayisi,
+          gosterim: GV.n(y.pozisyonSayisi) + ' pozisyon · ' + GV.n(y.hizmetSayisi) + ' hizmet',
+          ton: y.yetkinSayi === 0 ? 'danger' : y.pozisyonSayisi > 0 && y.yetkinSayi === 1 ? 'warn' : '' };
+      }));
+  }
+
+  /* ---------- çizim ve filtre ---------- */
+  var son = kaynak;
+  function ciz(v){
+    son = v;
+    tablo.ciz(v);
+    document.getElementById('cntListe').textContent = GV.n(v.length);
+    matrisCiz(v);
+    kapsamaCiz(v);
+  }
+
+  gvTabs('.gv-tabbar');
+  gvCols({ tetik:'#gvColsBtn', anahtar:'yetkinlikler', kolonlar: tablo.kolonlar, degisti: function(){ tablo.ciz(son); } });
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['id','ad','belgeTuru','kategoriAd'],
+    cipler: { alan:'kategori', secenekler: kategoriler.filter(function(k){
+        return kaynak.some(function(y){ return y.kategori === k.id; }); })
+      .map(function(k){ return { k: k.id, ad: k.ad, ikon: k.ikon }; }) },
+    alanlar: [
+      { k:'kapsamaDurum', ad:'Kapsama durumu', tur:'secim', secenekler:[
+        { deger:'yok', ad:'Yetkin personel yok' },
+        { deger:'tekil', ad:'Tek personele bağlı' },
+        { deger:'yeterli', ad:'Yeterli kapsama' }] },
+      { k:'gecerlilikAy', ad:'Belge geçerlilik süresi', tur:'secim', secenekler:[
+        { deger:'24', ad:'24 ay' }, { deger:'36', ad:'36 ay' }] },
+      { k:'yetkinSayi', ad:'Yetkin personel sayısı', tur:'aralik' },
+      { k:'yaklasan', ad:'Belgesi 60 gün içinde dolan personeli var', tur:'toggle',
+        secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }],
+        suz: function(y,v){ return v === 'evet' ? y.yaklasanSayi > 0 : y.yaklasanSayi === 0; } }
+    ],
+    degisti: ciz
+  });
+
+  /* ---------- sayfa aksiyonları ---------- */
+  document.getElementById('ykDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'yetkinlikler', modul:'Yetkinlik' });
+  });
+
+  document.getElementById('ykYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni yetkinlik', ikon:'fa-plus', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="yyAd">Yetkinlik adı *</label>'
+        + '<input type="text" id="yyAd" placeholder="Örnek: Vinç Yük Testi Muayenesi"></div>'
+        + '<div class="gfield"><label for="yyKat">Hizmet kategorisi *</label><select id="yyKat">'
+        + kategoriler.map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="yySure">Belge geçerlilik süresi (ay) *</label><select id="yySure">'
+        + '<option value="12">12 ay</option><option value="24" selected>24 ay</option>'
+        + '<option value="36">36 ay</option><option value="60">60 ay</option></select></div>'
+        + '<div class="gfield full"><label for="yyBelge">Belge türü *</label>'
+        + '<input type="text" id="yyBelge" placeholder="Örnek: Vinç Muayene Yetki Belgesi">'
+        + '<span class="gf-hint">Belge türü, personel belgelerinin kayıt sırasında doğrulanacağı referanstır.</span></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#yyAd').value.trim();
+            var belgeTuru = kap.querySelector('#yyBelge').value.trim();
+            if (!ad || !belgeTuru) { gvToast('Yetkinlik adı ve belge türü zorunludur.', { ton:'danger' }); return false; }
+            var varOlan = A.liste('yetkinlikler').some(function(y){
+              return y.ad.toLocaleLowerCase('tr-TR') === ad.toLocaleLowerCase('tr-TR'); });
+            if (varOlan) { gvToast('Aynı adda bir yetkinlik zaten tanımlı.', { ton:'danger' }); return false; }
+            var yid = 'YTK-' + String(A.liste('yetkinlikler').length + 1).padStart(2,'0');
+            A.ekle('yetkinlikler', {
+              id: yid, ad: ad, kategori: kap.querySelector('#yyKat').value,
+              belgeTuru: belgeTuru, gecerlilikAy: Number(kap.querySelector('#yySure').value)
+            }).then(function(){
+              gvToast(ad + ' yetkinliği eklendi. Personel ataması yapılana kadar kapsama boşluğu olarak listelenir.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  });
+})();
+</script>
+</body>
+</html>

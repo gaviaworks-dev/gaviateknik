@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Taşeronlar — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="kaynak" data-screen="taseronlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Personel ve Taşeron</div>
+        <h1>Taşeronlar</h1>
+        <p class="ph-sub">Hizmet kapsamı, bölge, aktif iş yükü, bekleyen rapor, hakediş ve ödeme durumu ile taşeron firmalar.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="tsDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="tsYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Taşeron</button></div>
+    </div>
+    <div class="kpi-grid" id="tsKpi"></div>
+    <section class="gv-card">
+            <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Taşeron unvanı, yetkili, bölge…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+      <div class="gc-body flush" id="tsTablo"></div>
+    </section>
+
+    <div class="gv-botsec">
+      <h2 class="gv-botsec-h"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Taşeron Performansı</h2>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i>Performans Puanları</h3></div>
+          <div class="gc-body" id="tsPerformans"></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h3 class="gc-title"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>Ödeme Durumu Dağılımı</h3></div>
+          <div class="gc-body"><div class="chart-box" id="tsOdeme"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var kaynak = A.liste('taseronlar').map(function(t){
+    var loklar = A.lokasyonlar().filter(function(l){ return l.taseronId === t.id; });
+    var isEmirleri = A.isEmirleri().filter(function(i){ return i.taseronId === t.id; });
+    var aktifIs = isEmirleri.filter(function(i){ return ['planlandi','sahada'].indexOf(i.operasyonDurum) !== -1; });
+    var bekleyenRapor = A.raporlar().filter(function(r){
+      var ie = r.isEmriId ? A.kayit('isEmirleri', r.isEmriId) : null;
+      return ie && ie.taseronId === t.id && ['teknik-incelemede','revizyon-istendi','taslak'].indexOf(r.durum) !== -1; });
+    var hakedis = A.liste('taseronHakedisleri').filter(function(h){ return h.taseronId === t.id; });
+    var odenmemis = hakedis.filter(function(h){ return ['tam-odendi'].indexOf(h.durum) === -1; });
+    return Object.assign({}, t, {
+      lokasyonSayisi: loklar.length, aktifIs: aktifIs.length,
+      bekleyenRapor: bekleyenRapor.length,
+      hakedisTutar: hakedis.reduce(function(x,h){ return x + h.tutar; }, 0),
+      odenmemisTutar: odenmemis.reduce(function(x,h){ return x + h.tutar; }, 0),
+      hakedisSayisi: hakedis.length,
+      bolgeMetni: t.bolgeler.join(', '),
+      kapsamMetni: t.kapsam.map(function(k){ var kk = A.kayit('hizmetKategorileri', k); return kk ? kk.ad : k; }).join(', ')
+    });
+  });
+
+  gvKpi('#tsKpi', [
+    { ikon:'fa-people-carry-box', sayi: GV.n(kaynak.filter(function(t){ return t.durum === 'aktif'; }).length), etiket:'Aktif taşeron' },
+    { ikon:'fa-clipboard-check', sayi: GV.n(kaynak.reduce(function(x,t){ return x + t.aktifIs; }, 0)), etiket:'Devam eden iş', ton:'info' },
+    { ikon:'fa-file-lines', sayi: GV.n(kaynak.reduce(function(x,t){ return x + t.bekleyenRapor; }, 0)), etiket:'Bekleyen rapor', ton:'warn' },
+    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(kaynak.reduce(function(x,t){ return x + t.odenmemisTutar; }, 0)),
+      etiket:'Ödenmemiş hakediş', ton:'danger' }
+  ]);
+
+  var tablo = gvTable({ hedef:'#tsTablo', satirId: function(t){ return t.id; },
+    kolonlar: [
+      { k:'kisaAd', ad:'Taşeron', kilitli:true, ciz: function(t){
+          return '<div class="gcell"><div class="gcell-mark">' + GV.esc(t.kisaAd.substring(0,2).toLocaleUpperCase('tr-TR')) + '</div>'
+            + '<div class="gcell-info"><div class="gcell-name"><a href="taseron-detay.html?id=' + t.id + '">' + GV.esc(t.unvan) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.esc(t.kod + ' · ' + t.yetkili) + '</div></div></div>'; } },
+      { k:'bolgeMetni', ad:'Hizmet Bölgeleri', ciz: function(t){
+          return t.bolgeler.map(function(b){ return '<span class="gtag">' + GV.esc(b) + '</span>'; }).join(' '); } },
+      { k:'kapsamMetni', ad:'Hizmet Kapsamı', ciz: function(t){
+          return '<span class="gv-ellip" style="max-width:260px;display:block" title="' + GV.esc(t.kapsamMetni) + '">'
+            + GV.esc(t.kapsamMetni) + '</span>'; } },
+      { k:'personelSayisi', ad:'Personel', sinif:'num', ciz: function(t){ return GV.n(t.personelSayisi); } },
+      { k:'lokasyonSayisi', ad:'Atanan Lokasyon', sinif:'num', ciz: function(t){ return GV.n(t.lokasyonSayisi); } },
+      { k:'aktifIs', ad:'Aktif İş', sinif:'num', ciz: function(t){ return GV.n(t.aktifIs); } },
+      { k:'bekleyenRapor', ad:'Bekleyen Rapor', sinif:'num', ciz: function(t){
+          return t.bekleyenRapor ? '<span class="gtag warn">' + GV.n(t.bekleyenRapor) + '</span>' : GV.n(0); } },
+      { k:'hakedisTutar', ad:'Toplam Hakediş', sinif:'num', ciz: function(t){ return GV.tl(t.hakedisTutar); } },
+      { k:'odenmemisTutar', ad:'Ödenmemiş', sinif:'num', ciz: function(t){
+          return t.odenmemisTutar ? '<b style="color:var(--warning)">' + GV.tl(t.odenmemisTutar) + '</b>' : GV.tl(0); } },
+      { k:'odemeKurali', ad:'Ödeme Kuralı', ciz: function(t){
+          return t.odemeKurali === 'musteri-tahsilati-sonrasi'
+            ? GV.rozetOzel('warn','fa-link','Tahsilat sonrası') : GV.rozetOzel('info','fa-calendar','Vade tarihinde'); } },
+      { k:'masrafSahibi', ad:'Masraf', varsayilanGizli:true, gizli:true, ciz: function(t){
+          return '<span class="gtag">' + GV.esc({ gavia:'GAVIA', taseron:'Taşeron', musteri:'Müşteri', paylasimli:'Paylaşımlı' }[t.masrafSahibi] || t.masrafSahibi) + '</span>'; } },
+      { k:'performans', ad:'Performans', ciz: function(t){
+          return GV.bar(t.performans / 100, { etiket: t.performans + ' / 100',
+            ton: t.performans >= 90 ? 'ok' : t.performans >= 75 ? '' : 'warn' }); } },
+      { k:'durum', ad:'Durum', ciz: function(t){
+          return t.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif') : GV.rozetOzel('off','fa-circle-minus','Pasif'); } },
+      { k:'__islem', ad:'İşlem', ciz: function(t){
+          return '<div class="row-acts">'
+            + '<a class="ia-btn" href="taseron-detay.html?id=' + t.id + '" aria-label="' + GV.esc(t.kisaAd) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+            + '<a class="ia-btn" href="taseron-hakedisleri.html?taseron=' + t.id + '" aria-label="' + GV.esc(t.kisaAd) + ' hakedişleri">'
+            + '<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></a></div>'; } }
+    ],
+    bosDurum:{ ikon:'fa-people-carry-box', baslik:'Taşeron bulunamadı', metin:'Filtrelerinize uyan taşeron yok.' } });
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'taseronlar', kolonlar: tablo.kolonlar, degisti: function(){ tablo.ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; tablo.ciz(v); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['kod','unvan','kisaAd','yetkili','bolgeMetni','kapsamMetni'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' }, { k:'pasif', ad:'Pasif', ikon:'fa-circle-minus' }] },
+    alanlar: [
+      { k:'bolgeler', ad:'Hizmet bölgesi', tur:'coklu',
+        suz: function(t,v){ return v.some(function(b){ return t.bolgeler.indexOf(b) !== -1; }); },
+        secenekler: Array.from(new Set(kaynak.flatMap(function(t){ return t.bolgeler; }))).map(function(b){ return { deger:b, ad:b }; }) },
+      { k:'kapsam', ad:'Hizmet kapsamı', tur:'coklu',
+        suz: function(t,v){ return v.some(function(k){ return t.kapsam.indexOf(k) !== -1; }); },
+        secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'odemeKurali', ad:'Ödeme kuralı', tur:'secim', secenekler:[
+        { deger:'musteri-tahsilati-sonrasi', ad:'Müşteri tahsilatı sonrası' },
+        { deger:'fatura-vadesinde', ad:'Fatura vadesinde' }] },
+      { k:'performans', ad:'Performans puanı', tur:'aralik' }
+    ],
+    degisti: ciz
+  });
+
+  document.getElementById('tsDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'taseronlar', modul:'Taşeron' });
+  });
+
+  document.getElementById('tsYeni').addEventListener('click', function(){
+    gvModal({
+      baslik:'Yeni taşeron', ikon:'fa-plus', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="tyUnvan">Firma unvanı *</label><input type="text" id="tyUnvan" placeholder="Örnek Teknik Muayene Ltd. Şti."></div>'
+        + '<div class="gfield"><label for="tyKisa">Kısa ad *</label><input type="text" id="tyKisa" placeholder="Örnek Teknik"></div>'
+        + '<div class="gfield"><label for="tyYetkili">Yetkili kişi *</label><input type="text" id="tyYetkili"></div>'
+        + '<div class="gfield"><label for="tyTel">Telefon</label><input type="tel" id="tyTel"></div>'
+        + '<div class="gfield"><label for="tyMail">E-posta</label><input type="email" id="tyMail"></div>'
+        + '<div class="gfield full"><label for="tyBolge">Hizmet bölgeleri *</label><select id="tyBolge" multiple size="5">'
+        + ['Marmara','Ege','İç Anadolu','Akdeniz','Karadeniz','Doğu Anadolu','Güneydoğu Anadolu']
+            .map(function(b){ return '<option>' + b + '</option>'; }).join('')
+        + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim yapabilirsiniz.</span></div>'
+        + '<div class="gfield full"><label for="tyKapsam">Hizmet kapsamı *</label><select id="tyKapsam" multiple size="6">'
+        + A.liste('hizmetKategorileri').map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="tyOdeme">Ödeme kuralı</label><select id="tyOdeme">'
+        + '<option value="musteri-tahsilati-sonrasi">Müşteri tahsilatı sonrası</option>'
+        + '<option value="fatura-vadesinde">Fatura vadesinde</option></select></div>'
+        + '<div class="gfield"><label for="tyMasraf">Masraf sorumluluğu</label><select id="tyMasraf">'
+        + '<option value="taseron">Taşeron</option><option value="gavia">GAVIA Teknik</option>'
+        + '<option value="paylasimli">Paylaşımlı</option></select></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var unvan = kap.querySelector('#tyUnvan').value.trim();
+            var kisa = kap.querySelector('#tyKisa').value.trim();
+            var bolgeler = Array.prototype.slice.call(kap.querySelectorAll('#tyBolge option:checked')).map(function(o){ return o.value; });
+            var kapsam = Array.prototype.slice.call(kap.querySelectorAll('#tyKapsam option:checked')).map(function(o){ return o.value; });
+            if (!unvan || !kisa || !bolgeler.length || !kapsam.length) {
+              gvToast('Unvan, kısa ad, bölge ve kapsam zorunludur.', { ton:'danger' }); return false;
+            }
+            var kod = 'TSR-' + String(A.liste('taseronlar').length + 1).padStart(3,'0');
+            A.ekle('taseronlar', {
+              id: kod, kod: kod, unvan: unvan, kisaAd: kisa, bolgeler: bolgeler, kapsam: kapsam,
+              yetkili: kap.querySelector('#tyYetkili').value.trim(),
+              telefon: kap.querySelector('#tyTel').value.trim(), eposta: kap.querySelector('#tyMail').value.trim(),
+              durum:'aktif', fiyatListesiId: null,
+              odemeKurali: kap.querySelector('#tyOdeme').value,
+              masrafSahibi: kap.querySelector('#tyMasraf').value,
+              performans: 75, sozlesmeBitis: null, personelSayisi: 0, cihazSayisi: 0
+            }).then(function(){
+              gvToast('Taşeron kaydedildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          } }]
+    });
+  });
+
+  gvBarList('#tsPerformans', kaynak.slice().sort(function(a,b){ return b.performans - a.performans; })
+    .map(function(t){
+      return { etiket: t.kisaAd, deger: t.performans,
+        gosterim: t.performans + ' / 100 · ' + t.bekleyenRapor + ' bekleyen rapor',
+        ton: t.performans >= 90 ? 'ok' : t.performans >= 75 ? '' : 'warn' };
+    }));
+
+  var odemeSay = {};
+  A.liste('taseronHakedisleri').forEach(function(h){ odemeSay[h.durum] = (odemeSay[h.durum] || 0) + h.tutar; });
+  gvDonut('#tsOdeme', A.durumListesi('taseronOdeme').filter(function(d){ return odemeSay[d.k]; }).map(function(d){
+    return { etiket: d.ad, deger: odemeSay[d.k],
+      ton: d.ton === 'ok' ? 'ok' : d.ton === 'warn' ? 'warn' : d.ton === 'info' ? 'info' : 'gri' };
+  }), { merkez: Math.round(Object.keys(odemeSay).reduce(function(t,k){ return t + odemeSay[k]; }, 0) / 1000),
+        merkezEtiket:'bin ₺' });
+})();
+</script>
+</body>
+</html>

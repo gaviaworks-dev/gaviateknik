@@ -76,12 +76,13 @@
 - [x] fatura-gruplari / fatura-grubu-detay (parti, doluluk, kısmi, mükerrer engeli)
 - [x] faturalar / tahsilatlar
 
-## FAZ 8 — Kaynak Yönetimi
-- [ ] taseronlar / taseron-detay / taseron-hakedisleri
-- [ ] personeller / personel-detay / yetkinlikler
-- [ ] olcum-cihazlari / cihaz-detay / kalibrasyonlar
-- [ ] Kalibrasyonu geçmiş cihaz kırmızı + atama disabled
-- [ ] Yetkinliği olmayan personel atanamaz
+## FAZ 8 — Kaynak Yönetimi ✅
+- [x] taseronlar / taseron-detay / taseron-hakedisleri
+- [x] personeller / personel-detay / yetkinlikler
+- [x] olcum-cihazlari / cihaz-detay / kalibrasyonlar
+- [x] Kalibrasyonu geçmiş cihaz kırmızı + atama disabled (`demoApi.cihazAtanabilir` tek kaynak; CHZ-012 geçmiş, CHZ-011 serviste → kilitli)
+- [x] Yetkinliği olmayan personel atanamaz (`demoApi.personelAtanabilir`; belge süresi dolmuşsa da engel)
+- [x] `components.js` gvTable seçim dinleyicisi sızıntısı giderildi (her çizimde yeniden bağlanıyordu)
 
 ## FAZ 9 — Kalite ve Portal
 - [ ] kalite-dokumanlari / denetimler / duzeltici-faaliyetler / musteri-sikayetleri

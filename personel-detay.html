@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Personel Detayı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="kaynak" data-screen="personeller">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="rec-head" id="recHead"></div>
+
+    <div class="gv-cols">
+      <div>
+        <div class="gv-tabbar" role="tablist" aria-label="Kayıt sekmeleri">
+      <button class="gv-tab" role="tab" id="tb_genel" aria-controls="pn_genel" aria-selected="true">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>Genel Bilgiler</button>
+      <button class="gv-tab" role="tab" id="tb_belge" aria-controls="pn_belge" aria-selected="false">
+        <i class="fa-solid fa-certificate" aria-hidden="true"></i>Sertifikalar ve Belgeler<span class="tb-cnt" id="cnt_belge">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_yetkinlik" aria-controls="pn_yetkinlik" aria-selected="false">
+        <i class="fa-solid fa-award" aria-hidden="true"></i>Yetkinlikler<span class="tb-cnt" id="cnt_yetkinlik">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_gorev" aria-controls="pn_gorev" aria-selected="false">
+        <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Görevlendirmeler<span class="tb-cnt" id="cnt_gorev">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_kontrol" aria-controls="pn_kontrol" aria-selected="false">
+        <i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>Tamamlanan Kontroller<span class="tb-cnt" id="cnt_kontrol">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_cihaz" aria-controls="pn_cihaz" aria-selected="false">
+        <i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Cihaz Zimmetleri<span class="tb-cnt" id="cnt_cihaz">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_perf" aria-controls="pn_perf" aria-selected="false">
+        <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>Performans</button>
+        </div>
+      <div id="pn_genel" role="tabpanel" aria-labelledby="tb_genel">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-id-card" aria-hidden="true"></i>Personel Bilgileri</h2>
+            </div>
+          <div class="gc-body"><dl class="info-grid" id="pdBilgi"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-microscope" aria-hidden="true"></i>Uzmanlık Alanı</h2>
+            </div>
+          <div class="gc-body"><div id="pdUzmanlik"></div></div>
+        </section>
+      </div>
+      <div id="pn_belge" role="tabpanel" aria-labelledby="tb_belge" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-certificate" aria-hidden="true"></i>Sertifikalar ve Belge Geçerlilikleri</h2>
+            </div>
+          <div class="gc-body flush" id="pdSertifika"></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Yüklenen Belge Dosyaları</h2>
+            </div>
+          <div class="gc-body"><div id="pdDosya"></div><div style="margin-top:16px" id="pdYukle"></div></div>
+        </section>
+      </div>
+      <div id="pn_yetkinlik" role="tabpanel" aria-labelledby="tb_yetkinlik" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-award" aria-hidden="true"></i>Yetkinlikler ve Atanabilirlik</h2>
+            </div>
+          <div class="gc-body flush" id="pdYetkinlik"></div>
+        </section>
+      </div>
+      <div id="pn_gorev" role="tabpanel" aria-labelledby="tb_gorev" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>İş Emri Görevlendirmeleri</h2>
+            </div>
+          <div class="gc-body flush" id="pdGorev"></div>
+        </section>
+      </div>
+      <div id="pn_kontrol" role="tabpanel" aria-labelledby="tb_kontrol" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>Tamamlanan Kontroller ve Raporlar</h2>
+            </div>
+          <div class="gc-body flush" id="pdKontrol"></div>
+        </section>
+      </div>
+      <div id="pn_cihaz" role="tabpanel" aria-labelledby="tb_cihaz" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Zimmetli Ölçüm Cihazları</h2>
+            </div>
+          <div class="gc-body flush" id="pdCihaz"></div>
+        </section>
+      </div>
+      <div id="pn_perf" role="tabpanel" aria-labelledby="tb_perf" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i>Performans Göstergeleri</h2>
+            </div>
+          <div class="gc-body"><div id="pdPerf"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Kontrol Kategorisi Dağılımı</h2>
+            </div>
+          <div class="gc-body"><div class="chart-box" id="pdPerfGrafik"></div></div>
+        </section>
+      </div>
+      </div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Özet</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="pdOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Belge Geçerliliği</h2>
+            </div>
+          <div class="gc-body"><div id="pdBelgeOzet"></div></div>
+        </section>        <section class="gv-card no-print">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Hızlı İşlemler</h2>
+            </div>
+          <div class="gc-body"><div id="pdIslem"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id') || 'PRS-007';
+  var p = A.kayit('personeller', id);
+  if (!p) { gvNotFound({ kod:id, listeHref:'personeller.html', listeEtiket:'Personeller' }); return; }
+  GV.crumb(p.ad);
+  document.title = p.ad + ' — GAVIA Periyodik Kontrol Yönetimi';
+
+  /* ---------- veri toplama ---------- */
+  var yetkinlikler = A.liste('yetkinlikler');
+  var kategoriler = A.liste('hizmetKategorileri');
+  function ytk(yid){ for (var i=0;i<yetkinlikler.length;i++) if (yetkinlikler[i].id === yid) return yetkinlikler[i]; return null; }
+  function kat(kid){ for (var i=0;i<kategoriler.length;i++) if (kategoriler[i].id === kid) return kategoriler[i]; return null; }
+
+  var belgeler = A.liste('personelBelgeleri').filter(function(b){ return b.personelId === p.id; })
+    .sort(function(a,b){ return String(a.bitis).localeCompare(String(b.bitis)); });
+  function belgeBul(yid){ for (var i=0;i<belgeler.length;i++) if (belgeler[i].yetkinlikId === yid) return belgeler[i]; return null; }
+
+  var gorevler = A.isEmirleri().filter(function(i){ return (i.ekipId || []).indexOf(p.id) !== -1; })
+    .sort(function(a,b){ return String(b.tarih).localeCompare(String(a.tarih)); });
+  var kontroller = A.raporlar().filter(function(r){ return r.kontrolPersoneliId === p.id; })
+    .sort(function(a,b){ return String(b.kontrolTarihi).localeCompare(String(a.kontrolTarihi)); });
+  var cihazlar = A.liste('olcumCihazlari').filter(function(c){ return c.zimmet === p.id; });
+  var dosyalar = A.liste('belgeler').filter(function(b){ return b.kayitTuru === 'personel' && b.kayitId === p.id; });
+
+  var gecersizBelgeler = belgeler.filter(function(b){ return GV.gun(BUGUN, b.bitis) < 0; });
+  var yaklasanBelgeler = belgeler.filter(function(b){ var k = GV.gun(BUGUN, b.bitis); return k != null && k >= 0 && k <= 60; });
+  var enYakin = belgeler.filter(function(b){ return GV.gun(BUGUN, b.bitis) >= 0; })[0] || null;
+  var gecerliSayi = belgeler.length - gecersizBelgeler.length;
+
+  var slaSay = { uygun:0, yaklasti:0, asildi:0, yok:0 };
+  kontroller.forEach(function(r){ if (slaSay[r.slaDurum] != null) slaSay[r.slaDurum]++; });
+  var slaTabani = slaSay.uygun + slaSay.yaklasti + slaSay.asildi;
+  var slaOran = slaTabani ? slaSay.uygun / slaTabani : 0;
+  var uygunsuzlukSayisi = kontroller.reduce(function(x,r){ return x + (r.uygunsuzlukSayisi || 0); }, 0);
+
+  var izinli = p.durum === 'izinli';
+  var sonucAd = { uygun:['ok','fa-circle-check','Uygun'], 'sartli-uygun':['warn','fa-triangle-exclamation','Şartlı uygun'],
+                  'uygun-degil':['danger','fa-circle-xmark','Uygun değil'] };
+
+  /* ---------- kayıt başlığı ---------- */
+  document.getElementById('recHead').innerHTML =
+    '<div class="rec-mark' + (izinli ? ' warn' : '') + '">' + GV.esc(p.ini || p.ad.substring(0,2).toLocaleUpperCase('tr-TR')) + '</div>'
+    + '<div class="rec-id"><div class="rc-code">' + GV.esc(p.id) + '</div><h1>' + GV.esc(p.ad) + '</h1>'
+    + '<div class="rc-meta">'
+    + (izinli ? GV.rozetOzel('warn','fa-plane-departure','İzinli') : GV.rozetOzel('ok','fa-circle-check','Aktif'))
+    + '<span><i class="fa-solid fa-user-tie" aria-hidden="true"></i>' + GV.esc(p.gorev) + '</span>'
+    + '<span><i class="fa-solid fa-sitemap" aria-hidden="true"></i>' + GV.esc(p.birim) + '</span>'
+    + '<span><i class="fa-solid fa-layer-group" aria-hidden="true"></i>İş yükü ' + GV.n(p.isYuku) + ' görev</span>'
+    + '<span><i class="fa-solid fa-award" aria-hidden="true"></i>' + GV.n((p.yetkinlikler || []).length) + ' yetkinlik</span>'
+    + '</div></div>'
+    + '<div class="rec-acts no-print">'
+    + '<a class="btn btn-ghost" href="personeller.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
+    + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
+    + '<a class="btn btn-acc" href="yetkinlikler.html"><i class="fa-solid fa-table-cells" aria-hidden="true"></i>Yetkinlik Matrisi</a></div>';
+
+  gvTabs('.gv-tabbar');
+  function sayac(k,n){ var e = document.getElementById('cnt_' + k); if (e) e.textContent = GV.n(n); }
+  sayac('belge', belgeler.length); sayac('yetkinlik', (p.yetkinlikler || []).length);
+  sayac('gorev', gorevler.length); sayac('kontrol', kontroller.length); sayac('cihaz', cihazlar.length);
+
+  /* ---------- genel bilgiler ---------- */
+  function bilgi(a,b){ return '<div class="info-item"><dt>' + GV.esc(a) + '</dt><dd' + (b ? '' : ' class="empty"') + '>' + (b || GV.bos) + '</dd></div>'; }
+  var uzmanlikKat = [];
+  (p.yetkinlikler || []).forEach(function(yid){
+    var y = ytk(yid); if (!y) return;
+    if (uzmanlikKat.indexOf(y.kategori) === -1) uzmanlikKat.push(y.kategori);
+  });
+  document.getElementById('pdBilgi').innerHTML =
+    bilgi('Ad Soyad', GV.esc(p.ad))
+    + bilgi('Personel Kodu', GV.esc(p.id))
+    + bilgi('Görev', GV.esc(p.gorev))
+    + bilgi('Birim', GV.esc(p.birim))
+    + bilgi('Uzmanlık Alanı', uzmanlikKat.length
+        ? uzmanlikKat.map(function(k){ var kk = kat(k); return GV.esc(kk ? kk.ad : k); }).join(', ')
+        : null)
+    + bilgi('İşe Giriş Tarihi', GV.dUzun(p.ise))
+    + bilgi('Telefon', GV.esc(p.telefon))
+    + bilgi('E-posta', p.eposta ? '<a href="mailto:' + GV.esc(p.eposta) + '">' + GV.esc(p.eposta) + '</a>' : null)
+    + bilgi('Durum', izinli ? GV.rozetOzel('warn','fa-plane-departure','İzinli') : GV.rozetOzel('ok','fa-circle-check','Aktif'))
+    + bilgi('İzin Bitişi', izinli ? GV.dUzun(p.izinBitis) : null)
+    + bilgi('Açık İş Yükü', GV.n(p.isYuku) + ' görev');
+
+  document.getElementById('pdUzmanlik').innerHTML =
+    (uzmanlikKat.length
+      ? '<div class="chips">' + uzmanlikKat.map(function(k){
+          var kk = kat(k);
+          var say = (p.yetkinlikler || []).filter(function(yid){ var y = ytk(yid); return y && y.kategori === k; }).length;
+          return '<span class="chip is-on" style="cursor:default;border-color:' + (kk ? kk.renk : 'var(--line)') + '55">'
+            + '<i class="fa-solid ' + (kk ? kk.ikon : 'fa-list') + '" style="color:' + (kk ? kk.renk : 'var(--muted)') + '" aria-hidden="true"></i>'
+            + GV.esc(kk ? kk.ad : k) + '<span class="ch-cnt">' + GV.n(say) + '</span></span>';
+        }).join('') + '</div>'
+      : gvEmpty({ ikon:'fa-microscope', baslik:'Uzmanlık alanı tanımlı değil',
+          metin:'Bu personele henüz yetkinlik tanımlanmadığı için kontrol kapsamı oluşmadı.' }))
+    + '<div class="gv-note' + (izinli ? ' warn' : '') + '" style="margin-top:18px">'
+    + '<i class="fa-solid fa-' + (izinli ? 'plane-departure' : 'circle-info') + '" aria-hidden="true"></i><span>'
+    + (izinli
+      ? '<b>Personel ' + GV.esc(GV.dUzun(p.izinBitis)) + ' tarihine kadar izinli.</b> İzin süresince hiçbir kontrol kalemine atanamaz; '
+        + 'planlama ekranında bu personel seçilemez.'
+      : 'Uzmanlık alanı, personelin geçerli yetkinlik belgelerinden türetilir. '
+        + '<b>Belgesi olmayan veya geçerliliğini yitirmiş kapsamda personel kontrole atanamaz.</b>')
+    + '</span></div>';
+
+  /* ---------- sertifikalar ---------- */
+  document.getElementById('pdSertifika').innerHTML = belgeler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Belge No</th><th scope="col">Yetkinlik</th><th scope="col">Belge Türü</th>'
+      + '<th scope="col">Başlangıç</th><th scope="col">Bitiş</th>'
+      + '<th scope="col" class="num">Kalan Gün</th><th scope="col">Geçerlilik</th></tr></thead><tbody>'
+      + belgeler.map(function(b){
+          var y = ytk(b.yetkinlikId), kalan = GV.gun(BUGUN, b.bitis);
+          return '<tr><td data-lbl="Belge No"><b class="t-strong">' + GV.esc(b.belgeNo) + '</b></td>'
+            + '<td data-lbl="Yetkinlik">' + GV.esc(y ? y.ad : b.yetkinlikId) + '</td>'
+            + '<td data-lbl="Belge Türü">' + GV.esc(y ? y.belgeTuru : '—') + '</td>'
+            + '<td data-lbl="Başlangıç">' + GV.d(b.baslangic) + '</td>'
+            + '<td data-lbl="Bitiş">' + GV.d(b.bitis) + '</td>'
+            + '<td data-lbl="Kalan Gün" class="num">' + (kalan == null ? GV.bos
+                : kalan < 0 ? '<b style="color:var(--danger)">' + GV.n(kalan) + '</b>'
+                : kalan <= 60 ? '<b style="color:var(--warning)">' + GV.n(kalan) + '</b>' : GV.n(kalan)) + '</td>'
+            + '<td data-lbl="Geçerlilik">' + (kalan == null ? GV.rozetOzel('off','fa-circle-minus','Tarih yok')
+                : kalan < 0 ? GV.rozetOzel('danger','fa-ban','Geçersiz')
+                : kalan <= 60 ? GV.rozetOzel('warn','fa-clock', kalan + ' gün kaldı')
+                : GV.rozetOzel('ok','fa-circle-check','Geçerli')) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+      + (gecersizBelgeler.length
+        ? '<div class="gv-note danger" style="margin:16px 22px 0"><i class="fa-solid fa-ban" aria-hidden="true"></i><span>'
+          + '<b>' + GV.n(gecersizBelgeler.length) + ' belgenin geçerliliği doldu.</b> '
+          + GV.esc(gecersizBelgeler.map(function(b){ var y = ytk(b.yetkinlikId); return y ? y.ad : b.yetkinlikId; }).join(' · '))
+          + ' — <b>bu kapsamda kontrole atanamaz.</b> Belge yenilenmeden iş emri ataması yapılamaz.</span></div>' : '')
+      + (yaklasanBelgeler.length
+        ? '<div class="gv-note warn" style="margin:16px 22px 0"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>'
+          + '<b>' + GV.n(yaklasanBelgeler.length) + ' belge 60 gün içinde doluyor.</b> '
+          + GV.esc(yaklasanBelgeler.map(function(b){
+              var y = ytk(b.yetkinlikId);
+              return (y ? y.ad : b.yetkinlikId) + ' (' + GV.d(b.bitis) + ')'; }).join(' · '))
+          + ' — yenileme süreci şimdiden başlatılmalıdır.</span></div>' : '')
+      + '<div style="margin:16px 22px 22px"><button class="btn btn-sm btn-acc no-print" type="button" id="pdBelgeYenile2">'
+      + '<i class="fa-solid fa-rotate" aria-hidden="true"></i>Belge Yenile</button></div>'
+    : gvEmpty({ ikon:'fa-certificate', baslik:'Sertifika kaydı yok',
+        metin:'Bu personel için yetkinlik belgesi kaydedilmedi; kontrol kalemlerine atanamaz.' });
+
+  document.getElementById('pdDosya').innerHTML = dosyalar.length
+    ? '<div class="gv-filelist">' + dosyalar.map(function(b){
+        var yk = A.kayit('personeller', b.yukleyen);
+        return '<div class="gv-fileitem"><span class="fi-ico"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>'
+          + '<span class="fi-info"><b>' + GV.esc(b.ad) + '</b><span>' + GV.n(b.boyutKb) + ' KB · '
+          + GV.d(b.tarih) + ' · ' + GV.esc(yk ? yk.ad : '—') + '</span></span>'
+          + '<button class="ia-btn" type="button" data-demo="Belge indirme demo arayüzünde etkin değildir." aria-label="'
+          + GV.esc(b.ad) + ' indir"><i class="fa-solid fa-download" aria-hidden="true"></i></button></div>';
+      }).join('') + '</div>'
+    : gvEmpty({ ikon:'fa-paperclip', baslik:'Yüklenmiş dosya yok',
+        metin:'Bu personele ait sertifika taraması veya belge dosyası yüklenmedi.' });
+  gvDrop('#pdYukle', { baslik:'Sertifika yükleyin', metin:'Yetkinlik belgesi, eğitim katılım belgesi · PDF veya JPG' });
+
+  /* ---------- yetkinlikler ---------- */
+  var kendiYetkinlikleri = (p.yetkinlikler || []).map(function(yid){ return ytk(yid); }).filter(Boolean);
+  document.getElementById('pdYetkinlik').innerHTML = kendiYetkinlikleri.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Yetkinlik</th><th scope="col">Hizmet Kategorisi</th><th scope="col">Belge Türü</th>'
+      + '<th scope="col" class="num">Geçerlilik (ay)</th><th scope="col">Belge Bitişi</th>'
+      + '<th scope="col">Atanabilirlik</th></tr></thead><tbody>'
+      + kendiYetkinlikleri.map(function(y){
+          var kk = kat(y.kategori), b = belgeBul(y.id);
+          var kural = A.personelAtanabilir(p.id, y.id);
+          var kalan = b ? GV.gun(BUGUN, b.bitis) : null;
+          var rozet = !kural.uygun ? GV.rozetOzel('danger','fa-ban','Atanamaz')
+            : (kural.uyari || (kalan != null && kalan <= 60)) ? GV.rozetOzel('warn','fa-clock','Koşullu atanabilir')
+            : GV.rozetOzel('ok','fa-circle-check','Atanabilir');
+          return '<tr><td data-lbl="Yetkinlik"><b class="t-strong">' + GV.esc(y.ad) + '</b></td>'
+            + '<td data-lbl="Hizmet Kategorisi">' + (kk
+                ? '<span class="gtag"><i class="fa-solid ' + kk.ikon + '" style="color:' + kk.renk + '" aria-hidden="true"></i> ' + GV.esc(kk.ad) + '</span>'
+                : GV.bos) + '</td>'
+            + '<td data-lbl="Belge Türü">' + GV.esc(y.belgeTuru) + '</td>'
+            + '<td data-lbl="Geçerlilik (ay)" class="num">' + GV.n(y.gecerlilikAy) + '</td>'
+            + '<td data-lbl="Belge Bitişi">' + (b ? GV.d(b.bitis) : GV.bos) + '</td>'
+            + '<td data-lbl="Atanabilirlik">' + rozet
+            + (kural.sebep ? '<div class="gcell-sub" style="margin-top:5px">' + GV.esc(kural.sebep) + '</div>' : '')
+            + (kural.uyari ? '<div class="gcell-sub" style="margin-top:5px">' + GV.esc(kural.uyari) + '</div>' : '')
+            + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span>'
+      + 'Atanabilirlik <b>demoApi.personelAtanabilir()</b> iş kuralından okunur: yetkinlik tanımı, geçerli belge ve '
+      + 'izin durumu birlikte değerlendirilir. <b>Yetkinliği olmayan personel ilgili kontrole atanamaz.</b></span></div>'
+    : gvEmpty({ ikon:'fa-award', baslik:'Yetkinlik tanımlı değil',
+        metin:'Bu personel idari görevde; saha kontrol kalemlerine atanmaz.' });
+
+  /* ---------- görevlendirmeler ---------- */
+  document.getElementById('pdGorev').innerHTML = gorevler.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">İş Emri</th><th scope="col">Lokasyon</th><th scope="col">Müşteri</th>'
+      + '<th scope="col">Tarih</th><th scope="col">Ekip</th><th scope="col">Operasyon Durumu</th></tr></thead><tbody>'
+      + gorevler.map(function(i){
+          return '<tr><td data-lbl="İş Emri"><a href="is-emri-detay.html?id=' + i.id + '"><b class="t-strong">' + GV.esc(i.id) + '</b></a></td>'
+            + '<td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + i.lokasyonId + '">' + GV.esc(i.lokasyonAd) + '</a></td>'
+            + '<td data-lbl="Müşteri">' + GV.esc(i.musteriAd) + '</td>'
+            + '<td data-lbl="Tarih">' + GV.d(i.tarih) + (i.saat ? ' · ' + GV.esc(i.saat) : '') + '</td>'
+            + '<td data-lbl="Ekip">' + GV.esc((i.ekipAdlari || []).join(', ')) + '</td>'
+            + '<td data-lbl="Operasyon Durumu">' + GV.rozet('operasyon', i.operasyonDurum) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-clipboard-list', baslik:'Görevlendirme yok',
+        metin:'Bu personel hiçbir iş emri ekibinde yer almıyor.' });
+
+  /* ---------- tamamlanan kontroller ---------- */
+  document.getElementById('pdKontrol').innerHTML = kontroller.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Rapor</th><th scope="col">Lokasyon</th><th scope="col">Kategori</th>'
+      + '<th scope="col">Kontrol Tarihi</th><th scope="col">Sonuç</th>'
+      + '<th scope="col">SLA Durumu</th><th scope="col">Rapor Durumu</th></tr></thead><tbody>'
+      + kontroller.map(function(r){
+          var s = sonucAd[r.sonuc] || ['off','fa-circle-minus', r.sonuc || '—'];
+          var slaHucre = r.slaDurum === 'asildi' && r.sla
+              ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(r.sla.kalanGun) + ' gün gecikme')
+            : r.slaDurum === 'yaklasti' && r.sla
+              ? GV.rozetOzel('warn','fa-hourglass-half', r.sla.kalanGun + ' gün kaldı')
+            : r.slaDurum === 'uygun' ? GV.rozetOzel('ok','fa-check','Süresinde')
+            : GV.rozetOzel('off','fa-circle-minus','SLA tanımsız');
+          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
+            + '<td data-lbl="Lokasyon">' + GV.esc(r.lokasyonAd) + '</td>'
+            + '<td data-lbl="Kategori">' + GV.esc(r.kategoriAd) + '</td>'
+            + '<td data-lbl="Kontrol Tarihi">' + GV.d(r.kontrolTarihi) + '</td>'
+            + '<td data-lbl="Sonuç">' + GV.rozetOzel(s[0], s[1], s[2])
+            + (r.uygunsuzlukSayisi ? ' <span class="gtag warn">' + GV.n(r.uygunsuzlukSayisi) + ' uygunsuzluk</span>' : '') + '</td>'
+            + '<td data-lbl="SLA Durumu">' + slaHucre + '</td>'
+            + '<td data-lbl="Rapor Durumu">' + GV.rozet('rapor', r.durum) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-file-circle-check', baslik:'Tamamlanan kontrol yok',
+        metin:'Bu personelin kontrol sorumlusu olduğu rapor bulunmuyor.' });
+
+  /* ---------- cihaz zimmetleri ---------- */
+  document.getElementById('pdCihaz').innerHTML = cihazlar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Cihaz Kodu</th><th scope="col">Cihaz</th><th scope="col">Marka / Model</th>'
+      + '<th scope="col">Seri No</th><th scope="col">Kullanım Kapsamı</th>'
+      + '<th scope="col">Kalibrasyon Bitişi</th><th scope="col">İş Emrine Atanabilirlik</th></tr></thead><tbody>'
+      + cihazlar.map(function(c){
+          var kural = A.cihazAtanabilir(c.id);
+          return '<tr><td data-lbl="Cihaz Kodu"><a href="cihaz-detay.html?id=' + c.id + '">'
+            + '<b class="t-strong">' + GV.esc(c.kod) + '</b></a></td>'
+            + '<td data-lbl="Cihaz">' + GV.esc(c.ad) + '</td>'
+            + '<td data-lbl="Marka / Model">' + GV.esc(c.marka + ' ' + c.model) + '</td>'
+            + '<td data-lbl="Seri No">' + GV.esc(c.seri) + '</td>'
+            + '<td data-lbl="Kullanım Kapsamı">' + (c.kapsam || []).map(function(k){
+                var kk = kat(k); return '<span class="gtag">' + GV.esc(kk ? kk.ad : k) + '</span>'; }).join(' ') + '</td>'
+            + '<td data-lbl="Kalibrasyon Bitişi">' + GV.d(c.kalibrasyonBitis) + '</td>'
+            + '<td data-lbl="İş Emrine Atanabilirlik">' + (kural.uygun
+                ? (kural.uyari ? GV.rozetOzel('warn','fa-clock', kural.uyari) : GV.rozetOzel('ok','fa-circle-check','Kullanıma uygun'))
+                : GV.rozetOzel('danger','fa-ban', kural.sebep)) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+      + (cihazlar.some(function(c){ return !A.cihazAtanabilir(c.id).uygun; })
+        ? '<div class="gv-note danger" style="margin:16px 22px 22px"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span>'
+          + '<b>Zimmetteki cihazlardan en az biri iş emrine atanamaz.</b> Kalibrasyonu geçmiş veya serviste olan cihazla '
+          + 'yapılan ölçümler geçersizdir; cihaz kalibrasyona gönderilmeli veya zimmet değiştirilmelidir.</span></div>'
+        : '<div class="gv-note ok" style="margin:16px 22px 22px"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>'
+          + 'Zimmetteki bütün cihazların kalibrasyon geçerliliği sürüyor.</span></div>')
+    : gvEmpty({ ikon:'fa-ruler-combined', baslik:'Zimmetli cihaz yok',
+        metin:'Bu personele ölçüm cihazı zimmetlenmedi.' });
+
+  /* ---------- performans ---------- */
+  document.getElementById('pdPerf').innerHTML =
+    '<div class="gv-grid-2"><div>'
+    + '<div class="fill-meter"><div class="fill-meter-top"><b>SLA uyum oranı</b>'
+    + '<span>' + GV.n(slaSay.uygun) + ' / ' + GV.n(slaTabani) + '</span></div>'
+    + GV.bar(slaOran, { buyuk:true, ton: slaOran >= 0.9 ? 'ok' : slaOran >= 0.7 ? 'warn' : 'danger',
+        etiket: GV.pct(slaOran, true, 0) })
+    + '<div class="fill-meter-note">' + GV.n(slaSay.asildi) + ' raporda SLA süresi aşıldı.</div></div>'
+    + '<dl class="info-rows" style="margin-top:18px">'
+    + '<div class="info-row"><dt>Tamamlanan kontrol</dt><dd>' + GV.n(kontroller.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Süresinde teslim</dt><dd>' + GV.n(slaSay.uygun) + '</dd></div>'
+    + '<div class="info-row"><dt>Süre aşılan rapor</dt><dd>' + GV.n(slaSay.asildi) + '</dd></div>'
+    + '<div class="info-row"><dt>Tespit edilen uygunsuzluk</dt><dd>' + GV.n(uygunsuzlukSayisi) + '</dd></div>'
+    + '<div class="info-row"><dt>Rapor başına uygunsuzluk</dt><dd>'
+    + (kontroller.length ? GV.n(uygunsuzlukSayisi / kontroller.length, 1) : GV.bos) + '</dd></div>'
+    + '<div class="info-row"><dt>Revizyon istenen rapor</dt><dd>'
+    + GV.n(kontroller.filter(function(r){ return r.durum === 'revizyon-istendi'; }).length) + '</dd></div>'
+    + '<div class="info-row"><dt>Açık iş yükü</dt><dd>' + GV.n(p.isYuku) + ' görev</dd></div>'
+    + '</dl></div><div><div class="chart-box" id="pdSlaDonut"></div></div></div>';
+
+  var donutVeri = [
+    { etiket:'Süresinde', deger: slaSay.uygun, ton:'ok' },
+    { etiket:'Süre yaklaştı', deger: slaSay.yaklasti, ton:'warn' },
+    { etiket:'Süre aşıldı', deger: slaSay.asildi, ton:'danger' }
+  ].filter(function(d){ return d.deger; });
+  if (donutVeri.length) gvDonut('#pdSlaDonut', donutVeri, { merkez: kontroller.length, merkezEtiket:'rapor' });
+  else document.getElementById('pdSlaDonut').innerHTML = gvEmpty({ ikon:'fa-hourglass-half',
+    baslik:'SLA verisi yok', metin:'Bu personele ait SLA hesaplanabilir rapor bulunmuyor.' });
+
+  var katSay = {};
+  kontroller.forEach(function(r){ katSay[r.kategoriAd] = (katSay[r.kategoriAd] || 0) + 1; });
+  var katVeri = Object.keys(katSay).map(function(k){ return { etiket:k, deger:katSay[k], ton:'acc' }; });
+  if (katVeri.length) gvBar('#pdPerfGrafik', katVeri, { baslik:'Kontrol kategorisi dağılımı', birim:'rapor' });
+  else document.getElementById('pdPerfGrafik').innerHTML = gvEmpty({ ikon:'fa-chart-column',
+    baslik:'Grafik için veri yok', metin:'Personelin tamamladığı kontrol kaydı bulunmuyor.' });
+
+  /* ---------- sağ kolon: özet ---------- */
+  var aktifGorev = gorevler.filter(function(i){
+    return ['planlandi','sahada','yeniden-ziyaret','tarih-onayi-bekleniyor'].indexOf(i.operasyonDurum) !== -1; });
+  document.getElementById('pdOzet').innerHTML =
+    '<div class="info-row"><dt>Görev</dt><dd>' + GV.esc(p.gorev) + '</dd></div>'
+    + '<div class="info-row"><dt>Birim</dt><dd>' + GV.esc(p.birim) + '</dd></div>'
+    + '<div class="info-row"><dt>İşe giriş</dt><dd>' + GV.d(p.ise) + '</dd></div>'
+    + '<div class="info-row"><dt>Yetkinlik</dt><dd>' + GV.n((p.yetkinlikler || []).length) + '</dd></div>'
+    + '<div class="info-row"><dt>Aktif görevlendirme</dt><dd>' + GV.n(aktifGorev.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Toplam görevlendirme</dt><dd>' + GV.n(gorevler.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Tamamlanan kontrol</dt><dd>' + GV.n(kontroller.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Zimmetli cihaz</dt><dd>' + GV.n(cihazlar.length) + '</dd></div>'
+    + '<div class="info-row"><dt>Açık iş yükü</dt><dd>' + GV.n(p.isYuku) + ' görev</dd></div>';
+
+  /* ---------- sağ kolon: belge geçerliliği ---------- */
+  var belgeOran = belgeler.length ? gecerliSayi / belgeler.length : 0;
+  document.getElementById('pdBelgeOzet').innerHTML = belgeler.length
+    ? '<div class="fill-meter"><div class="fill-meter-top"><b>Geçerli belge oranı</b>'
+      + '<span>' + GV.n(gecerliSayi) + ' / ' + GV.n(belgeler.length) + '</span></div>'
+      + GV.bar(belgeOran, { buyuk:true, ton: gecersizBelgeler.length ? 'danger' : yaklasanBelgeler.length ? 'warn' : 'ok',
+          etiket: GV.pct(belgeOran, true, 0) })
+      + '<div class="fill-meter-note">' + (gecersizBelgeler.length
+          ? GV.n(gecersizBelgeler.length) + ' belge geçersiz; ilgili kapsamda atama yapılamaz.'
+          : yaklasanBelgeler.length ? GV.n(yaklasanBelgeler.length) + ' belge 60 gün içinde doluyor.'
+          : 'Bütün belgeler geçerli.') + '</div></div>'
+      + '<dl class="info-rows" style="margin-top:16px">'
+      + '<div class="info-row"><dt>En yakın bitiş</dt><dd>' + (enYakin
+          ? GV.d(enYakin.bitis) + ' · ' + GV.n(GV.gun(BUGUN, enYakin.bitis)) + ' gün' : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>En yakın belge</dt><dd>' + (enYakin
+          ? GV.esc((ytk(enYakin.yetkinlikId) || {}).ad || enYakin.yetkinlikId) : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Geçersiz belge</dt><dd>' + GV.n(gecersizBelgeler.length) + '</dd></div>'
+      + '<div class="info-row"><dt>60 gün içinde dolan</dt><dd>' + GV.n(yaklasanBelgeler.length) + '</dd></div></dl>'
+      + (gecersizBelgeler.length
+        ? '<div class="gv-note danger" style="margin-top:14px"><i class="fa-solid fa-ban" aria-hidden="true"></i>'
+          + '<span><b>Bu kapsamda kontrole atanamaz.</b> Geçersiz belgeli yetkinlikler planlamada seçilemez.</span></div>' : '')
+    : '<div class="gv-note danger"><i class="fa-solid fa-ban" aria-hidden="true"></i>'
+      + '<span><b>Kayıtlı yetkinlik belgesi yok.</b> Belge girilmeden bu personel hiçbir kontrol kalemine atanamaz.</span></div>';
+
+  /* ---------- sağ kolon: hızlı işlemler ---------- */
+  document.getElementById('pdIslem').innerHTML =
+    '<div>'
+    + '<button class="btn btn-acc btn-block" type="button" id="pdAta">'
+    + '<i class="fa-solid fa-user-plus" aria-hidden="true"></i>İş Emrine Ata</button>'
+    + '<button class="btn btn-ghost btn-block" type="button" id="pdBelgeYenile" style="margin-top:10px">'
+    + '<i class="fa-solid fa-rotate" aria-hidden="true"></i>Belge Yenile</button>'
+    + '<a class="btn btn-ghost btn-block" href="olcum-cihazlari.html" style="margin-top:10px">'
+    + '<i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Ölçüm Cihazları</a>'
+    + '</div>';
+
+  /* --- iş emrine atama modalı --- */
+  var acikIsEmirleri = A.isEmirleri().filter(function(i){
+    return ['kontrol-tamamlandi','iptal','kapsam-disi'].indexOf(i.operasyonDurum) === -1
+      && (i.ekipId || []).indexOf(p.id) === -1;
+  });
+
+  function atamaModali(){
+    if (izinli) {
+      gvModal({ baslik:'Personel izinli', ikon:'fa-plane-departure', ton:'warn',
+        metin: GV.esc(p.ad) + ' <b>' + GV.esc(GV.dUzun(p.izinBitis)) + '</b> tarihine kadar izinli olduğu için '
+          + 'hiçbir iş emrine atanamaz. İzin bitiminden sonra atama yapılabilir.',
+        butonlar:[{ etiket:'Anladım', sinif:'btn-ghost' }] });
+      return;
+    }
+    if (!acikIsEmirleri.length) {
+      gvModal({ baslik:'Atanabilecek iş emri yok', ikon:'fa-clipboard-list',
+        metin:'Bu personelin ekibinde yer almadığı açık iş emri bulunmuyor. Yeni iş emri oluşturarak atama yapabilirsiniz.',
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+          { etiket:'İş Emirleri', sinif:'btn-acc', ikon:'fa-arrow-right',
+            tikla: function(){ location.href = GV.href ? GV.href('is-emirleri.html') : 'is-emirleri.html'; return false; } }] });
+      return;
+    }
+    gvModal({
+      baslik:'İş emrine ata', ikon:'fa-user-plus', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="paIsEmri">İş emri *</label><select id="paIsEmri">'
+        + acikIsEmirleri.map(function(i){
+            return '<option value="' + i.id + '">' + GV.esc(i.id + ' · ' + i.lokasyonAd + ' · ' + GV.d(i.tarih)) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield full"><label for="paYetkinlik">Atanacak kontrol kapsamı *</label><select id="paYetkinlik">'
+        + '<option value="">Kapsam seçin…</option>'
+        + kendiYetkinlikleri.map(function(y){ return '<option value="' + y.id + '">' + GV.esc(y.ad) + '</option>'; }).join('')
+        + '</select><span class="gf-hint">Seçilen kapsam için yetkinlik ve belge geçerliliği kontrol edilir; '
+        + 'yetkinliği olmayan personel kontrole atanamaz.</span></div>'
+        + '<div class="gfield full"><label for="paNot">Görevlendirme notu</label>'
+        + '<textarea id="paNot" rows="2" placeholder="Ekip içi rol, ulaşım veya ekipman notu"></textarea></div></div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Ekibe Ekle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ieId = kap.querySelector('#paIsEmri').value;
+            var yId = kap.querySelector('#paYetkinlik').value;
+            var not = kap.querySelector('#paNot').value.trim();
+            if (!yId) { gvToast('Atanacak kontrol kapsamını seçin.', { ton:'danger' }); return false; }
+            var kural = A.personelAtanabilir(p.id, yId);
+            if (!kural.uygun) {
+              gvToast('Atama yapılamaz: ' + kural.sebep, { ton:'danger' });
+              return false;
+            }
+            var ie = A.kayit('isEmirleri', ieId);
+            if (!ie) { gvToast('İş emri bulunamadı.', { ton:'danger' }); return false; }
+            var ekip = (ie.ekipId || []).slice();
+            if (ekip.indexOf(p.id) === -1) ekip.push(p.id);
+            A.guncelle('isEmirleri', ieId, { ekipId: ekip }).then(function(){
+              A.kayitAt('guncelleme', 'isEmirleri', ieId, null, p.id,
+                'Personel ekibe eklendi (' + ((ytk(yId) || {}).ad || yId) + ')' + (not ? ' — ' + not : ''));
+              gvToast(p.ad + ' · ' + ieId + ' iş emri ekibine eklendi.'
+                + (kural.uyari ? ' Uyarı: ' + kural.uyari : ''), { ton: kural.uyari ? 'warn' : 'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  /* --- belge yenileme modalı --- */
+  function belgeModali(){
+    var secenekler = kendiYetkinlikleri.map(function(y){
+      var b = belgeBul(y.id);
+      return { deger: b ? 'v:' + b.id : 'y:' + y.id, ad: y.ad + (b ? ' · ' + b.belgeNo + ' (' + GV.d(b.bitis) + ')' : ' · belge yok') };
+    });
+    if (!secenekler.length) {
+      gvModal({ baslik:'Yetkinlik tanımlı değil', ikon:'fa-award',
+        metin:'Belge yenilemek için önce personele yetkinlik tanımlanmalıdır. Yetkinlik tanımları '
+          + '<b>Yetkinlikler</b> ekranından yönetilir.',
+        butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' },
+          { etiket:'Yetkinlikler', sinif:'btn-acc', ikon:'fa-arrow-right',
+            tikla: function(){ location.href = GV.href ? GV.href('yetkinlikler.html') : 'yetkinlikler.html'; return false; } }] });
+      return;
+    }
+    gvModal({
+      baslik:'Belge yenile', ikon:'fa-rotate', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield full"><label for="pbYetkinlik">Yetkinlik belgesi *</label><select id="pbYetkinlik">'
+        + secenekler.map(function(s){ return '<option value="' + GV.esc(s.deger) + '">' + GV.esc(s.ad) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="pbNo">Yeni belge no *</label><input type="text" id="pbNo" placeholder="SRT-2026-0000"></div>'
+        + '<div class="gfield"><label for="pbBas">Yeni başlangıç tarihi *</label><input type="date" id="pbBas"></div>'
+        + '<div class="gfield"><label for="pbBit">Yeni bitiş tarihi *</label><input type="date" id="pbBit">'
+        + '<span class="gf-hint">Bitiş tarihi belge türünün geçerlilik süresine göre girilir; sistem tarih üretmez.</span></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Belgeyi Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var sec = kap.querySelector('#pbYetkinlik').value;
+            var no = kap.querySelector('#pbNo').value.trim();
+            var bas = kap.querySelector('#pbBas').value;
+            var bit = kap.querySelector('#pbBit').value;
+            if (!no || !bas || !bit) { gvToast('Belge no, başlangıç ve bitiş tarihi zorunludur.', { ton:'danger' }); return false; }
+            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
+            if (bit < BUGUN) { gvToast('Yenilenen belgenin bitiş tarihi geçmiş olamaz.', { ton:'danger' }); return false; }
+            var sonra;
+            if (sec.indexOf('v:') === 0) {
+              sonra = A.guncelle('personelBelgeleri', sec.substring(2), { belgeNo: no, baslangic: bas, bitis: bit });
+            } else {
+              var yId = sec.substring(2);
+              sonra = A.ekle('personelBelgeleri', {
+                id: 'PBG-U' + String(A.liste('personelBelgeleri').length + 1).padStart(3,'0'),
+                personelId: p.id, yetkinlikId: yId, belgeNo: no, baslangic: bas, bitis: bit });
+            }
+            sonra.then(function(){
+              gvToast('Belge güncellendi; geçerlilik ' + GV.d(bit) + ' tarihine uzatıldı.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 900);
+            });
+          } }]
+    });
+  }
+
+  document.getElementById('pdAta').addEventListener('click', atamaModali);
+  document.getElementById('pdBelgeYenile').addEventListener('click', belgeModali);
+  var ikinci = document.getElementById('pdBelgeYenile2');
+  if (ikinci) ikinci.addEventListener('click', belgeModali);
+})();
+</script>
+</body>
+</html>
