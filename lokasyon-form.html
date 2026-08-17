@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Lokasyon Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="musteri" data-screen="lokasyonlar">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri ve Projeler</div>
+        <h1><span id="lfBaslik">Yeni Lokasyon</span></h1>
+        <p class="ph-sub">Lokasyon ana rehbere kaydedilir. Projeye dâhil etme, ön envanter tanımlama ve planlama ayrı adımlardır.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Kimlik Bilgileri</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield full">
+                <label for="lAd">Lokasyon Adı <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="lAd" name="ad" required minlength="3" placeholder="Örnek Market Kadıköy Şubesi">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lKod">Sistem Kodu</label>
+                <input type="text" id="lKod" name="kod" placeholder="Otomatik üretilir">
+                <span class="gf-hint">GAVIA sistem kodu. Boş bırakılırsa otomatik atanır.</span>
+              </div>
+              <div class="gfield">
+                <label for="lMusteriKod">Müşteri Lokasyon Kodu <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="lMusteriKod" name="musteriKod" required placeholder="ZM-034">
+                <span class="gf-hint">Müşterinin kendi sistemindeki şube/depo kodu. Mutabakatta bu kod kullanılır.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lMusteri">Müşteri <span class="req" aria-hidden="true">*</span></label>
+                <select id="lMusteri" name="musteriId" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lMarka">Marka <span class="req" aria-hidden="true">*</span></label>
+                <select id="lMarka" name="markaId" required><option value="">Önce müşteri seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lTur">Lokasyon Türü <span class="req" aria-hidden="true">*</span></label>
+                <select id="lTur" name="tur" required>
+                  <option value="">Seçin…</option>
+                  <option>Market</option><option>Depo</option><option>Antrepo</option>
+                  <option>Fabrika</option><option>Soğuk hava deposu</option><option>Ofis</option><option>Diğer</option>
+                </select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lM2">Kapalı Alan (m²)</label>
+                <input type="number" id="lM2" name="m2" min="0" max="200000" placeholder="1500">
+                <span class="gf-hint">Raf sistemi ve ortam ölçümü miktarları bu alandan tahmin edilir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>Adres ve Bölge</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="lIl">İl <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="lIl" name="il" required placeholder="İstanbul">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lIlce">İlçe <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="lIlce" name="ilce" required placeholder="Kadıköy">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lBolge">Bölge <span class="req" aria-hidden="true">*</span></label>
+                <select id="lBolge" name="bolge" required>
+                  <option value="">Seçin…</option>
+                  <option>Marmara</option><option>Ege</option><option>İç Anadolu</option>
+                  <option>Akdeniz</option><option>Karadeniz</option><option>Doğu Anadolu</option><option>Güneydoğu Anadolu</option>
+                </select>
+                <span class="gf-hint">Taşeron ve ekip ataması bölgeye göre yapılır.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lTaseron">Taşeron</label>
+                <select id="lTaseron" name="taseronId"><option value="">Atanmadı (GAVIA ekibi)</option></select>
+                <span class="gf-hint" id="lTaseronUyari"></span>
+              </div>
+              <div class="gfield full">
+                <label for="lAdres">Açık Adres</label>
+                <textarea id="lAdres" name="adres" placeholder="Mahalle, cadde, no"></textarea>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Kapsam ve Durum</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="lProje">Kontrol Projesi</label>
+                <select id="lProje" name="projeId"><option value="">Projeye dâhil değil (yalnız rehberde)</option></select>
+                <span class="gf-hint">Ana rehberde bulunmak ile projeye dâhil olmak ayrı bilgilerdir.</span>
+              </div>
+              <div class="gfield">
+                <label for="lOpDurum">Operasyon Durumu <span class="req" aria-hidden="true">*</span></label>
+                <select id="lOpDurum" name="operasyonDurum" required></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="lKontrol">Kontrol Tarihi</label>
+                <input type="date" id="lKontrol" name="kontrolTarihi">
+                <span class="gf-hint">Boş bırakılabilir; tarih onaylanınca girilir.</span>
+              </div>
+              <div class="gfield">
+                <label for="lSonraki">Sonraki Kontrol Tarihi</label>
+                <input type="date" id="lSonraki" name="sonrakiKontrol" readonly>
+                <span class="gf-hint" id="lSonrakiNot">Kontrol tarihi girildiğinde hizmet periyoduna göre hesaplanır. Ana tarih boşsa boş kalır.</span>
+              </div>
+              <div class="gfield full">
+                <label for="lNot">Not</label>
+                <textarea id="lNot" name="not" placeholder="Tadilat, taşınma, erişim kısıtı gibi özel durumlar"></textarea>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Ön Envanter Şablonu</h2>
+            </div>
+          <div class="gc-body"><p class="gf-hint" style="margin-bottom:14px">Müşteri envanter sağlayamıyorsa, benzer lokasyonlardan türetilmiş şablonu uygulayarak ön envanter oluşturabilirsiniz. Miktarlar saha kontrolünde doğrulanır ve mutabakata sunulur.</p><div id="lfSablon"></div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Kayıt Özeti</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="lfOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>Tahmini Envanter</h2>
+            </div>
+          <div class="gc-body"><div id="lfEnvanterOnizleme"></div></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('lokasyonlar', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'lokasyonlar.html', listeEtiket:'Lokasyon listesi' }); return; }
+
+  document.getElementById('lMusteri').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('musteriler').map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.unvan) + '</option>'; }).join('');
+  document.getElementById('lTaseron').innerHTML = '<option value="">Atanmadı (GAVIA ekibi)</option>'
+    + A.liste('taseronlar').filter(function(t){ return t.durum === 'aktif'; })
+        .map(function(t){ return '<option value="' + t.id + '">' + GV.esc(t.kisaAd) + '</option>'; }).join('');
+  document.getElementById('lOpDurum').innerHTML = A.durumListesi('operasyon')
+    .map(function(d){ return '<option value="' + d.k + '"' + (d.k === 'bilgi-bekleniyor' ? ' selected' : '') + '>' + GV.esc(d.ad) + '</option>'; }).join('');
+
+  var secilenSablon = null;
+
+  function musteriDegisti(){
+    var mid = document.getElementById('lMusteri').value;
+    document.getElementById('lMarka').innerHTML = '<option value="">Seçin…</option>'
+      + A.liste('markalar').filter(function(k){ return k.musteriId === mid; })
+          .map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('');
+    document.getElementById('lProje').innerHTML = '<option value="">Projeye dâhil değil (yalnız rehberde)</option>'
+      + A.liste('projeler').filter(function(p){ return p.musteriId === mid && p.durum !== 'tamamlandi'; })
+          .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.kod + ' — ' + p.ad) + '</option>'; }).join('');
+    ozetCiz();
+  }
+
+  function sablonCiz(){
+    var tur = document.getElementById('lTur').value;
+    var kap = document.getElementById('lfSablon');
+    var uygun = A.liste('envanterSablonlari').filter(function(s){
+      if (!tur) return true;
+      if (tur === 'Antrepo' || tur === 'Soğuk hava deposu') return s.tur === 'Depo';
+      return s.tur === tur;
+    });
+    if (!uygun.length) {
+      kap.innerHTML = '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
+        + '<span>Seçtiğiniz lokasyon türü için hazır şablon yok. Lokasyon kaydedildikten sonra keşif yaparak envanter oluşturabilirsiniz.</span></div>';
+      secilenSablon = null; envanterOnizle(); return;
+    }
+    kap.innerHTML = '<div class="chips" role="group" aria-label="Envanter şablonu seçimi">'
+      + '<button type="button" class="chip' + (secilenSablon ? '' : ' is-on') + '" data-sablon="" aria-pressed="' + (secilenSablon ? 'false' : 'true') + '">'
+      + '<i class="fa-solid fa-ban" aria-hidden="true"></i>Şablon uygulama</button>'
+      + uygun.map(function(s){
+          return '<button type="button" class="chip' + (secilenSablon === s.id ? ' is-on' : '') + '" data-sablon="' + s.id + '"'
+            + ' aria-pressed="' + (secilenSablon === s.id ? 'true' : 'false') + '">'
+            + '<i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>' + GV.esc(s.ad)
+            + '<span class="ch-cnt">' + s.kalemler.length + '</span></button>';
+        }).join('') + '</div>'
+      + uygun.map(function(s){
+          return '<div class="gv-note" style="margin-top:14px' + (secilenSablon === s.id ? '' : ';display:none') + '" data-sablon-bilgi="' + s.id + '">'
+            + '<i class="fa-solid fa-circle-info" aria-hidden="true"></i><span><b>' + GV.esc(s.ad) + '</b> — ' + GV.esc(s.aciklama)
+            + ' Kaynak lokasyonlar: ' + GV.esc(s.kaynakLokasyonlar.map(function(lid){
+                var x = A.kayit('lokasyonlar', lid); return x ? x.ad : lid; }).join(', ')) + '.</span></div>';
+        }).join('');
+
+    kap.querySelectorAll('[data-sablon]').forEach(function(b){
+      b.addEventListener('click', function(){
+        secilenSablon = b.getAttribute('data-sablon') || null;
+        sablonCiz(); envanterOnizle();
+      });
+    });
+    envanterOnizle();
+  }
+
+  function envanterOnizle(){
+    var kap = document.getElementById('lfEnvanterOnizleme');
+    if (!secilenSablon) {
+      kap.innerHTML = '<p class="muted" style="font-size:13px">Şablon seçilmedi. Lokasyon envantersiz kaydedilecek; '
+        + 'ön envanter sonradan “Ön Envanter” ekranından tanımlanabilir.</p>';
+      return;
+    }
+    var s = A.kayit('envanterSablonlari', secilenSablon);
+    if (!s) { kap.innerHTML = ''; return; }
+    var m2 = Number(document.getElementById('lM2').value || 0);
+    var temelM2 = { 'SBL-ENV-MARKET':1750, 'SBL-ENV-DEPO':5800, 'SBL-ENV-FABRIKA':21500 }[s.id] || 1750;
+    var olcek = m2 ? Math.max(0.15, Math.min(4, m2 / temelM2)) : 1;
+    var gelir = 0, kalem = 0;
+    var satir = s.kalemler.map(function(k){
+      var h = A.kayit('hizmetler', k.hizmetId);
+      if (!h) return '';
+      var miktar = h.birim === 'metrekare' ? Math.round(k.miktar * olcek / 10) * 10
+        : (h.birim === 'sistem' || h.birim === 'dokuman' || h.birim === 'lokasyon' || h.birim === 'olcum-seti')
+          ? Math.max(1, Math.round(k.miktar * olcek))
+          : Math.max(1, Math.round(k.miktar * olcek));
+      gelir += A.birimSatisFiyati(k.hizmetId, 'FL-2026-STD') * miktar;
+      kalem++;
+      return '<div class="info-row"><dt style="font-size:12px">' + GV.esc(h.ad) + '</dt>'
+        + '<dd style="font-size:12.5px">' + GV.n(miktar) + '</dd></div>';
+    }).join('');
+    kap.innerHTML = '<dl class="info-rows gv-cap gv-cap-sm">' + satir + '</dl>'
+      + '<div class="sum-list" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'
+      + '<div class="sum-row"><span>Hizmet kalemi</span><b>' + GV.n(kalem) + '</b></div>'
+      + '<div class="sum-row total"><span>Tahmini tutar (liste fiyatı)</span><b>' + GV.tl(gelir) + '</b></div></div>'
+      + '<p class="gf-hint" style="margin-top:10px">Metrekare bazlı kalemler girilen alana göre ölçeklendi. '
+      + 'Bu miktarlar <b>ön envanterdir</b>; saha kontrolünde doğrulanır ve fark oluşursa müşteriyle mutabakata sunulur.</p>';
+  }
+
+  function sonrakiHesapla(){
+    var kt = document.getElementById('lKontrol').value;
+    var alan = document.getElementById('lSonraki');
+    var not = document.getElementById('lSonrakiNot');
+    if (!kt) {
+      alan.value = '';
+      not.textContent = 'Kontrol tarihi girilmediği için sonraki kontrol tarihi boş bırakıldı. Sahte tarih üretilmez.';
+      return;
+    }
+    var periyot = 12;
+    if (secilenSablon) {
+      var s = A.kayit('envanterSablonlari', secilenSablon);
+      if (s) {
+        var enKisa = null;
+        s.kalemler.forEach(function(k){
+          var h = A.kayit('hizmetler', k.hizmetId);
+          if (h && h.periyotAy && (enKisa === null || h.periyotAy < enKisa)) enKisa = h.periyotAy;
+        });
+        if (enKisa) periyot = enKisa;
+      }
+    }
+    alan.value = A.sonrakiKontrol(kt, periyot) || '';
+    not.textContent = 'Kapsamdaki en kısa hizmet periyodu (' + periyot + ' ay) esas alınarak hesaplandı. '
+      + 'Sabit 365 gün eklenmez; periyot hizmet ve ekipman bazlıdır.';
+  }
+
+  function ozetCiz(){
+    var v = form.veri();
+    var m = v.musteriId ? A.kayit('musteriler', v.musteriId) : null;
+    var k = v.markaId ? A.kayit('markalar', v.markaId) : null;
+    var p = v.projeId ? A.kayit('projeler', v.projeId) : null;
+    var t = v.taseronId ? A.kayit('taseronlar', v.taseronId) : null;
+
+    var uyari = document.getElementById('lTaseronUyari');
+    if (t && v.bolge && t.bolgeler.indexOf(v.bolge) === -1) {
+      uyari.innerHTML = '<span style="color:var(--warning);font-weight:600">' + GV.esc(t.kisaAd) + ' bu bölgede hizmet vermiyor ('
+        + GV.esc(t.bolgeler.join(', ')) + '). Atama yapılabilir, ulaşım maliyeti artar.</span>';
+    } else {
+      uyari.textContent = 'Taşeronun hizmet bölgesi ve kapsamı kontrol edilir.';
+    }
+
+    document.getElementById('lfOzet').innerHTML =
+      '<div class="info-row"><dt>Lokasyon</dt><dd>' + GV.esc(v.ad || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Müşteri</dt><dd>' + GV.esc(m ? m.kisaAd : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Marka</dt><dd>' + GV.esc(k ? k.ad : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Tür / alan</dt><dd>' + GV.esc(v.tur || GV.bos) + (v.m2 ? ' · ' + GV.n(v.m2) + ' m²' : '') + '</dd></div>'
+      + '<div class="info-row"><dt>Konum</dt><dd>' + GV.esc((v.ilce || '') + (v.il ? ' / ' + v.il : '') || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Bölge</dt><dd>' + GV.esc(v.bolge || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Proje</dt><dd>' + (p ? GV.esc(p.kod) : '<span class="muted">Yalnız rehberde</span>') + '</dd></div>'
+      + '<div class="info-row"><dt>Taşeron</dt><dd>' + GV.esc(t ? t.kisaAd : 'GAVIA ekibi') + '</dd></div>'
+      + '<div class="info-row"><dt>Kontrol tarihi</dt><dd>' + GV.d(v.kontrolTarihi) + '</dd></div>'
+      + '<div class="info-row"><dt>Sonraki kontrol</dt><dd>' + GV.d(v.sonrakiKontrol) + '</dd></div>';
+  }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'lokasyon-form' + (id ? '-' + id : ''), iptalHref:'lokasyonlar.html',
+    gonder: function(veri, aksiyon, yardim){
+      veri.m2 = Number(veri.m2 || 0);
+      if (!veri.kontrolTarihi) veri.sonrakiKontrol = null;
+      veri.projeId = veri.projeId || null;
+      veri.taseronId = veri.taseronId || null;
+
+      var islem = mevcut
+        ? A.guncelle('lokasyonlar', mevcut.id, veri)
+        : A.ekle('lokasyonlar', Object.assign({
+            id:'LOK-Y' + String(A.liste('lokasyonlar').length + 1).padStart(4,'0'),
+            kod: veri.kod || 'LOK-Y' + String(A.liste('lokasyonlar').length + 1).padStart(4,'0'),
+            raporDurum:'baslatilmadi', faturaDurum:'faturaya-uygun-degil',
+            raporTarihi:null, raporTeslimTarihi:null, yetkiliId:null, ekipId:[]
+          }, veri));
+
+      islem.then(function(r){
+        var lid = mevcut ? mevcut.id : r.kayit.id;
+        if (!secilenSablon) return lid;
+        var s = A.kayit('envanterSablonlari', secilenSablon);
+        if (!s) return lid;
+        var temelM2 = { 'SBL-ENV-MARKET':1750, 'SBL-ENV-DEPO':5800, 'SBL-ENV-FABRIKA':21500 }[s.id] || 1750;
+        var olcek = veri.m2 ? Math.max(0.15, Math.min(4, veri.m2 / temelM2)) : 1;
+        return Promise.all(s.kalemler.map(function(k, i){
+          var h = A.kayit('hizmetler', k.hizmetId);
+          if (!h) return null;
+          var miktar = h.birim === 'metrekare' ? Math.round(k.miktar * olcek / 10) * 10 : Math.max(1, Math.round(k.miktar * olcek));
+          return A.ekle('lokasyonHizmetleri', {
+            id:'LHZ-Y' + lid.slice(-4) + '-' + String(i + 1).padStart(2,'0'),
+            lokasyonId: lid, hizmetId: k.hizmetId,
+            onEnvanterMiktar: miktar, planlananMiktar: miktar,
+            kaynak:'sablon', sablonId: s.id
+          });
+        }).filter(Boolean)).then(function(){ return lid; });
+      }).then(function(lid){
+        yardim.taslakSil(); yardim.kirliSifirla();
+        gvResult(true, {
+          baslik: mevcut ? 'Lokasyon güncellendi' : 'Lokasyon oluşturuldu',
+          metin:'<b>' + GV.esc(veri.ad) + '</b> ana lokasyon rehberine ' + (mevcut ? 'güncellendi' : 'kaydedildi') + '.'
+            + (secilenSablon ? ' Ön envanter şablonu uygulandı.' : '')
+            + (veri.projeId ? '' : ' Kayıt henüz hiçbir projeye dâhil değil.'),
+          butonlar:[
+            { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('lokasyonlar.html'); } },
+            { etiket:'Lokasyona git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){ location.href = GV.href('lokasyon-detay.html?id=' + lid); } }
+          ]
+        });
+      });
+    }
+  });
+
+  document.getElementById('lMusteri').addEventListener('change', musteriDegisti);
+  document.getElementById('lTur').addEventListener('change', sablonCiz);
+  document.getElementById('lM2').addEventListener('input', envanterOnizle);
+  document.getElementById('lKontrol').addEventListener('change', function(){ sonrakiHesapla(); ozetCiz(); });
+  document.getElementById('gvFormu').addEventListener('input', ozetCiz);
+  document.getElementById('gvFormu').addEventListener('change', ozetCiz);
+
+  if (mevcut) {
+    document.getElementById('lfBaslik').textContent = mevcut.ad + ' — Düzenle';
+    document.title = mevcut.ad + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.kod);
+    form.doldur(mevcut);
+    musteriDegisti();
+    document.getElementById('lMarka').value = mevcut.markaId || '';
+    document.getElementById('lProje').value = mevcut.projeId || '';
+    document.getElementById('lTaseron').value = mevcut.taseronId || '';
+    document.getElementById('lSonraki').value = mevcut.sonrakiKontrol || '';
+    var ayar = window.DEMO.lokasyonKapsamAyarlari[mevcut.id];
+    if (ayar) secilenSablon = null;
+    form.kirliSifirla();
+  } else {
+    var mSuz = GV.q('musteri');
+    if (mSuz) { document.getElementById('lMusteri').value = mSuz; musteriDegisti(); }
+  }
+  sablonCiz();
+  sonrakiHesapla();
+  ozetCiz();
+  if (mevcut) form.kirliSifirla();
+})();
+</script>
+</body>
+</html>

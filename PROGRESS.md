@@ -45,10 +45,10 @@
 - [x] bildirimler.html
 
 ## FAZ 3 — Müşteri ve Proje
-- [ ] musteriler / musteri-detay / musteri-form
-- [ ] projeler / proje-detay / proje-form
-- [ ] lokasyonlar / lokasyon-detay / lokasyon-form
-- [ ] iletisim-kisileri
+- [x] musteriler / musteri-detay / musteri-form
+- [x] projeler / proje-detay / proje-form
+- [x] lokasyonlar / lokasyon-detay / lokasyon-form
+- [x] iletisim-kisileri
 
 ## FAZ 4 — Hizmet ve Envanter
 - [ ] hizmet-katalogu / hizmet-detay

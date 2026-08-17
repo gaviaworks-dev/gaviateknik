@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Müşteri Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="musteri" data-screen="musteriler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri ve Projeler</div>
+        <h1><span id="fmBaslik">Yeni Müşteri</span></h1>
+        <p class="ph-sub">Kurumsal bilgiler, ticari koşullar ve marka ağı. Zorunlu alanlar yıldız ile işaretlenmiştir.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-building" aria-hidden="true"></i>Kurumsal Bilgiler</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield full">
+                <label for="fUnvan">Ticari Unvan <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="fUnvan" name="unvan" required minlength="3" placeholder="Örnek Perakende A.Ş.">
+                <span class="gf-hint">Fatura ve sözleşmelerde görünecek resmi unvan.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fKisaAd">Kısa Ad <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="fKisaAd" name="kisaAd" required placeholder="Örnek Perakende">
+                <span class="gf-hint">Listelerde ve panelde kullanılır.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fKod">Müşteri Kodu</label>
+                <input type="text" id="fKod" name="kod" placeholder="Otomatik üretilir">
+                <span class="gf-hint">Boş bırakılırsa sistem sıradaki kodu atar.</span>
+              </div>
+              <div class="gfield">
+                <label for="fSektor">Sektör <span class="req" aria-hidden="true">*</span></label>
+                <select id="fSektor" name="sektor" required>
+                  <option value="">Seçin…</option>
+                  <option>Perakende — zincir market</option>
+                  <option>Lojistik — depo ve antrepo işletmeciliği</option>
+                  <option>Gıda üretimi — fabrika</option>
+                  <option>Akaryakıt istasyon zinciri</option>
+                  <option>Otel ve turizm işletmesi</option>
+                  <option>Sağlık kuruluşu</option>
+                  <option>Eğitim kurumu</option>
+                  <option>Diğer</option>
+                </select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fSegment">Segment</label>
+                <select id="fSegment" name="segment">
+                  <option>Aday Müşteri</option><option>Kurumsal</option><option>Anahtar Müşteri</option>
+                </select>
+              </div>
+              <div class="gfield">
+                <label for="fVd">Vergi Dairesi</label>
+                <input type="text" id="fVd" name="vergiDairesi" placeholder="Vergi dairesi adı">
+              </div>
+              <div class="gfield">
+                <label for="fVno">Vergi Numarası</label>
+                <input type="text" id="fVno" name="vergiNo" inputmode="numeric" placeholder="10 haneli">
+                <span class="gf-hint">Yalnız rakam girin.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield full">
+                <label for="fAdres">Adres</label>
+                <textarea id="fAdres" name="adres" placeholder="Mahalle, cadde, no, ilçe / il"></textarea>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-address-book" aria-hidden="true"></i>İletişim</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="fTel">Telefon</label>
+                <input type="tel" id="fTel" name="telefon" data-tel placeholder="0 (212) 000 00 00">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fMail">E-posta <span class="req" aria-hidden="true">*</span></label>
+                <input type="email" id="fMail" name="eposta" required placeholder="kurumsal@ornek.test">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fWeb">Web Sitesi</label>
+                <input type="text" id="fWeb" name="web" placeholder="ornek.test">
+              </div>
+              <div class="gfield">
+                <label for="fTemsilci">Müşteri Temsilcisi <span class="req" aria-hidden="true">*</span></label>
+                <select id="fTemsilci" name="musteriTemsilcisi" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-handshake" aria-hidden="true"></i>Ticari Koşullar</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="fVade">Ödeme Vadesi (gün) <span class="req" aria-hidden="true">*</span></label>
+                <input type="number" id="fVade" name="odemeVadesi" required min="0" max="180" value="30">
+                <span class="gf-hint">Fatura tarihinden itibaren. Sözleşmede farklı tanımlanabilir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="fDurum">Kayıt Durumu</label>
+                <select id="fDurum" name="durum"><option value="aday">Aday</option><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select>
+              </div>
+              <div class="gfield full">
+                <label class="gfield-inline"><input type="checkbox" id="fTahsilat" name="taseronTahsilatSarti" checked>
+                  Taşeron ödemesi müşteri tahsilatına bağlı olsun</label>
+                <span class="gf-hint">İşaretlenirse taşeron hakedişleri yalnız müşteri tahsilatı sonrasında ödemeye uygun hale gelir. Sözleşme bazında değiştirilebilir.</span>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-tags" aria-hidden="true"></i>Markalar</h2>
+            <div class="gc-head-acts no-print"><button class="btn btn-sm btn-ghost" type="button" id="fmMarkaEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Marka Ekle</button></div></div>
+          <div class="gc-body" id="fmMarkaKap"><div id="fmMarkaListe"></div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Kayıt Özeti</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="fmOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>Yardım</h2>
+            </div>
+          <div class="gc-body">
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.65">
+              <b style="color:var(--ink)">Müşteri ≠ Marka ≠ Lokasyon.</b> Bir müşterinin birden fazla markası,
+              her markanın birden fazla lokasyonu olabilir. Lokasyonlar ana rehberde tutulur;
+              projeye dâhil edilmeleri ayrı bir işlemdir.
+            </p>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.65;margin-top:12px">
+              Müşteri kaydedildikten sonra <b style="color:var(--ink)">Lokasyonlar</b> ekranından toplu lokasyon
+              aktarımı yapabilir veya <b style="color:var(--ink)">Veri Aktarımı</b> sihirbazıyla Excel'den içe aktarabilirsiniz.
+            </p></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span class="req" style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('musteriler', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'musteriler.html', listeEtiket:'Müşteri listesi' }); return; }
+
+  document.getElementById('fTemsilci').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('personeller').filter(function(p){ return ['Satış','Yönetim'].indexOf(p.birim) !== -1; })
+        .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('');
+
+  var markalar = mevcut ? A.liste('markalar').filter(function(k){ return k.musteriId === mevcut.id; }).map(function(k){
+    return { ad:k.ad, tur:k.tur }; }) : [];
+
+  function markaCiz(){
+    var kap = document.getElementById('fmMarkaListe');
+    kap.innerHTML = markalar.length ? markalar.map(function(k,i){
+      return '<div class="gform" style="padding:12px 0;border-bottom:1px solid var(--line);align-items:end">'
+        + '<div class="gfield"><label for="fmMarkaAd' + i + '">Marka adı</label>'
+        + '<input type="text" id="fmMarkaAd' + i + '" value="' + GV.esc(k.ad) + '" data-marka="' + i + '" data-alan="ad"></div>'
+        + '<div class="gfield"><label for="fmMarkaTur' + i + '">Marka türü</label>'
+        + '<div style="display:flex;gap:8px"><select id="fmMarkaTur' + i + '" data-marka="' + i + '" data-alan="tur" style="flex:1">'
+        + ['Zincir market','Küçük format market','Depo ve antrepo','Üretim tesisi ve depo','Şube ağı','Diğer']
+            .map(function(t){ return '<option' + (t === k.tur ? ' selected' : '') + '>' + t + '</option>'; }).join('')
+        + '</select>'
+        + '<button class="ia-btn danger" type="button" data-marka-sil="' + i + '" aria-label="' + GV.esc(k.ad) + ' markasını kaldır">'
+        + '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></div></div></div>';
+    }).join('')
+    : '<p class="muted" style="font-size:13px;padding:8px 0">Henüz marka eklenmedi. Müşterinin tek markası varsa unvanla aynı adı kullanabilirsiniz.</p>';
+
+    kap.querySelectorAll('[data-marka]').forEach(function(el){
+      el.addEventListener('input', function(){
+        markalar[Number(el.getAttribute('data-marka'))][el.getAttribute('data-alan')] = el.value;
+        ozetCiz();
+      });
+    });
+    kap.querySelectorAll('[data-marka-sil]').forEach(function(b){
+      b.addEventListener('click', function(){ markalar.splice(Number(b.getAttribute('data-marka-sil')), 1); markaCiz(); ozetCiz(); });
+    });
+  }
+  document.getElementById('fmMarkaEkle').addEventListener('click', function(){
+    markalar.push({ ad:'', tur:'Zincir market' }); markaCiz(); ozetCiz();
+  });
+  markaCiz();
+
+  function ozetCiz(){
+    var v = form.veri();
+    document.getElementById('fmOzet').innerHTML =
+      '<div class="info-row"><dt>Unvan</dt><dd>' + GV.esc(v.unvan || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Kısa ad</dt><dd>' + GV.esc(v.kisaAd || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Sektör</dt><dd>' + GV.esc(v.sektor || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Segment</dt><dd>' + GV.esc(v.segment || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Ödeme vadesi</dt><dd>' + (v.odemeVadesi ? GV.n(v.odemeVadesi) + ' gün' : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Marka sayısı</dt><dd>' + GV.n(markalar.filter(function(k){return k.ad;}).length) + '</dd></div>'
+      + '<div class="info-row"><dt>Taşeron ödeme kuralı</dt><dd>' + (v.taseronTahsilatSarti ? 'Tahsilat sonrası' : 'Vade tarihinde') + '</dd></div>';
+  }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'musteri-form' + (id ? '-' + id : ''), iptalHref:'musteriler.html',
+    ozelDogrula: function(kural, deger){
+      if (kural === 'vergino' && deger && !/^[0-9]{10,11}$/.test(deger)) return 'Vergi numarası 10 veya 11 haneli olmalıdır.';
+      return '';
+    },
+    gonder: function(veri, aksiyon, yardim){
+      var eksikMarka = markalar.filter(function(k){ return !k.ad.trim(); });
+      if (eksikMarka.length) { gvToast('Marka adı boş bırakılamaz. Boş satırları doldurun veya kaldırın.', { ton:'danger' }); return; }
+      var islem = mevcut
+        ? A.guncelle('musteriler', mevcut.id, veri)
+        : A.ekle('musteriler', Object.assign({
+            id: 'MST-Y' + String(A.liste('musteriler').length + 1).padStart(3,'0'),
+            kod: veri.kod || 'MST-Y' + String(A.liste('musteriler').length + 1).padStart(3,'0'),
+            kayitTarihi: A.bugun(), cariBakiye: 0, cariDurum: 'temiz'
+          }, veri));
+      islem.then(function(r){
+        yardim.taslakSil(); yardim.kirliSifirla();
+        gvResult(true, {
+          baslik: mevcut ? 'Müşteri güncellendi' : 'Müşteri oluşturuldu',
+          metin: '<b>' + GV.esc(veri.unvan) + '</b> kaydı ' + (mevcut ? 'güncellendi' : 'oluşturuldu')
+            + '. Değişiklikler bu tarayıcıda saklanır.',
+          butonlar: [
+            { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('musteriler.html'); } },
+            { etiket:'Kayda git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
+                location.href = GV.href('musteri-detay.html?id=' + (mevcut ? mevcut.id : r.kayit.id)); } }
+          ]
+        });
+      });
+    }
+  });
+
+  document.getElementById('fVno').setAttribute('data-dogrula', 'vergino');
+
+  if (mevcut) {
+    document.getElementById('fmBaslik').textContent = mevcut.kisaAd + ' — Düzenle';
+    document.title = mevcut.kisaAd + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.kisaAd);
+    form.doldur(mevcut);
+    form.kirliSifirla();
+  }
+  document.getElementById('gvFormu').addEventListener('input', ozetCiz);
+  document.getElementById('gvFormu').addEventListener('change', ozetCiz);
+  ozetCiz();
+})();
+</script>
+</body>
+</html>

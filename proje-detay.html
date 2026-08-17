@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Proje Detayı — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+<style>
+
+.pd-ilerleme{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
+.pd-hucre{background:var(--paper);padding:14px 16px}
+.pd-hucre b{display:block;font-size:21px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.pd-hucre span{display:block;font-size:11.5px;color:var(--muted);margin-top:4px}
+.pd-hucre.ok b{color:var(--success)} .pd-hucre.warn b{color:var(--warning)} .pd-hucre.danger b{color:var(--danger)}
+</style>
+</head>
+<body data-sec="musteri" data-screen="projeler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="rec-head" id="recHead"></div>
+
+    <div class="gv-cols">
+      <div>
+        <div class="gv-tabbar" role="tablist" aria-label="Kayıt sekmeleri">
+      <button class="gv-tab" role="tab" id="tb_ozet" aria-controls="pn_ozet" aria-selected="true">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>Proje Özeti</button>
+      <button class="gv-tab" role="tab" id="tb_lokasyon" aria-controls="pn_lokasyon" aria-selected="false">
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyonlar<span class="tb-cnt" id="cnt_lokasyon">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_poz" aria-controls="pn_poz" aria-selected="false">
+        <i class="fa-solid fa-file-signature" aria-hidden="true"></i>Sözleşme Pozları<span class="tb-cnt" id="cnt_poz">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_miktar" aria-controls="pn_miktar" aria-selected="false">
+        <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Miktarlar</button>
+      <button class="gv-tab" role="tab" id="tb_finans" aria-controls="pn_finans" aria-selected="false">
+        <i class="fa-solid fa-coins" aria-hidden="true"></i>Kârlılık</button>
+      <button class="gv-tab" role="tab" id="tb_rapor" aria-controls="pn_rapor" aria-selected="false">
+        <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Raporlama<span class="tb-cnt" id="cnt_rapor">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_fatura" aria-controls="pn_fatura" aria-selected="false">
+        <i class="fa-solid fa-layer-group" aria-hidden="true"></i>Fatura Grupları<span class="tb-cnt" id="cnt_fatura">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_taseron" aria-controls="pn_taseron" aria-selected="false">
+        <i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Taşeronlar<span class="tb-cnt" id="cnt_taseron">0</span></button>
+      <button class="gv-tab" role="tab" id="tb_gecmis" aria-controls="pn_gecmis" aria-selected="false">
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>İşlem Geçmişi</button>
+        </div>
+      <div id="pn_ozet" role="tabpanel" aria-labelledby="tb_ozet">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyon İlerlemesi</h2>
+            </div>
+          <div class="gc-body"><div class="pd-ilerleme" id="pdIlerleme"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Proje Bilgileri</h2>
+            </div>
+          <div class="gc-body"><dl class="info-grid" id="pdBilgi"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Aylık Plan Grafiği</h2>
+            </div>
+          <div class="gc-body"><div class="chart-box" id="pdAylik"></div></div>
+        </section>
+      </div>
+      <div id="pn_lokasyon" role="tabpanel" aria-labelledby="tb_lokasyon" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Kapsamdaki Lokasyonlar</h2>
+            <div class="gc-head-acts no-print"><button class="btn btn-sm btn-ghost" type="button" id="pdLokEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Lokasyon Ekle</button></div></div>
+          <div class="gc-body flush" id="pdLokasyon"></div>
+        </section>
+      </div>
+      <div id="pn_poz" role="tabpanel" aria-labelledby="tb_poz" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>Kapsamdaki Hizmet Pozisyonları</h2>
+            </div>
+          <div class="gc-body flush" id="pdPoz"></div>
+        </section>
+      </div>
+      <div id="pn_miktar" role="tabpanel" aria-labelledby="tb_miktar" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Planlanan ve Gerçekleşen Miktarlar</h2>
+            <div class="gc-head-acts no-print"><a class="btn btn-sm btn-ghost" href="envanter-mutabakati.html"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Mutabakat</a></div></div>
+          <div class="gc-body flush" id="pdMiktar"></div>
+        </section>
+      </div>
+      <div id="pn_finans" role="tabpanel" aria-labelledby="tb_finans" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-coins" aria-hidden="true"></i>Gelir, Maliyet ve Kârlılık</h2>
+            </div>
+          <div class="gc-body"><dl class="info-grid" id="pdFinans"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Hizmet Kategorisine Göre Gelir</h2>
+            </div>
+          <div class="gc-body"><div id="pdKategori"></div></div>
+        </section>
+      </div>
+      <div id="pn_rapor" role="tabpanel" aria-labelledby="tb_rapor" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Rapor Durumu</h2>
+            </div>
+          <div class="gc-body flush" id="pdRapor"></div>
+        </section>
+      </div>
+      <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Fatura Grupları</h2>
+            </div>
+          <div class="gc-body"><div id="pdGrup"></div></div>
+        </section>
+      </div>
+      <div id="pn_taseron" role="tabpanel" aria-labelledby="tb_taseron" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Görevli Taşeronlar</h2>
+            </div>
+          <div class="gc-body flush" id="pdTaseron"></div>
+        </section>
+      </div>
+      <div id="pn_gecmis" role="tabpanel" aria-labelledby="tb_gecmis" hidden>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>İşlem Geçmişi</h2>
+            </div>
+          <div class="gc-body flush" id="pdGecmis"></div>
+        </section>
+      </div>
+      </div>
+      <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Özet</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="pdOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Riskler</h2>
+            </div>
+          <div class="gc-body"><div id="pdRisk"></div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Yaklaşan Kontroller</h2>
+            </div>
+          <div class="gc-body"><div id="pdYaklasan"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi, BUGUN = A.bugun();
+  var id = GV.q('id') || 'PRJ-2026-001';
+  var p = A.kayit('projeler', id);
+  if (!p) { gvNotFound({ kod:id, listeHref:'projeler.html', listeEtiket:'Proje listesi' }); return; }
+  GV.crumb(p.kod);
+  document.title = p.ad + ' — GAVIA Periyodik Kontrol Yönetimi';
+
+  var m = A.kayit('musteriler', p.musteriId);
+  var marka = A.kayit('markalar', p.markaId);
+  var yonetici = A.kayit('personeller', p.yoneticiId);
+  var sozlesme = p.sozlesmeId ? A.kayit('sozlesmeler', p.sozlesmeId) : null;
+  var fl = A.kayit('fiyatListeleri', p.fiyatListesiId);
+  var loklar = A.lokasyonlar().filter(function(l){ return l.projeId === p.id; });
+  var lokId = {}; loklar.forEach(function(l){ lokId[l.id] = true; });
+  var o = A.projeOzet(p.id);
+  var raporlar = A.raporlar().filter(function(r){ return r.projeId === p.id && r.durum !== 'arsiv'; });
+  var gruplar = A.liste('faturaGruplari').filter(function(g){ return g.projeId === p.id; });
+  var isEmirleri = A.isEmirleri().filter(function(i){ return i.projeId === p.id; });
+
+  var durumRozet = p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
+    : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
+    : GV.rozetOzel('warn','fa-pen-ruler','Planlama');
+
+  document.getElementById('recHead').innerHTML =
+    '<div class="rec-mark"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></div>'
+    + '<div class="rec-id"><div class="rc-code">' + GV.esc(p.kod) + '</div><h1>' + GV.esc(p.ad) + '</h1>'
+    + '<div class="rc-meta">' + durumRozet
+    + '<span><i class="fa-solid fa-building" aria-hidden="true"></i><a href="musteri-detay.html?id=' + p.musteriId + '">' + GV.esc(m ? m.kisaAd : '—') + '</a></span>'
+    + '<span><i class="fa-solid fa-tags" aria-hidden="true"></i>' + GV.esc(marka ? marka.ad : '—') + '</span>'
+    + '<span><i class="fa-solid fa-user-tie" aria-hidden="true"></i>' + GV.esc(yonetici ? yonetici.ad : '—') + '</span>'
+    + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i>' + GV.d(p.baslangic) + ' – ' + GV.d(p.bitis) + '</span></div></div>'
+    + '<div class="rec-acts no-print">'
+    + '<a class="btn btn-ghost" href="projeler.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
+    + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
+    + '<a class="btn btn-ghost" href="planlama.html?proje=' + p.id + '"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Planlama</a>'
+    + '<a class="btn btn-acc" href="proje-form.html?id=' + p.id + '"><i class="fa-solid fa-pen" aria-hidden="true"></i>Düzenle</a></div>';
+
+  gvTabs('.gv-tabbar');
+  function sayac(k,n){ var e = document.getElementById('cnt_' + k); if (e) e.textContent = GV.n(n); }
+  sayac('lokasyon', loklar.length); sayac('rapor', raporlar.length); sayac('fatura', gruplar.length);
+
+  /* --- ilerleme hücreleri --- */
+  document.getElementById('pdIlerleme').innerHTML = [
+    { b:o.toplam, e:'Toplam lokasyon' },
+    { b:o.tamamlanan, e:'Kontrolü tamamlanan', s:'ok' },
+    { b:o.planlanan, e:'Planlanan / sahada' },
+    { b:o.bilgiBekleyen, e:'Bilgi bekleyen', s: o.bilgiBekleyen ? 'warn' : '' },
+    { b:o.raporlanan, e:'Raporu onaylanan' },
+    { b:o.faturalanan, e:'Faturalanan' },
+    { b:o.kapsamDisi, e:'Kapsam dışı / iptal', s: o.kapsamDisi ? 'danger' : '' }
+  ].map(function(c){
+    return '<div class="pd-hucre ' + (c.s || '') + '"><b>' + GV.n(c.b) + '</b><span>' + c.e + '</span></div>';
+  }).join('');
+
+  function bilgi(e,d){ return '<div class="info-item"><dt>' + GV.esc(e) + '</dt><dd' + (d ? '' : ' class="empty"') + '>' + (d || GV.bos) + '</dd></div>'; }
+  document.getElementById('pdBilgi').innerHTML =
+    bilgi('Proje Kodu', GV.esc(p.kod)) + bilgi('Kontrol Yılı', String(p.yil))
+    + bilgi('Başlangıç', GV.d(p.baslangic)) + bilgi('Bitiş', GV.d(p.bitis))
+    + bilgi('Proje Yöneticisi', yonetici ? '<a href="personel-detay.html?id=' + yonetici.id + '">' + GV.esc(yonetici.ad) + '</a>' : null)
+    + bilgi('Sözleşme', sozlesme ? '<a href="sozlesme-detay.html?id=' + sozlesme.id + '">' + GV.esc(sozlesme.no) + '</a>' : 'Sözleşme eki imza aşamasında')
+    + bilgi('Fiyat Listesi', fl ? GV.esc(fl.ad + ' (' + fl.versiyon + ')') : null)
+    + bilgi('Fatura Parti Büyüklüğü', GV.n(p.partiBuyuklugu) + ' lokasyon')
+    + bilgi('Rapor Teslim Süresi (SLA)', GV.n(p.raporSlaGun) + ' gün')
+    + '<div class="info-item" style="grid-column:1/-1"><dt>Açıklama</dt><dd>' + GV.esc(p.aciklama) + '</dd></div>';
+
+  var aylik = {}; for (var i = 0; i < 12; i++) aylik[i] = 0;
+  isEmirleri.forEach(function(ie){ var d = A.tariheCevir(ie.tarih); if (d) aylik[d.getMonth()]++; });
+  gvBar('#pdAylik', GV.ayKisa.map(function(a,i){
+    return { etiket:a, deger:aylik[i], ton: i === 7 ? 'acc' : i < 7 ? 'ok' : 'info' }; }),
+    { baslik:'Aylık lokasyon planı', birim:'lokasyon', yukseklik:200 });
+
+  /* --- lokasyonlar --- */
+  document.getElementById('pdLokasyon').innerHTML = loklar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Lokasyon</th><th scope="col">Bölge</th><th scope="col">Kontrol Tarihi</th>'
+      + '<th scope="col">Operasyon</th><th scope="col">Rapor</th><th scope="col">Fatura</th>'
+      + '<th scope="col">Sonraki Kontrol</th></tr></thead><tbody>'
+      + loklar.map(function(l){
+          return '<tr><td data-lbl="Lokasyon"><div class="gcell-info"><div class="gcell-name">'
+            + '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</div></div></td>'
+            + '<td data-lbl="Bölge">' + GV.esc(l.bolge + ' · ' + l.il) + '</td>'
+            + '<td data-lbl="Kontrol Tarihi">' + GV.d(l.kontrolTarihi) + '</td>'
+            + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', l.operasyonDurum) + '</td>'
+            + '<td data-lbl="Rapor">' + GV.rozet('rapor', l.raporDurum) + '</td>'
+            + '<td data-lbl="Fatura">' + GV.rozet('fatura', l.faturaDurum) + '</td>'
+            + '<td data-lbl="Sonraki Kontrol">' + GV.d(l.sonrakiKontrol) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-location-dot', baslik:'Kapsamda lokasyon yok',
+        metin:'Bu projeye henüz lokasyon dâhil edilmedi. Ana lokasyon rehberinden seçerek ekleyin.' });
+
+  document.getElementById('pdLokEkle').addEventListener('click', function(){
+    var disarida = A.lokasyonlar().filter(function(l){ return l.musteriId === p.musteriId && !l.projeId; });
+    gvModal({
+      baslik:'Projeye lokasyon ekle', ikon:'fa-location-dot', genislik:'gv-modal-lg',
+      metin:'Ana lokasyon rehberinde bulunup henüz hiçbir projeye dâhil edilmemiş kayıtlar listelenir. '
+        + 'Rehberde olmak ile projeye dâhil olmak ayrı bilgilerdir.',
+      govde: disarida.length
+        ? '<div class="gv-tscroll"><table class="gtable"><thead><tr><th scope="col">Seç</th><th scope="col">Lokasyon</th>'
+          + '<th scope="col">İl</th><th scope="col">Tür</th></tr></thead><tbody>'
+          + disarida.map(function(l){
+              return '<tr><td><span class="row-chk"><input type="checkbox" class="pd-lok-sec" value="' + l.id + '"'
+                + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
+                + '<td><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
+                + '<td>' + GV.esc(l.il) + '</td><td>' + GV.esc(l.tur) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : '<div class="gv-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+          + '<span>' + GV.esc(m ? m.kisaAd : 'Müşteri') + ' için ana rehberde projeye dâhil edilmemiş lokasyon kalmadı.</span></div>',
+      butonlar: disarida.length
+        ? [{ etiket:'Vazgeç', sinif:'btn-ghost' },
+           { etiket:'Projeye Ekle', sinif:'btn-acc', ikon:'fa-plus', tikla: function(kap){
+              var sec = Array.prototype.slice.call(kap.querySelectorAll('.pd-lok-sec:checked')).map(function(c){ return c.value; });
+              if (!sec.length) { gvToast('En az bir lokasyon seçin.', { ton:'warn' }); return false; }
+              Promise.all(sec.map(function(lid){
+                return A.guncelle('lokasyonlar', lid, { projeId: p.id, operasyonDurum: 'iletisime-gecildi' });
+              })).then(function(){
+                gvToast(sec.length + ' lokasyon projeye eklendi.', { ton:'ok' });
+                setTimeout(function(){ location.reload(); }, 800);
+              });
+            } }]
+        : [{ etiket:'Kapat', sinif:'btn-ghost' }]
+    });
+  });
+
+  /* --- sözleşme pozları --- */
+  var pozSayac = {};
+  loklar.forEach(function(l){
+    A.lokasyonHizmetleri(l.id).forEach(function(h){
+      if (!pozSayac[h.hizmetId]) pozSayac[h.hizmetId] = { hizmet:h, miktar:0, lokasyon:0 };
+      pozSayac[h.hizmetId].miktar += h.planlananMiktar;
+      pozSayac[h.hizmetId].lokasyon++;
+    });
+  });
+  var pozListe = Object.keys(pozSayac).map(function(k){ return pozSayac[k]; })
+    .sort(function(a,b){ return a.hizmet.poz.localeCompare(b.hizmet.poz); });
+  document.getElementById('cnt_poz').textContent = GV.n(pozListe.length);
+
+  var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
+  document.getElementById('pdPoz').innerHTML = pozListe.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Lokasyon</th>'
+      + '<th scope="col" class="num">Planlanan</th><th scope="col">Birim</th>'
+      + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
+      + pozListe.map(function(x){
+          var bf = A.birimSatisFiyati(x.hizmet.hizmetId, p.fiyatListesiId);
+          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.hizmet.poz) + '</b></td>'
+            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + x.hizmet.hizmetId + '">' + GV.esc(x.hizmet.hizmetAd) + '</a></td>'
+            + '<td data-lbl="Lokasyon" class="num">' + GV.n(x.lokasyon) + '</td>'
+            + '<td data-lbl="Planlanan" class="num">' + GV.n(x.miktar) + '</td>'
+            + '<td data-lbl="Birim">' + GV.esc(birimAd[x.hizmet.birim] || x.hizmet.birim) + '</td>'
+            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(bf) + '</td>'
+            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(bf * x.miktar) + '</b></td></tr>';
+        }).join('')
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td class="num">' + GV.tl(o.gelir) + '</td></tr></tfoot></table></div>'
+    : gvEmpty({ ikon:'fa-file-signature', baslik:'Poz tanımlı değil', metin:'Bu projede henüz hizmet pozisyonu kapsama alınmadı.' });
+
+  /* --- planlanan / gerçekleşen miktarlar --- */
+  var mtb = {};
+  loklar.forEach(function(l){
+    A.mutabakatSatirlari(l.id).forEach(function(x){
+      if (!mtb[x.hizmetId]) mtb[x.hizmetId] = { ad:x.hizmetAd, poz:x.poz, planlanan:0, sahada:0, kontrol:0, onayli:0, faturalanan:0 };
+      mtb[x.hizmetId].planlanan += x.planlanan;
+      mtb[x.hizmetId].sahada += x.sahadaBulunan;
+      mtb[x.hizmetId].kontrol += x.kontrolEdilen;
+      mtb[x.hizmetId].onayli += x.musteriOnayli;
+      mtb[x.hizmetId].faturalanan += x.faturalanan;
+    });
+  });
+  var mtbListe = Object.keys(mtb).map(function(k){ return mtb[k]; }).sort(function(a,b){ return a.poz.localeCompare(b.poz); });
+  document.getElementById('pdMiktar').innerHTML = mtbListe.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Planlanan</th>'
+      + '<th scope="col" class="num">Sahada Bulunan</th><th scope="col" class="num">Kontrol Edilen</th>'
+      + '<th scope="col" class="num">Fark</th><th scope="col" class="num">Müşteri Onaylı</th></tr></thead><tbody>'
+      + mtbListe.map(function(x){
+          var fark = x.sahada - x.planlanan;
+          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.poz) + '</b></td>'
+            + '<td data-lbl="Hizmet">' + GV.esc(x.ad) + '</td>'
+            + '<td data-lbl="Planlanan" class="num">' + GV.n(x.planlanan) + '</td>'
+            + '<td data-lbl="Sahada Bulunan" class="num">' + GV.n(x.sahada) + '</td>'
+            + '<td data-lbl="Kontrol Edilen" class="num">' + GV.n(x.kontrol) + '</td>'
+            + '<td data-lbl="Fark" class="num">' + (fark === 0
+                ? '<span class="diff zero">0</span>'
+                : '<span class="diff ' + (fark > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-' + (fark > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>'
+                  + GV.n(Math.abs(fark)) + '</span>') + '</td>'
+            + '<td data-lbl="Müşteri Onaylı" class="num">' + GV.n(x.onayli) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Gerçekleşen miktar yok',
+        metin:'Bu projede henüz saha kontrolü tamamlanmadığı için gerçekleşen miktar oluşmadı.' });
+
+  /* --- kârlılık --- */
+  var ekGider = Math.round(o.gelir * 0.045);
+  document.getElementById('pdFinans').innerHTML =
+    bilgi('Proje Geliri (müşteri satış)', '<b style="font-size:17px">' + GV.tl(o.gelir) + '</b>')
+    + bilgi('Taşeron Maliyeti', '<b style="color:var(--warning)">' + GV.tl(o.maliyet) + '</b>')
+    + bilgi('Tahmini Ek Giderler', GV.tl(ekGider))
+    + bilgi('Brüt Kâr', '<b style="color:var(--success);font-size:17px">' + GV.tl(o.gelir - o.maliyet - ekGider) + '</b>')
+    + bilgi('Kârlılık Oranı', GV.pct(o.gelir ? (o.gelir - o.maliyet - ekGider) / o.gelir : 0))
+    + bilgi('Faturalanan Tutar', GV.tl(A.liste('faturalar').filter(function(f){ return f.projeId === p.id; })
+        .reduce(function(t,f){ return t + f.araToplam; }, 0)))
+    + bilgi('Lokasyon Başına Ortalama Gelir', o.toplam ? GV.tl(Math.round(o.gelir / o.toplam)) : null)
+    + bilgi('Fiyat Listesi', fl ? GV.esc(fl.ad) : null);
+
+  var katGelir = {};
+  loklar.forEach(function(l){
+    A.lokasyonHizmetleri(l.id).forEach(function(h){
+      katGelir[h.kat] = (katGelir[h.kat] || 0) + A.birimSatisFiyati(h.hizmetId, p.fiyatListesiId) * h.planlananMiktar;
+    });
+  });
+  gvBarList('#pdKategori', A.liste('hizmetKategorileri').filter(function(k){ return katGelir[k.id]; })
+    .sort(function(a,b){ return katGelir[b.id] - katGelir[a.id]; })
+    .map(function(k){ return { etiket:k.ad, deger:katGelir[k.id], gosterim: GV.tl(katGelir[k.id]) }; }));
+
+  /* --- raporlar --- */
+  document.getElementById('pdRapor').innerHTML = raporlar.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Rapor</th><th scope="col">Lokasyon</th><th scope="col">Kontrol</th>'
+      + '<th scope="col">Personel</th><th scope="col">Durum</th><th scope="col">SLA</th></tr></thead><tbody>'
+      + raporlar.map(function(r){
+          var slaR = r.slaDurum === 'asildi' ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(r.sla.kalanGun) + ' gün gecikme')
+            : r.slaDurum === 'yaklasti' ? GV.rozetOzel('warn','fa-clock', r.sla.kalanGun + ' gün kaldı')
+            : r.teslimTarihi ? GV.rozetOzel('ok','fa-check','Süresinde teslim')
+            : GV.rozetOzel('ok','fa-check','Süre içinde');
+          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
+            + '<td data-lbl="Lokasyon">' + GV.esc(r.lokasyonAd) + '</td>'
+            + '<td data-lbl="Kontrol">' + GV.d(r.kontrolTarihi) + '</td>'
+            + '<td data-lbl="Personel">' + GV.esc(r.personelAd) + '</td>'
+            + '<td data-lbl="Durum">' + GV.rozet('rapor', r.durum) + '</td>'
+            + '<td data-lbl="SLA">' + slaR + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu projede henüz teknik rapor düzenlenmedi.' });
+
+  /* --- fatura grupları --- */
+  document.getElementById('pdGrup').innerHTML = gruplar.length
+    ? gruplar.map(function(g){
+        var d = A.faturaGrubuDoluluk(g.id);
+        return '<div class="fill-meter" style="padding:13px 0;border-bottom:1px solid var(--line)">'
+          + '<div class="fill-meter-top"><b><a href="fatura-grubu-detay.html?id=' + g.id + '">' + GV.esc(g.ad) + '</a></b>'
+          + '<span>' + d.eklenen + ' / ' + d.hedef + ' lokasyon · ' + GV.tl(d.toplamTutar) + '</span></div>'
+          + GV.bar(d.doluluk, { ton: d.hedefeUlasti ? 'ok' : '', etiket: GV.pct(d.doluluk, true, 0) })
+          + '<div class="fill-meter-note">' + d.faturayaUygun + ' faturaya uygun · ' + d.mutabakatBekleyen
+          + ' mutabakat bekliyor · ' + d.eksikRapor + ' rapor bekliyor</div></div>';
+      }).join('')
+    : gvEmpty({ ikon:'fa-layer-group', baslik:'Fatura grubu yok', metin:'Bu proje için henüz fatura grubu açılmadı.' });
+
+  /* --- taşeronlar --- */
+  var tsrSayac = {};
+  loklar.forEach(function(l){ if (l.taseronId) tsrSayac[l.taseronId] = (tsrSayac[l.taseronId] || 0) + 1; });
+  var tsrListe = Object.keys(tsrSayac);
+  document.getElementById('cnt_taseron').textContent = GV.n(tsrListe.length);
+  document.getElementById('pdTaseron').innerHTML = tsrListe.length
+    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
+      + '<th scope="col">Taşeron</th><th scope="col">Bölge</th><th scope="col" class="num">Lokasyon</th>'
+      + '<th scope="col" class="num">Hakediş</th><th scope="col">Ödeme Kuralı</th><th scope="col" class="num">Performans</th></tr></thead><tbody>'
+      + tsrListe.map(function(tid){
+          var t = A.kayit('taseronlar', tid);
+          var hak = A.liste('taseronHakedisleri').filter(function(h){ return h.taseronId === tid && h.projeId === p.id; });
+          return '<tr><td data-lbl="Taşeron"><a href="taseron-detay.html?id=' + tid + '"><b class="t-strong">' + GV.esc(t ? t.kisaAd : tid) + '</b></a></td>'
+            + '<td data-lbl="Bölge">' + GV.esc(t ? t.bolgeler.join(', ') : '—') + '</td>'
+            + '<td data-lbl="Lokasyon" class="num">' + GV.n(tsrSayac[tid]) + '</td>'
+            + '<td data-lbl="Hakediş" class="num">' + GV.tl(hak.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
+            + '<td data-lbl="Ödeme Kuralı">' + (t && t.odemeKurali === 'musteri-tahsilati-sonrasi'
+                ? '<span class="gtag warn">Tahsilat sonrası</span>' : '<span class="gtag">Vade tarihinde</span>') + '</td>'
+            + '<td data-lbl="Performans" class="num">' + GV.bar((t ? t.performans : 0) / 100, { etiket: (t ? t.performans : 0) + '%' }) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+    : gvEmpty({ ikon:'fa-people-carry-box', baslik:'Taşeron atanmadı', metin:'Bu projenin lokasyonlarına henüz taşeron atanmadı.' });
+
+  /* --- sağ kolon --- */
+  document.getElementById('pdOzet').innerHTML =
+    '<div class="info-row"><dt>İlerleme</dt><dd>' + GV.pct(o.ilerleme) + '</dd></div>'
+    + '<div class="info-row"><dt>Kalan lokasyon</dt><dd>' + GV.n(o.toplam - o.tamamlanan - o.kapsamDisi) + '</dd></div>'
+    + '<div class="info-row"><dt>Açık iş emri</dt><dd>' + GV.n(isEmirleri.filter(function(i){
+        return ['planlandi','sahada','tarih-onayi-bekleniyor'].indexOf(i.operasyonDurum) !== -1; }).length) + '</dd></div>'
+    + '<div class="info-row"><dt>Bekleyen rapor</dt><dd>' + GV.n(raporlar.filter(function(r){
+        return ['teknik-incelemede','revizyon-istendi','taslak'].indexOf(r.durum) !== -1; }).length) + '</dd></div>'
+    + '<div class="info-row"><dt>Proje geliri</dt><dd>' + GV.tl(o.gelir) + '</dd></div>'
+    + '<div class="info-row"><dt>Kârlılık</dt><dd>' + GV.pct(o.karlilik) + '</dd></div>'
+    + '<div class="info-row"><dt>Bitişe kalan</dt><dd>' + (function(){
+        var g = GV.gun(BUGUN, p.bitis);
+        return g == null ? GV.bos : g < 0 ? Math.abs(g) + ' gün geçti' : GV.n(g) + ' gün'; })() + '</dd></div>';
+
+  var riskler = [];
+  loklar.filter(function(l){ return ['bilgi-bekleniyor','envanter-bekleniyor'].indexOf(l.operasyonDurum) !== -1; }).forEach(function(l){
+    riskler.push({ ton:'warn', ikon:'fa-clipboard-question', b:'Bilgi/envanter bekleyen lokasyon', s:l.ad, link:'lokasyon-detay.html?id=' + l.id }); });
+  loklar.filter(function(l){ return ['tadilatta','tasiniyor'].indexOf(l.operasyonDurum) !== -1; }).forEach(function(l){
+    riskler.push({ ton:'warn', ikon:'fa-trowel-bricks', b: l.operasyonDurum === 'tadilatta' ? 'Tadilat nedeniyle ertelendi' : 'Taşınma sürecinde', s:l.ad, link:'lokasyon-detay.html?id=' + l.id }); });
+  raporlar.filter(function(r){ return r.slaDurum === 'asildi' && !r.teslimTarihi; }).forEach(function(r){
+    riskler.push({ ton:'danger', ikon:'fa-hourglass-end', b:'Rapor SLA aşıldı', s:r.no + ' · ' + r.lokasyonAd, link:'rapor-detay.html?id=' + r.id }); });
+  A.liste('uygunsuzluklar').filter(function(u){ return lokId[u.lokasyonId] && u.onem === 'kritik' && u.durum !== 'kapandi'; }).forEach(function(u){
+    riskler.push({ ton:'danger', ikon:'fa-circle-exclamation', b:'Kritik uygunsuzluk açık', s:u.baslik, link:'uygunsuzluk-detay.html?id=' + u.id }); });
+
+  document.getElementById('pdRisk').innerHTML = riskler.length
+    ? riskler.map(function(r){
+        var renk = r.ton === 'danger' ? 'danger' : 'warning';
+        return '<div class="risk-item" style="display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="width:30px;height:30px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:12px;'
+          + 'background:var(--' + renk + '-tint);color:var(--' + renk + ')"><i class="fa-solid ' + r.ikon + '" aria-hidden="true"></i></span>'
+          + '<span style="min-width:0;line-height:1.4"><b style="display:block;font-size:12.5px;font-weight:700;color:var(--ink)">'
+          + '<a href="' + r.link + '">' + GV.esc(r.b) + '</a></b>'
+          + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(r.s) + '</span></span></div>';
+      }).join('')
+    : '<p class="muted" style="font-size:13px">Bu projede takip gerektiren risk bulunmuyor.</p>';
+
+  var yaklasan = isEmirleri.filter(function(i){
+    var g = GV.gun(BUGUN, i.tarih); return g != null && g >= 0 && i.operasyonDurum === 'planlandi'; })
+    .sort(function(a,b){ return a.tarih.localeCompare(b.tarih); });
+  document.getElementById('pdYaklasan').innerHTML = yaklasan.length
+    ? yaklasan.slice(0,6).map(function(i){
+        return '<div class="ajd-item" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="flex:none;width:58px;font-size:12px;font-weight:800;color:var(--gv-action);font-variant-numeric:tabular-nums">'
+          + GV.d(i.tarih).substring(0,6) + '</span>'
+          + '<span style="min-width:0;line-height:1.4"><b style="display:block;font-size:12.5px;font-weight:700;color:var(--ink)">'
+          + '<a href="is-emri-detay.html?id=' + i.id + '">' + GV.esc(i.lokasyonAd) + '</a></b>'
+          + '<span style="display:block;font-size:11.5px;color:var(--muted)">' + GV.esc(i.taseronAd || 'GAVIA ekibi') + ' · ' + i.saat + '</span></span></div>';
+      }).join('')
+    : '<p class="muted" style="font-size:13px">Planlanmış yaklaşan kontrol yok.</p>';
+
+  /* --- işlem geçmişi --- */
+  document.getElementById('pdGecmis').innerHTML = '<div class="act-list">'
+    + '<div class="act-row"><span class="act-ico ok"><i class="fa-solid fa-flag" aria-hidden="true"></i></span>'
+    + '<span class="act-info"><b>Proje açıldı</b><span>' + GV.esc(yonetici ? yonetici.ad : '—') + ' · ' + GV.esc(p.kod) + '</span></span>'
+    + '<span class="act-time">' + GV.d(p.baslangic) + '</span></div>'
+    + (sozlesme ? '<div class="act-row"><span class="act-ico info"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></span>'
+        + '<span class="act-info"><b>Sözleşme bağlandı</b><span>' + GV.esc(sozlesme.no + ' · parti ' + sozlesme.partiBuyuklugu + ' lokasyon') + '</span></span>'
+        + '<span class="act-time">' + GV.d(sozlesme.baslangic) + '</span></div>' : '')
+    + isEmirleri.filter(function(i){ return i.bitis; }).sort(function(a,b){ return String(b.bitis).localeCompare(String(a.bitis)); })
+        .slice(0,10).map(function(i){
+          return '<div class="act-row"><span class="act-ico"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>'
+            + '<span class="act-info"><b>Saha kontrolü tamamlandı</b><span>' + GV.esc(i.lokasyonAd + ' · ' + i.id) + '</span></span>'
+            + '<span class="act-time">' + GV.d(i.bitis) + '</span></div>';
+        }).join('')
+    + A.liste('faturalar').filter(function(f){ return f.projeId === p.id; }).map(function(f){
+        return '<div class="act-row"><span class="act-ico ok"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></span>'
+          + '<span class="act-info"><b>Fatura kesildi</b><span>' + GV.esc(f.no) + ' · ' + GV.tl(f.toplam) + '</span></span>'
+          + '<span class="act-time">' + GV.d(f.tarih) + '</span></div>';
+      }).join('') + '</div>';
+})();
+</script>
+</body>
+</html>

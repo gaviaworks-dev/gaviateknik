@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Projeler — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="musteri" data-screen="projeler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri ve Projeler</div>
+        <h1>Projeler ve Kontrol Kampanyaları</h1>
+        <p class="ph-sub">Yıllık kontrol kampanyaları; lokasyon ilerlemesi, raporlama ve faturalama durumu ile birlikte.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="prDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <a class="btn btn-acc" href="proje-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Proje</a></div>
+    </div>
+    <div class="kpi-grid" id="prKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="Proje görünümleri">
+      <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-list" aria-hidden="true"></i>Liste</button>
+      <button class="gv-tab" role="tab" id="tbG" aria-controls="pnG" aria-selected="false"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Grafikler</button>
+    </div>
+
+    <div id="pnL" role="tabpanel" aria-labelledby="tbL">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Proje kodu, ad, müşteri…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            <label class="lh-toggle"><input type="checkbox" id="gvArsiv"> Arşivlenenleri göster</label>
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div id="prBulk"></div>
+        <div class="gc-body flush" id="prTablo"></div>
+        <div class="gv-pager" id="prPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnG" role="tabpanel" aria-labelledby="tbG" hidden>
+      <div class="gv-grid-2">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Proje İlerlemesi</h2></div>
+          <div class="gc-body"><div class="chart-box" id="prBar"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Lokasyon Operasyon Durumu</h2></div>
+          <div class="gc-body"><div class="chart-box" id="prDonut"></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-coins" aria-hidden="true"></i>Proje Kârlılığı</h2></div>
+          <div class="gc-body flush"><div class="gv-tscroll"><table class="gtable gtable-cards" id="prKar"></table></div></div>
+        </section>
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Aylık Kontrol Dağılımı</h2></div>
+          <div class="gc-body"><div class="chart-box" id="prAylik"></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+  var musteriSuz = GV.q('musteri');
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var kaynak = A.liste('projeler')
+    .filter(function(p){ return !musteriSuz || p.musteriId === musteriSuz; })
+    .filter(function(p){ return kapsam.tur !== 'musteri' || p.musteriId === kapsam.musteriId; })
+    .map(function(p){
+      var o = A.projeOzet(p.id);
+      var m = A.kayit('musteriler', p.musteriId), y = A.kayit('personeller', p.yoneticiId);
+      var loklar = A.liste('lokasyonlar').filter(function(l){ return l.projeId === p.id; });
+      return Object.assign({}, p, o, {
+        musteriAd: m ? m.kisaAd : '—',
+        yoneticiAd: y ? y.ad : '—',
+        markaAd: (A.kayit('markalar', p.markaId) || {}).ad || '—',
+        planlananLok: loklar.filter(function(l){ return l.operasyonDurum === 'planlandi'; }).length
+      });
+    });
+
+  if (musteriSuz) {
+    var mm = A.kayit('musteriler', musteriSuz);
+    if (mm) GV.crumb(mm.kisaAd + ' projeleri');
+  }
+
+  gvKpi('#prKpi', [
+    { ikon:'fa-diagram-project', sayi: GV.n(kaynak.filter(function(p){return p.durum==='aktif';}).length), etiket:'Aktif proje',
+      delta:{ yon:'flat', metin: kaynak.length + ' toplam kayıt' } },
+    { ikon:'fa-location-dot', sayi: GV.n(kaynak.reduce(function(t,p){return t+p.toplam;},0)), etiket:'Kapsamdaki lokasyon', ton:'info' },
+    { ikon:'fa-circle-check', sayi: GV.pct((function(){
+        var top = kaynak.reduce(function(t,p){return t+p.toplam-p.kapsamDisi;},0);
+        return top ? kaynak.reduce(function(t,p){return t+p.tamamlanan;},0) / top : 0; })()), etiket:'Ortalama tamamlanma', ton:'ok' },
+    { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,p){return t+p.gelir;},0)), etiket:'Toplam proje geliri',
+      delta:{ yon:'up', metin: 'Brüt kâr ' + GV.tlKisa(kaynak.reduce(function(t,p){return t+p.gelir-p.maliyet;},0)) } }
+  ]);
+
+  var kolonlar = [
+    { k:'kod', ad:'Proje', kilitli:true, ciz: function(p){
+        return '<div class="gcell"><div class="gcell-mark">' + GV.esc(String(p.yil).substring(2)) + '</div>'
+          + '<div class="gcell-info"><div class="gcell-name"><a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.ad) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(p.kod + ' · ' + p.markaAd) + '</div></div></div>'; } },
+    { k:'musteriAd', ad:'Müşteri', ciz: function(p){
+        return '<a href="musteri-detay.html?id=' + p.musteriId + '">' + GV.esc(p.musteriAd) + '</a>'; } },
+    { k:'yil', ad:'Kontrol Yılı', sinif:'num' },
+    { k:'toplam', ad:'Lokasyon', sinif:'num', ciz: function(p){ return GV.n(p.toplam); } },
+    { k:'tamamlanan', ad:'Tamamlanan', sinif:'num', ciz: function(p){ return GV.n(p.tamamlanan); } },
+    { k:'planlananLok', ad:'Planlanan', sinif:'num', ciz: function(p){ return GV.n(p.planlananLok); } },
+    { k:'bilgiBekleyen', ad:'Bilgi Bekleyen', sinif:'num', ciz: function(p){
+        return p.bilgiBekleyen ? '<span class="gtag warn">' + GV.n(p.bilgiBekleyen) + '</span>' : GV.n(0); } },
+    { k:'raporlanan', ad:'Raporlanan', sinif:'num', ciz: function(p){ return GV.n(p.raporlanan); } },
+    { k:'faturalanan', ad:'Faturalanan', sinif:'num', ciz: function(p){ return GV.n(p.faturalanan); } },
+    { k:'ilerleme', ad:'İlerleme', ciz: function(p){ return GV.bar(p.ilerleme); } },
+    { k:'gelir', ad:'Gelir', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(p){ return GV.tl(p.gelir); } },
+    { k:'yoneticiAd', ad:'Proje Yöneticisi', ciz: function(p){ return GV.esc(p.yoneticiAd); } },
+    { k:'durum', ad:'Durum', ciz: function(p){
+        return p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
+             : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
+             : GV.rozetOzel('warn','fa-pen-ruler','Planlama'); } },
+    { k:'__islem', ad:'İşlem', ciz: function(p){
+        return '<div class="row-acts">'
+          + '<a class="ia-btn" href="proje-detay.html?id=' + p.id + '" aria-label="' + GV.esc(p.ad) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="proje-form.html?id=' + p.id + '" aria-label="' + GV.esc(p.ad) + ' düzenle"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>'
+          + '<a class="ia-btn" href="planlama.html?proje=' + p.id + '" aria-label="' + GV.esc(p.ad) + ' planlama"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></a>'
+          + '</div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#prTablo', kolonlar:kolonlar, secim:true, satirId: function(p){ return p.id; },
+    bosDurum:{ ikon:'fa-diagram-project', baslik:'Proje bulunamadı', metin:'Filtrelerinize uyan kontrol projesi yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#prBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'projeler', modul:'Proje' }); } },
+    { etiket:'Yönetici ata', ikon:'fa-user-gear', tikla: function(s){
+        gvModal({ baslik:'Proje yöneticisi ata', metin: s.length + ' projeye yönetici atanacak.', ikon:'fa-user-gear',
+          govde:'<div class="gfield"><label for="pyAta">Proje yöneticisi</label><select id="pyAta">'
+            + A.liste('personeller').filter(function(p){ return ['Operasyon','Teknik','Yönetim'].indexOf(p.birim) !== -1; })
+                .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('') + '</select></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Ata', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+                var v = kap.querySelector('#pyAta').value;
+                Promise.all(s.map(function(pid){ return A.guncelle('projeler', pid, { yoneticiId: v }); }))
+                  .then(function(){ gvToast(s.length + ' projenin yöneticisi güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+              } }] });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'projeler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#prPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['kod','ad','musteriAd','markaAd','yoneticiAd','aciklama'],
+    arsivAlani:'arsiv',
+    cipler: { alan:'durum', secenekler:[
+      { k:'aktif', ad:'Aktif', ikon:'fa-play' },
+      { k:'planlama', ad:'Planlama', ikon:'fa-pen-ruler' },
+      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-flag-checkered' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'yil', ad:'Kontrol yılı', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(p){return p.yil;}))).sort().map(function(y){ return { deger:y, ad:String(y) }; }) },
+      { k:'yoneticiId', ad:'Proje yöneticisi', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'toplam', ad:'Lokasyon sayısı', tur:'aralik' }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  document.getElementById('prDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'projeler', modul:'Proje' });
+  });
+
+  /* --- grafikler --- */
+  gvBar('#prBar', kaynak.map(function(p){
+    return { etiket: p.kod.replace('PRJ-',''), deger: Math.round(p.ilerleme * 100),
+      ton: p.ilerleme >= .7 ? 'ok' : p.ilerleme >= .4 ? 'acc' : 'warn' };
+  }), { baslik:'Proje tamamlanma oranı', birim:'%', yukseklik:200 });
+
+  var durumSayac = {};
+  A.liste('lokasyonlar').filter(function(l){ return l.projeId; }).forEach(function(l){
+    durumSayac[l.operasyonDurum] = (durumSayac[l.operasyonDurum] || 0) + 1; });
+  gvDonut('#prDonut', A.durumListesi('operasyon').filter(function(d){ return durumSayac[d.k]; }).map(function(d){
+    return { etiket: d.ad, deger: durumSayac[d.k],
+      ton: d.ton === 'ok' ? 'ok' : d.ton === 'danger' ? 'danger' : d.ton === 'warn' ? 'warn' : d.ton === 'info' ? 'info' : 'gri' };
+  }), { merkezEtiket:'lokasyon' });
+
+  document.getElementById('prKar').innerHTML =
+    '<thead><tr><th scope="col">Proje</th><th scope="col" class="num">Gelir</th>'
+    + '<th scope="col" class="num">Taşeron Maliyeti</th><th scope="col" class="num">Brüt Kâr</th>'
+    + '<th scope="col" class="num">Kârlılık</th></tr></thead><tbody>'
+    + kaynak.filter(function(p){ return p.gelir; }).map(function(p){
+        return '<tr><td data-lbl="Proje"><a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.kod) + '</a></td>'
+          + '<td data-lbl="Gelir" class="num">' + GV.tl(p.gelir) + '</td>'
+          + '<td data-lbl="Maliyet" class="num">' + GV.tl(p.maliyet) + '</td>'
+          + '<td data-lbl="Brüt Kâr" class="num"><b class="t-strong">' + GV.tl(p.gelir - p.maliyet) + '</b></td>'
+          + '<td data-lbl="Kârlılık" class="num">' + GV.pct(p.karlilik) + '</td></tr>';
+      }).join('') + '</tbody>';
+
+  var aylik = {};
+  for (var i = 0; i < 12; i++) aylik[i] = 0;
+  A.isEmirleri().forEach(function(ie){
+    var d = A.tariheCevir(ie.tarih);
+    if (d && d.getFullYear() === 2026) aylik[d.getMonth()]++;
+  });
+  gvSpark('#prAylik', GV.ayKisa.map(function(a,i){ return { etiket:a, deger:aylik[i] }; }),
+    { baslik:'Aylık kontrol dağılımı', yukseklik:200 });
+})();
+</script>
+</body>
+</html>

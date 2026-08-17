@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>Proje Formu — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="musteri" data-screen="projeler">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri ve Projeler</div>
+        <h1><span id="pfBaslik">Yeni Kontrol Projesi</span></h1>
+        <p class="ph-sub">Kontrol kampanyasının kapsamı, sözleşme bağı, fatura parti büyüklüğü ve rapor teslim süresi.</p>
+      </div>
+      
+    </div>    <form id="gvFormu" novalidate>
+      <div class="form-grid">
+        <div class="gv-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Proje Bilgileri</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield full">
+                <label for="pAd">Proje Adı <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="pAd" name="ad" required minlength="5" placeholder="Örnek Market 2027 Yıllık Periyodik Kontrol Kampanyası">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pMusteri">Müşteri <span class="req" aria-hidden="true">*</span></label>
+                <select id="pMusteri" name="musteriId" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pMarka">Marka</label>
+                <select id="pMarka" name="markaId"><option value="">Önce müşteri seçin…</option></select>
+                <span class="gf-hint">Marka seçilirse yalnız o markanın lokasyonları kapsama alınabilir.</span>
+              </div>
+              <div class="gfield">
+                <label for="pYil">Kontrol Yılı <span class="req" aria-hidden="true">*</span></label>
+                <input type="number" id="pYil" name="yil" required min="2024" max="2035" value="2027">
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pYonetici">Proje Yöneticisi <span class="req" aria-hidden="true">*</span></label>
+                <select id="pYonetici" name="yoneticiId" required><option value="">Seçin…</option></select>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pBas">Başlangıç Tarihi <span class="req" aria-hidden="true">*</span></label>
+                <input type="date" id="pBas" name="baslangic" required>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pBit">Bitiş Tarihi <span class="req" aria-hidden="true">*</span></label>
+                <input type="date" id="pBit" name="bitis" required data-dogrula="bitis">
+                <span class="gf-hint">Bitiş, başlangıçtan sonra olmalıdır.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield full">
+                <label for="pAciklama">Kapsam Açıklaması</label>
+                <textarea id="pAciklama" name="aciklama" placeholder="Kaç lokasyonda, hangi hizmet kategorilerinde kontrol yapılacağını özetleyin."></textarea>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-handshake" aria-hidden="true"></i>Ticari ve Operasyonel Koşullar</h2>
+            </div>
+          <div class="gc-body">
+            <div class="gform">
+              <div class="gfield">
+                <label for="pSozlesme">Sözleşme</label>
+                <select id="pSozlesme" name="sozlesmeId"><option value="">Sözleşmesiz (tekil iş)</option></select>
+                <span class="gf-hint">Sözleşme seçilirse parti büyüklüğü ve vade sözleşmeden gelir.</span>
+              </div>
+              <div class="gfield">
+                <label for="pFiyat">Fiyat Listesi <span class="req" aria-hidden="true">*</span></label>
+                <select id="pFiyat" name="fiyatListesiId" required><option value="">Seçin…</option></select>
+                <span class="gf-hint">Müşteri satış fiyatları bu listeden okunur. Taşeron maliyeti ayrı listeden gelir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pParti">Fatura Parti Büyüklüğü <span class="req" aria-hidden="true">*</span></label>
+                <input type="number" id="pParti" name="partiBuyuklugu" required min="1" max="200" value="6">
+                <span class="gf-hint">Kaç lokasyonda bir toplu fatura kesileceği. 30 ve 50 gibi büyük partiler desteklenir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pSla">Rapor Teslim Süresi (gün) <span class="req" aria-hidden="true">*</span></label>
+                <input type="number" id="pSla" name="raporSlaGun" required min="1" max="60" value="7">
+                <span class="gf-hint">Saha kontrolü bittikten sonra raporun teslim edileceği süre. Aşımda otomatik uyarı üretilir.</span>
+                <span class="gf-err" role="alert"></span>
+              </div>
+              <div class="gfield">
+                <label for="pDurum">Proje Durumu</label>
+                <select id="pDurum" name="durum">
+                  <option value="planlama">Planlama</option><option value="aktif">Aktif</option><option value="tamamlandi">Tamamlandı</option>
+                </select>
+              </div>
+            </div></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Kapsama Alınacak Lokasyonlar</h2>
+            <div class="gc-head-acts no-print"><span class="gtag" id="pfLokSayac">0 seçili</span></div></div>
+          <div class="gc-body"><p class="gf-hint" style="margin-bottom:12px">Ana lokasyon rehberindeki her kayıt otomatik olarak projeye dâhil edilmez. Kapsamı burada belirleyin.</p><div id="pfLokListe"></div></div>
+        </section>
+        </div>
+        <div class="gv-side-stack">
+        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Proje Özeti</h2>
+            </div>
+          <div class="gc-body"><dl class="info-rows" id="pfOzet"></dl></div>
+        </section>        <section class="gv-card">
+          <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-coins" aria-hidden="true"></i>Tahmini Değer</h2>
+            </div>
+          <div class="gc-body"><div id="pfDeger"></div></div>
+        </section>
+        </div>
+      </div>
+
+      <div class="form-foot no-print">
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
+        <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
+        
+        <button class="btn btn-acc" type="button" data-form-aksiyon="kaydet"><i class="fa-solid fa-check" aria-hidden="true"></i>Kaydet</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  var id = GV.q('id');
+  var mevcut = id ? A.kayit('projeler', id) : null;
+  if (id && !mevcut) { gvNotFound({ kod:id, listeHref:'projeler.html', listeEtiket:'Proje listesi' }); return; }
+
+  document.getElementById('pMusteri').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('musteriler').map(function(m){ return '<option value="' + m.id + '">' + GV.esc(m.unvan) + '</option>'; }).join('');
+  document.getElementById('pYonetici').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('personeller').filter(function(p){ return ['Operasyon','Teknik','Yönetim'].indexOf(p.birim) !== -1; })
+        .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('');
+  document.getElementById('pFiyat').innerHTML = '<option value="">Seçin…</option>'
+    + A.liste('fiyatListeleri').filter(function(f){ return f.tur === 'satis' && f.durum === 'aktif'; })
+        .map(function(f){ return '<option value="' + f.id + '">' + GV.esc(f.ad + ' · ' + f.versiyon) + '</option>'; }).join('');
+
+  var secilenLok = [];
+
+  function musteriDegisti(){
+    var mid = document.getElementById('pMusteri').value;
+    var markalar = A.liste('markalar').filter(function(k){ return k.musteriId === mid; });
+    document.getElementById('pMarka').innerHTML = '<option value="">Bütün markalar</option>'
+      + markalar.map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('');
+    var sozlesmeler = A.liste('sozlesmeler').filter(function(s){ return s.musteriId === mid && s.durum === 'yururlukte'; });
+    document.getElementById('pSozlesme').innerHTML = '<option value="">Sözleşmesiz (tekil iş)</option>'
+      + sozlesmeler.map(function(s){ return '<option value="' + s.id + '">' + GV.esc(s.no + ' — ' + s.ad) + '</option>'; }).join('');
+    lokCiz();
+  }
+
+  function lokCiz(){
+    var mid = document.getElementById('pMusteri').value;
+    var markaId = document.getElementById('pMarka').value;
+    var kap = document.getElementById('pfLokListe');
+    if (!mid) { kap.innerHTML = '<p class="muted" style="font-size:13px">Lokasyon listesi için önce müşteri seçin.</p>'; return; }
+    var aday = A.lokasyonlar().filter(function(l){
+      if (l.musteriId !== mid) return false;
+      if (markaId && l.markaId !== markaId) return false;
+      return !l.projeId || (mevcut && l.projeId === mevcut.id);
+    });
+    if (!aday.length) {
+      kap.innerHTML = gvEmpty({ ikon:'fa-location-dot', baslik:'Uygun lokasyon yok',
+        metin:'Seçtiğiniz müşteri ve marka için projeye eklenebilecek lokasyon bulunmuyor. Önce lokasyon kaydı oluşturun.',
+        aksiyonlar:'<a class="btn btn-acc" href="lokasyon-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Lokasyon Ekle</a>' });
+      return;
+    }
+    kap.innerHTML = '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
+      + '<th scope="col"><span class="row-chk"><input type="checkbox" id="pfHepsi" aria-label="Tümünü seç">'
+      + '<span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></th>'
+      + '<th scope="col">Lokasyon</th><th scope="col">Marka</th><th scope="col">Bölge</th>'
+      + '<th scope="col" class="num">Alan (m²)</th><th scope="col">Durum</th></tr></thead><tbody>'
+      + aday.map(function(l){
+          var secili = secilenLok.indexOf(l.id) !== -1;
+          return '<tr><td><span class="row-chk"><input type="checkbox" class="pf-lok" value="' + l.id + '"' + (secili ? ' checked' : '')
+            + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
+            + '<td><b class="t-strong">' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</span></td>'
+            + '<td>' + GV.esc(l.markaAd) + '</td><td>' + GV.esc(l.bolge + ' / ' + l.il) + '</td>'
+            + '<td class="num">' + GV.n(l.m2) + '</td>'
+            + '<td>' + (l.projeId ? '<span class="gtag mint">Bu projede</span>' : '<span class="gtag">Rehberde</span>') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+    kap.querySelectorAll('.pf-lok').forEach(function(c){
+      c.addEventListener('change', function(){
+        var i = secilenLok.indexOf(c.value);
+        if (c.checked && i === -1) secilenLok.push(c.value);
+        else if (!c.checked && i !== -1) secilenLok.splice(i, 1);
+        ozetCiz();
+      });
+    });
+    var hepsi = kap.querySelector('#pfHepsi');
+    hepsi.addEventListener('change', function(){
+      kap.querySelectorAll('.pf-lok').forEach(function(c){
+        c.checked = hepsi.checked;
+        var i = secilenLok.indexOf(c.value);
+        if (hepsi.checked && i === -1) secilenLok.push(c.value);
+        else if (!hepsi.checked && i !== -1) secilenLok.splice(i, 1);
+      });
+      ozetCiz();
+    });
+    ozetCiz();
+  }
+
+  function ozetCiz(){
+    var v = form.veri();
+    var m = v.musteriId ? A.kayit('musteriler', v.musteriId) : null;
+    var fl = v.fiyatListesiId;
+    var gelir = 0, maliyet = 0;
+    secilenLok.forEach(function(lid){
+      A.lokasyonHizmetleri(lid).forEach(function(h){
+        gelir += A.birimSatisFiyati(h.hizmetId, fl) * h.planlananMiktar;
+        maliyet += A.birimMaliyet(h.hizmetId) * h.planlananMiktar;
+      });
+    });
+    document.getElementById('pfLokSayac').textContent = GV.n(secilenLok.length) + ' seçili';
+    document.getElementById('pfOzet').innerHTML =
+      '<div class="info-row"><dt>Müşteri</dt><dd>' + GV.esc(m ? m.kisaAd : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Kontrol yılı</dt><dd>' + GV.esc(v.yil || GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Dönem</dt><dd>' + (v.baslangic && v.bitis ? GV.d(v.baslangic) + ' – ' + GV.d(v.bitis) : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Kapsamdaki lokasyon</dt><dd>' + GV.n(secilenLok.length) + '</dd></div>'
+      + '<div class="info-row"><dt>Fatura partisi</dt><dd>' + (v.partiBuyuklugu ? GV.n(v.partiBuyuklugu) + ' lokasyon' : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Tahmini fatura sayısı</dt><dd>' + (v.partiBuyuklugu && secilenLok.length
+          ? GV.n(Math.ceil(secilenLok.length / Number(v.partiBuyuklugu))) + ' adet' : GV.bos) + '</dd></div>'
+      + '<div class="info-row"><dt>Rapor SLA</dt><dd>' + (v.raporSlaGun ? GV.n(v.raporSlaGun) + ' gün' : GV.bos) + '</dd></div>';
+
+    document.getElementById('pfDeger').innerHTML = secilenLok.length
+      ? '<div class="sum-list">'
+        + '<div class="sum-row"><span>Müşteri satış tutarı</span><b>' + GV.tl(gelir) + '</b></div>'
+        + '<div class="sum-row cost"><span>Taşeron maliyeti</span><b>' + GV.tl(maliyet) + '</b></div>'
+        + '<div class="sum-row profit"><span>Brüt kâr</span><b>' + GV.tl(gelir - maliyet) + '</b></div>'
+        + '<div class="sum-row total"><span>Kârlılık</span><b>' + GV.pct(gelir ? (gelir - maliyet) / gelir : 0) + '</b></div></div>'
+        + '<p class="gf-hint" style="margin-top:12px">Tutarlar seçilen lokasyonların ön envanter miktarları ve seçili fiyat listesi üzerinden hesaplanır. Saha kontrolü sonrası mutabakatla kesinleşir.</p>'
+      : '<p class="muted" style="font-size:13px">Tahmini değer için lokasyon seçin.</p>';
+  }
+
+  var form = gvForm({
+    form:'#gvFormu', anahtar:'proje-form' + (id ? '-' + id : ''), iptalHref:'projeler.html',
+    ozelDogrula: function(kural, deger, f){
+      if (kural === 'bitis') {
+        var bas = f.querySelector('#pBas').value;
+        if (bas && deger && deger <= bas) return 'Bitiş tarihi başlangıçtan sonra olmalıdır.';
+      }
+      return '';
+    },
+    gonder: function(veri, aksiyon, yardim){
+      if (!secilenLok.length) {
+        gvConfirm({ baslik:'Lokasyonsuz proje kaydedilsin mi?', ton:'warn',
+          metin:'Projeye hiç lokasyon seçmediniz. Kapsam sonradan da eklenebilir; proje planlama durumunda açılacak.',
+          onayEtiket:'Yine de kaydet', onayIkon:'fa-check' }).then(function(s){ if (s.onay) kaydet(veri, yardim); });
+        return;
+      }
+      kaydet(veri, yardim);
+    }
+  });
+
+  function kaydet(veri, yardim){
+    veri.yil = Number(veri.yil);
+    veri.partiBuyuklugu = Number(veri.partiBuyuklugu);
+    veri.raporSlaGun = Number(veri.raporSlaGun);
+    var islem = mevcut
+      ? A.guncelle('projeler', mevcut.id, veri)
+      : A.ekle('projeler', Object.assign({
+          id: 'PRJ-' + veri.yil + '-Y' + String(A.liste('projeler').length + 1).padStart(2,'0'),
+          kod: 'PRJ-' + veri.yil + '-Y' + String(A.liste('projeler').length + 1).padStart(2,'0')
+        }, veri));
+    islem.then(function(r){
+      var pid = mevcut ? mevcut.id : r.kayit.id;
+      return Promise.all(secilenLok.map(function(lid){
+        var l = A.kayit('lokasyonlar', lid);
+        return A.guncelle('lokasyonlar', lid, {
+          projeId: pid,
+          operasyonDurum: (l && l.projeId === pid) ? l.operasyonDurum : 'iletisime-gecildi'
+        });
+      })).then(function(){ return pid; });
+    }).then(function(pid){
+      yardim.taslakSil(); yardim.kirliSifirla();
+      gvResult(true, {
+        baslik: mevcut ? 'Proje güncellendi' : 'Proje oluşturuldu',
+        metin:'<b>' + GV.esc(veri.ad) + '</b> kaydı ' + (mevcut ? 'güncellendi' : 'oluşturuldu')
+          + ' ve <b>' + secilenLok.length + '</b> lokasyon kapsama alındı.',
+        butonlar:[
+          { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('projeler.html'); } },
+          { etiket:'Projeye git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){ location.href = GV.href('proje-detay.html?id=' + pid); } }
+        ]
+      });
+    });
+  }
+
+  document.getElementById('pMusteri').addEventListener('change', musteriDegisti);
+  document.getElementById('pMarka').addEventListener('change', lokCiz);
+  document.getElementById('gvFormu').addEventListener('input', ozetCiz);
+  document.getElementById('gvFormu').addEventListener('change', ozetCiz);
+
+  if (mevcut) {
+    document.getElementById('pfBaslik').textContent = mevcut.kod + ' — Düzenle';
+    document.title = mevcut.ad + ' düzenle — GAVIA Periyodik Kontrol Yönetimi';
+    GV.crumb(mevcut.kod);
+    form.doldur(mevcut);
+    musteriDegisti();
+    document.getElementById('pMarka').value = mevcut.markaId || '';
+    document.getElementById('pSozlesme').value = mevcut.sozlesmeId || '';
+    secilenLok = A.liste('lokasyonlar').filter(function(l){ return l.projeId === mevcut.id; }).map(function(l){ return l.id; });
+    lokCiz();
+    form.kirliSifirla();
+  } else {
+    var mSuz = GV.q('musteri');
+    if (mSuz) { document.getElementById('pMusteri').value = mSuz; musteriDegisti(); }
+    document.getElementById('pBas').value = A.bugun();
+    var bit = A.tariheCevir(A.bugun()); bit.setFullYear(bit.getFullYear() + 1);
+    document.getElementById('pBit').value = A.isoYaz(bit);
+    ozetCiz();
+    form.kirliSifirla();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<title>İletişim Kişileri — GAVIA Periyodik Kontrol Yönetimi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/gavia-ui.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body data-sec="musteri" data-screen="iletisim-kisileri">
+<div class="gv-app">
+  <aside class="gv-rail" id="gvRail" aria-label="Modül menüsü"></aside>
+  <nav class="gv-menu" id="gvMenu" aria-label="Sayfa menüsü"></nav>
+  <div class="gv-divider" id="gvDivider" role="separator" aria-label="Menüyü daralt/genişlet"><span class="gv-grip"></span></div>
+  <div class="gv-overlay" id="gvOverlay"></div>
+  <header class="gv-top" id="gvTop"></header>
+
+  <main class="gv-main">
+    <div class="gv-page-head">
+      <div>
+        <div class="ph-eyebrow">Müşteri ve Projeler</div>
+        <h1>İletişim Kişileri</h1>
+        <p class="ph-sub">Her lokasyonda birden fazla yetkili ve iletişim rolü bulunabilir. Bölge yöneticisi, lojistik müdürü, teknik yetkili, lokasyon müdürü, finans yetkilisi ve rapor teslim yetkilisi ayrı kayıtlardır.</p>
+      </div>
+      <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" id="ikDisa"><i class="fa-solid fa-file-export" aria-hidden="true"></i>Dışa Aktar</button>
+      <button class="btn btn-acc" type="button" id="ikYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Kişi</button></div>
+    </div>
+    <div class="kpi-grid" id="ikKpi"></div>
+
+    <div class="gv-tabbar" role="tablist" aria-label="İletişim görünümleri">
+      <button class="gv-tab" role="tab" id="tbK" aria-controls="pnK" aria-selected="true"><i class="fa-solid fa-address-book" aria-hidden="true"></i>Kişiler</button>
+      <button class="gv-tab" role="tab" id="tbG" aria-controls="pnG" aria-selected="false"><i class="fa-solid fa-comments" aria-hidden="true"></i>İletişim Geçmişi</button>
+    </div>
+
+    <div id="pnK" role="tabpanel" aria-labelledby="tbK">
+      <section class="gv-card">
+              <div class="gv-listhead no-print">
+        <div class="lh-row">
+          <div class="lh-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <label class="gv-sr" for="gvSearch">Listede ara</label>
+            <input type="search" id="gvSearch" placeholder="Ad, unvan, e-posta, telefon…" autocomplete="off">
+          </div>
+          <div class="lh-acts">
+            
+            <button class="btn btn-sm btn-ghost gv-fp-open" type="button" id="gvFilterBtn">
+              <i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre<span class="fp-count" id="gvFpCount" hidden>0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" type="button" id="gvColsBtn"><i class="fa-solid fa-table-columns" aria-hidden="true"></i>Kolonlar</button>
+            
+          </div>
+        </div>
+        <div class="lh-chiprow"><div class="chips" id="gvChips"></div></div>
+      </div>
+      <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
+        <div id="ikBulk"></div>
+        <div class="gc-body flush" id="ikTablo"></div>
+        <div class="gv-pager" id="ikPager" hidden></div>
+      </section>
+    </div>
+
+    <div id="pnG" role="tabpanel" aria-labelledby="tbG" hidden>
+      <section class="gv-card">
+        <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-comments" aria-hidden="true"></i>İletişim Geçmişi</h2>
+          <button class="btn btn-sm btn-acc no-print" type="button" id="ikKayitEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Görüşme Kaydet</button></div>
+        <div class="gc-body flush" id="ikGecmis"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/js/demo-data.js"></script>
+<script src="assets/js/demo-api.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/forms.js"></script>
+<script>
+(function(){
+  var A = window.demoApi;
+  gvTabs('.gv-tabbar');
+  var kapsam = A.rolKapsami(GV.rol);
+
+  var kaynak = A.liste('iletisimKisileri')
+    .filter(function(k){ return kapsam.tur !== 'musteri' || k.musteriId === kapsam.musteriId; })
+    .map(function(k){
+      var m = A.kayit('musteriler', k.musteriId);
+      var l = k.lokasyonId ? A.lokasyon(k.lokasyonId) : null;
+      return Object.assign({}, k, {
+        musteriAd: m ? m.kisaAd : '—',
+        lokasyonAd: l ? l.ad : 'Merkez / genel',
+        kapsam: l ? 'Lokasyon' : 'Merkez'
+      });
+    });
+
+  gvKpi('#ikKpi', [
+    { ikon:'fa-address-book', sayi: GV.n(kaynak.length), etiket:'Toplam iletişim kişisi' },
+    { ikon:'fa-star', sayi: GV.n(kaynak.filter(function(k){ return k.birincil; }).length), etiket:'Birincil yetkili', ton:'ok' },
+    { ikon:'fa-location-dot', sayi: GV.n(kaynak.filter(function(k){ return k.lokasyonId; }).length), etiket:'Lokasyon bazlı kişi', ton:'info' },
+    { ikon:'fa-triangle-exclamation', sayi: GV.n(A.lokasyonlar().filter(function(l){
+        return l.projeId && !kaynak.some(function(k){ return k.lokasyonId === l.id; }); }).length),
+      etiket:'Yetkilisi tanımsız lokasyon', ton:'warn' }
+  ]);
+
+  var kolonlar = [
+    { k:'ad', ad:'Kişi', kilitli:true, ciz: function(k){
+        return '<div class="gcell"><div class="gcell-mark">'
+          + GV.esc(k.ad.split(' ').map(function(x){ return x[0]; }).join('').substring(0,2)) + '</div>'
+          + '<div class="gcell-info"><div class="gcell-name">' + GV.esc(k.ad)
+          + (k.birincil ? ' <span class="gtag mint">Birincil</span>' : '') + '</div>'
+          + '<div class="gcell-sub">' + GV.esc(k.unvan) + '</div></div></div>'; } },
+    { k:'iletisimRolu', ad:'İletişim Rolü', ciz: function(k){ return '<span class="gtag">' + GV.esc(k.iletisimRolu) + '</span>'; } },
+    { k:'musteriAd', ad:'Müşteri', ciz: function(k){
+        return '<a href="musteri-detay.html?id=' + k.musteriId + '">' + GV.esc(k.musteriAd) + '</a>'; } },
+    { k:'lokasyonAd', ad:'Kapsam', ciz: function(k){
+        return k.lokasyonId
+          ? '<a href="lokasyon-detay.html?id=' + k.lokasyonId + '">' + GV.esc(k.lokasyonAd) + '</a>'
+          : '<span class="muted">Merkez / genel</span>'; } },
+    { k:'telefon', ad:'Telefon', ciz: function(k){ return '<a href="tel:' + GV.esc(k.telefon.replace(/\s/g,'')) + '">' + GV.esc(k.telefon) + '</a>'; } },
+    { k:'eposta', ad:'E-posta', ciz: function(k){ return '<a href="mailto:' + GV.esc(k.eposta) + '">' + GV.esc(k.eposta) + '</a>'; } },
+    { k:'__islem', ad:'İşlem', ciz: function(k){
+        return '<div class="row-acts">'
+          + '<button class="ia-btn" type="button" data-gorusme="' + GV.esc(k.id) + '" aria-label="' + GV.esc(k.ad) + ' ile görüşme kaydet">'
+          + '<i class="fa-solid fa-phone" aria-hidden="true"></i></button>'
+          + '<button class="ia-btn" type="button" data-duzenle="' + GV.esc(k.id) + '" aria-label="' + GV.esc(k.ad) + ' düzenle">'
+          + '<i class="fa-solid fa-pen" aria-hidden="true"></i></button></div>'; } }
+  ];
+
+  var tablo = gvTable({ hedef:'#ikTablo', kolonlar:kolonlar, secim:true, satirId: function(k){ return k.id; },
+    bosDurum:{ ikon:'fa-address-book', baslik:'Kişi bulunamadı', metin:'Filtrelerinize uyan iletişim kişisi yok.' },
+    secimDegisti: function(s){ bulk.ciz(s); } });
+
+  var bulk = gvBulk({ hedef:'#ikBulk', aksiyonlar:[
+    { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'iletisim-kisileri', modul:'İletişim' }); } },
+    { etiket:'Toplu bilgilendirme', ikon:'fa-paper-plane', tikla: function(s){
+        gvModal({ baslik:'Toplu bilgilendirme gönder', ikon:'fa-paper-plane',
+          metin: s.length + ' kişiye bilgilendirme gönderilecek. Şablon seçin:',
+          govde:'<div class="gfield"><label for="ikSablon">Bilgilendirme şablonu</label><select id="ikSablon">'
+            + '<option>Kontrol tarihi bildirimi</option><option>Saha öncesi hazırlık listesi</option>'
+            + '<option>Rapor teslim bildirimi</option><option>Uygunsuzluk bildirimi</option>'
+            + '<option>Fatura bildirimi</option></select></div>'
+            + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+            + '<span>Demo arayüzünde e-posta gönderilmez; gönderim kaydı iletişim geçmişine yazılır.</span></div>',
+          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+            { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
+                var sb = kap.querySelector('#ikSablon').value;
+                A.kayitAt('bilgilendirme', 'İletişim', s.join(', '), null, sb);
+                gvToast(s.length + ' kişiye "' + sb + '" gönderildi (demo).', { ton:'ok' });
+              } }] });
+      } }
+  ]});
+
+  gvCols({ tetik:'#gvColsBtn', anahtar:'iletisim-kisileri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
+  var pager = gvPager({ hedef:'#ikPager', boyut:15, degisti: function(){ ciz(son); } });
+  var son = kaynak;
+
+  function ciz(v){
+    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+    document.querySelectorAll('[data-gorusme]').forEach(function(b){
+      b.addEventListener('click', function(){ gorusmeKaydet(b.getAttribute('data-gorusme')); });
+    });
+    document.querySelectorAll('[data-duzenle]').forEach(function(b){
+      b.addEventListener('click', function(){ kisiFormu(A.kayit('iletisimKisileri', b.getAttribute('data-duzenle'))); });
+    });
+  }
+
+  function kisiFormu(mevcut){
+    gvModal({
+      baslik: mevcut ? 'İletişim kişisini düzenle' : 'Yeni iletişim kişisi', ikon:'fa-address-book', genislik:'gv-modal-lg',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="ikAd">Ad Soyad *</label><input type="text" id="ikAd" value="' + GV.esc(mevcut ? mevcut.ad : '') + '"></div>'
+        + '<div class="gfield"><label for="ikUnvan">Unvan</label><input type="text" id="ikUnvan" value="' + GV.esc(mevcut ? mevcut.unvan : '') + '"></div>'
+        + '<div class="gfield"><label for="ikMusteri">Müşteri *</label><select id="ikMusteri">'
+        + A.liste('musteriler').map(function(m){ return '<option value="' + m.id + '"' + (mevcut && mevcut.musteriId === m.id ? ' selected' : '') + '>' + GV.esc(m.kisaAd) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="ikRol">İletişim Rolü *</label><select id="ikRol">'
+        + A.liste('iletisimRolleri').map(function(r){ return '<option' + (mevcut && mevcut.iletisimRolu === r ? ' selected' : '') + '>' + GV.esc(r) + '</option>'; }).join('')
+        + '</select></div>'
+        + '<div class="gfield"><label for="ikTel">Telefon</label><input type="tel" id="ikTel" value="' + GV.esc(mevcut ? mevcut.telefon : '') + '"></div>'
+        + '<div class="gfield"><label for="ikMail">E-posta</label><input type="email" id="ikMail" value="' + GV.esc(mevcut ? mevcut.eposta : '') + '"></div>'
+        + '<div class="gfield full"><label class="gfield-inline"><input type="checkbox" id="ikBirincil"' + (mevcut && mevcut.birincil ? ' checked' : '') + '> Birincil yetkili</label></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket: mevcut ? 'Güncelle' : 'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var ad = kap.querySelector('#ikAd').value.trim();
+            if (!ad) { gvToast('Ad Soyad zorunludur.', { ton:'danger' }); return false; }
+            var veri = { ad: ad, unvan: kap.querySelector('#ikUnvan').value.trim(),
+              musteriId: kap.querySelector('#ikMusteri').value, iletisimRolu: kap.querySelector('#ikRol').value,
+              telefon: kap.querySelector('#ikTel').value.trim(), eposta: kap.querySelector('#ikMail').value.trim(),
+              birincil: kap.querySelector('#ikBirincil').checked };
+            var islem = mevcut ? A.guncelle('iletisimKisileri', mevcut.id, veri)
+              : A.ekle('iletisimKisileri', Object.assign({ id:'KSI-Y' + String(A.liste('iletisimKisileri').length + 1).padStart(3,'0'), lokasyonId:null }, veri));
+            islem.then(function(){
+              gvToast(mevcut ? 'Kişi güncellendi.' : 'Kişi eklendi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 700);
+            });
+          } }]
+    });
+  }
+
+  function gorusmeKaydet(kisiId){
+    var k = A.kayit('iletisimKisileri', kisiId);
+    gvModal({
+      baslik:'Görüşme kaydet', ikon:'fa-comments', genislik:'gv-modal-lg',
+      metin: k ? '<b>' + GV.esc(k.ad) + '</b> ile yapılan görüşme iletişim geçmişine eklenecek.' : 'Görüşme kaydı iletişim geçmişine eklenecek.',
+      govde:'<div class="gform">'
+        + '<div class="gfield"><label for="igTur">Görüşme türü</label><select id="igTur">'
+        + '<option value="telefon">Telefon görüşmesi</option><option value="eposta">E-posta</option>'
+        + '<option value="toplanti">Toplantı</option><option value="tarih-onayi">Tarih onayı</option>'
+        + '<option value="hatirlatma">Hatırlatma</option><option value="rapor-gonderimi">Rapor gönderimi</option>'
+        + '<option value="uygunsuzluk-bildirimi">Uygunsuzluk bildirimi</option><option value="fatura-bildirimi">Fatura bildirimi</option></select></div>'
+        + '<div class="gfield"><label for="igTarih">Tarih</label><input type="date" id="igTarih" value="' + A.bugun() + '"></div>'
+        + '<div class="gfield full"><label for="igKonu">Konu *</label><input type="text" id="igKonu" placeholder="Görüşme konusu"></div>'
+        + '<div class="gfield full"><label for="igOzet">Özet</label><textarea id="igOzet" placeholder="Görüşmede konuşulanlar ve varılan sonuç"></textarea></div>'
+        + '</div>',
+      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
+        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
+            var konu = kap.querySelector('#igKonu').value.trim();
+            if (!konu) { gvToast('Konu alanı zorunludur.', { ton:'danger' }); return false; }
+            A.ekle('iletisimGecmisi', {
+              id:'ILT-Y' + String(A.liste('iletisimGecmisi').length + 1).padStart(3,'0'),
+              musteriId: k ? k.musteriId : null, lokasyonId: k ? k.lokasyonId : null, kisiId: kisiId,
+              tur: kap.querySelector('#igTur').value, tarih: kap.querySelector('#igTarih').value + 'T00:00:00',
+              kullaniciId: (GV.rolBilgi || {}).personelId, konu: konu,
+              ozet: kap.querySelector('#igOzet').value.trim() || 'Özet girilmedi.'
+            }).then(function(){
+              gvToast('Görüşme kaydedildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 700);
+            });
+          } }]
+    });
+  }
+
+  document.getElementById('ikYeni').addEventListener('click', function(){ kisiFormu(null); });
+  document.getElementById('ikKayitEkle').addEventListener('click', function(){ gorusmeKaydet(null); });
+  document.getElementById('ikDisa').addEventListener('click', function(){
+    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'iletisim-kisileri', modul:'İletişim' });
+  });
+
+  gvFilter({
+    veri: function(){ return kaynak; },
+    arama: ['ad','unvan','eposta','telefon','musteriAd','lokasyonAd','iletisimRolu'],
+    cipler: { alan:'iletisimRolu', secenekler: A.liste('iletisimRolleri').map(function(r){ return { k:r, ad:r }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kapsam', ad:'Kapsam', tur:'secim', secenekler:[{ deger:'Merkez', ad:'Merkez / genel' }, { deger:'Lokasyon', ad:'Lokasyon bazlı' }] },
+      { k:'birincil', ad:'Yalnız birincil yetkililer', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+  });
+
+  /* --- iletişim geçmişi --- */
+  var gecmis = A.liste('iletisimGecmisi')
+    .filter(function(i){ return kapsam.tur !== 'musteri' || i.musteriId === kapsam.musteriId; })
+    .slice().sort(function(a,b){ return String(b.tarih).localeCompare(String(a.tarih)); });
+  var turIkon = { telefon:'fa-phone', eposta:'fa-envelope', toplanti:'fa-users', 'tarih-onayi':'fa-calendar-check',
+    hatirlatma:'fa-bell', 'rapor-gonderimi':'fa-paper-plane', 'uygunsuzluk-bildirimi':'fa-circle-exclamation', 'fatura-bildirimi':'fa-file-invoice' };
+  var turAd = { telefon:'Telefon görüşmesi', eposta:'E-posta', toplanti:'Toplantı', 'tarih-onayi':'Tarih onayı',
+    hatirlatma:'Hatırlatma', 'rapor-gonderimi':'Rapor gönderimi', 'uygunsuzluk-bildirimi':'Uygunsuzluk bildirimi', 'fatura-bildirimi':'Fatura bildirimi' };
+
+  document.getElementById('ikGecmis').innerHTML = gecmis.length
+    ? '<div class="act-list">' + gecmis.map(function(i){
+        var m = A.kayit('musteriler', i.musteriId), l = i.lokasyonId ? A.lokasyon(i.lokasyonId) : null;
+        var kul = A.kayit('personeller', i.kullaniciId), ks = i.kisiId ? A.kayit('iletisimKisileri', i.kisiId) : null;
+        return '<div class="act-row"><span class="act-ico info"><i class="fa-solid ' + (turIkon[i.tur] || 'fa-comment') + '" aria-hidden="true"></i></span>'
+          + '<span class="act-info"><b>' + GV.esc(i.konu) + '</b>'
+          + '<span>' + GV.esc((turAd[i.tur] || i.tur) + ' · ' + (m ? m.kisaAd : '—')
+            + (ks ? ' · ' + ks.ad : '') + (l ? ' · ' + l.ad : '') + ' · ' + (kul ? kul.ad : '—')) + '</span>'
+          + '<span style="margin-top:5px;color:var(--ink-2)">' + GV.esc(i.ozet) + '</span></span>'
+          + '<span class="act-time">' + GV.dSaat(i.tarih) + '</span></div>';
+      }).join('') + '</div>'
+    : gvEmpty({ ikon:'fa-comments', baslik:'İletişim kaydı yok', metin:'Henüz görüşme kaydedilmemiş.' });
+})();
+</script>
+</body>
+</html>

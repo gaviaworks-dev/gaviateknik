@@ -377,7 +377,7 @@
         return '<label class="gcol-chk"><input type="checkbox" data-k="' + esc(c.k) + '"' + (c.gizli ? '' : ' checked')
           + (c.kilitli ? ' disabled' : '') + '><span>' + esc(c.ad) + (c.kilitli ? ' (sabit)' : '') + '</span></label>';
       }).join('') + '</div>'
-      + '<div class="gcol-foot"><button class="btn btn-sm btn-ghost" type="button" data-varsayilan">Varsayılana dön</button></div>';
+      + '<div class="gcol-foot"><button class="btn btn-sm btn-ghost" type="button" data-varsayilan>Varsayılana dön</button></div>';
       pop.querySelectorAll('input[data-k]').forEach(function (i) {
         i.addEventListener('change', function () {
           var k = i.getAttribute('data-k');
