@@ -72,10 +72,12 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-users" aria-hidden="true"></i>Atanan Personeller</h2>
             <div class="gc-head-acts no-print"><button class="btn btn-sm btn-ghost no-print" type="button" id="idPersonelEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Personel Ata</button></div></div>
           <div class="gc-body flush" id="idPersonel"></div>
+          <div class="gv-pager" id="idPersonelPg" hidden></div>
         </section>        <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Ölçüm Cihazları</h2>
             <div class="gc-head-acts no-print"><button class="btn btn-sm btn-ghost no-print" type="button" id="idCihazEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Cihaz Ata</button></div></div>
           <div class="gc-body flush" id="idCihaz"></div>
+          <div class="gv-pager" id="idCihazPg" hidden></div>
         </section>
       </div>
       <div id="pn_hizmet" role="tabpanel" aria-labelledby="tb_hizmet" hidden>
@@ -83,6 +85,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kontrol Edilecek Hizmetler</h2>
             </div>
           <div class="gc-body flush" id="idHizmet"></div>
+          <div class="gv-pager" id="idHizmetPg" hidden></div>
         </section>
       </div>
       <div id="pn_hazirlik" role="tabpanel" aria-labelledby="tb_hazirlik" hidden>
@@ -112,6 +115,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Planlanan ve Gerçekleşen</h2>
             <div class="gc-head-acts no-print"><a class="btn btn-sm btn-ghost" href="envanter-mutabakati.html" id="idMtbLink"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Mutabakat Ekranı</a></div></div>
           <div class="gc-body flush" id="idMutabakat"></div>
+          <div class="gv-pager" id="idMutabakatPg" hidden></div>
         </section>
       </div>
       <div id="pn_rapor" role="tabpanel" aria-labelledby="tb_rapor" hidden>
@@ -119,6 +123,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Teknik Raporlar</h2>
             </div>
           <div class="gc-body flush" id="idRapor"></div>
+          <div class="gv-pager" id="idRaporPg" hidden></div>
         </section>
       </div>
       <div id="pn_gecmis" role="tabpanel" aria-labelledby="tb_gecmis" hidden>
@@ -130,6 +135,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>İşlem Geçmişi</h2>
             </div>
           <div class="gc-body flush" id="idGecmis"></div>
+          <div class="gv-pager" id="idGecmisPg" hidden></div>
         </section>
       </div>
       </div>
@@ -163,6 +169,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -228,44 +237,53 @@
       + bilgi('Lokasyon Türü', GV.esc(l.tur))
     : '';
 
-  /* --- personeller --- */
-  function personelCiz(){
-    var ekip = (A.kayit('isEmirleri', ie.id) || ie).ekipId || [];
-    document.getElementById('idPersonel').innerHTML = ekip.length
-      ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-        + '<th scope="col">Personel</th><th scope="col">Görev</th><th scope="col">Yetkinlikler</th>'
-        + '<th scope="col">Uygunluk</th><th scope="col">İşlem</th></tr></thead><tbody>'
-        + ekip.map(function(pid){
-            var p = A.kayit('personeller', pid);
-            if (!p) return '';
-            var gerekli = Array.from(new Set(hizmetler.map(function(h){
-              var hz = A.kayit('hizmetler', h.hizmetId); return hz ? hz.yetkinlik : null; }).filter(Boolean)));
-            var eksik = gerekli.filter(function(y){ return (p.yetkinlikler || []).indexOf(y) === -1; });
-            var kontrol = A.personelAtanabilir(p.id, null);
-            return '<tr><td data-lbl="Personel"><a href="personel-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.ad) + '</b></a></td>'
-              + '<td data-lbl="Görev">' + GV.esc(p.gorev) + '</td>'
-              + '<td data-lbl="Yetkinlikler">' + (p.yetkinlikler || []).map(function(y){
-                  var yy = A.kayit('yetkinlikler', y);
-                  return '<span class="gtag">' + GV.esc(yy ? yy.ad.split(' ')[0] : y) + '</span>'; }).join(' ') + '</td>'
-              + '<td data-lbl="Uygunluk">' + (!kontrol.uygun ? GV.rozetOzel('danger','fa-ban', kontrol.sebep)
-                  : eksik.length === gerekli.length && gerekli.length ? GV.rozetOzel('warn','fa-triangle-exclamation','Kapsam dışı yetkinlik')
-                  : GV.rozetOzel('ok','fa-check','Uygun')) + '</td>'
-              + '<td data-lbl="İşlem"><div class="row-acts"><button class="ia-btn danger" type="button" data-cikar="' + p.id + '"'
-              + ' aria-label="' + GV.esc(p.ad) + ' atamasını kaldır"><i class="fa-solid fa-user-minus" aria-hidden="true"></i></button></div></td></tr>';
-          }).join('') + '</tbody></table></div>'
-      : gvEmpty({ ikon:'fa-users', baslik:'Personel atanmadı',
-          metin:'Bu iş emrine henüz personel atanmadı. Ekip atanmadan saha kontrolü başlatılamaz.' });
-    document.querySelectorAll('[data-cikar]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var kalan = ekip.filter(function(x){ return x !== b.getAttribute('data-cikar'); });
-        A.guncelle('isEmirleri', ie.id, { ekipId: kalan }).then(function(){
-          gvToast('Personel ataması kaldırıldı.', { ton:'ok' });
-          setTimeout(function(){ location.reload(); }, 700);
-        });
-      });
-    });
+  /* --- personeller ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  function gerekliYetkinlikler(){
+    return Array.from(new Set(hizmetler.map(function(h){
+      var hz = A.kayit('hizmetler', h.hizmetId); return hz ? hz.yetkinlik : null; }).filter(Boolean)));
   }
-  personelCiz();
+  gvList({
+    kaynak:'is-emri-detay:ekip', onek:'ekp_', filtresiz:true,
+    veri:function(){
+      return ((A.kayit('isEmirleri', ie.id) || ie).ekipId || [])
+        .map(function(pid){ return A.kayit('personeller', pid); }).filter(Boolean);
+    },
+    tablo:{ hedef:'#idPersonel', ad:'Atanan ekip', kolonlar:[
+      { k:'ad', ad:'Personel', ciz:function(p){
+          return '<a href="personel-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.ad) + '</b></a>'; } },
+      { k:'gorev', ad:'Görev' },
+      { k:'yetkinlikler', ad:'Yetkinlikler', ciz:function(p){
+          return (p.yetkinlikler || []).map(function(y){
+            var yy = A.kayit('yetkinlikler', y);
+            return '<span class="gtag">' + GV.esc(yy ? yy.ad.split(' ')[0] : y) + '</span>'; }).join(' '); } },
+      { k:'uygunluk', ad:'Uygunluk', ciz:function(p){
+          var gerekli = gerekliYetkinlikler();
+          var eksik = gerekli.filter(function(y){ return (p.yetkinlikler || []).indexOf(y) === -1; });
+          var kontrol = A.personelAtanabilir(p.id, null);
+          return !kontrol.uygun ? GV.rozetOzel('danger','fa-ban', kontrol.sebep)
+            : eksik.length === gerekli.length && gerekli.length ? GV.rozetOzel('warn','fa-triangle-exclamation','Kapsam dışı yetkinlik')
+            : GV.rozetOzel('ok','fa-check','Uygun'); } },
+      { k:'islem', ad:'İşlem', ciz:function(p){
+          return '<div class="row-acts"><button class="ia-btn danger" type="button" data-cikar="' + p.id + '"'
+            + ' aria-label="' + GV.esc(p.ad) + ' atamasını kaldır"><i class="fa-solid fa-user-minus" aria-hidden="true"></i></button></div>'; } }
+    ]},
+    pager:{ hedef:'#idPersonelPg', boyut:10 },
+    bosDurum:{ ikon:'fa-users', baslik:'Personel atanmadı',
+      metin:'Bu iş emrine henüz personel atanmadı. Ekip atanmadan saha kontrolü başlatılamaz.' }
+  });
+  /* Satır aksiyonu sayfa değişiminde kaybolmasın diye kap üzerinde dinlenir. */
+  document.getElementById('idPersonel').addEventListener('click', function(e){
+    var b = e.target.closest('[data-cikar]');
+    if (!b) return;
+    var ekip = (A.kayit('isEmirleri', ie.id) || ie).ekipId || [];
+    var kalan = ekip.filter(function(x){ return x !== b.getAttribute('data-cikar'); });
+    A.guncelle('isEmirleri', ie.id, { ekipId: kalan }).then(function(){
+      gvToast('Personel ataması kaldırıldı.', { ton:'ok' });
+      setTimeout(function(){ location.reload(); }, 700);
+    });
+  });
 
   document.getElementById('idPersonelEkle').addEventListener('click', function(){
     var gerekli = Array.from(new Set(hizmetler.map(function(h){
@@ -302,30 +320,29 @@
   });
 
   /* --- cihazlar --- */
-  function cihazCiz(){
-    var cihazlar = (A.kayit('isEmirleri', ie.id) || ie).cihazlar || [];
-    document.getElementById('idCihaz').innerHTML = cihazlar.length
-      ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-        + '<th scope="col">Cihaz</th><th scope="col">Marka / Model</th><th scope="col">Kalibrasyon</th>'
-        + '<th scope="col">Zimmet</th><th scope="col">Atama Uygunluğu</th></tr></thead><tbody>'
-        + cihazlar.map(function(cid){
-            var c = A.kayit('olcumCihazlari', cid);
-            if (!c) return '';
-            var k = A.cihazAtanabilir(cid);
-            var z = A.kayit('personeller', c.zimmet);
-            return '<tr><td data-lbl="Cihaz"><a href="cihaz-detay.html?id=' + c.id + '"><b class="t-strong">' + GV.esc(c.ad) + '</b></a>'
-              + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod) + '</span></td>'
-              + '<td data-lbl="Marka / Model">' + GV.esc(c.marka + ' ' + c.model) + '</td>'
-              + '<td data-lbl="Kalibrasyon">' + GV.d(c.kalibrasyonBitis) + '</td>'
-              + '<td data-lbl="Zimmet">' + GV.esc(z ? z.ad : '—') + '</td>'
-              + '<td data-lbl="Atama Uygunluğu">' + (k.uygun
-                  ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.uyari) : GV.rozetOzel('ok','fa-check','Uygun'))
-                  : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
-          }).join('') + '</tbody></table></div>'
-      : gvEmpty({ ikon:'fa-ruler-combined', baslik:'Cihaz atanmadı',
-          metin:'Bu iş emrine ölçüm cihazı atanmadı. Ölçüm gerektiren hizmetler için kalibrasyonu geçerli cihaz zorunludur.' });
-  }
-  cihazCiz();
+  gvList({
+    kaynak:'is-emri-detay:cihaz', onek:'chz_', filtresiz:true,
+    veri:function(){
+      return ((A.kayit('isEmirleri', ie.id) || ie).cihazlar || [])
+        .map(function(cid){ return A.kayit('olcumCihazlari', cid); }).filter(Boolean);
+    },
+    tablo:{ hedef:'#idCihaz', ad:'Atanan ölçüm cihazları', kolonlar:[
+      { k:'ad', ad:'Cihaz', ciz:function(c){
+          return '<a href="cihaz-detay.html?id=' + c.id + '"><b class="t-strong">' + GV.esc(c.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod) + '</span>'; } },
+      { k:'marka', ad:'Marka / Model', ciz:function(c){ return GV.esc(c.marka + ' ' + c.model); } },
+      { k:'kalibrasyonBitis', ad:'Kalibrasyon', ciz:function(c){ return GV.d(c.kalibrasyonBitis); } },
+      { k:'zimmet', ad:'Zimmet', ciz:function(c){
+          var z = A.kayit('personeller', c.zimmet); return GV.esc(z ? z.ad : GV.bos); } },
+      { k:'uygunluk', ad:'Atama Uygunluğu', ciz:function(c){
+          var k = A.cihazAtanabilir(c.id);
+          return k.uygun ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.uyari) : GV.rozetOzel('ok','fa-check','Uygun'))
+            : GV.rozetOzel('danger','fa-ban', k.sebep); } }
+    ]},
+    pager:{ hedef:'#idCihazPg', boyut:10 },
+    bosDurum:{ ikon:'fa-ruler-combined', baslik:'Cihaz atanmadı',
+      metin:'Bu iş emrine ölçüm cihazı atanmadı. Ölçüm gerektiren hizmetler için kalibrasyonu geçerli cihaz zorunludur.' }
+  });
 
   document.getElementById('idCihazEkle').addEventListener('click', function(){
     var mevcutCihaz = (A.kayit('isEmirleri', ie.id) || ie).cihazlar || [];
@@ -362,28 +379,34 @@
 
   /* --- hizmet kalemleri --- */
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
-  document.getElementById('idHizmet').innerHTML = hizmetler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Miktar</th>'
-      + '<th scope="col">Birim</th><th scope="col">Gerekli Yetkinlik</th><th scope="col" class="num">Tahmini Süre</th></tr></thead><tbody>'
-      + hizmetler.map(function(h){
+  function kalemSuresi(h){
+    var hz = A.kayit('hizmetler', h.hizmetId);
+    return hz ? hz.sure * (hz.birim === 'adet' ? h.planlananMiktar : 1) : 0;
+  }
+  gvList({
+    kaynak:'is-emri-detay:hizmet', onek:'hzm_', filtresiz:true,
+    veri:function(){ return hizmetler; },
+    tablo:{ hedef:'#idHizmet', ad:'Kontrol edilecek kalemler', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(h){ return '<b class="t-strong">' + GV.esc(h.poz) + '</b>'; } },
+      { k:'hizmetAd', ad:'Hizmet', ciz:function(h){
+          return '<a href="hizmet-detay.html?id=' + h.hizmetId + '">' + GV.esc(h.hizmetAd) + '</a>'; } },
+      { k:'planlananMiktar', ad:'Miktar', sinif:'num', ciz:function(h){ return GV.n(h.planlananMiktar); } },
+      { k:'birim', ad:'Birim', ciz:function(h){ return GV.esc(birimAd[h.birim] || h.birim); } },
+      { k:'yetkinlik', ad:'Gerekli Yetkinlik', ciz:function(h){
           var hz = A.kayit('hizmetler', h.hizmetId);
           var y = hz && hz.yetkinlik ? A.kayit('yetkinlikler', hz.yetkinlik) : null;
-          var sure = hz ? hz.sure * (hz.birim === 'adet' ? h.planlananMiktar : 1) : 0;
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(h.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + h.hizmetId + '">' + GV.esc(h.hizmetAd) + '</a></td>'
-            + '<td data-lbl="Miktar" class="num">' + GV.n(h.planlananMiktar) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-            + '<td data-lbl="Gerekli Yetkinlik">' + (y ? GV.esc(y.ad) : '<span class="muted">Gerekmiyor</span>') + '</td>'
-            + '<td data-lbl="Tahmini Süre" class="num">' + GV.n(Math.round(sure / 60)) + ' saat</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td>'
-      + '<td data-lbl="Miktar" class="num">' + GV.n(hizmetler.reduce(function(t,h){ return t + h.planlananMiktar; }, 0)) + '</td>'
-      + '<td data-lbl="" colspan="2"></td><td data-lbl="Tahmini Süre" class="num">' + GV.n(Math.round(hizmetler.reduce(function(t,h){
-          var hz = A.kayit('hizmetler', h.hizmetId);
-          return t + (hz ? hz.sure * (hz.birim === 'adet' ? h.planlananMiktar : 1) : 0); }, 0) / 60)) + ' saat</td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-list-check', baslik:'Hizmet kalemi yok',
-        metin:'Bu lokasyon için hizmet kapsamı tanımlanmadığından kontrol edilecek kalem bulunmuyor.' });
+          return y ? GV.esc(y.ad) : '<span class="muted">Gerekmiyor</span>'; } },
+      { k:'sure', ad:'Tahmini Süre', sinif:'num', ciz:function(h){ return GV.n(Math.round(kalemSuresi(h) / 60)) + ' saat'; } }
+    ], altToplam:function(){
+      /* Toplam kapsamın TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="2">Toplam</td>'
+        + '<td data-lbl="Miktar" class="num">' + GV.n(hizmetler.reduce(function(t,h){ return t + h.planlananMiktar; }, 0)) + '</td>'
+        + '<td data-lbl="" colspan="2"></td><td data-lbl="Tahmini Süre" class="num">'
+        + GV.n(Math.round(hizmetler.reduce(function(t,h){ return t + kalemSuresi(h); }, 0) / 60)) + ' saat</td></tr>'; } },
+    pager:{ hedef:'#idHizmetPg', boyut:10 },
+    bosDurum:{ ikon:'fa-list-check', baslik:'Hizmet kalemi yok',
+      metin:'Bu lokasyon için hizmet kapsamı tanımlanmadığından kontrol edilecek kalem bulunmuyor.' }
+  });
 
   /* --- hazırlık listesi --- */
   var hazirlikDurumu = {};
@@ -516,45 +539,53 @@
 
   /* --- mutabakat --- */
   document.getElementById('idMtbLink').href = GV.href('envanter-mutabakati.html?lokasyon=' + ie.lokasyonId);
-  document.getElementById('idMutabakat').innerHTML = mutabakat.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Planlanan</th>'
-      + '<th scope="col" class="num">Sahada</th><th scope="col" class="num">Kontrol Edilen</th>'
-      + '<th scope="col" class="num">Fark</th><th scope="col">Mutabakat</th></tr></thead><tbody>'
-      + mutabakat.map(function(m){
+  gvList({
+    kaynak:'is-emri-detay:mutabakat', onek:'mtb_', filtresiz:true,
+    veri:function(){ return mutabakat; },
+    tablo:{ hedef:'#idMutabakat', ad:'Envanter mutabakatı', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(m){ return '<b class="t-strong">' + GV.esc(m.poz) + '</b>'; } },
+      { k:'hizmetAd', ad:'Hizmet' },
+      { k:'planlanan', ad:'Planlanan', sinif:'num', ciz:function(m){ return GV.n(m.planlanan); } },
+      { k:'sahadaBulunan', ad:'Sahada', sinif:'num', ciz:function(m){ return GV.n(m.sahadaBulunan); } },
+      { k:'kontrolEdilen', ad:'Kontrol Edilen', sinif:'num', ciz:function(m){ return GV.n(m.kontrolEdilen); } },
+      { k:'fark', ad:'Fark', sinif:'num', ciz:function(m){
           var f = m.sahadaBulunan - m.planlanan;
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(m.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet">' + GV.esc(m.hizmetAd) + '</td>'
-            + '<td data-lbl="Planlanan" class="num">' + GV.n(m.planlanan) + '</td>'
-            + '<td data-lbl="Sahada" class="num">' + GV.n(m.sahadaBulunan) + '</td>'
-            + '<td data-lbl="Kontrol Edilen" class="num">' + GV.n(m.kontrolEdilen) + '</td>'
-            + '<td data-lbl="Fark" class="num">' + (f === 0 ? '<span class="diff zero">0</span>'
-                : '<span class="diff ' + (f > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-' + (f > 0 ? 'plus' : 'minus')
-                  + '" aria-hidden="true"></i>' + GV.n(Math.abs(f)) + '</span>') + '</td>'
-            + '<td data-lbl="Mutabakat">' + (m.durum === 'onayli' ? GV.rozetOzel('ok','fa-circle-check','Onaylı')
-                : m.durum === 'itirazli' ? GV.rozetOzel('danger','fa-scale-unbalanced','İtirazlı')
-                : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Mutabakat verisi yok',
-        metin:'Saha kontrolü tamamlanmadığı için gerçekleşen miktar ve mutabakat satırı oluşmadı.' });
+          return f === 0 ? '<span class="diff zero">0</span>'
+            : '<span class="diff ' + (f > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-' + (f > 0 ? 'plus' : 'minus')
+              + '" aria-hidden="true"></i>' + GV.n(Math.abs(f)) + '</span>'; } },
+      { k:'durum', ad:'Mutabakat', ciz:function(m){
+          return m.durum === 'onayli' ? GV.rozetOzel('ok','fa-circle-check','Onaylı')
+            : m.durum === 'itirazli' ? GV.rozetOzel('danger','fa-scale-unbalanced','İtirazlı')
+            : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor'); } }
+    ]},
+    pager:{ hedef:'#idMutabakatPg', boyut:10 },
+    bosDurum:{ ikon:'fa-scale-balanced', baslik:'Mutabakat verisi yok',
+      metin:'Saha kontrolü tamamlanmadığı için gerçekleşen miktar ve mutabakat satırı oluşmadı.' }
+  });
 
   /* --- raporlar --- */
-  document.getElementById('idRapor').innerHTML = rapor
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor</th><th scope="col">Rapor Tarihi</th><th scope="col">Personel</th>'
-      + '<th scope="col">Sonuç</th><th scope="col">Durum</th><th scope="col">SLA</th></tr></thead><tbody>'
-      + '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + rapor.id + '"><b class="t-strong">' + GV.esc(rapor.no) + '</b></a></td>'
-      + '<td data-lbl="Rapor Tarihi">' + GV.d(rapor.raporTarihi) + '</td>'
-      + '<td data-lbl="Personel">' + GV.esc(rapor.personelAd) + '</td>'
-      + '<td data-lbl="Sonuç">' + (rapor.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
-          : rapor.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
-          : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')) + '</td>'
-      + '<td data-lbl="Durum">' + GV.rozet('rapor', rapor.durum) + '</td>'
-      + '<td data-lbl="SLA">' + (rapor.slaDurum === 'asildi'
-          ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(rapor.sla.kalanGun) + ' gün gecikme')
-          : GV.rozetOzel('ok','fa-check','Süre içinde')) + '</td></tr></tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor açılmadı',
-        metin:'Saha kontrolü tamamlanınca teknik rapor otomatik olarak taslak durumunda oluşturulur.' });
+  gvList({
+    kaynak:'is-emri-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return rapor ? [rapor] : []; },
+    tablo:{ hedef:'#idRapor', ad:'İş emrinin raporu', kolonlar:[
+      { k:'no', ad:'Rapor', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'raporTarihi', ad:'Rapor Tarihi', ciz:function(r){ return GV.d(r.raporTarihi); } },
+      { k:'personelAd', ad:'Personel' },
+      { k:'sonuc', ad:'Sonuç', ciz:function(r){
+          return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+            : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+            : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+      { k:'durum', ad:'Durum', ciz:function(r){ return GV.rozet('rapor', r.durum); } },
+      { k:'sla', ad:'SLA', ciz:function(r){
+          return r.slaDurum === 'asildi'
+            ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(r.sla.kalanGun) + ' gün gecikme')
+            : GV.rozetOzel('ok','fa-check','Süre içinde'); } }
+    ]},
+    pager:{ hedef:'#idRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor açılmadı',
+      metin:'Saha kontrolü tamamlanınca teknik rapor otomatik olarak taslak durumunda oluşturulur.' }
+  });
 
   /* --- durum akışı --- */
   var akisAdimlari = [
@@ -587,11 +618,25 @@
     gecmis.push({ ikon:'fa-pen', ton:'', b:x.islem.replace(/-/g,' '), s:x.aciklama, t:String(x.zaman).substring(0,10) });
   });
   gecmis = gecmis.filter(function(g){ return g.t; }).sort(function(a,b){ return String(b.t).localeCompare(String(a.t)); });
-  document.getElementById('idGecmis').innerHTML = '<div class="act-list">' + gecmis.map(function(g){
-    return '<div class="act-row"><span class="act-ico ' + g.ton + '"><i class="fa-solid ' + g.ikon + '" aria-hidden="true"></i></span>'
-      + '<span class="act-info"><b>' + GV.esc(g.b) + '</b><span>' + GV.esc(g.s) + '</span></span>'
-      + '<span class="act-time">' + GV.d(g.t) + '</span></div>';
-  }).join('') + '</div>';
+  /* Durum geçmişi tablo değil akış listesidir; ListController'ın özel çizim
+     yolunu kullanır — sayfalama ve boş ekran yine denetleyicidedir. */
+  gvList({
+    kaynak:'is-emri-detay:gecmis', onek:'gcm_', filtresiz:true,
+    veri:function(){ return gecmis; },
+    hedef:'#idGecmis',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('idGecmis');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      kap.innerHTML = '<div class="act-list">' + sonuc.data.map(function(g){
+        return '<div class="act-row"><span class="act-ico ' + g.ton + '"><i class="fa-solid ' + g.ikon + '" aria-hidden="true"></i></span>'
+          + '<span class="act-info"><b>' + GV.esc(g.b) + '</b><span>' + GV.esc(g.s) + '</span></span>'
+          + '<span class="act-time">' + GV.d(g.t) + '</span></div>';
+      }).join('') + '</div>';
+    },
+    pager:{ hedef:'#idGecmisPg', boyut:10 },
+    bosDurum:{ ikon:'fa-clock-rotate-left', baslik:'İşlem geçmişi yok',
+      metin:'Bu iş emri için kayıtlı işlem bulunmuyor.' }
+  });
 
   /* --- sağ kolon --- */
   document.getElementById('idOzet').innerHTML =

@@ -20,7 +20,11 @@ const KAYITLAR = {
   'musteri-detay.html': 'MST-001',
   'proje-detay.html': 'PRJ-2026-001',
   'lokasyon-detay.html': 'LOK-0101',
-  'ekipman-detay.html': 'EKP-0001'
+  'ekipman-detay.html': 'EKP-0001',
+  'is-emri-detay.html': 'IE-2026-0011',
+  'rapor-detay.html': 'RPR-2026-0001',
+  'uygunsuzluk-detay.html': 'UYG-2026-001',
+  'teklif-detay.html': 'TKL-2026-001'
 };
 
 /** Sayfayı jsdom'da çalıştırır; yakalanan hataları ve pencereyi döndürür. */
@@ -51,17 +55,24 @@ async function ac(dosya, arama) {
   return { w, doc, hata };
 }
 
+/* Sayfadaki gvList çağrılarının başlığını ayrıştırır (kaynak + önek).
+   Sayfada başka `kaynak:` alanları da olabilir; yalnız gvList başlığı sayılır. */
+const BASLIK = /gvList\(\{\s*kaynak:\s*'([^']+)',\s*onek:\s*'([^']+)'/g;
+function listeler(dosya) {
+  const s = fs.readFileSync(path.join(KOK, dosya), 'utf8');
+  return { metin: s, kayitlar: [...s.matchAll(BASLIK)].map(m => ({ kaynak: m[1], onek: m[2] })) };
+}
+
 /* ================= statik sözleşme ================= */
 
 test('her detay ekranında alt liste önekleri benzersiz', () => {
   const carpisan = [];
   for (const dosya of Object.keys(KAYITLAR)) {
-    const s = fs.readFileSync(path.join(KOK, dosya), 'utf8');
-    const onekler = [...s.matchAll(/onek:\s*'([^']+)'/g)].map(m => m[1]);
-    const tekil = new Set(onekler);
-    if (tekil.size !== onekler.length) carpisan.push(dosya + ' → ' + onekler.join(','));
+    const { metin, kayitlar } = listeler(dosya);
+    const onekler = kayitlar.map(k => k.onek);
+    if (new Set(onekler).size !== onekler.length) carpisan.push(dosya + ' → ' + onekler.join(','));
     /* önek verilmeyen ikinci bir gvList aynı sayfada olamaz */
-    const listeSayisi = (s.match(/gvList\(\{/g) || []).length;
+    const listeSayisi = (metin.match(/gvList\(\{/g) || []).length;
     if (listeSayisi > 1 && onekler.length !== listeSayisi) {
       carpisan.push(dosya + ' → ' + listeSayisi + ' liste, ' + onekler.length + ' önek');
     }
@@ -73,12 +84,10 @@ test('alt liste kaynak adları modül önekiyle ayrışır', () => {
   const kaynaklar = new Map();
   const cakisma = [];
   for (const dosya of Object.keys(KAYITLAR)) {
-    const s = fs.readFileSync(path.join(KOK, dosya), 'utf8');
-    for (const m of s.matchAll(/kaynak:\s*'([^']+)'/g)) {
-      const k = m[1];
-      if (kaynaklar.has(k) && kaynaklar.get(k) !== dosya) cakisma.push(k);
-      kaynaklar.set(k, dosya);
-      assert.ok(k.includes(':'), dosya + ' kaynak adı modül önekli olmalı: ' + k);
+    for (const { kaynak } of listeler(dosya).kayitlar) {
+      if (kaynaklar.has(kaynak) && kaynaklar.get(kaynak) !== dosya) cakisma.push(kaynak);
+      kaynaklar.set(kaynak, dosya);
+      assert.ok(kaynak.includes(':'), dosya + ' kaynak adı modül önekli olmalı: ' + kaynak);
     }
   }
   assert.deepStrictEqual(cakisma, []);
@@ -107,9 +116,12 @@ for (const [dosya, id] of Object.entries(KAYITLAR)) {
     const pagerler = [...doc.querySelectorAll('.gv-pager')];
     assert.ok(pagerler.length > 0, 'alt liste pager kabı yok');
     for (const pg of pagerler) {
-      const kap = pg.previousElementSibling;
+      /* Sözleşme: pager kabının id'si liste kabının id'si + "Pg". */
+      const kap = doc.getElementById(pg.id.replace(/Pg$/, ''));
       assert.ok(kap, pg.id + ' için liste kabı yok');
-      const dolu = kap.querySelector('table') || kap.querySelector('.gv-empty') || kap.querySelector('.act-list');
+      const dolu = kap.querySelector('table') || kap.querySelector('.gv-empty')
+        || kap.querySelector('.act-list') || kap.querySelector('.gv-chain')
+        || kap.querySelector('.rd-versiyon');
       assert.ok(dolu, pg.id + ' listesi hiç çizilmedi');
     }
   });

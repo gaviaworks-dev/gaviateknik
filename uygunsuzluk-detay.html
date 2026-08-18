@@ -81,6 +81,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Uygunsuzluk Süreci</h2>
             </div>
           <div class="gc-body"><div id="udSurec"></div></div>
+          <div class="gv-pager" id="udSurecPg" hidden></div>
         </section>
       </div>
       </div>
@@ -114,6 +115,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -300,7 +304,25 @@
       u.durum === 'kapandi' ? 'Düzeltme doğrulandı ve kayıt kapatıldı.' : 'Kapatma bekleniyor.',
       u.kapanis, 'Kapandı', 'Bekliyor')
   ];
-  gvChain('#udSurec', surecAdimlari);
+  /* Durum geçmişi (doküman §6 "Uygunsuzluk Detayı → durum geçmişi").
+     Bu ekranda tablo biçiminde alt koleksiyon YOKTUR; aksiyon planı, kanıt ve
+     doğrulama tek kayıt alanlarıdır. Sayfalanabilir tek koleksiyon aşama
+     zinciridir; ListController'ın özel çizim yolundan geçer ki yükleniyor /
+     boş / hata sözleşmesi diğer ekranlarla aynı olsun. Zincir bölünmesin diye
+     sayfa boyutu 50'dir — sekiz aşama tek sayfada kalır, pager gizlenir. */
+  gvList({
+    kaynak:'uygunsuzluk-detay:surec', onek:'src_', filtresiz:true,
+    veri:function(){ return surecAdimlari; },
+    hedef:'#udSurec',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('udSurec');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      gvChain('#udSurec', sonuc.data);
+    },
+    pager:{ hedef:'#udSurecPg', boyut:50 },
+    bosDurum:{ ikon:'fa-timeline', baslik:'Aşama kaydı yok',
+      metin:'Bu uygunsuzluk için kayıtlı aşama bulunmuyor.' }
+  });
 
   document.getElementById('udOzet').innerHTML =
     '<div class="info-row"><dt>Önem</dt><dd>' + GV.esc(o[2]) + '</dd></div>'

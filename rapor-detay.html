@@ -77,10 +77,12 @@
             <div class="gc-body"><dl class="info-grid" id="rdUst"></dl></div></section>
           <section class="gv-card" style="margin-top:16px"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-gears" aria-hidden="true"></i>Ekipman / Tesis Bilgisi</h2></div>
-            <div class="gc-body flush" id="rdEkipman"></div></section>
+            <div class="gc-body flush" id="rdEkipman"></div>
+            <div class="gv-pager" id="rdEkipmanPg" hidden></div></section>
           <section class="gv-card" style="margin-top:16px"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Kontrol Kriterleri ve Sonuçları</h2></div>
-            <div class="gc-body flush" id="rdKriter"></div></section>
+            <div class="gc-body flush" id="rdKriter"></div>
+            <div class="gv-pager" id="rdKriterPg" hidden></div></section>
           <section class="gv-card" style="margin-top:16px"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>Sonuç ve Değerlendirme</h2></div>
             <div class="gc-body" id="rdSonuc"></div></section>
@@ -89,16 +91,19 @@
         <div id="pn_olcum" role="tabpanel" aria-labelledby="tb_olcum" class="gv-tabpanel" hidden>
           <section class="gv-card"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-ruler" aria-hidden="true"></i>Ölçüm Sonuçları</h2></div>
-            <div class="gc-body flush" id="rdOlcum"></div></section>
+            <div class="gc-body flush" id="rdOlcum"></div>
+            <div class="gv-pager" id="rdOlcumPg" hidden></div></section>
           <section class="gv-card" style="margin-top:16px"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>Kullanılan Ölçüm Cihazları</h2></div>
-            <div class="gc-body flush" id="rdCihaz"></div></section>
+            <div class="gc-body flush" id="rdCihaz"></div>
+            <div class="gv-pager" id="rdCihazPg" hidden></div></section>
         </div>
 
         <div id="pn_uygunsuzluk" role="tabpanel" aria-labelledby="tb_uygunsuzluk" class="gv-tabpanel" hidden>
           <section class="gv-card"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Tespit Edilen Uygunsuzluklar</h2></div>
-            <div class="gc-body flush" id="rdUygunsuzluk"></div></section>
+            <div class="gc-body flush" id="rdUygunsuzluk"></div>
+            <div class="gv-pager" id="rdUygunsuzlukPg" hidden></div></section>
         </div>
 
         <div id="pn_foto" role="tabpanel" aria-labelledby="tb_foto" class="gv-tabpanel" hidden>
@@ -119,7 +124,8 @@
         <div id="pn_versiyon" role="tabpanel" aria-labelledby="tb_versiyon" class="gv-tabpanel" hidden>
           <section class="gv-card"><div class="gc-head"><h2 class="gc-title">
             <i class="fa-solid fa-code-branch" aria-hidden="true"></i>Versiyon Geçmişi</h2></div>
-            <div class="gc-body" id="rdVersiyon"></div></section>
+            <div class="gc-body" id="rdVersiyon"></div>
+            <div class="gv-pager" id="rdVersiyonPg" hidden></div></section>
         </div>
 
         <div id="pn_onizleme" role="tabpanel" aria-labelledby="tb_onizleme" class="gv-tabpanel" hidden>
@@ -162,6 +168,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -258,49 +267,70 @@
     + bilgi('Kontrol Personeli', GV.esc(r.personelAd))
     + bilgi('Teknik Onaylayan', r.onaylayanAd ? GV.esc(r.onaylayanAd) : 'Onaylanmadı');
 
-  /* --- ekipman / tesis --- */
+  /* --- ekipman / tesis ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
-  document.getElementById('rdEkipman').innerHTML = (ekipmanlar.length || hizmetler.length)
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Ekipman / Hizmet</th><th scope="col">Marka / Model</th><th scope="col">Seri No</th>'
-      + '<th scope="col" class="num">Miktar</th><th scope="col">Kapasite</th></tr></thead><tbody>'
-      + (ekipmanlar.length
-        ? ekipmanlar.slice(0,20).map(function(e){
-            return '<tr><td data-lbl="Ekipman"><a href="ekipman-detay.html?id=' + e.id + '"><b class="t-strong">' + GV.esc(e.ad) + '</b></a>'
-              + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(e.kod) + '</span></td>'
-              + '<td data-lbl="Marka / Model">' + GV.esc(e.marka + ' ' + e.model) + '</td>'
-              + '<td data-lbl="Seri No">' + GV.esc(e.seri) + '</td>'
-              + '<td data-lbl="Miktar" class="num">1</td>'
-              + '<td data-lbl="Kapasite">' + GV.esc(e.kapasite || '—') + '</td></tr>';
-          }).join('')
-        : hizmetler.map(function(h){
-            return '<tr><td data-lbl="Hizmet"><b class="t-strong">' + GV.esc(h.hizmetAd) + '</b>'
-              + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(h.poz) + '</span></td>'
-              + '<td data-lbl="Marka / Model"><span class="muted">Miktar bazlı hizmet</span></td>'
-              + '<td data-lbl="Seri No">—</td>'
-              + '<td data-lbl="Miktar" class="num">' + GV.n(h.planlananMiktar) + ' ' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-              + '<td data-lbl="Kapasite">—</td></tr>';
-          }).join('')) + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-gears', baslik:'Ekipman bilgisi yok', metin:'Bu rapor kapsamında kayıtlı ekipman bulunmuyor.' });
+  /* Rapor kapsamı ya tekil ekipman kartlarından ya da miktar bazlı hizmet
+     kalemlerinden oluşur; ikisi tek listede birleştirilmez. */
+  var kapsamTuru = ekipmanlar.length ? 'ekipman' : 'hizmet';
+  gvList({
+    kaynak:'rapor-detay:kapsam', onek:'kps_', filtresiz:true,
+    veri:function(){ return kapsamTuru === 'ekipman' ? ekipmanlar : hizmetler; },
+    tablo:{ hedef:'#rdEkipman', ad:'Rapor kapsamındaki ekipman ve hizmetler', kolonlar:[
+      { k:'ad', ad: kapsamTuru === 'ekipman' ? 'Ekipman' : 'Hizmet', ciz:function(x){
+          return kapsamTuru === 'ekipman'
+            ? '<a href="ekipman-detay.html?id=' + x.id + '"><b class="t-strong">' + GV.esc(x.ad) + '</b></a>'
+              + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(x.kod) + '</span>'
+            : '<b class="t-strong">' + GV.esc(x.hizmetAd) + '</b>'
+              + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(x.poz) + '</span>'; } },
+      { k:'marka', ad:'Marka / Model', ciz:function(x){
+          return kapsamTuru === 'ekipman' ? GV.esc(x.marka + ' ' + x.model)
+            : '<span class="muted">Miktar bazlı hizmet</span>'; } },
+      { k:'seri', ad:'Seri No', ciz:function(x){ return kapsamTuru === 'ekipman' ? GV.esc(x.seri) : GV.bos; } },
+      { k:'miktar', ad:'Miktar', sinif:'num', ciz:function(x){
+          return kapsamTuru === 'ekipman' ? '1'
+            : GV.n(x.planlananMiktar) + ' ' + GV.esc(birimAd[x.birim] || x.birim); } },
+      { k:'kapasite', ad:'Kapasite', ciz:function(x){
+          return kapsamTuru === 'ekipman' ? GV.esc(x.kapasite || GV.bos) : GV.bos; } }
+    ]},
+    pager:{ hedef:'#rdEkipmanPg', boyut:10 },
+    bosDurum:{ ikon:'fa-gears', baslik:'Ekipman bilgisi yok', metin:'Bu rapor kapsamında kayıtlı ekipman bulunmuyor.' }
+  });
 
-  /* --- kontrol kriterleri --- */
-  document.getElementById('rdKriter').innerHTML =
-    '<div class="gv-tscroll"><table class="rd-kriter"><thead><tr>'
-    + '<th scope="col" style="width:48px">Kod</th><th scope="col">Kontrol Kriteri</th>'
-    + '<th scope="col" style="width:130px">Ölçüm</th><th scope="col" style="width:110px">Sonuç</th>'
-    + '<th scope="col">Açıklama</th></tr></thead><tbody>'
-    + sonuclar.map(function(s){
-        return '<tr><td><b>' + GV.esc(s.madde.k) + '</b></td>'
-          + '<td>' + GV.esc(s.madde.ad) + '</td>'
-          + '<td>' + (s.olcum != null
-              ? '<span class="rd-olcum">' + GV.n(s.olcum, 2) + ' ' + GV.esc(s.madde.olcum.birim || '') + '</span>'
-              : '<span class="muted">—</span>') + '</td>'
-          + '<td class="rd-sonuc ' + s.sonuc + '">'
-          + (s.sonuc === 'uygun' ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Uygun'
-            : s.sonuc === 'uygunsuz' ? '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Uygun değil'
-            : '<i class="fa-solid fa-minus" aria-hidden="true"></i> Uygulanamaz') + '</td>'
-          + '<td>' + (s.not ? GV.esc(s.not) : '<span class="muted">—</span>') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+  /* --- kontrol kriterleri ---
+     Kriter tablosu kendi `.rd-kriter` düzenini taşır; ListController'ın özel
+     çizim yolunu kullanır, sayfalama ve boş ekran yine denetleyicidedir. */
+  gvList({
+    kaynak:'rapor-detay:kriter', onek:'krt_', filtresiz:true,
+    veri:function(){ return sonuclar; },
+    hedef:'#rdKriter',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('rdKriter');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      kap.innerHTML = '<div class="gv-tscroll"><table class="rd-kriter">'
+        + '<caption class="gv-sr">Kontrol kriterleri ve sonuçları — ' + sonuc.data.length + ' kayıt</caption>'
+        + '<thead><tr>'
+        + '<th scope="col" style="width:48px">Kod</th><th scope="col">Kontrol Kriteri</th>'
+        + '<th scope="col" style="width:130px">Ölçüm</th><th scope="col" style="width:110px">Sonuç</th>'
+        + '<th scope="col">Açıklama</th></tr></thead><tbody>'
+        + sonuc.data.map(function(x){
+            return '<tr><td><b>' + GV.esc(x.madde.k) + '</b></td>'
+              + '<td>' + GV.esc(x.madde.ad) + '</td>'
+              + '<td>' + (x.olcum != null
+                  ? '<span class="rd-olcum">' + GV.n(x.olcum, 2) + ' ' + GV.esc(x.madde.olcum.birim || '') + '</span>'
+                  : '<span class="muted">—</span>') + '</td>'
+              + '<td class="rd-sonuc ' + x.sonuc + '">'
+              + (x.sonuc === 'uygun' ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Uygun'
+                : x.sonuc === 'uygunsuz' ? '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Uygun değil'
+                : '<i class="fa-solid fa-minus" aria-hidden="true"></i> Uygulanamaz') + '</td>'
+              + '<td>' + (x.not ? GV.esc(x.not) : '<span class="muted">—</span>') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+    },
+    pager:{ hedef:'#rdKriterPg', boyut:10 },
+    bosDurum:{ ikon:'fa-clipboard-check', baslik:'Kontrol kriteri yok',
+      metin:'Bu kontrol kategorisi için tanımlı kriter bulunmuyor.' }
+  });
 
   /* --- sonuç --- */
   var uygunSay = sonuclar.filter(function(s){ return s.sonuc === 'uygun'; }).length;
@@ -334,61 +364,68 @@
 
   /* --- ölçüm sonuçları --- */
   var olcumlu = sonuclar.filter(function(s){ return s.olcum != null; });
-  document.getElementById('rdOlcum').innerHTML = olcumlu.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Kod</th><th scope="col">Ölçüm</th><th scope="col" class="num">Ölçülen Değer</th>'
-      + '<th scope="col">Birim</th><th scope="col">Değerlendirme</th></tr></thead><tbody>'
-      + olcumlu.map(function(s){
-          return '<tr><td data-lbl="Kod"><b class="t-strong">' + GV.esc(s.madde.k) + '</b></td>'
-            + '<td data-lbl="Ölçüm">' + GV.esc(s.madde.olcum.ad) + '</td>'
-            + '<td data-lbl="Ölçülen Değer" class="num"><b class="t-strong">' + GV.n(s.olcum, 2) + '</b></td>'
-            + '<td data-lbl="Birim">' + GV.esc(s.madde.olcum.birim || '—') + '</td>'
-            + '<td data-lbl="Değerlendirme">' + (s.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Sınır değer içinde')
-                : s.sonuc === 'uygunsuz' ? GV.rozetOzel('danger','fa-circle-xmark','Sınır değer aşıldı')
-                : GV.rozetOzel('off','fa-minus','Uygulanamaz')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-ruler', baslik:'Ölçüm kaydı yok',
-        metin:'Bu kontrol kategorisinde sayısal ölçüm gerektiren kriter bulunmuyor.' });
+  gvList({
+    kaynak:'rapor-detay:olcum', onek:'olc_', filtresiz:true,
+    veri:function(){ return olcumlu; },
+    tablo:{ hedef:'#rdOlcum', ad:'Ölçüm sonuçları', kolonlar:[
+      { k:'kod', ad:'Kod', ciz:function(x){ return '<b class="t-strong">' + GV.esc(x.madde.k) + '</b>'; } },
+      { k:'olcumAd', ad:'Ölçüm', ciz:function(x){ return GV.esc(x.madde.olcum.ad); } },
+      { k:'olcum', ad:'Ölçülen Değer', sinif:'num', ciz:function(x){
+          return '<b class="t-strong">' + GV.n(x.olcum, 2) + '</b>'; } },
+      { k:'birim', ad:'Birim', ciz:function(x){ return GV.esc(x.madde.olcum.birim || GV.bos); } },
+      { k:'sonuc', ad:'Değerlendirme', ciz:function(x){
+          return x.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Sınır değer içinde')
+            : x.sonuc === 'uygunsuz' ? GV.rozetOzel('danger','fa-circle-xmark','Sınır değer aşıldı')
+            : GV.rozetOzel('off','fa-minus','Uygulanamaz'); } }
+    ]},
+    pager:{ hedef:'#rdOlcumPg', boyut:10 },
+    bosDurum:{ ikon:'fa-ruler', baslik:'Ölçüm kaydı yok',
+      metin:'Bu kontrol kategorisinde sayısal ölçüm gerektiren kriter bulunmuyor.' }
+  });
 
-  document.getElementById('rdCihaz').innerHTML = ie && (ie.cihazlar || []).length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Cihaz</th><th scope="col">Marka / Model</th><th scope="col">Seri No</th>'
-      + '<th scope="col">Kalibrasyon Tarihi</th><th scope="col">Geçerlilik</th></tr></thead><tbody>'
-      + ie.cihazlar.map(function(cid){
-          var c = A.kayit('olcumCihazlari', cid);
-          if (!c) return '';
-          return '<tr><td data-lbl="Cihaz"><a href="cihaz-detay.html?id=' + c.id + '"><b class="t-strong">' + GV.esc(c.ad) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod) + '</span></td>'
-            + '<td data-lbl="Marka / Model">' + GV.esc(c.marka + ' ' + c.model) + '</td>'
-            + '<td data-lbl="Seri No">' + GV.esc(c.seri) + '</td>'
-            + '<td data-lbl="Kalibrasyon Tarihi">' + GV.d(c.kalibrasyonTarihi) + '</td>'
-            + '<td data-lbl="Geçerlilik">' + GV.d(c.kalibrasyonBitis) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-ruler-combined', baslik:'Ölçüm cihazı kaydı yok',
-        metin:'Bu rapora bağlı iş emrinde ölçüm cihazı ataması bulunmuyor.' });
+  gvList({
+    kaynak:'rapor-detay:cihaz', onek:'chz_', filtresiz:true,
+    veri:function(){
+      return ((ie && ie.cihazlar) || []).map(function(cid){ return A.kayit('olcumCihazlari', cid); }).filter(Boolean);
+    },
+    tablo:{ hedef:'#rdCihaz', ad:'Kullanılan ölçüm cihazları', kolonlar:[
+      { k:'ad', ad:'Cihaz', ciz:function(c){
+          return '<a href="cihaz-detay.html?id=' + c.id + '"><b class="t-strong">' + GV.esc(c.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod) + '</span>'; } },
+      { k:'marka', ad:'Marka / Model', ciz:function(c){ return GV.esc(c.marka + ' ' + c.model); } },
+      { k:'seri', ad:'Seri No' },
+      { k:'kalibrasyonTarihi', ad:'Kalibrasyon Tarihi', ciz:function(c){ return GV.d(c.kalibrasyonTarihi); } },
+      { k:'kalibrasyonBitis', ad:'Geçerlilik', ciz:function(c){ return GV.d(c.kalibrasyonBitis); } }
+    ]},
+    pager:{ hedef:'#rdCihazPg', boyut:10 },
+    bosDurum:{ ikon:'fa-ruler-combined', baslik:'Ölçüm cihazı kaydı yok',
+      metin:'Bu rapora bağlı iş emrinde ölçüm cihazı ataması bulunmuyor.' }
+  });
 
   /* --- uygunsuzluklar --- */
   var onemAd = { kritik:['danger','fa-fire','Kritik'], yuksek:['danger','fa-triangle-exclamation','Yüksek'],
     orta:['warn','fa-circle-exclamation','Orta'], dusuk:['info','fa-circle-info','Düşük'] };
-  document.getElementById('rdUygunsuzluk').innerHTML = uygunsuzluklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Uygunsuzluk</th><th scope="col">Önem</th><th scope="col">Önerilen Faaliyet</th>'
-      + '<th scope="col">Termin</th><th scope="col">Yeniden Kontrol</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + uygunsuzluklar.map(function(u){
-          var o = onemAd[u.onem] || onemAd.orta;
-          return '<tr><td data-lbl="Uygunsuzluk"><a href="uygunsuzluk-detay.html?id=' + u.id + '"><b class="t-strong">' + GV.esc(u.baslik) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.aciklama) + '</span></td>'
-            + '<td data-lbl="Önem">' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
-            + '<td data-lbl="Önerilen Faaliyet">' + GV.esc(u.oneri) + '</td>'
-            + '<td data-lbl="Termin">' + GV.d(u.termin) + '</td>'
-            + '<td data-lbl="Yeniden Kontrol">' + (u.yenidenKontrol === 'gerekli' ? GV.rozetOzel('danger','fa-rotate-right','Gerekli')
-                : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
-                : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
-                : '<span class="muted">Gerekmiyor</span>') + '</td>'
-            + '<td data-lbl="Durum">' + GV.akisRozet('uygunsuzluk', u.durum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok',
-        metin:'Bu raporda tespit edilmiş uygunsuzluk bulunmuyor.' });
+  gvList({
+    kaynak:'rapor-detay:uygunsuzluk', onek:'uyg_', filtresiz:true,
+    veri:function(){ return uygunsuzluklar; },
+    tablo:{ hedef:'#rdUygunsuzluk', ad:'Tespit edilen uygunsuzluklar', kolonlar:[
+      { k:'baslik', ad:'Uygunsuzluk', ciz:function(u){
+          return '<a href="uygunsuzluk-detay.html?id=' + u.id + '"><b class="t-strong">' + GV.esc(u.baslik) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.aciklama) + '</span>'; } },
+      { k:'onem', ad:'Önem', ciz:function(u){ var o = onemAd[u.onem] || onemAd.orta; return GV.rozetOzel(o[0], o[1], o[2]); } },
+      { k:'oneri', ad:'Önerilen Faaliyet' },
+      { k:'termin', ad:'Termin', ciz:function(u){ return GV.d(u.termin); } },
+      { k:'yenidenKontrol', ad:'Yeniden Kontrol', ciz:function(u){
+          return u.yenidenKontrol === 'gerekli' ? GV.rozetOzel('danger','fa-rotate-right','Gerekli')
+            : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
+            : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
+            : '<span class="muted">Gerekmiyor</span>'; } },
+      { k:'durum', ad:'Durum', ciz:function(u){ return GV.akisRozet('uygunsuzluk', u.durum); } }
+    ]},
+    pager:{ hedef:'#rdUygunsuzlukPg', boyut:10 },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok',
+      metin:'Bu raporda tespit edilmiş uygunsuzluk bulunmuyor.' }
+  });
 
   /* --- fotoğraflar --- */
   var fotoEtiket = ['Genel görünüm','Ekipman etiketi','Ölçüm ekranı','Tespit noktası','Emniyet donanımı',
@@ -446,26 +483,36 @@
     + 'Sahada alınan dijital imza kaydı iş emrinde saklanır.</span></div>';
 
   /* --- versiyon geçmişi --- */
-  document.getElementById('rdVersiyon').innerHTML = tumSurumler.map(function(v){
-    var vz = A.rapor(v.id);
-    return '<div class="rd-versiyon' + (v.id === r.id ? ' guncel' : '') + '">'
-      + '<span class="rd-vnum">v' + v.versiyon + '</span>'
-      + '<span style="flex:1;min-width:0;line-height:1.5">'
-      + '<b style="display:block;font-size:13.5px;font-weight:700;color:var(--ink)">'
-      + (v.id === r.id ? 'Bu sürüm — ' : '') + GV.esc(v.durum === 'arsiv' ? 'Arşiv sürümü' : A.durum('rapor', v.durum).ad) + '</b>'
-      + '<span style="display:block;font-size:12px;color:var(--muted)">'
-      + 'Rapor tarihi ' + GV.d(v.raporTarihi) + ' · ' + GV.n(v.uygunsuzlukSayisi) + ' uygunsuzluk'
-      + (v.teslimTarihi ? ' · teslim ' + GV.d(v.teslimTarihi) : '') + '</span>'
-      + (v.revizyonNotu ? '<span style="display:block;margin-top:6px;padding:8px 11px;background:var(--warning-tint);'
-        + 'border-radius:var(--radius-sm);font-size:12px;color:var(--ink-2)">' + GV.esc(v.revizyonNotu) + '</span>' : '')
-      + '</span>'
-      + (v.id === r.id ? '' : '<a class="btn btn-sm btn-ghost" href="rapor-detay.html?id=' + v.id + '">Aç</a>')
-      + '</div>';
-  }).join('')
-  + (tumSurumler.length === 1
-    ? '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
-      + '<span>Bu raporun tek sürümü var. Onaylandıktan sonra içerik değişikliği gerekirse '
-      + 'yeni revizyon açılır ve mevcut sürüm arşive alınır.</span></div>' : '');
+  gvList({
+    kaynak:'rapor-detay:versiyon', onek:'srm_', filtresiz:true,
+    veri:function(){ return tumSurumler; },
+    hedef:'#rdVersiyon',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('rdVersiyon');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      kap.innerHTML = sonuc.data.map(function(v){
+        return '<div class="rd-versiyon' + (v.id === r.id ? ' guncel' : '') + '">'
+          + '<span class="rd-vnum">v' + v.versiyon + '</span>'
+          + '<span style="flex:1;min-width:0;line-height:1.5">'
+          + '<b style="display:block;font-size:13.5px;font-weight:700;color:var(--ink)">'
+          + (v.id === r.id ? 'Bu sürüm — ' : '') + GV.esc(v.durum === 'arsiv' ? 'Arşiv sürümü' : A.durum('rapor', v.durum).ad) + '</b>'
+          + '<span style="display:block;font-size:12px;color:var(--muted)">'
+          + 'Rapor tarihi ' + GV.d(v.raporTarihi) + ' · ' + GV.n(v.uygunsuzlukSayisi) + ' uygunsuzluk'
+          + (v.teslimTarihi ? ' · teslim ' + GV.d(v.teslimTarihi) : '') + '</span>'
+          + (v.revizyonNotu ? '<span style="display:block;margin-top:6px;padding:8px 11px;background:var(--warning-tint);'
+            + 'border-radius:var(--radius-sm);font-size:12px;color:var(--ink-2)">' + GV.esc(v.revizyonNotu) + '</span>' : '')
+          + '</span>'
+          + (v.id === r.id ? '' : '<a class="btn btn-sm btn-ghost" href="rapor-detay.html?id=' + v.id + '">Aç</a>')
+          + '</div>';
+      }).join('')
+      + (sonuc.pagination.totalRecords === 1
+        ? '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
+          + '<span>Bu raporun tek sürümü var. Onaylandıktan sonra içerik değişikliği gerekirse '
+          + 'yeni revizyon açılır ve mevcut sürüm arşive alınır.</span></div>' : '');
+    },
+    pager:{ hedef:'#rdVersiyonPg', boyut:10 },
+    bosDurum:{ ikon:'fa-code-branch', baslik:'Sürüm geçmişi yok', metin:'Bu rapor için kayıtlı sürüm bulunmuyor.' }
+  });
 
   /* --- sağ kolon --- */
   document.getElementById('rdOzet').innerHTML =

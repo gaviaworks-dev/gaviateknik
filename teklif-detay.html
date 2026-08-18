@@ -54,6 +54,8 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-list" aria-hidden="true"></i>Teklif Kalemleri</h2>
             </div>
           <div class="gc-body flush" id="tdKalem"></div>
+          <div id="tdKalemNot" hidden><div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i><span><b>Taşeron maliyeti kolonu yalnız iç kullanım içindir.</b> Müşteriye gönderilen teklif çıktısında ve müşteri portalında bu kolon görünmez.</span></div></div>
+          <div class="gv-pager" id="tdKalemPg" hidden></div>
         </section>
       </div>
       <div id="pn_karlilik" role="tabpanel" aria-labelledby="tb_karlilik" hidden>
@@ -72,6 +74,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-successor" aria-hidden="true"></i>Teklif Süreci</h2>
             </div>
           <div class="gc-body"><div id="tdSurec"></div></div>
+          <div class="gv-pager" id="tdSurecPg" hidden></div>
         </section>
       </div>
       </div>
@@ -101,6 +104,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -193,36 +199,40 @@
           + '<span style="font-size:12px;color:var(--muted)">' + c[2] + '</span></div>';
       }).join('') + '</div>';
 
-  /* --- kalemler --- */
+  /* --- kalemler ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
-  document.getElementById('tdKalem').innerHTML = kalemler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Adet</th>'
-      + '<th scope="col">Birim</th><th scope="col" class="num">Müşteri Satış Fiyatı</th>'
-      + '<th scope="col" class="num">Taşeron Maliyeti</th><th scope="col" class="num">Tutar</th>'
-      + '<th scope="col" class="num">Marj</th></tr></thead><tbody>'
-      + kalemler.map(function(k){
-          var marj = k.satis ? (k.satis - k.maliyet) / k.satis : 0;
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(k.hizmet ? k.hizmet.poz : '—') + '</b></td>'
-            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + k.hizmetId + '">' + GV.esc(k.hizmet ? k.hizmet.ad : k.hizmetId) + '</a></td>'
-            + '<td data-lbl="Adet" class="num">' + GV.n(k.miktar) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(k.hizmet ? (birimAd[k.hizmet.birim] || k.hizmet.birim) : '—') + '</td>'
-            + '<td data-lbl="Satış Fiyatı" class="num">' + GV.tl(k.satis) + '</td>'
-            + '<td data-lbl="Taşeron Maliyeti" class="num"><span style="color:var(--warning)">' + GV.tl(k.maliyet) + '</span></td>'
-            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(k.tutar) + '</b></td>'
-            + '<td data-lbl="Marj" class="num">' + GV.pct(marj) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td>'
-      + '<td data-lbl="Adet" class="num">' + GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)) + '</td>'
-      + '<td data-lbl="Birim"></td><td data-lbl="Müşteri Satış Fiyatı"></td>'
-      + '<td data-lbl="Taşeron Maliyeti" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.maliyetTutar; }, 0)) + '</td>'
-      + '<td data-lbl="Tutar" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.tutar; }, 0)) + '</td>'
-      + '<td data-lbl="Marj"></td></tr></tfoot></table></div>'
-      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i>'
-      + '<span><b>Taşeron maliyeti kolonu yalnız iç kullanım içindir.</b> Müşteriye gönderilen teklif çıktısında '
-      + 've müşteri portalında bu kolon görünmez.</span></div>'
-    : gvEmpty({ ikon:'fa-table-list', baslik:'Kalem listesi oluşmadı',
-        metin:'Bu teklife henüz proje bağlanmadığı için kalem dökümü üretilemedi. Teklif toplamları özet alanlarda görüntülenir.' });
+  gvList({
+    kaynak:'teklif-detay:kalem', onek:'poz_', filtresiz:true,
+    veri:function(){ return kalemler; },
+    tablo:{ hedef:'#tdKalem', ad:'Teklif kalemleri', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(k){ return '<b class="t-strong">' + GV.esc(k.hizmet ? k.hizmet.poz : GV.bos) + '</b>'; } },
+      { k:'hizmet', ad:'Hizmet', ciz:function(k){
+          return '<a href="hizmet-detay.html?id=' + k.hizmetId + '">' + GV.esc(k.hizmet ? k.hizmet.ad : k.hizmetId) + '</a>'; } },
+      { k:'miktar', ad:'Adet', sinif:'num', ciz:function(k){ return GV.n(k.miktar); } },
+      { k:'birim', ad:'Birim', ciz:function(k){ return GV.esc(k.hizmet ? (birimAd[k.hizmet.birim] || k.hizmet.birim) : GV.bos); } },
+      /* Satış fiyatı ile taşeron maliyeti AYRI kolonlardır, birbirinin
+         yerine kullanılmaz (CLAUDE.md §8). */
+      { k:'satis', ad:'Müşteri Satış Fiyatı', sinif:'num', ciz:function(k){ return GV.tl(k.satis); } },
+      { k:'maliyet', ad:'Taşeron Maliyeti', sinif:'num', ciz:function(k){
+          return '<span style="color:var(--warning)">' + GV.tl(k.maliyet) + '</span>'; } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz:function(k){ return '<b class="t-strong">' + GV.tl(k.tutar) + '</b>'; } },
+      { k:'marj', ad:'Marj', sinif:'num', ciz:function(k){ return GV.pct(k.satis ? (k.satis - k.maliyet) / k.satis : 0); } }
+    ], altToplam:function(){
+      /* Toplam teklifin TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="2">Toplam</td>'
+        + '<td data-lbl="Adet" class="num">' + GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)) + '</td>'
+        + '<td data-lbl="Birim"></td><td data-lbl="Müşteri Satış Fiyatı"></td>'
+        + '<td data-lbl="Taşeron Maliyeti" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.maliyetTutar; }, 0)) + '</td>'
+        + '<td data-lbl="Tutar" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.tutar; }, 0)) + '</td>'
+        + '<td data-lbl="Marj"></td></tr>'; } },
+    pager:{ hedef:'#tdKalemPg', boyut:10 },
+    /* İç kullanım uyarısı tabloya bağlıdır; liste boşken gösterilmez. */
+    degisti:function(sonuc){ document.getElementById('tdKalemNot').hidden = !sonuc.pagination.totalRecords; },
+    bosDurum:{ ikon:'fa-table-list', baslik:'Kalem listesi oluşmadı',
+      metin:'Bu teklife henüz proje bağlanmadığı için kalem dökümü üretilemedi. Teklif toplamları özet alanlarda görüntülenir.' }
+  });
 
   /* --- kârlılık --- */
   document.getElementById('tdKar').innerHTML =
@@ -257,8 +267,11 @@
     .sort(function(a,b){ return katTutar[b.id] - katTutar[a.id]; })
     .map(function(k){ return { etiket:k.ad, deger:katTutar[k.id], gosterim: GV.tl(katTutar[k.id]) }; }));
 
-  /* --- süreç --- */
-  gvChain('#tdSurec', [
+  /* --- süreç ---
+     Onay geçmişi zinciri de ListController'ın özel çizim yolundan geçer;
+     yükleniyor / boş / hata sözleşmesi diğer ekranlarla aynı olsun diye.
+     Zincir bölünmesin diye sayfa boyutu 50'dir — pager gizli kalır. */
+  var surecAdimlari = [
     { ton:'ok', ikon:'fa-pen-ruler', baslik:'Teklif hazırlandı', altBaslik: hazirlayan ? hazirlayan.ad : '—',
       aksiyon:'Hazırlandı', tarih: t.tarih },
     { ton: ['gonderildi','kazanildi','kaybedildi'].indexOf(t.durum) !== -1 ? 'ok' : 'idle',
@@ -279,7 +292,19 @@
     { ton: proje ? 'ok' : 'idle', ikon:'fa-diagram-project', baslik:'Proje açıldı',
       altBaslik: proje ? proje.ad : 'Proje açılmadı',
       aksiyon: proje ? 'Açıldı' : 'Bekliyor', tarih: proje ? proje.baslangic : null }
-  ]);
+  ];
+  gvList({
+    kaynak:'teklif-detay:surec', onek:'src_', filtresiz:true,
+    veri:function(){ return surecAdimlari; },
+    hedef:'#tdSurec',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('tdSurec');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      gvChain('#tdSurec', sonuc.data);
+    },
+    pager:{ hedef:'#tdSurecPg', boyut:50 },
+    bosDurum:{ ikon:'fa-timeline', baslik:'Süreç kaydı yok', metin:'Bu teklif için kayıtlı süreç adımı bulunmuyor.' }
+  });
 
   document.getElementById('tdOzet').innerHTML =
     '<div class="info-row"><dt>Satış tutarı</dt><dd>' + GV.tl(t.toplamSatis) + '</dd></div>'
