@@ -98,6 +98,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -170,9 +173,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#msTablo', kolonlar: kolonlar, secim:true, satirId: function(m){ return m.id; },
-    bosDurum:{ ikon:'fa-building', baslik:'Müşteri bulunamadı', metin:'Filtrelerinize uyan müşteri kaydı yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#msBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'musteriler', modul:'Müşteri' }); } },
@@ -202,16 +203,12 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'musteriler', kolonlar: kolonlar, degisti: function(){ ciz(son); } });
+  gvCols({ tetik:'#gvColsBtn', anahtar:'musteriler', kolonlar: kolonlar, degisti: function(){ liste.yenile(); } });
 
-  var pager = gvPager({ hedef:'#msPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(veri){ son = veri; pager.ayarla(veri.length); tablo.ciz(pager.dilim(veri)); }
-
-  gvFilter({
+  var liste = gvList({
+    kaynak: 'musteriler',
     veri: function(){ return kaynak; },
     arama: ['kod','unvan','kisaAd','sektor','segment'],
-    arsivAlani: 'arsiv',
     cipler: { alan:'durum', secenekler:[
       { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' },
       { k:'aday', ad:'Aday', ikon:'fa-user-plus' },
@@ -223,11 +220,24 @@
       { k:'lokasyonSayisi', ad:'Lokasyon sayısı', tur:'aralik' },
       { k:'odemeVadesi', ad:'Ödeme vadesi (gün)', tur:'aralik' }
     ],
-    degisti: function(sonuc){ pager.ayarla(sonuc.length, true); ciz(sonuc); }
+    arsivAlani: 'arsiv',
+    tablo: { hedef: '#msTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(m){ return m.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#msPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-building', baslik:'Müşteri bulunamadı', metin:'Filtrelerinize uyan müşteri kaydı yok.' },
+    bosDurum: { ikon:'fa-building', baslik:'Müşteriler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('msDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'musteriler', modul:'Müşteri' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'musteriler', modul:'Müşteri' });
   });
 
   /* --- grafikler --- */

@@ -88,6 +88,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -221,23 +224,45 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#skTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
-    bosDurum:{ ikon:'fa-face-smile', baslik:'Şikâyet kaydı yok',
-      metin:'Filtrelerinize uyan müşteri şikâyeti bulunmuyor.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'musteri-sikayetleri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#skPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-detay]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'musteri-sikayetleri', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'musteri_sikayetleri',
+    veri: function(){ return kaynak; },
+    arama: ['id','konu','aciklama','cozum','musteriAd','lokasyonAd','atananAd','kanal','dofId'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'acik', ad:'Açık', ikon:'fa-circle-dot' },
+      { k:'degerlendiriliyor', ad:'Değerlendiriliyor', ikon:'fa-magnifying-glass' },
+      { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
+    ] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu',
+        secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kanal', ad:'Kanal', tur:'coklu',
+        secenekler: KANALLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
+      { k:'tarih', ad:'Şikâyet tarihi', tur:'tarih' }
+    ],
+    tablo: { hedef: '#skTablo',
+      kolonlar: kolonlar,
+      satirId: function(s){ return s.id; } },
+    pager: { hedef: '#skPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-face-smile', baslik:'Şikâyet kaydı yok',
+      metin:'Filtrelerinize uyan müşteri şikâyeti bulunmuyor.' },
+    bosDurum: { ikon:'fa-face-smile', baslik:'Müşteri Şikâyetleri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-detay]').forEach(function(b){
       b.addEventListener('click', function(){ detay(b.getAttribute('data-detay')); });
     });
     document.querySelectorAll('[data-cozum]').forEach(function(b){
       b.addEventListener('click', function(){ cozumKaydet(b.getAttribute('data-cozum')); });
     });
-  }
+    }
+  });
+  
+
+
+
 
   /* ---------------- detay modalı ---------------- */
   function detay(id){
@@ -456,27 +481,11 @@
   });
 
   document.getElementById('skDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'musteri-sikayetleri', modul:'Müşteri Şikâyeti' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'musteri-sikayetleri', modul:'Müşteri Şikâyeti' });
   });
 
   /* ---------------- filtre ---------------- */
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','konu','aciklama','cozum','musteriAd','lokasyonAd','atananAd','kanal','dofId'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'acik', ad:'Açık', ikon:'fa-circle-dot' },
-      { k:'degerlendiriliyor', ad:'Değerlendiriliyor', ikon:'fa-magnifying-glass' },
-      { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
-    ] },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu',
-        secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'kanal', ad:'Kanal', tur:'coklu',
-        secenekler: KANALLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
-      { k:'tarih', ad:'Şikâyet tarihi', tur:'tarih' }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* ---------------- grafikler ---------------- */
   var donutVeri = KANALLAR.map(function(k){

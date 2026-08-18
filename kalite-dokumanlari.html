@@ -98,6 +98,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -144,7 +147,7 @@
     document.querySelectorAll('[data-tur]').forEach(function(b){
       b.addEventListener('click', function(){
         aktifTur = aktifTur === b.getAttribute('data-tur') ? null : b.getAttribute('data-tur');
-        turCiz(); filtre.uygula();
+        turCiz(); liste.filtre.uygula();
       });
     });
   }
@@ -185,9 +188,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#kdTablo', kolonlar:kolonlar, secim:true, satirId: function(d){ return d.id; },
-    bosDurum:{ ikon:'fa-folder-open', baslik:'Doküman bulunamadı', metin:'Filtrelerinize uyan kalite dokümanı yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#kdBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){
@@ -206,12 +207,38 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'kalite-dokumanlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#kdPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-dokuman]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'kalite-dokumanlari', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'kalite_dokumanlari',
+    veri: function(){ return aktifTur ? kaynak.filter(function(d){ return d.tur === aktifTur; }) : kaynak; },
+    arama: ['id','kod','ad','tur','hazirlayanAd','modulMetni'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' },
+      { k:'onayda', ad:'Onayda', ikon:'fa-hourglass-half' },
+      { k:'yururlukten-kalkti', ad:'Yürürlükten kalktı', ikon:'fa-box-archive' }] },
+    alanlar: [
+      { k:'tur', ad:'Doküman türü', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(d){ return d.tur; })))
+          .map(function(t){ return { deger:t, ad:t }; }) },
+      { k:'modul', ad:'İlgili modül', tur:'coklu',
+        suz: function(d,v){ return v.some(function(m){ return (d.modul || []).indexOf(m) !== -1; }); },
+        secenekler: Array.from(new Set(kaynak.flatMap(function(d){ return d.modul || []; })))
+          .map(function(m){ return { deger:m, ad:m }; }) },
+      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'yayin', ad:'Yayın tarihi', tur:'tarih' },
+      { k:'gecerlilikUyari', ad:'Yalnız geçerliliği yaklaşanlar', tur:'toggle',
+        suz: function(d,v){ return v !== 'evet' || d.gecerlilikUyari || d.gecerlilikGecti; },
+        secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#kdTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(d){ return d.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#kdPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-folder-open', baslik:'Doküman bulunamadı', metin:'Filtrelerinize uyan kalite dokümanı yok.' },
+    bosDurum: { ikon:'fa-folder-open', baslik:'Kalite Dokümanları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-dokuman]').forEach(function(b){
       b.addEventListener('click', function(){ dokumanAc(b.getAttribute('data-dokuman')); });
     });
     document.querySelectorAll('[data-surum]').forEach(function(b){
@@ -220,7 +247,11 @@
     document.querySelectorAll('[data-onayla]').forEach(function(b){
       b.addEventListener('click', function(){ yayinOnayi(b.getAttribute('data-onayla')); });
     });
-  }
+    }
+  });
+  
+
+
 
   function surumGecmisi(d){
     /* aynı koda sahip bütün sürümler */
@@ -346,31 +377,10 @@
     });
   }
 
-  var filtre = gvFilter({
-    veri: function(){ return aktifTur ? kaynak.filter(function(d){ return d.tur === aktifTur; }) : kaynak; },
-    arama: ['id','kod','ad','tur','hazirlayanAd','modulMetni'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' },
-      { k:'onayda', ad:'Onayda', ikon:'fa-hourglass-half' },
-      { k:'yururlukten-kalkti', ad:'Yürürlükten kalktı', ikon:'fa-box-archive' }] },
-    alanlar: [
-      { k:'tur', ad:'Doküman türü', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(d){ return d.tur; })))
-          .map(function(t){ return { deger:t, ad:t }; }) },
-      { k:'modul', ad:'İlgili modül', tur:'coklu',
-        suz: function(d,v){ return v.some(function(m){ return (d.modul || []).indexOf(m) !== -1; }); },
-        secenekler: Array.from(new Set(kaynak.flatMap(function(d){ return d.modul || []; })))
-          .map(function(m){ return { deger:m, ad:m }; }) },
-      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
-      { k:'yayin', ad:'Yayın tarihi', tur:'tarih' },
-      { k:'gecerlilikUyari', ad:'Yalnız geçerliliği yaklaşanlar', tur:'toggle',
-        suz: function(d,v){ return v !== 'evet' || d.gecerlilikUyari || d.gecerlilikGecti; },
-        secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('kdDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'kalite-dokumanlari', modul:'Kalite Dokümanı' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'kalite-dokumanlari', modul:'Kalite Dokümanı' });
   });
 
   document.getElementById('kdYeni').addEventListener('click', function(){

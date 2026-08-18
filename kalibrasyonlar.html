@@ -98,6 +98,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun(), BU_YIL = BUGUN.substring(0, 4);
@@ -263,15 +266,11 @@
           + '<i class="fa-solid fa-vials" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#klTablo', kolonlar:kolonlar, satirId: function(k){ return k.id; },
-    bosDurum:{ ikon:'fa-vials', baslik:'Kalibrasyon kaydı bulunamadı', metin:'Filtrelerinize uyan kalibrasyon kaydı yok.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'kalibrasyonlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#klPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'kalibrasyonlar', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'kalibrasyonlar',
     veri: function(){ return kaynak; },
     arama: ['sertifikaNo','cihazMetni','cihazKod','cihazAd','kurulus','aciklama'],
     cipler: { alan:'sonuc', secenekler:[
@@ -286,8 +285,18 @@
       { k:'tarih', ad:'Kalibrasyon tarihi', tur:'tarih' },
       { k:'maliyet', ad:'Maliyet (₺)', tur:'aralik' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#klTablo',
+      kolonlar: kolonlar,
+      satirId: function(k){ return k.id; } },
+    pager: { hedef: '#klPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-vials', baslik:'Kalibrasyon kaydı bulunamadı', metin:'Filtrelerinize uyan kalibrasyon kaydı yok.' },
+    bosDurum: { ikon:'fa-vials', baslik:'Kalibrasyonlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('klTablo').addEventListener('click', function(e){
     var b = e.target.closest('[data-klb]');
@@ -295,7 +304,7 @@
   });
 
   document.getElementById('klDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'kalibrasyonlar', modul:'Kalibrasyon' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'kalibrasyonlar', modul:'Kalibrasyon' });
   });
 
   /* ================= SEKME 2 — YAKLAŞAN KALİBRASYONLAR ================= */

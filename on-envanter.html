@@ -98,6 +98,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -172,26 +175,16 @@
           + '<i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></a></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#oeTablo', kolonlar:kolonlar, secim:true, satirId: function(l){ return l.id; },
-    bosDurum:{ ikon:'fa-clipboard-list', baslik:'Lokasyon bulunamadı', metin:'Filtrelerinize uyan lokasyon yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#oeBulk', aksiyonlar:[
     { etiket:'Şablon uygula', ikon:'fa-wand-magic-sparkles', tikla: function(s){ sablonUygula(s); } },
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'on-envanter', modul:'Ön Envanter' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'on-envanter', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#oePager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-envanter]').forEach(function(b){
-      b.addEventListener('click', function(){ envanterAc(b.getAttribute('data-envanter')); });
-    });
-  }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'on-envanter', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'on_envanter',
     veri: function(){ return kaynak; },
     arama: ['kod','ad','musteriAd','il','tur'],
     cipler: { alan:'kaynakTur', secenekler:[
@@ -204,8 +197,25 @@
       { k:'dogrulandi', ad:'Yalnız doğrulananlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
       { k:'kalemSayisi', ad:'Hizmet kalemi sayısı', tur:'aralik' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#oeTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(l){ return l.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#oePager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-clipboard-list', baslik:'Lokasyon bulunamadı', metin:'Filtrelerinize uyan lokasyon yok.' },
+    bosDurum: { ikon:'fa-clipboard-list', baslik:'Ön Envanter listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-envanter]').forEach(function(b){
+      b.addEventListener('click', function(){ envanterAc(b.getAttribute('data-envanter')); });
+    });
+    }
   });
+  
+
+
+
+  
 
   function envanterAc(lid){
     var l = A.lokasyon(lid);
@@ -291,7 +301,7 @@
 
   document.getElementById('oeUygula').addEventListener('click', function(){ sablonUygula(null); });
   document.getElementById('oeDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'on-envanter', modul:'Ön Envanter' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'on-envanter', modul:'Ön Envanter' });
   });
 
   /* --- şablonlar --- */

@@ -109,6 +109,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -201,9 +204,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#prTablo', kolonlar:kolonlar, secim:true, satirId: function(p){ return p.id; },
-    bosDurum:{ ikon:'fa-users', baslik:'Personel bulunamadı', metin:'Filtrelerinize uyan personel kaydı yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#prBulk', aksiyonlar:[
     { etiket:'İş emrine ata', ikon:'fa-user-plus', tikla: function(s){
@@ -245,15 +246,44 @@
         GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'personeller', modul:'Personel' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'personeller', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#prPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-ata]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'personeller', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'personeller',
+    veri: function(){ return kaynak; },
+    arama: ['id','ad','gorev','birim','yetkinlikMetni','eposta'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' },
+      { k:'izinli', ad:'İzinli', ikon:'fa-umbrella-beach' },
+      { k:'pasif', ad:'Pasif', ikon:'fa-circle-minus' }] },
+    alanlar: [
+      { k:'birim', ad:'Birim', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(p){ return p.birim; })))
+          .map(function(b){ return { deger:b, ad:b }; }) },
+      { k:'yetkinlikler', ad:'Yetkinlik', tur:'coklu',
+        suz: function(p,v){ return v.some(function(y){ return (p.yetkinlikler || []).indexOf(y) !== -1; }); },
+        secenekler: A.liste('yetkinlikler').map(function(y){ return { deger:y.id, ad:y.ad }; }) },
+      { k:'isYuku', ad:'İş yükü', tur:'aralik' },
+      { k:'belgeUyari', ad:'Yalnız belgesi dolacaklar', tur:'toggle',
+        suz: function(p,v){ return v !== 'evet' || p.belgeUyari || p.belgeSorunlu; },
+        secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
+      { k:'atanabilir', ad:'Yalnız atanabilir olanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#prTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(p){ return p.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#prPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-users', baslik:'Personel bulunamadı', metin:'Filtrelerinize uyan personel kaydı yok.' },
+    bosDurum: { ikon:'fa-users', baslik:'Personeller listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-ata]').forEach(function(b){
       b.addEventListener('click', function(){ bulk.ciz([b.getAttribute('data-ata')]); ataModal(b.getAttribute('data-ata')); });
     });
-  }
+    }
+  });
+  
+
+
 
   function ataModal(pid){
     var p = A.kayit('personeller', pid);
@@ -293,30 +323,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','ad','gorev','birim','yetkinlikMetni','eposta'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' },
-      { k:'izinli', ad:'İzinli', ikon:'fa-umbrella-beach' },
-      { k:'pasif', ad:'Pasif', ikon:'fa-circle-minus' }] },
-    alanlar: [
-      { k:'birim', ad:'Birim', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(p){ return p.birim; })))
-          .map(function(b){ return { deger:b, ad:b }; }) },
-      { k:'yetkinlikler', ad:'Yetkinlik', tur:'coklu',
-        suz: function(p,v){ return v.some(function(y){ return (p.yetkinlikler || []).indexOf(y) !== -1; }); },
-        secenekler: A.liste('yetkinlikler').map(function(y){ return { deger:y.id, ad:y.ad }; }) },
-      { k:'isYuku', ad:'İş yükü', tur:'aralik' },
-      { k:'belgeUyari', ad:'Yalnız belgesi dolacaklar', tur:'toggle',
-        suz: function(p,v){ return v !== 'evet' || p.belgeUyari || p.belgeSorunlu; },
-        secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
-      { k:'atanabilir', ad:'Yalnız atanabilir olanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('prDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'personeller', modul:'Personel' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'personeller', modul:'Personel' });
   });
 
   document.getElementById('prYeni').addEventListener('click', function(){

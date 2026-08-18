@@ -82,6 +82,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -270,9 +273,7 @@
         return d; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ocTablo', kolonlar:kolonlar, secim:true, satirId: function(c){ return c.id; },
-    bosDurum:{ ikon:'fa-ruler-combined', baslik:'Ölçüm cihazı bulunamadı', metin:'Filtrelerinize uyan ölçüm cihazı yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#ocBulk', aksiyonlar:[
     { etiket:'Kalibrasyona gönder', ikon:'fa-vials', sinif:'btn-acc', tikla: function(s){ kalibrasyonModal(s); } },
@@ -287,12 +288,9 @@
     if (k) kalibrasyonModal([k.getAttribute('data-klb')]);
   });
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'olcum-cihazlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ocPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'olcum-cihazlari', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'olcum_cihazlari',
     veri: function(){ return kaynak; },
     arama: ['kod','ad','marka','model','seri','zimmetAd','kapsamMetni','kurulus'],
     cipler: { alan:'durum', secenekler:[
@@ -312,8 +310,20 @@
       { k:'atanamaz', ad:'Yalnız atanamayan cihazlar', tur:'toggle',
         secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }] }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#ocTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(c){ return c.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#ocPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-ruler-combined', baslik:'Ölçüm cihazı bulunamadı', metin:'Filtrelerinize uyan ölçüm cihazı yok.' },
+    bosDurum: { ikon:'fa-ruler-combined', baslik:'Ölçüm Cihazları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   /* ================= ALT BÖLÜM — KALİBRASYON TAKVİMİ ================= */
   var takvim = kaynak.slice().sort(function(a,b){
@@ -358,7 +368,7 @@
 
   /* ================= SAYFA AKSİYONLARI ================= */
   document.getElementById('ocDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'olcum-cihazlari', modul:'Ölçüm Cihazı' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'olcum-cihazlari', modul:'Ölçüm Cihazı' });
   });
 
   document.getElementById('ocPlan').addEventListener('click', function(){
