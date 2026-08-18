@@ -20,7 +20,7 @@ Faz durumu: `PROGRESS.md`.
     ├── js/   app.js · navigation.js · components.js · filters.js
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
-    │         kimlik.js
+    │         kimlik.js · durum-makinesi.js
     └── images/
 ```
 
@@ -31,9 +31,9 @@ JS  → `kimlik.js` → `demo-data.js` → `demo-api.js` → `navigation.js` →
 `kimlik.js` **en başta** yüklenir: hiçbir şeye bağlı değildir ve `demo-api.js`
 kimlik üretimini ondan alır.
 
-Faz 12 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
+Faz 12/13 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
-`types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
+`durum-makinesi.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
 
 ## 2. Dosya adlandırma
 
@@ -154,6 +154,10 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - **Mutabakat:** onaylanmadan faturaya geçilemez → uyarı modalı.
 - **Mükerrer fatura engeli:** `faturalanan + buFatura ≤ faturalanabilir`.
 - **Onaylı rapor** düzenlenemez → yalnız "Yeni Revizyon Oluştur".
+- **Durum yalnız `GV.gecisUygula(...)` ile değişir** (`durum-makinesi.js`).
+  Sayfa scripti `guncelle()` ile durum alanı yazmaz. Geçiş; önceki durum,
+  izin, zorunlu alan ve iş kuralı ön koşulundan geçer. Geçiş yapılamıyorsa
+  buton gizlenmez — `GV.gecisButonu` ile disabled sebebi gösterilir.
 - **Kalibrasyonu geçmiş cihaz** iş emrine atanamaz (buton `disabled` + kırmızı uyarı).
 - **Yetkinliği olmayan personel** ilgili kontrole atanamaz.
 - Ana lokasyon rehberi ≠ projedeki lokasyon ≠ tamamlanan ≠ faturalanan (4 ayrı bilgi).

@@ -318,6 +318,18 @@ window.DEMO = (function () {
      DURUM SÖZLÜKLERİ — 5 AYRI AKIŞ (tek metin alanında birleştirilmez)
      --------------------------------------------------------------- */
   var durumlar = {
+    /* Proje akışı — doküman §8: Taslak → Onay Bekliyor → Aktif → Askıda
+       → Tamamlandı → Arşivlendi. Çekirdek veride yalnız planlama/aktif/
+       tamamlandi kullanılıyor; kalan üçü durum makinesinin tanımlı
+       geçişleriyle üretilir. */
+    proje: [
+      { k: 'planlama',      ad: 'Planlama',      ton: 'warn', ikon: 'fa-drafting-compass' },
+      { k: 'onay-bekliyor', ad: 'Onay Bekliyor', ton: 'warn', ikon: 'fa-hourglass-half' },
+      { k: 'aktif',         ad: 'Aktif',         ton: 'ok',   ikon: 'fa-play' },
+      { k: 'askida',        ad: 'Askıda',        ton: 'warn', ikon: 'fa-circle-pause' },
+      { k: 'tamamlandi',    ad: 'Tamamlandı',    ton: 'info', ikon: 'fa-flag-checkered' },
+      { k: 'arsivlendi',    ad: 'Arşivlendi',    ton: 'off',  ikon: 'fa-box-archive' }
+    ],
     operasyon: [
       { k: 'bilgi-bekleniyor',        ad: 'Bilgi Bekleniyor',        ton: 'warn',   ikon: 'fa-circle-question' },
       { k: 'envanter-bekleniyor',     ad: 'Envanter Bekleniyor',     ton: 'warn',   ikon: 'fa-clipboard-list' },
