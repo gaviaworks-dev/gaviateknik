@@ -71,6 +71,7 @@
             <select id="flKarsiKat" style="padding:8px 12px;font-size:13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg)"></select>
           </div></div>
         <div class="gc-body flush" id="flKarsi"></div>
+        <div class="gv-pager" id="flKarsiPager" hidden></div>
       </section>
     </div>
   </main>
@@ -82,6 +83,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -198,9 +202,8 @@
   katSec.innerHTML = '<option value="">Bütün kategoriler</option>'
     + A.liste('hizmetKategorileri').map(function(k){ return '<option value="' + k.id + '">' + GV.esc(k.ad) + '</option>'; }).join('');
 
-  function karsiCiz(){
-    var kat = katSec.value;
-    var hizmetler = A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif' && (!kat || h.kat === kat); });
+  function karsiCiz(sonuc, bos){
+    var hizmetler = sonuc.data;
     var aktifSatis = satis.filter(function(f){ return f.durum === 'aktif'; });
     document.getElementById('flKarsi').innerHTML = hizmetler.length
       ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
@@ -218,15 +221,36 @@
               + '<td data-lbl="Taşeron Maliyeti" class="num"><span style="color:var(--warning)">' + GV.tl(mal) + '</span></td>'
               + '<td data-lbl="Marj" class="num">' + (std ? GV.pct((std - mal) / std) : GV.bos) + '</td></tr>';
           }).join('') + '</tbody></table></div>'
-      : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Hizmet yok', metin:'Seçtiğiniz kategoride aktif hizmet bulunmuyor.' });
+      : gvEmpty(bos);
   }
-  katSec.addEventListener('change', karsiCiz);
-  karsiCiz();
+
+  /* Kategori seçicisi ayrı bir durum tutmaz; `kat` filtresinin arayüzüdür. */
+  var lc = gvList({
+    kaynak: 'fiyatKarsilastirma',
+    veri: function(){ return A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif'; }); },
+    arama: ['poz','ad'],
+    alanlar: [{ k:'kat', ad:'Kategori', tur:'coklu',
+      secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) }],
+    hedef: '#flKarsi',
+    pager: { hedef:'#flKarsiPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-scale-balanced', baslik:'Hizmet yok',
+      metin:'Seçtiğiniz kategoride aktif hizmet bulunmuyor.' },
+    bosDurum: { ikon:'fa-scale-balanced', baslik:'Aktif hizmet yok',
+      metin:'Karşılaştırılacak aktif hizmet pozisyonu bulunmuyor.' },
+    ciz: karsiCiz
+  });
+
+  function katUygula(){
+    if (katSec.value) lc.filtre.durum.gelismis.kat = [katSec.value];
+    else delete lc.filtre.durum.gelismis.kat;
+    lc.filtre.uygula();
+  }
+  katSec.addEventListener('change', katUygula);
 
   var hizmetSuz = GV.q('hizmet');
   if (hizmetSuz) {
     var h = A.kayit('hizmetler', hizmetSuz);
-    if (h) { GV.crumb(h.poz + ' fiyatları'); katSec.value = h.kat; karsiCiz(); }
+    if (h) { GV.crumb(h.poz + ' fiyatları'); katSec.value = h.kat; katUygula(); }
   }
 
   document.getElementById('flDisa').addEventListener('click', function(){

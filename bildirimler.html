@@ -115,6 +115,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -143,13 +146,11 @@
   }
 
   var liste = document.getElementById('bldListe');
-  var pager = gvPager({ hedef:'#bldPager', boyut:12, degisti: function(){ ciz(son); } });
-  var son = kaynak;
+  
 
-  function ciz(veri){
-    son = veri;
-    pager.ayarla(veri.length);
-    var dilim = pager.dilim(veri);
+
+  function ciz(sonuc, bos){
+    var dilim = sonuc.data;
     liste.innerHTML = dilim.length ? dilim.map(function(b){
       var renk = b.ton === 'danger' ? 'danger' : b.ton === 'warn' ? 'warning' : b.ton === 'ok' ? 'success' : 'info';
       return '<div class="bld-row' + (b.okundu ? '' : ' okunmamis') + '" data-id="' + b.id + '">'
@@ -161,7 +162,7 @@
         + '<span class="bld-son"><span class="bld-zaman">' + GV.dSaat(b.zaman) + '</span>'
         + (b.okundu ? '' : '<button class="btn btn-sm btn-ghost" type="button" data-okundu="' + b.id + '">Okundu</button>')
         + '</span></div>';
-    }).join('') : gvEmpty({ ikon:'fa-bell-slash', baslik:'Bildirim yok', metin:'Seçtiğiniz filtreye uyan bildirim bulunmuyor.' });
+    }).join('') : gvEmpty(bos);
 
     liste.querySelectorAll('[data-okundu]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -177,14 +178,16 @@
     GV.rolBaglantilariniIsle(liste);
   }
 
+
   document.getElementById('bldHepsiOkundu').addEventListener('click', function(){
     kaynak.forEach(function(b){ b.okundu = true; okunanlar[b.id] = true; });
     try { localStorage.setItem('gv_tk_okunan', JSON.stringify(okunanlar)); } catch(e){}
-    ciz(son); sayacGuncelle();
+    lc.yenile(); sayacGuncelle();
     gvToast('Bütün bildirimler okundu olarak işaretlendi.', { ton:'ok' });
   });
 
-  gvFilter({
+  var lc = gvList({
+    kaynak: 'bildirimler',
     veri: function(){ return kaynak; },
     arama: ['baslik','detay','turAd'],
     cipler: { alan:'__okundu', suz: function(k, c){
@@ -198,8 +201,13 @@
         { deger:'danger', ad:'Kritik' }, { deger:'warn', ad:'Uyarı' },
         { deger:'info', ad:'Bilgi' }, { deger:'ok', ad:'Olumlu' }] }
     ],
-    degisti: function(sonuc){ pager.ayarla(sonuc.length, true); ciz(sonuc); }
+    hedef: '#bldListe',
+    pager: { hedef: '#bldPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-bell-slash', baslik:'Bildirim yok', metin:'Seçtiğiniz filtreye uyan bildirim bulunmuyor.' },
+    bosDurum: { ikon:'fa-bell-slash', baslik:'Bildirimler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    ciz: ciz
   });
+  
   sayacGuncelle();
 
   /* ---- kanal tercihleri ---- */

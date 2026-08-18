@@ -117,6 +117,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -135,7 +138,43 @@
       + GV.esc(l.ad + ' — ' + l.musteriAd) + durum + '</option>';
   }).join('');
 
-  var lok, satirlar, tablo, pager, son;
+  var lok, satirlar;
+  var lc = null;
+
+  /* --- 13 kolonlu tablo --- */
+  var kolonlar = [
+    { k:'poz', ad:'Hizmet Pozisyonu', kilitli:true, ciz: function(m){
+        return '<div class="gcell-info"><div class="gcell-name"><a href="hizmet-detay.html?id=' + m.hizmetId + '">' + GV.esc(m.hizmetAd) + '</a></div>'
+          + '<div class="gcell-sub">' + GV.esc(m.poz + ' · ' + (birimAd[m.birim] || m.birim)) + '</div></div>'; } },
+    { k:'musteriBildirimi', ad:'Müşteri Bildirimi', sinif:'num', ciz: function(m){ return GV.n(m.musteriBildirimi); } },
+    { k:'kesif', ad:'Keşif Miktarı', sinif:'num', ciz: function(m){
+        return m.kesif != null ? GV.n(m.kesif) : '<span class="muted">Keşif yok</span>'; } },
+    { k:'planlanan', ad:'Planlanan', sinif:'num', ciz: function(m){ return '<b class="t-strong">' + GV.n(m.planlanan) + '</b>'; } },
+    { k:'sahadaBulunan', ad:'Sahada Bulunan', sinif:'num', ciz: function(m){
+        var f = m.sahadaBulunan - m.planlanan;
+        return GV.n(m.sahadaBulunan) + (f ? ' <span class="diff ' + (f > 0 ? 'plus' : 'minus') + '">'
+          + '<i class="fa-solid fa-' + (f > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>' + GV.n(Math.abs(f)) + '</span>' : ''); } },
+    { k:'kontrolEdilen', ad:'Kontrol Edilen', sinif:'num', ciz: function(m){ return GV.n(m.kontrolEdilen); } },
+    { k:'gosterilmeyen', ad:'Gösterilmeyen', sinif:'num', ciz: function(m){
+        return m.gosterilmeyen ? '<span class="diff minus"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>' + GV.n(m.gosterilmeyen) + '</span>'
+          : '<span class="diff zero">0</span>'; } },
+    { k:'eksik', ad:'Eksik', sinif:'num', ciz: function(m){
+        return m.eksik ? '<span class="diff minus"><i class="fa-solid fa-minus" aria-hidden="true"></i>' + GV.n(m.eksik) + '</span>'
+          : '<span class="diff zero">0</span>'; } },
+    { k:'ilaveTespit', ad:'İlave Tespit', sinif:'num', ciz: function(m){
+        return m.ilaveTespit ? '<span class="diff plus"><i class="fa-solid fa-plus" aria-hidden="true"></i>' + GV.n(m.ilaveTespit) + '</span>'
+          : '<span class="diff zero">0</span>'; } },
+    { k:'musteriOnayli', ad:'Müşteri Onaylı', sinif:'num', ciz: function(m){
+        return m.durum === 'onayli' ? '<span class="diff done"><i class="fa-solid fa-check" aria-hidden="true"></i>' + GV.n(m.musteriOnayli) + '</span>'
+          : m.durum === 'itirazli' ? '<span class="diff minus"><i class="fa-solid fa-scale-unbalanced" aria-hidden="true"></i>' + GV.n(m.musteriOnayli) + '</span>'
+          : '<span class="diff hold"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>bekliyor</span>'; } },
+    { k:'faturalanabilir', ad:'Faturalanabilir', sinif:'num', ciz: function(m){ return GV.n(m.faturalanabilir); } },
+    { k:'faturalanan', ad:'Faturalanan', sinif:'num', ciz: function(m){
+        return m.faturalanan ? '<span class="diff done"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>' + GV.n(m.faturalanan) + '</span>'
+          : '<span class="diff zero">0</span>'; } },
+    { k:'kalan', ad:'Kalan', sinif:'num', ciz: function(m){
+        return m.kalan ? '<b class="t-strong">' + GV.n(m.kalan) + '</b>' : '<span class="muted">0</span>'; } }
+  ];
 
   function yukle(){
     lok = A.lokasyon(secim);
@@ -200,76 +239,7 @@
       { ikon:'fa-file-invoice-dollar', sayi: GV.tlKisa(t.tutar), etiket:'Faturalanabilir tutar', ton:'info' }
     ]);
 
-    /* --- 13 kolonlu tablo --- */
-    var kolonlar = [
-      { k:'poz', ad:'Hizmet Pozisyonu', kilitli:true, ciz: function(m){
-          return '<div class="gcell-info"><div class="gcell-name"><a href="hizmet-detay.html?id=' + m.hizmetId + '">' + GV.esc(m.hizmetAd) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(m.poz + ' · ' + (birimAd[m.birim] || m.birim)) + '</div></div>'; } },
-      { k:'musteriBildirimi', ad:'Müşteri Bildirimi', sinif:'num', ciz: function(m){ return GV.n(m.musteriBildirimi); } },
-      { k:'kesif', ad:'Keşif Miktarı', sinif:'num', ciz: function(m){
-          return m.kesif != null ? GV.n(m.kesif) : '<span class="muted">Keşif yok</span>'; } },
-      { k:'planlanan', ad:'Planlanan', sinif:'num', ciz: function(m){ return '<b class="t-strong">' + GV.n(m.planlanan) + '</b>'; } },
-      { k:'sahadaBulunan', ad:'Sahada Bulunan', sinif:'num', ciz: function(m){
-          var f = m.sahadaBulunan - m.planlanan;
-          return GV.n(m.sahadaBulunan) + (f ? ' <span class="diff ' + (f > 0 ? 'plus' : 'minus') + '">'
-            + '<i class="fa-solid fa-' + (f > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>' + GV.n(Math.abs(f)) + '</span>' : ''); } },
-      { k:'kontrolEdilen', ad:'Kontrol Edilen', sinif:'num', ciz: function(m){ return GV.n(m.kontrolEdilen); } },
-      { k:'gosterilmeyen', ad:'Gösterilmeyen', sinif:'num', ciz: function(m){
-          return m.gosterilmeyen ? '<span class="diff minus"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>' + GV.n(m.gosterilmeyen) + '</span>'
-            : '<span class="diff zero">0</span>'; } },
-      { k:'eksik', ad:'Eksik', sinif:'num', ciz: function(m){
-          return m.eksik ? '<span class="diff minus"><i class="fa-solid fa-minus" aria-hidden="true"></i>' + GV.n(m.eksik) + '</span>'
-            : '<span class="diff zero">0</span>'; } },
-      { k:'ilaveTespit', ad:'İlave Tespit', sinif:'num', ciz: function(m){
-          return m.ilaveTespit ? '<span class="diff plus"><i class="fa-solid fa-plus" aria-hidden="true"></i>' + GV.n(m.ilaveTespit) + '</span>'
-            : '<span class="diff zero">0</span>'; } },
-      { k:'musteriOnayli', ad:'Müşteri Onaylı', sinif:'num', ciz: function(m){
-          return m.durum === 'onayli' ? '<span class="diff done"><i class="fa-solid fa-check" aria-hidden="true"></i>' + GV.n(m.musteriOnayli) + '</span>'
-            : m.durum === 'itirazli' ? '<span class="diff minus"><i class="fa-solid fa-scale-unbalanced" aria-hidden="true"></i>' + GV.n(m.musteriOnayli) + '</span>'
-            : '<span class="diff hold"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>bekliyor</span>'; } },
-      { k:'faturalanabilir', ad:'Faturalanabilir', sinif:'num', ciz: function(m){ return GV.n(m.faturalanabilir); } },
-      { k:'faturalanan', ad:'Faturalanan', sinif:'num', ciz: function(m){
-          return m.faturalanan ? '<span class="diff done"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>' + GV.n(m.faturalanan) + '</span>'
-            : '<span class="diff zero">0</span>'; } },
-      { k:'kalan', ad:'Kalan', sinif:'num', ciz: function(m){
-          return m.kalan ? '<b class="t-strong">' + GV.n(m.kalan) + '</b>' : '<span class="muted">0</span>'; } }
-    ];
-
-    tablo = gvTable({ hedef:'#mtbTablo', kolonlar:kolonlar, sinif:'rec-table', satirId: function(m){ return m.id; },
-      bosDurum:{ ikon:'fa-scale-balanced', baslik:'Mutabakat kalemi yok', metin:'Bu lokasyon için mutabakat satırı bulunmuyor.' },
-      altToplam: function(v){
-        function s(alan){ return v.reduce(function(x,m){ return x + (m[alan] || 0); }, 0); }
-        return '<tr><td data-lbl="">Toplam (' + v.length + ' kalem)</td>'
-          + ['musteriBildirimi','kesif','planlanan','sahadaBulunan','kontrolEdilen','gosterilmeyen','eksik','ilaveTespit','musteriOnayli','faturalanabilir','faturalanan','kalan']
-              .map(function(a){ return '<td class="num" data-lbl="">' + GV.n(s(a)) + '</td>'; }).join('') + '</tr>';
-      } });
-
-    pager = gvPager({ hedef:'#mtbPager', boyut:25, degisti: function(){ ciz(son); } });
-    son = satirlar;
-    ciz(satirlar);
-
-    gvFilter({
-      veri: function(){ return satirlar; },
-      arama: ['poz','hizmetAd'],
-      cipler: { alan:'__fark', suz: function(m, c){
-        if (c === 'farkli') return m.sahadaBulunan !== m.planlanan || m.gosterilmeyen > 0;
-        if (c === 'onayli') return m.durum === 'onayli';
-        if (c === 'bekleyen') return m.durum === 'bekliyor';
-        if (c === 'itirazli') return m.durum === 'itirazli';
-        if (c === 'faturalanabilir') return m.kalan > 0;
-        return true;
-      }, secenekler:[
-        { k:'farkli', ad:'Farklı olanlar', ikon:'fa-scale-unbalanced' },
-        { k:'onayli', ad:'Onaylı', ikon:'fa-circle-check' },
-        { k:'bekleyen', ad:'Onay bekleyen', ikon:'fa-hourglass-half' },
-        { k:'itirazli', ad:'İtirazlı', ikon:'fa-triangle-exclamation' },
-        { k:'faturalanabilir', ad:'Faturalanabilir', ikon:'fa-file-invoice-dollar' }] },
-      alanlar: [
-        { k:'planlanan', ad:'Planlanan miktar', tur:'aralik' },
-        { k:'kalan', ad:'Kalan miktar', tur:'aralik' }
-      ],
-      degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-    });
+    if (lc) lc.yenile(true);
 
     /* --- eksik / ilave kayıtları --- */
     var eksikler = A.liste('eksikEkipmanlar').filter(function(e){ return e.lokasyonId === lok.id; });
@@ -316,9 +286,6 @@
     gvChain('#mtbSurec', adimlar);
   }
 
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-  }
 
   sec.addEventListener('change', function(){
     secim = sec.value;
@@ -327,7 +294,7 @@
   });
 
   document.getElementById('mtbDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'mutabakat-' + (lok ? lok.kod.toLowerCase() : ''), modul:'Mutabakat' });
+    GV.disaAktar({ kayitSayisi: lc ? lc.sonuc().pagination.totalRecords : 0, dosyaAdi:'mutabakat-' + (lok ? lok.kod.toLowerCase() : ''), modul:'Mutabakat' });
   });
 
   document.getElementById('mtbOnayla').addEventListener('click', function(){
@@ -357,6 +324,45 @@
   });
 
   yukle();
+  /* Lokasyon değişince liste yeniden kurulmaz — YALNIZ yenilenir. Aksi
+     hâlde her değişimde ikinci bir gvFilter kurulur ve dinleyiciler birikir. */
+  lc = gvList({
+    kaynak: 'envanterMutabakati',
+    veri: function(){ return satirlar || []; },
+    onbellek: false,
+    arama: ['poz','hizmetAd'],
+    cipler: { alan:'__fark', suz: function(m, c){
+        if (c === 'farkli') return m.sahadaBulunan !== m.planlanan || m.gosterilmeyen > 0;
+        if (c === 'onayli') return m.durum === 'onayli';
+        if (c === 'bekleyen') return m.durum === 'bekliyor';
+        if (c === 'itirazli') return m.durum === 'itirazli';
+        if (c === 'faturalanabilir') return m.kalan > 0;
+        return true;
+      }, secenekler:[
+        { k:'farkli', ad:'Farklı olanlar', ikon:'fa-scale-unbalanced' },
+        { k:'onayli', ad:'Onaylı', ikon:'fa-circle-check' },
+        { k:'bekleyen', ad:'Onay bekleyen', ikon:'fa-hourglass-half' },
+        { k:'itirazli', ad:'İtirazlı', ikon:'fa-triangle-exclamation' },
+        { k:'faturalanabilir', ad:'Faturalanabilir', ikon:'fa-file-invoice-dollar' }] },
+    alanlar: [
+        { k:'planlanan', ad:'Planlanan miktar', tur:'aralik' },
+        { k:'kalan', ad:'Kalan miktar', tur:'aralik' }
+      ],
+    tablo: { hedef:'#mtbTablo', ad:'Envanter mutabakatı', kolonlar: kolonlar, sinif:'rec-table',
+      satirId: function(m){ return m.id; },
+      altToplam: function(v){
+        function s(alan){ return v.reduce(function(x,m){ return x + (m[alan] || 0); }, 0); }
+        return '<tr><td data-lbl="">Toplam (' + v.length + ' kalem)</td>'
+          + ['musteriBildirimi','kesif','planlanan','sahadaBulunan','kontrolEdilen','gosterilmeyen','eksik','ilaveTespit','musteriOnayli','faturalanabilir','faturalanan','kalan']
+              .map(function(a){ return '<td class="num" data-lbl="">' + GV.n(s(a)) + '</td>'; }).join('') + '</tr>';
+      } },
+    pager: { hedef:'#mtbPager', boyut: 50, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-scale-balanced', baslik:'Mutabakat kalemi bulunamadı',
+      metin:'Seçtiğiniz filtrelere uyan mutabakat satırı yok.' },
+    bosDurum: { ikon:'fa-scale-balanced', baslik:'Mutabakat kalemi yok',
+      metin:'Bu lokasyon için mutabakat satırı bulunmuyor.' }
+  });
+
 })();
 </script>
 </body>

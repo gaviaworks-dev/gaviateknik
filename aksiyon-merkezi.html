@@ -87,6 +87,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -201,13 +204,11 @@
   }));
 
   var liste = document.getElementById('akmListe');
-  var pager = gvPager({ hedef:'#akmPager', boyut:12, degisti: function(){ ciz(sonSonuc); } });
-  var sonSonuc = kaynak;
+  
 
-  function ciz(veri){
-    sonSonuc = veri;
-    pager.ayarla(veri.length);
-    var dilim = pager.dilim(veri);
+
+  function ciz(sonuc, bos){
+    var dilim = sonuc.data;
     liste.innerHTML = dilim.length ? dilim.map(function(a){
       var o = ONEM[a.onem];
       var renk = o.ton === 'danger' ? 'danger' : o.ton === 'warn' ? 'warning' : o.ton === 'info' ? 'info' : 'muted';
@@ -227,7 +228,7 @@
         + '</div></div>'
         + '<div class="akm-acts"><a class="btn btn-sm btn-acc" href="' + a.link + '">İncele</a>'
         + '<button class="btn btn-sm btn-ghost" type="button" data-ertele="' + GV.esc(a.kod) + '">Ertele</button></div></div>';
-    }).join('') : gvEmpty({ ikon:'fa-circle-check', baslik:'Bekleyen aksiyon yok', metin:'Seçtiğiniz filtrelere uyan açık aksiyon bulunmuyor.' });
+    }).join('') : gvEmpty(bos);
 
     liste.querySelectorAll('[data-ertele]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -243,7 +244,9 @@
     if (GV.rolBaglantilariniIsle) GV.rolBaglantilariniIsle(liste);
   }
 
-  gvFilter({
+
+  var lc = gvList({
+    kaynak: 'aksiyon_merkezi',
     veri: function(){ return kaynak; },
     arama: ['kod','baslik','metin','lokasyon','musteri','modul'],
     cipler: { alan:'onem', secenekler: ['kritik','yuksek','orta','dusuk'].map(function(k){
@@ -255,8 +258,13 @@
       { k:'gecikti', ad:'Yalnız gecikenler', tur:'toggle', suz: function(k,v){ return v !== 'evet' || (k.sure != null && k.sure < 0); },
         secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
     ],
-    degisti: function(sonuc){ pager.ayarla(sonuc.length, true); ciz(sonuc); }
+    hedef: '#akmListe',
+    pager: { hedef: '#akmPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-circle-check', baslik:'Bekleyen aksiyon yok', metin:'Seçtiğiniz filtrelere uyan açık aksiyon bulunmuyor.' },
+    bosDurum: { ikon:'fa-circle-check', baslik:'Aksiyon Merkezi listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    ciz: ciz
   });
+  
 })();
 </script>
 </body>

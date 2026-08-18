@@ -61,6 +61,7 @@
 
     <div class="gv-cols">
       <div id="fgListe"></div>
+      <div class="gv-pager" id="fgPager" hidden></div>
       <div class="gv-side-stack">
         <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Gruba Alınmayı Bekleyenler</h2></div>
@@ -81,6 +82,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -102,8 +106,9 @@
       etiket:'Faturalanabilir tutar', ton:'info' }
   ]);
 
-  function grupCiz(){
-    document.getElementById('fgListe').innerHTML = gruplar.length ? gruplar.map(function(g){
+  function grupCiz(sonuc, bos){
+    var dilim = sonuc.data;
+    document.getElementById('fgListe').innerHTML = dilim.length ? dilim.map(function(g){
       var durumRozet = g.durum === 'kismen-faturalandi' ? GV.rozetOzel('warn','fa-circle-half-stroke','Kısmen faturalandı')
         : g.durum === 'hedefe-ulasti' ? GV.rozetOzel('info','fa-bullseye','Hedefe ulaştı')
         : g.durum === 'doluyor' ? GV.rozetOzel('off','fa-hourglass-half','Doluyor')
@@ -168,7 +173,7 @@
         + '<i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Fatura Kes</button>'
         + '</div></div>';
     }).join('')
-      : gvEmpty({ ikon:'fa-layer-group', baslik:'Fatura grubu yok',
+      : gvEmpty(bos || { ikon:'fa-layer-group', baslik:'Fatura grubu yok',
           metin:'Henüz fatura grubu açılmadı. Sözleşmedeki parti büyüklüğüne göre grup oluşturun.' });
 
     document.querySelectorAll('[data-lok-ekle]').forEach(function(b){
@@ -180,7 +185,17 @@
     });
     GV.rolBaglantilariniIsle(document.getElementById('fgListe'));
   }
-  grupCiz();
+
+  var lc = gvList({
+    kaynak: 'faturaGruplari',
+    veri: function(){ return gruplar; },
+    arama: ['no','ad','musteriAd','projeAd'],
+    hedef: '#fgListe',
+    pager: { hedef:'#fgPager', boyut: 10, boyutSecici: true },
+    bosDurum: { ikon:'fa-layer-group', baslik:'Fatura grubu yok',
+      metin:'Parti faturalama için henüz grup açılmamış.' },
+    ciz: grupCiz
+  });
 
   function lokasyonEkle(gid){
     var g = A.kayit('faturaGruplari', gid);

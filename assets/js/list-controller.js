@@ -53,7 +53,10 @@
    * @param {Object} [secenek.pager]      gvPager seçenekleri
    * @param {Object} [secenek.bosDurum]        gerçek boş liste ekranı
    * @param {Object} [secenek.filtreBosDurum]  filtre sonucu boş ekranı
-   * @param {(sonuc:PagedResult)=>void} [secenek.ciz]      özel çizim
+   * @param {string} [secenek.hedef]  özel çizimde iskelet/meşgul kabı
+   * @param {(sonuc:PagedResult, bos:Object)=>void} [secenek.ciz] özel çizim;
+   *        ikinci parametre o anki sorguya uygun boş ekran tanımıdır
+   *        (gerçek boş liste ile filtre sonucu boş ayrımı korunur)
    * @param {(kayitlar:Array<Object>)=>void} [secenek.ozet] süzülmüş kümenin
    *        TAMAMI üzerinden hesap (KPI, dağılım) — sayfa dilimi değil
    * @param {(sonuc:PagedResult)=>void} [secenek.degisti]  her sonuçtan sonra
@@ -101,7 +104,9 @@
 
     /* ---- hedefler ---- */
     function el(s) { return typeof s === 'string' ? document.querySelector(s) : s; }
-    var tabloKap = el(tabloSecenek.hedef);
+    /* Özel çizim yapan sayfalarda tablo yoktur; iskelet ve meşgul işareti
+       yine de bir kaba gerekir — secenek.hedef onu verir. */
+    var tabloKap = el(tabloSecenek.hedef || secenek.hedef);
     var pagerKap = el(pagerSecenek.hedef);
 
     /* ---- sorgu kurulumu ---- */
@@ -182,7 +187,7 @@
 
     /* ---- tablo ---- */
     var tablo = null;
-    if (tabloKap && window.gvTable) tablo = gvTable(tabloSecenek);
+    if (tabloKap && tabloSecenek.hedef && window.gvTable) tablo = gvTable(tabloSecenek);
 
     /* ---- sayfalama ---- */
     var pager = null;
@@ -238,7 +243,7 @@
         pager.ayarla(sonuc.pagination.totalRecords);
       }
 
-      if (secenek.ciz) secenek.ciz(sonuc);
+      if (secenek.ciz) secenek.ciz(sonuc, bosEkran(sorgu));
       else if (tablo) {
         tabloSecenek.bosDurum = bosEkran(sorgu);
         tablo.ciz(sonuc.data);
