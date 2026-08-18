@@ -14,6 +14,29 @@ const QA = __dirname;
 const HIZLI = process.argv.includes('--hizli');
 
 const ORTAK = ['types.js', 'data-provider.js', 'list-controller.js', 'tooltip.js'];
+
+/* _docs/REVIZYON.md §6 sayfalandırma matrisi — 41 route.
+   Doküman 'hizmet-kataloğu.html' yazıyor (Türkçe ğ); diskteki doğru ad
+   'hizmet-katalogu.html'. CLAUDE.md §2 Türkçe karakteri yasakladığı için
+   doküman hatalı sayılır, dosya adı değişmez. */
+const MATRIS = [
+  'aksiyon-merkezi','bildirimler','denetimler','duzeltici-faaliyetler','ekipmanlar',
+  'eksik-ekipmanlar','envanter-mutabakati','fatura-gruplari','faturalar','fiyat-listeleri',
+  'hakedisler','hizmet-katalogu','iletisim-kisileri','is-emirleri','islem-kayitlari',
+  'kalibrasyonlar','kalite-dokumanlari','lokasyonlar','musteri-sikayetleri','musteriler',
+  'olcum-cihazlari','on-envanter','onaylar','personeller','portal-faturalar',
+  'portal-lokasyonlar','portal-raporlar','projeler','rapor-onaylari','rapor-sablonlari',
+  'saha-kontrol','sozlesme-pozlari','sozlesmeler','tahsilatlar','taseron-hakedisleri',
+  'taseronlar','teklifler','teknik-raporlar','uygunsuzluklar','yeniden-kontroller',
+  'yetkinlikler'
+].map(x => x + '.html');
+
+/* Alt koleksiyonları sayfalanacak 12 detay ekranı (doküman §6 ikinci tablo). */
+const DETAY = [
+  'musteri-detay','proje-detay','lokasyon-detay','ekipman-detay','is-emri-detay',
+  'rapor-detay','uygunsuzluk-detay','teklif-detay','sozlesme-detay',
+  'fatura-grubu-detay','taseron-detay','personel-detay','cihaz-detay'
+].map(x => x + '.html');
 const b = s => '\x1b[1m' + s + '\x1b[0m';
 const yesil = s => '\x1b[32m' + s + '\x1b[0m';
 const kirmizi = s => '\x1b[31m' + s + '\x1b[0m';
@@ -27,16 +50,39 @@ function oku(f) {
 }
 
 /* ---------- 1. ListController benimseme ---------- */
+function gecmisMi(s) { return /gvList\(|ListController|listController/.test(s); }
+
 function listeYolu() {
-  const yeni = [], eski = [], listesiz = [];
+  const diskte = new Set(sayfalar());
+
+  /* --- 1. HEDEF KAPSAM: doküman matrisi (41) --- */
+  const mYeni = [], mEski = [], mYok = [];
+  for (const f of MATRIS) {
+    if (!diskte.has(f)) { mYok.push(f); continue; }
+    (gecmisMi(oku(f)) ? mYeni : mEski).push(f);
+  }
+
+  /* --- 2. Detay ekranlarının alt koleksiyonları (12) --- */
+  const dYeni = [], dEski = [];
+  for (const f of DETAY) {
+    if (!diskte.has(f)) continue;
+    (gecmisMi(oku(f)) ? dYeni : dEski).push(f);
+  }
+
+  /* --- 3. HAM SAYIM: tablo basan her sayfa (kapsam dışı olanlar dahil) --- */
+  const hYeni = [], hEski = [];
   for (const f of sayfalar()) {
     const s = oku(f);
-    const listeMi = /gvTable\(|gtable|<table/.test(s);
-    if (/gvList\(|ListController|listController/.test(s)) yeni.push(f);
-    else if (listeMi) eski.push(f);
-    else listesiz.push(f);
+    if (!/gvTable\(|<table/.test(s)) continue;
+    (gecmisMi(s) ? hYeni : hEski).push(f);
   }
-  return { yeni, eski, listesiz };
+  /* matris ve detay dışında kalan tablo sayfaları — hedef değil, bilgi */
+  const kapsamDisi = hEski.filter(f => !MATRIS.includes(f) && !DETAY.includes(f));
+
+  /* gvTable ortak yolunu kullananlar — yayılımın asıl gövdesi */
+  const gvTablo = sayfalar().filter(f => oku(f).includes('gvTable('));
+
+  return { mYeni, mEski, mYok, dYeni, dEski, hYeni, hEski, kapsamDisi, gvTablo };
 }
 
 /* ---------- 2. Ortak dosyalar ---------- */
@@ -129,14 +175,26 @@ console.log(`branch: ${dal}   son commit: ${son}   çalışma ağacı: ${kirli =
 if (HIZLI) console.log(sari('(--hizli: jsdom taramaları atlandı)'));
 
 const L = listeYolu();
-console.log(b('\n1) Liste yolu benimseme'));
-console.log(`   ListController: ${L.yeni.length ? yesil(L.yeni.length) : kirmizi(0)} sayfa` +
-  (L.yeni.length ? '  → ' + L.yeni.join(' ') : ''));
-console.log(`   Eski yol:       ${L.eski.length ? sari(L.eski.length) : yesil(0)} sayfa`);
-if (L.eski.length) {
-  for (let i = 0; i < L.eski.length; i += 6) console.log('     ' + L.eski.slice(i, i + 6).join(' '));
+function dok(liste, girinti) {
+  for (let i = 0; i < liste.length; i += 5) console.log(girinti + liste.slice(i, i + 5).join(' '));
 }
-console.log(`   Liste içermeyen: ${L.listesiz.length} sayfa`);
+console.log(b('\n1) Liste yolu benimseme'));
+console.log(`   ${b('HEDEF')} — doküman matrisi (${MATRIS.length} route)`);
+console.log(`     ListController: ${L.mYeni.length ? yesil(L.mYeni.length + '/' + MATRIS.length) : kirmizi('0/' + MATRIS.length)}`);
+if (L.mYeni.length) dok(L.mYeni, '       ');
+console.log(`     Eski yol:       ${L.mEski.length ? sari(L.mEski.length) : yesil(0)}`);
+if (L.mEski.length) dok(L.mEski, '       ');
+if (L.mYok.length) console.log(`     ${kirmizi('DİSKTE YOK')}: ${L.mYok.join(' ')}`);
+
+console.log(`   ${b('HEDEF')} — detay alt koleksiyonları (${DETAY.length} ekran)`);
+console.log(`     ListController: ${L.dYeni.length ? yesil(L.dYeni.length + '/' + DETAY.length) : kirmizi('0/' + DETAY.length)}` +
+  (L.dYeni.length ? '  → ' + L.dYeni.join(' ') : ''));
+
+console.log(`   ${b('HAM')} — tablo basan tüm sayfalar: ` +
+  `${L.hYeni.length ? yesil(L.hYeni.length) : kirmizi(0)} yeni / ${sari(L.hEski.length)} eski` +
+  `   (gvTable ortak yolu: ${L.gvTablo.length} sayfa)`);
+console.log(`     kapsam dışı tablo sayfası: ${L.kapsamDisi.length}` +
+  (L.kapsamDisi.length ? '  → ' + L.kapsamDisi.join(' ') : ''));
 
 console.log(b('\n2) Ortak dosyalar'));
 for (const o of ortakDosyalar()) {
