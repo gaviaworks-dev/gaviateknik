@@ -262,9 +262,12 @@
   };
 
   /* ================= DURUM EKRANLARI ================= */
+  /* Boş ve hata ekranları canlı bölgedir: liste süzülünce ekran okuyucu
+     "kayıt yok" bilgisini duyar (doküman §13 erişilebilirlik). Boş durum
+     bilgilendirmedir → status/polite; hata kesintidir → alert. */
   window.gvEmpty = function (s) {
     s = s || {};
-    return '<div class="gv-empty">'
+    return '<div class="gv-empty" role="status" aria-live="polite">'
       + '<div class="ge-ico"><i class="fa-solid ' + (s.ikon || 'fa-inbox') + '" aria-hidden="true"></i></div>'
       + '<h4>' + esc(s.baslik || 'Kayıt bulunamadı') + '</h4>'
       + '<p>' + esc(s.metin || 'Seçtiğiniz filtrelere uyan kayıt yok. Filtreleri gevşetip yeniden deneyin.') + '</p>'
@@ -282,7 +285,7 @@
   };
   window.gvError = function (s) {
     s = s || {};
-    return '<div class="gv-error">'
+    return '<div class="gv-error" role="alert">'
       + '<div class="ge-ico"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></div>'
       + '<h4>' + esc(s.baslik || 'Veri yüklenemedi') + '</h4>'
       + '<p>' + esc(s.metin || 'Kayıtlar alınırken bir sorun oluştu. Bağlantınızı kontrol edip yeniden deneyin.') + '</p>'

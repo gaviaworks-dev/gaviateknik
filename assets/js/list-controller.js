@@ -166,6 +166,8 @@
       if (!tabloKap) return;
       if (ilkYukleme) {
         tabloKap.innerHTML = window.gvSkeleton ? gvSkeleton(Math.min(boyut, 8)) : '';
+        /* iskelet de meşgul işareti taşır — ekran okuyucu yükleniyor der */
+        tabloKap.setAttribute('aria-busy', 'true');
         if (pagerKap) pagerKap.hidden = true;
       } else {
         /* kısmi güncelleme: tablo korunur, yalnız meşgul işareti konur */
