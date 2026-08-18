@@ -60,6 +60,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -131,7 +132,7 @@
   gvKpi('#onKpi', [
     { ikon:'fa-stamp', sayi: GV.n(kaynak.length), etiket:'Toplam bekleyen onay' },
     { ikon:'fa-file-lines', sayi: GV.n(kaynak.filter(function(k){return k.tur==='Teknik Rapor';}).length), etiket:'Rapor onayı', ton:'warn' },
-    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(kaynak.reduce(function(t,k){return t+(k.tutar||0);},0)), etiket:'Onay bekleyen ödeme tutarı', ton:'info' },
+    { ikon:'fa-money-bill-transfer', sayi: GV.paraToplam(kaynak, 'tutar').metin(0), etiket:'Onay bekleyen ödeme tutarı', ton:'info' },
     { ikon:'fa-hourglass-end', sayi: GV.n(kaynak.filter(function(k){return k.sla==='asildi';}).length), etiket:'SLA aşan onay', ton:'danger' }
   ]);
 

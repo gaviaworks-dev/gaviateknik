@@ -272,13 +272,11 @@
     });
 
     /* ---------------- taslak ---------------- */
-    function saatMetni() {
-      var d = new Date(GV.saat ? GV.saat.simdi() : Date.now());
-      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    }
+    /* Saat ClockService'ten gelir; testte sabitlenebilir (doküman §8). */
+    function saatMetni() { return GV.saat.saatMetni(); }
     function taslakKaydet() {
       try {
-        localStorage.setItem(taslakAnahtar, JSON.stringify({ zaman: saatMetni(), veri: veri() }));
+        localStorage.setItem(taslakAnahtar, JSON.stringify({ zaman: GV.saat.zamanDamgasi(), veri: veri() }));
         kirli = false;
         sonKayitZamani = saatMetni() + ' (taslak)';
         sonKayitYaz();

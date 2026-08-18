@@ -213,6 +213,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -228,7 +229,7 @@
   var A = window.demoApi, BUGUN = A.bugun();
 
   /* ---------- karşılama ---------- */
-  var saatSimdi = new Date();
+  var saatSimdi = new Date(GV.saat.simdi());
   var s = saatSimdi.getHours();
   var selam = s < 11 ? 'Günaydın' : s < 18 ? 'İyi günler' : 'İyi akşamlar';
   var adSade = GV.kullanici.ad.split(' ')[0];
@@ -441,7 +442,7 @@
 
   /* ---------- saat kartı ---------- */
   function saatGuncelle(){
-    var d = new Date();
+    var d = new Date(GV.saat.simdi());
     document.getElementById('pnlSaat').textContent =
       String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
   }

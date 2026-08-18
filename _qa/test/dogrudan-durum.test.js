@@ -76,7 +76,7 @@ test('geçiş kullanan her sayfa durum-makinesi.js yüklüyor', () => {
 
 test('geçiş çağrılarında akış adı gerçekten tanımlı', () => {
   const { ortam } = require('./yukleyici.js');
-  const w = ortam(['kimlik.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
+  const w = ortam(['kimlik.js', 'para-zaman.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
     crypto: require('node:crypto').webcrypto, setTimeout
   });
   const tanimli = new Set(w.GV.akisListesi());
@@ -94,7 +94,7 @@ test('geçiş çağrılarında akış adı gerçekten tanımlı', () => {
 
 test('geçiş çağrılarındaki koleksiyon adı gerçekten var', () => {
   const { ortam } = require('./yukleyici.js');
-  const w = ortam(['kimlik.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
+  const w = ortam(['kimlik.js', 'para-zaman.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
     crypto: require('node:crypto').webcrypto, setTimeout
   });
   const yok = [];
@@ -111,7 +111,7 @@ test('geçiş çağrılarındaki koleksiyon adı gerçekten var', () => {
 
 test('geçişte kullanılan hedef durumlar akışta tanımlı (sabit metinli çağrılar)', () => {
   const { ortam } = require('./yukleyici.js');
-  const w = ortam(['kimlik.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
+  const w = ortam(['kimlik.js', 'para-zaman.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
     crypto: require('node:crypto').webcrypto, setTimeout
   });
   const hatali = [];

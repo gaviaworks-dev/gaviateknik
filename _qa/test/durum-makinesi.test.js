@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const { ortam } = require('./yukleyici.js');
 
 function kur() {
-  const w = ortam(['kimlik.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
+  const w = ortam(['kimlik.js', 'para-zaman.js', 'demo-data.js', 'demo-api.js', 'durum-makinesi.js'], {
     crypto: require('node:crypto').webcrypto,
     setTimeout
   });

@@ -20,16 +20,17 @@ Faz durumu: `PROGRESS.md`.
     ├── js/   app.js · navigation.js · components.js · filters.js
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
-    │         kimlik.js · durum-makinesi.js · form-controller.js
+    │         kimlik.js · para-zaman.js · durum-makinesi.js · form-controller.js
     └── images/
 ```
 
 **Yükleme sırası (değiştirme):**
 CSS → `gavia-ui.css` → `components.css` → `responsive.css` → `print.css`
-JS  → `kimlik.js` → `demo-data.js` → `demo-api.js` → `navigation.js` → `components.js` → `filters.js` → `forms.js` → `app.js`
+JS  → `kimlik.js` → `para-zaman.js` → `demo-data.js` → `demo-api.js` → `navigation.js` → `components.js` → `filters.js` → `forms.js` → `app.js`
 
-`kimlik.js` **en başta** yüklenir: hiçbir şeye bağlı değildir ve `demo-api.js`
-kimlik üretimini ondan alır.
+`kimlik.js` ve `para-zaman.js` **en başta** yüklenir: hiçbir şeye bağlı
+değildirler; `demo-api.js` kimlik üretimini, para aritmetiğini ve iş tarihini
+onlardan alır.
 
 Faz 12/13 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
@@ -161,6 +162,17 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - **Kalibrasyonu geçmiş cihaz** iş emrine atanamaz (buton `disabled` + kırmızı uyarı).
 - **Yetkinliği olmayan personel** ilgili kontrole atanamaz.
 - Ana lokasyon rehberi ≠ projedeki lokasyon ≠ tamamlanan ≠ faturalanan (4 ayrı bilgi).
+
+### Para ve zaman (Faz 13)
+
+- **Para hesabı kuruş tamsayısı üzerinden yapılır** (`GV.kurus`): `al` (TL→kuruş),
+  `topla/cikar/carp/oran`, `tl` (kuruş→TL). Float yuvarlama zinciri kurulmaz.
+- **Para birimi kayıt seviyesindedir; farklı birimler tek toplamda birleşmez.**
+  Çok kayıtlı toplam `GV.paraToplam(kayitlar, 'tutar')` ile alınır; sonuç
+  `karisikMi` ise tek sayıya indirgenmez, `metin()` ayrışık gösterir.
+- **İş tarihi ve gecikme `GV.saat` (ClockService) üzerinden okunur** —
+  `bugun()`, `gecikmeGun(vade)`, `zamanDamgasi()`. Sayfa kodu `new Date()`
+  ya da `Date.now()` çağırmaz; testte `GV.saat.sabitle({gun, epoch})`.
 
 ## 9. Türkçe format kuralları
 

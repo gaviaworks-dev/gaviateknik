@@ -85,7 +85,11 @@ window.demoApi = (function () {
     if (!d1 || !d2) return null;
     return Math.round((d2 - d1) / 86400000);
   }
-  function bugun() { return D.bugun; }
+  /* İş tarihi ClockService'ten gelir (doküman §8): gecikme hesapları
+     tarayıcı saatine değil bu tek kaynağa bağlıdır, testte sabitlenebilir. */
+  function bugun() {
+    return (window.GV && window.GV.saat) ? window.GV.saat.bugun() : D.bugun;
+  }
 
   /* ---------- durum sözlüğü ---------- */
   function durumBilgi(akis, anahtar) {
@@ -263,7 +267,8 @@ window.demoApi = (function () {
       }
       if (f.tahsilatDurum === 'kismen-tahsil') {
         var oran = f.toplam ? f.tahsilEdilen / f.toplam : 0;
-        return { uygun: true, kismi: true, oran: oran, odenebilirTutar: Math.round(h.tutar * oran),
+        return { uygun: true, kismi: true, oran: oran,
+                 odenebilirTutar: window.GV.kurus.tl(window.GV.kurus.oran(window.GV.kurus.al(h.tutar), oran)),
                  uyari: 'Müşteriden %' + Math.round(oran * 100) + ' tahsil edildi; hakedişin aynı oranı ödenebilir.' };
       }
     }
@@ -278,7 +283,7 @@ window.demoApi = (function () {
     var uygun = 0, eksikRapor = 0, mutabakatBekleyen = 0, toplamTutar = 0;
     g.lokasyonlar.forEach(function (lid) {
       var kontrol = lokasyonFaturalanabilirMi(lid);
-      if (kontrol.uygun) { uygun++; toplamTutar += lokasyonFaturaTutari(lid, g.projeId); }
+      if (kontrol.uygun) { uygun++; toplamTutar = window.GV.kurus.topla(toplamTutar, lokasyonFaturaTutariKurus(lid, g.projeId)); }
       else if (kontrol.sebep.indexOf('mutabakat') !== -1) mutabakatBekleyen++;
       else eksikRapor++;
     });
@@ -286,26 +291,41 @@ window.demoApi = (function () {
       grupId: grupId, hedef: g.hedefParti, eklenen: eklenen,
       doluluk: g.hedefParti ? Math.min(1, eklenen / g.hedefParti) : 0,
       faturayaUygun: uygun, eksikRapor: eksikRapor, mutabakatBekleyen: mutabakatBekleyen,
-      toplamTutar: toplamTutar,
+      toplamTutar: window.GV.kurus.tl(toplamTutar),
+      toplamTutarKurus: toplamTutar,
+      paraBirimi: window.GV.PARA_VARSAYILAN,
       hedefeUlasti: eklenen >= g.hedefParti
     };
   }
 
-  function lokasyonFaturaTutari(lokasyonId, projeId) {
+  function lokasyonFaturaTutariKurus(lokasyonId, projeId) {
     var p = bul('projeler', projeId);
     var fl = p ? p.fiyatListesiId : 'FL-2026-STD';
+    var K = window.GV.kurus;
     var t = 0;
     mutabakatSatirlari(lokasyonId).forEach(function (m) {
-      t += birimSatisFiyati(m.hizmetId, fl) * m.kalan;
+      t = K.topla(t, K.carp(birimSatisFiyatiKurus(m.hizmetId, fl), m.kalan));
     });
     return t;
   }
+  function lokasyonFaturaTutari(lokasyonId, projeId) {
+    return window.GV.kurus.tl(lokasyonFaturaTutariKurus(lokasyonId, projeId));
+  }
 
-  function birimSatisFiyati(hizmetId, fiyatListesiId) {
+  /* Fiyat hesapları KURUŞ tamsayısı üzerinden yapılır; float yuvarlama
+     zinciri oluşmaz (doküman §8). Dönüş TL cinsindendir. */
+  function birimSatisFiyatiKurus(hizmetId, fiyatListesiId) {
     var f = D.hizmetFiyatlari[hizmetId];
     if (!f) return 0;
     var k = D.listeKatsayilari[fiyatListesiId] != null ? D.listeKatsayilari[fiyatListesiId] : 1;
-    return Math.round(f.satis * k);
+    return window.GV.kurus.oran(window.GV.kurus.al(f.satis), k);
+  }
+  function birimSatisFiyati(hizmetId, fiyatListesiId) {
+    return window.GV.kurus.tl(birimSatisFiyatiKurus(hizmetId, fiyatListesiId));
+  }
+  function birimMaliyetKurus(hizmetId) {
+    var f = D.hizmetFiyatlari[hizmetId];
+    return f ? window.GV.kurus.al(f.maliyet) : 0;
   }
   function birimMaliyet(hizmetId) {
     var f = D.hizmetFiyatlari[hizmetId];
@@ -325,7 +345,8 @@ window.demoApi = (function () {
     var loks = koleksiyon('lokasyonlar').filter(function (l) { return l.projeId === projeId; });
     var p = bul('projeler', projeId);
     var say = { toplam: loks.length, tamamlanan: 0, planlanan: 0, bilgiBekleyen: 0, raporlanan: 0, faturalanan: 0, kapsamDisi: 0 };
-    var gelir = 0, maliyet = 0;
+    var K = window.GV.kurus;
+    var gelir = 0, maliyet = 0;   /* kuruş */
     loks.forEach(function (l) {
       if (l.operasyonDurum === 'kontrol-tamamlandi') say.tamamlanan++;
       if (['planlandi', 'sahada', 'tarih-onayi-bekleniyor'].indexOf(l.operasyonDurum) !== -1) say.planlanan++;
@@ -334,12 +355,14 @@ window.demoApi = (function () {
       if (['kismen-faturalandi', 'tam-faturalandi'].indexOf(l.faturaDurum) !== -1) say.faturalanan++;
       if (['kapsam-disi', 'iptal'].indexOf(l.operasyonDurum) !== -1) say.kapsamDisi++;
       lokasyonHizmetleri(l.id).forEach(function (h) {
-        gelir += birimSatisFiyati(h.hizmetId, p ? p.fiyatListesiId : null) * h.planlananMiktar;
-        maliyet += birimMaliyet(h.hizmetId) * h.planlananMiktar;
+        gelir = K.topla(gelir, K.carp(birimSatisFiyatiKurus(h.hizmetId, p ? p.fiyatListesiId : null), h.planlananMiktar));
+        maliyet = K.topla(maliyet, K.carp(birimMaliyetKurus(h.hizmetId), h.planlananMiktar));
       });
     });
     say.ilerleme = say.toplam ? (say.tamamlanan / Math.max(1, say.toplam - say.kapsamDisi)) : 0;
-    say.gelir = gelir; say.maliyet = maliyet;
+    say.gelirKurus = gelir; say.maliyetKurus = maliyet;
+    say.gelir = K.tl(gelir); say.maliyet = K.tl(maliyet);
+    say.paraBirimi = window.GV.PARA_VARSAYILAN;
     say.karlilik = gelir ? (gelir - maliyet) / gelir : 0;
     return say;
   }
@@ -469,7 +492,7 @@ window.demoApi = (function () {
     D.roller.forEach(function (r) { if (r.id === aktif) rolAd = r; });
     ortu.ekle.islemKayitlari.push({
       id: window.GV.yeniKod('LOG-U'),
-      zaman: new Date().toISOString().substring(0, 19),
+      zaman: window.GV.saat.zamanDamgasi(),
       kullaniciId: rolAd ? rolAd.personelId : null,
       rol: aktif, modul: MODUL_ADI[modul] || modul, kayit: kayitId, islem: islem,
       onceki: onceki == null ? null : String(onceki),
@@ -580,8 +603,11 @@ window.demoApi = (function () {
     taseronOdenebilirMi: taseronOdenebilirMi,
     faturaGrubuDoluluk: faturaGrubuDoluluk,
     lokasyonFaturaTutari: lokasyonFaturaTutari,
+    lokasyonFaturaTutariKurus: lokasyonFaturaTutariKurus,
     birimSatisFiyati: birimSatisFiyati,
+    birimSatisFiyatiKurus: birimSatisFiyatiKurus,
     birimMaliyet: birimMaliyet,
+    birimMaliyetKurus: birimMaliyetKurus,
     projeOzet: projeOzet,
     rolKapsami: rolKapsami,
     kapsamaGoreLokasyonlar: kapsamaGoreLokasyonlar,

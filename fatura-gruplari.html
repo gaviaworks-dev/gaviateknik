@@ -76,6 +76,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -92,6 +93,8 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
+  /* Para birimi kayıt seviyesinde tutulur; KDV oranı tek yerde tanımlıdır. */
+  var PARA = GV.PARA_VARSAYILAN, KDV_ORANI = 0.20;
 
   var gruplar = A.liste('faturaGruplari').map(function(g){
     var d = A.faturaGrubuDoluluk(g.id);
@@ -298,8 +301,11 @@
         + '<div id="fgOzetKutu" style="margin-top:16px"></div>'
         + '<div id="fgUyari"></div>',
       acildi: function(kap){
+        /* Doküman §8: para hesabı KURUŞ tamsayısı üzerinden; KDV tek
+           yuvarlama ile ara toplamdan üretilir. */
+        var K = GV.kurus;
         function hesapla(){
-          var ara = 0, hataliVar = false;
+          var araK = 0, hataliVar = false;
           satirlar.forEach(function(x, i){
             var inp = kap.querySelector('[data-miktar="' + i + '"]');
             var m = Number(inp.value || 0);
@@ -309,17 +315,19 @@
             var kalan = x.mtb.kalan - m;
             kap.querySelector('[data-kalan="' + i + '"]').innerHTML = kalan > 0
               ? '<b style="color:var(--warning)">' + GV.n(kalan) + '</b>' : GV.n(0);
-            kap.querySelector('[data-tutar="' + i + '"]').textContent = GV.tl(x.birimFiyat * m);
-            ara += x.birimFiyat * m;
+            var satirK = K.carp(K.al(x.birimFiyat), m);
+            kap.querySelector('[data-tutar="' + i + '"]').textContent = GV.tl(K.tl(satirK));
+            araK = K.topla(araK, satirK);
           });
-          var kdv = Math.round(ara * 0.20);
+          var kdvK = K.oran(araK, KDV_ORANI);
           var kismiVar = satirlar.some(function(x, i){
             return Number(kap.querySelector('[data-miktar="' + i + '"]').value || 0) < x.mtb.kalan; });
           kap.querySelector('#fgOzetKutu').innerHTML =
             '<div class="sum-list">'
-            + '<div class="sum-row"><span>Ara toplam</span><b>' + GV.tl(ara) + '</b></div>'
-            + '<div class="sum-row"><span>KDV (%20)</span><b>' + GV.tl(kdv) + '</b></div>'
-            + '<div class="sum-row total"><span>Genel toplam</span><b>' + GV.tl(ara + kdv) + '</b></div></div>';
+            + '<div class="sum-row"><span>Ara toplam</span><b>' + GV.paraBicim(araK, PARA) + '</b></div>'
+            + '<div class="sum-row"><span>KDV (%20)</span><b>' + GV.paraBicim(kdvK, PARA) + '</b></div>'
+            + '<div class="sum-row total"><span>Genel toplam</span><b>'
+            + GV.paraBicim(K.topla(araK, kdvK), PARA) + '</b></div></div>';
           kap.querySelector('#fgUyari').innerHTML =
             (hataliVar ? '<div class="gv-note danger" style="margin-top:14px"><i class="fa-solid fa-ban" aria-hidden="true"></i>'
               + '<span><b>Mükerrer faturalama engellendi.</b> Kırmızı işaretli satırlarda girilen miktar '
@@ -328,7 +336,8 @@
               + '<i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>'
               + '<span><b>Kısmi faturalama.</b> Kalan miktarlar mutabakat tablosunda izlenmeye devam eder ve '
               + 'sonraki faturaya aktarılır. Lokasyon adı değiştirilmez, yeni lokasyon açılmaz.</span></div>' : '');
-          return { ara: ara, kdv: kdv, hataliVar: hataliVar, kismiVar: kismiVar };
+          return { araK: araK, kdvK: kdvK, ara: K.tl(araK), kdv: K.tl(kdvK),
+                   hataliVar: hataliVar, kismiVar: kismiVar };
         }
         kap.querySelectorAll('[data-miktar]').forEach(function(i){ i.addEventListener('input', hesapla); });
         hesapla();
@@ -366,9 +375,11 @@
 
             islemler.push(A.ekle('faturalar', {
               id: fid, no: no, grupId: gid, musteriId: g.musteriId, projeId: g.projeId,
-              lokasyonlar: uygunLoklar, tarih: BUGUN, vade: A.isoYaz(vade), kdvOran: 0.20,
-              araToplam: h.ara, kdv: h.kdv, toplam: h.ara + h.kdv,
-              tahsilEdilen: 0, kalan: h.ara + h.kdv, durum:'kesildi', tahsilatDurum:'bekleniyor',
+              lokasyonlar: uygunLoklar, tarih: BUGUN, vade: A.isoYaz(vade), kdvOran: KDV_ORANI,
+              paraBirimi: PARA,
+              araToplam: h.ara, kdv: h.kdv, toplam: GV.kurus.tl(GV.kurus.topla(h.araK, h.kdvK)),
+              tahsilEdilen: 0, kalan: GV.kurus.tl(GV.kurus.topla(h.araK, h.kdvK)),
+              durum:'kesildi', tahsilatDurum:'bekleniyor',
               aciklama: g.ad + (h.kismiVar ? ' — kısmi fatura' : '')
             }));
 
@@ -387,7 +398,8 @@
               }));
             }).then(function(){
               gvResult(true, { baslik:'Fatura kesildi',
-                metin:'<b>' + no + '</b> numaralı fatura ' + GV.tl(h.ara + h.kdv) + ' tutarla oluşturuldu.'
+                metin:'<b>' + no + '</b> numaralı fatura '
+                  + GV.paraBicim(GV.kurus.topla(h.araK, h.kdvK), PARA) + ' tutarla oluşturuldu.'
                   + (h.kismiVar ? ' Kısmi faturalama uygulandı; kalan miktarlar grupta izlenmeye devam ediyor.' : ''),
                 butonlar:[
                   { etiket:'Gruba dön', sinif:'btn-ghost', tikla: function(){ location.reload(); } },

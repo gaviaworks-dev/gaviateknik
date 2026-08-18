@@ -92,6 +92,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -140,7 +141,7 @@
       delta:{ yon:'flat', metin: kaynak.filter(function(m){return m.durum==='aday';}).length + ' aday müşteri' } },
     { ikon:'fa-tags', sayi: GV.n(kaynak.reduce(function(t,m){return t+m.markaSayisi;},0)), etiket:'Toplam marka', ton:'info' },
     { ikon:'fa-location-dot', sayi: GV.n(kaynak.reduce(function(t,m){return t+m.lokasyonSayisi;},0)), etiket:'Toplam lokasyon' },
-    { ikon:'fa-file-invoice-dollar', sayi: GV.tlKisa(kaynak.reduce(function(t,m){return t+m.cariBakiye;},0)), etiket:'Toplam açık cari bakiye',
+    { ikon:'fa-file-invoice-dollar', sayi: GV.paraToplam(kaynak, 'cariBakiye').metin(0), etiket:'Toplam açık cari bakiye',
       ton: kaynak.some(function(m){return m.cariDurum==='vadesi-gecmis-var';}) ? 'danger':'info',
       delta:{ yon:'down', metin: kaynak.filter(function(m){return m.cariDurum==='vadesi-gecmis-var';}).length + ' müşteride vadesi geçmiş bakiye' } }
   ]);

@@ -297,6 +297,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -530,10 +531,16 @@
     var tamamlanan = lokF.filter(function(l){ return l.operasyonDurum === 'kontrol-tamamlandi'; }).length;
     var kapsamDisi = lokF.filter(function(l){ return ['kapsam-disi','iptal'].indexOf(l.operasyonDurum) !== -1; }).length;
     var payda      = Math.max(0, lokF.length - kapsamDisi);
-    var ciro       = ftrF.reduce(function(t,x){ return t + x.toplam; }, 0);
-    var tahsil     = ftrF.reduce(function(t,x){ return t + x.tahsilEdilen; }, 0);
-    var buAy       = ftrF.filter(function(x){ var d = A.tariheCevir(x.tarih); return d && d.getFullYear() === YIL && d.getMonth() === BUGUN_D.getMonth(); })
-                         .reduce(function(t,x){ return t + x.toplam; }, 0);
+    /* Doküman §8: farklı para birimleri tek toplamda birleşmez. Rapor
+       ekranındaki finansal büyüklükler para birimi kovalarından üretilir. */
+    var ciroP   = GV.paraToplam(ftrF, 'toplam');
+    var tahsilP = GV.paraToplam(ftrF, 'tahsilEdilen');
+    var buAyP   = GV.paraToplam(ftrF.filter(function(x){
+                    var d = A.tariheCevir(x.tarih);
+                    return d && d.getFullYear() === YIL && d.getMonth() === BUGUN_D.getMonth(); }), 'toplam');
+    var ciro   = GV.kurus.tl((ciroP.tek()   || { kurus: 0 }).kurus);
+    var tahsil = GV.kurus.tl((tahsilP.tek() || { kurus: 0 }).kurus);
+    var buAy   = GV.kurus.tl((buAyP.tek()   || { kurus: 0 }).kurus);
 
     gvKpi('#rpKpi', [
       { ikon:'fa-clipboard-check', sayi: GV.n(ieF.length), etiket:'Kapsamdaki kontrol (iş emri)',

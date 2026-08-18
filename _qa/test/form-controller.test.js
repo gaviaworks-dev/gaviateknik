@@ -27,7 +27,7 @@ function kur(alanHtml, secenek) {
   const win = dom.window;
   win.localStorage.clear();
   /* kimlik.js + form-controller.js'yi bu pencerede çalıştır */
-  for (const d of ['kimlik.js', 'form-controller.js']) {
+  for (const d of ['kimlik.js', 'para-zaman.js', 'form-controller.js']) {
     const kod = fs.readFileSync(path.join(KOK, 'assets', 'js', d), 'utf8');
     win.eval(kod);
   }

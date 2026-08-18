@@ -117,7 +117,7 @@
     /* ---- taslak ---- */
     function taslakKaydet() {
       try {
-        localStorage.setItem(taslakAnahtar, JSON.stringify({ zaman: new Date().toISOString(), veri: veri() }));
+        localStorage.setItem(taslakAnahtar, JSON.stringify({ zaman: GV.saat.zamanDamgasi(), veri: veri() }));
         kirli = false;
         if (window.gvToast) gvToast('Taslak kaydedildi. Bu tarayıcıda saklanır.', { ton: 'ok' });
         return true;
@@ -203,7 +203,8 @@
           + '<input id="lr_s_' + i + '" type="number" min="0" step="1" data-alan="satis" value="' + esc(s.satis || '') + '"></div>'
           + '<div><label class="gv-sr" for="lr_t_' + i + '">Taşeron maliyeti ' + (i + 1) + '</label>'
           + '<input id="lr_t_' + i + '" type="number" min="0" step="1" data-alan="maliyet" value="' + esc(s.maliyet || '') + '"></div>'
-          + '<div class="lr-calc">' + GV.tl((s.miktar || 0) * (s.satis || 0)) + '</div>'
+          + '<div class="lr-calc">'
+          + GV.paraBicim(GV.kurus.carp(GV.kurus.al(s.satis || 0), s.miktar || 0)) + '</div>'
           + '<div><button class="ia-btn danger" type="button" data-sil="' + i + '" aria-label="' + (i + 1) + '. satırı kaldır">'
           + '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></div></div>';
       });
@@ -241,7 +242,8 @@
         ciz();
       } else {
         var hucre = el.closest('.linerow').querySelector('.lr-calc');
-        if (hucre) hucre.textContent = GV.tl((satirlar[i].miktar || 0) * (satirlar[i].satis || 0));
+        if (hucre) hucre.textContent = GV.paraBicim(
+          GV.kurus.carp(GV.kurus.al(satirlar[i].satis || 0), satirlar[i].miktar || 0));
       }
       hesapla();
     }
@@ -251,20 +253,27 @@
       return m[b] || b || '—';
     }
 
+    /* Doküman §8: para hesabı KURUŞ tamsayısı üzerinden yapılır; KDV ve
+       kâr tek yuvarlama ile üretilir, float zinciri oluşmaz. */
     function toplamlar() {
-      var satis = 0, maliyet = 0;
+      var K = GV.kurus;
+      var satisK = 0, maliyetK = 0;
       satirlar.forEach(function (s) {
-        satis += (s.miktar || 0) * (s.satis || 0);
-        maliyet += (s.miktar || 0) * (s.maliyet || 0);
+        satisK = K.topla(satisK, K.carp(K.al(s.satis || 0), s.miktar || 0));
+        maliyetK = K.topla(maliyetK, K.carp(K.al(s.maliyet || 0), s.miktar || 0));
       });
-      var ekGider = secenek.ekGider ? secenek.ekGider() : 0;
+      var ekGiderK = K.al(secenek.ekGider ? secenek.ekGider() : 0);
       var kdvOran = secenek.kdvOran != null ? secenek.kdvOran : 0.20;
+      var kdvK = K.oran(satisK, kdvOran);
+      var karK = K.cikar(K.cikar(satisK, maliyetK), ekGiderK);
       return {
-        satis: satis, maliyet: maliyet, ekGider: ekGider,
-        kdv: Math.round(satis * kdvOran),
-        genelToplam: satis + Math.round(satis * kdvOran),
-        kar: satis - maliyet - ekGider,
-        karOran: satis ? (satis - maliyet - ekGider) / satis : 0,
+        satisKurus: satisK, maliyetKurus: maliyetK, kdvKurus: kdvK, karKurus: karK,
+        paraBirimi: GV.PARA_VARSAYILAN,
+        satis: K.tl(satisK), maliyet: K.tl(maliyetK), ekGider: K.tl(ekGiderK),
+        kdv: K.tl(kdvK),
+        genelToplam: K.tl(K.topla(satisK, kdvK)),
+        kar: K.tl(karK),
+        karOran: satisK ? karK / satisK : 0,
         satirSayisi: satirlar.length
       };
     }

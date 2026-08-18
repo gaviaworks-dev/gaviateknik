@@ -74,6 +74,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -114,7 +115,7 @@
     { ikon:'fa-people-carry-box', sayi: GV.n(kaynak.filter(function(t){ return t.durum === 'aktif'; }).length), etiket:'Aktif taşeron' },
     { ikon:'fa-clipboard-check', sayi: GV.n(kaynak.reduce(function(x,t){ return x + t.aktifIs; }, 0)), etiket:'Devam eden iş', ton:'info' },
     { ikon:'fa-file-lines', sayi: GV.n(kaynak.reduce(function(x,t){ return x + t.bekleyenRapor; }, 0)), etiket:'Bekleyen rapor', ton:'warn' },
-    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(kaynak.reduce(function(x,t){ return x + t.odenmemisTutar; }, 0)),
+    { ikon:'fa-money-bill-transfer', sayi: GV.paraToplam(kaynak, 'odenmemisTutar').metin(0),
       etiket:'Ödenmemiş hakediş', ton:'danger' }
   ]);
 

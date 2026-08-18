@@ -62,6 +62,7 @@
   </main>
 </div>
 <script src="assets/js/kimlik.js"></script>
+<script src="assets/js/para-zaman.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -98,10 +99,12 @@
   gvKpi('#ftKpi', [
     { ikon:'fa-file-invoice-dollar', sayi: GV.n(kaynak.length), etiket:'Kesilen fatura',
       delta:{ yon:'flat', metin: kaynak.filter(function(f){ return f.kismiMi; }).length + ' kısmi fatura' } },
-    { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,f){ return t + f.toplam; }, 0)), etiket:'Toplam fatura tutarı' },
-    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(kaynak.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)),
+    /* Doküman §8: farklı para birimleri tek toplamda BİRLEŞMEZ.
+       Karışık kayıt varsa toplam '₺… + €…' biçiminde ayrışık gösterilir. */
+    { ikon:'fa-coins', sayi: GV.paraToplam(kaynak, 'toplam').metin(0), etiket:'Toplam fatura tutarı' },
+    { ikon:'fa-money-bill-transfer', sayi: GV.paraToplam(kaynak, 'tahsilEdilen').metin(0),
       etiket:'Tahsil edilen', ton:'ok' },
-    { ikon:'fa-triangle-exclamation', sayi: GV.tlKisa(kaynak.reduce(function(t,f){ return t + f.kalan; }, 0)),
+    { ikon:'fa-triangle-exclamation', sayi: GV.paraToplam(kaynak, 'kalan').metin(0),
       etiket:'Açık bakiye', ton: kaynak.some(function(f){ return f.tahsilatDurum === 'vadesi-gecti'; }) ? 'danger' : 'warn',
       delta:{ yon:'down', metin: kaynak.filter(function(f){ return f.tahsilatDurum === 'vadesi-gecti'; }).length + ' fatura vadesi geçti' } }
   ]);
