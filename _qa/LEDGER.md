@@ -149,3 +149,20 @@ Branch: `faz-15-kapanis`.
 | 2026-08-19 | 5 | assets/js/dashboard.js (yeni) · assets/js/navigation.js (`GV.ekranIzni`) · panel.html · _qa/durum.js · _qa/test/panel-rol.test.js (yeni) | 0 bulgu / YAPISAL SORUN YOK · 412 test geçti | 9e6a077 | 17 widget kayıt defterine taşındı; yeni widget tasarlanmadı. `musteri` rolü panelde HİÇBİR widget görmez — gerçek tarayıcıda zaten portala yönlendirilir, jsdom yönlendirmeyi uygulamadığı için anlık görüntüde boş panel olarak kalır. `sistem` ve `satis` rollerinde KPI şeridi / hızlı özet satırı kapsam süzgecinden sonra boşaldığı için çizilmez (kart boş durmasın diye). `dashboard.js` yalnız `panel.html` tarafından yüklenir — tek dashboard ekranı var. Widget görünürlüğü ekran anahtarına bağlıdır; ekran bazında değil kayıt bazında kısıt (örn. "yalnız kendi lokasyonları") kapsam dışıdır, o filtre veri katmanındadır. |
 | 2026-08-19 | 6 | assets/js/api-provider.js (yeni) · assets/js/data-provider.js (komut tekrarı) · 54 sayfa (script) · _qa/test/saglayici-sozlesmesi.test.js (yeni) | 0 bulgu / YAPISAL SORUN YOK · 453 test geçti | 19f3fef | **BİLİNEN KUSUR — `ozet` işlemi:** iskelette `kume` isteği süzülmüş kümenin TAMAMINI taşıyıcıdan alıp hesabı yerelde uygular. Gerçek backend'de bu ayrı bir toplama uç noktası olmalı ve kümeyi değil hesabın sonucunu döndürmeli; bütün kümeyi tele vermek sayfalamayı anlamsız kılar. Kod içinde de işaretli. Taşıyıcı sözleşmesi taşımadan bağımsız alan adları kullanır (`islem`, `kaynak`, `sorgu`); URL, HTTP yöntemi ve kimlik doğrulama şeması BİLİNÇLİ olarak tanımlanmadı — backend sözleşmesi yok. `komut()` kaydı hâlâ alt katmana (mock) iner: domain komutları gerçekte sunucuda yaşayacak, iskelet bunu taklit etmiyor. Sağlayıcı seçimi `?provider=api` ile yapılır ve localStorage'da (`gv_tk_saglayici`) kalıcıdır. |
 | 2026-08-19 | 7 | _qa/KABUL.md (yeni) · _qa/test/kabul-denetimi.test.js (yeni) · assets/js/components.js (canlı bölge rolleri) · assets/js/list-controller.js (ilk yükleme aria-busy) | 0 bulgu / YAPISAL SORUN YOK · 461 test geçti | c166612 | Kabul listesi: **17 geçti · 0 kaldı · 6 doğrulanamadı.** Doğrulanamayanların hepsi gerçek tarayıcı yerleşimi ya da renk ölçümü ister (11 genişlikte test, gerçek yatay taşma, viewport içinde kalma, 44×44 piksel, kontrast oranı, ipucu konumu) — kural düzeyinde kilitli ama ölçüm açık, `_qa/KABUL.md` §6'da nasıl kapanacağıyla birlikte yazılı. `gvEmpty`/`gvError` Faz 14 sonunda canlı bölge rolü taşımıyordu; bu turda eklendi (madde 5.3 böyle kapandı). |
+| 2026-08-19 | 8 (kapanış) | CLAUDE.md · PROGRESS.md · _docs/FAZ12-PLAN.md §9 | 0 bulgu / YAPISAL SORUN YOK · 461 test geçti | bccc8b2 | `_docs/` gitignore'da olduğu için plan dosyası commit edilmez; yalnız yerel diskte güncellendi. |
+
+### Faz 15 kapanışı
+- Tamamlanan adım: **7/7** (+1 kapanış turu)
+- Detay alt koleksiyonu: **13/13 ekran**, 57 alt liste ListController yolunda
+- Liste yolu toplam: **41/41 matris + 13/13 detay**
+- Birim test: 345 → **461** (+116, 5 yeni dosya: alt-koleksiyon, detay-render,
+  panel-rol, saglayici-sozlesmesi, kabul-denetimi)
+- Rol × sayfa: 0 bulgu · yapı bütünlüğü: 73 sayfa sorunsuz
+- Kabul kontrol listesi (`_qa/KABUL.md`): **17 geçti · 0 kaldı · 6 doğrulanamadı**
+- **Dört fazın birikmiş kusur listesi** `_docs/FAZ12-PLAN.md` §9'da (repo dışı)
+  ve özet olarak `PROGRESS.md` Faz 15 bölümünde.
+
+**Faz 15'te bilinçli olarak yapılmayanlar:** yeni ekran, yeni dashboard kartı,
+gerçek backend, gerçek auth, dosya yükleme, Playwright kurulumu.
+
+**Şartname (`_docs/REVIZYON.md`) bu fazla kapandı.**
