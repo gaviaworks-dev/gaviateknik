@@ -313,7 +313,8 @@
       var gorunen = B.menu.filter(function (m) { return m.href && ekranGorunur(anahtar, m); });
       if (!gorunen.length) return;
       h += '<a class="gv-rail-ico' + (anahtar === bolum ? ' is-active' : '') + '" href="' + rolluHref(gorunen[0].href) + '"'
-         + ' data-tip="' + B.baslik + '" aria-label="' + B.baslik + '"' + (anahtar === bolum ? ' aria-current="page"' : '') + '>'
+         + ' data-tip="' + B.baslik + '" data-tip-desc="' + (B.aciklama || '') + '"'
+         + ' aria-label="' + B.baslik + '"' + (anahtar === bolum ? ' aria-current="page"' : '') + '>'
          + '<i class="fa-solid ' + B.ikon + '" aria-hidden="true"></i></a>';
     });
     h += '</div><div class="gv-rail-foot">'
@@ -327,8 +328,12 @@
   var menuEl = document.getElementById('gvMenu');
   var aktifKalem = null;
   if (menuEl) {
+    /* Mobil çekmecede hover yoktur; modül adının yanında kısa açıklama
+       gösterilir (doküman §4 "Mobil" maddesi). */
     var mh = '<div class="gv-menu-head"><span class="gmh-eyebrow">' + B.ustBaslik + '</span>'
-           + '<span class="gmh-title">' + B.baslik + '</span></div><nav class="gv-mnav" aria-label="' + B.baslik + ' menüsü">';
+           + '<span class="gmh-title">' + B.baslik + '</span>'
+           + (B.aciklama ? '<span class="gmh-desc">' + B.aciklama + '</span>' : '')
+           + '</div><nav class="gv-mnav" aria-label="' + B.baslik + ' menüsü">';
     var liste = B.menu.filter(function (m) { return m.bolum || ekranGorunur(bolum, m); });
     /* altı boşalan bölüm başlıklarını düşür */
     liste = liste.filter(function (m, i) { return !m.bolum || (liste[i + 1] && !liste[i + 1].bolum); });
