@@ -21,6 +21,7 @@ Faz durumu: `PROGRESS.md`.
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
     │         kimlik.js · para-zaman.js · durum-makinesi.js · form-controller.js
+    │         kpi.js
     └── images/
 ```
 
@@ -34,7 +35,7 @@ onlardan alır.
 
 Faz 12/13 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
-`durum-makinesi.js` → `form-controller.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
+`durum-makinesi.js` → `form-controller.js` → `kpi.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
 
 ## 2. Dosya adlandırma
 
@@ -170,6 +171,11 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - **Para birimi kayıt seviyesindedir; farklı birimler tek toplamda birleşmez.**
   Çok kayıtlı toplam `GV.paraToplam(kayitlar, 'tutar')` ile alınır; sonuç
   `karisikMi` ise tek sayıya indirgenmez, `metin()` ayrışık gösterir.
+- **KPI'lar adlandırılmış seçicilerden gelir** (`kpi.js`): panel ve liste
+  ekranı `GV.kpi('onayBekleyenRapor')` gibi AYNI seçiciyi çağırır; iki yerde
+  iki farklı sayı çıkamaz. Arşiv / kapsam dışı / silinmiş kayıtların sayıma
+  girip girmediği `GV.kpiKapsam()` filtresidir ve ekranda `GV.kpiKapsamNotu`
+  ile yazılı durur.
 - **İş tarihi ve gecikme `GV.saat` (ClockService) üzerinden okunur** —
   `bugun()`, `gecikmeGun(vade)`, `zamanDamgasi()`. Sayfa kodu `new Date()`
   ya da `Date.now()` çağırmaz; testte `GV.saat.sabitle({gun, epoch})`.

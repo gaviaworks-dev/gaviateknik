@@ -33,6 +33,7 @@
       <div class="ph-actions no-print"><button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button></div>
     </div>
     <div class="kpi-grid" id="roKpi"></div>
+    <div id="roKpiKapsam" hidden></div>
     <section class="gv-card">
             <div class="gv-listhead no-print">
         <div class="lh-row">
@@ -67,6 +68,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -86,11 +88,15 @@
   });
 
   gvKpi('#roKpi', [
-    { ikon:'fa-stamp', sayi: GV.n(kaynak.filter(function(r){ return r.durum === 'teknik-incelemede'; }).length), etiket:'Onay bekleyen', ton:'warn' },
+    /* Panel KPI'sı ile AYNI seçici (doküman §8). */
+    { ikon:'fa-stamp', sayi: GV.n(GV.kpiSay('onayBekleyenRapor')), etiket:'Onay bekleyen', ton:'warn' },
     { ikon:'fa-rotate-left', sayi: GV.n(kaynak.filter(function(r){ return r.durum === 'revizyon-istendi'; }).length), etiket:'Revizyon istenen', ton:'danger' },
     { ikon:'fa-pen-ruler', sayi: GV.n(kaynak.filter(function(r){ return r.durum === 'taslak'; }).length), etiket:'Taslak' },
     { ikon:'fa-hourglass-end', sayi: GV.n(kaynak.filter(function(r){ return r.slaDurum === 'asildi'; }).length), etiket:'SLA süresi aşan', ton:'danger' }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('roKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#roKpiKapsam', { dislanan: GV.kpi('onayBekleyenRapor').dislanan });
 
   var liste = document.getElementById('roListe');
   

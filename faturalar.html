@@ -34,6 +34,7 @@
       <a class="btn btn-acc" href="fatura-gruplari.html"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Fatura Grupları</a></div>
     </div>
     <div class="kpi-grid" id="ftKpi"></div>
+    <div id="ftKpiKapsam" hidden></div>
     <section class="gv-card">
             <div class="gv-listhead no-print">
         <div class="lh-row">
@@ -69,6 +70,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -104,10 +106,14 @@
     { ikon:'fa-coins', sayi: GV.paraToplam(kaynak, 'toplam').metin(0), etiket:'Toplam fatura tutarı' },
     { ikon:'fa-money-bill-transfer', sayi: GV.paraToplam(kaynak, 'tahsilEdilen').metin(0),
       etiket:'Tahsil edilen', ton:'ok' },
-    { ikon:'fa-triangle-exclamation', sayi: GV.paraToplam(kaynak, 'kalan').metin(0),
+    /* Panel "Bekleyen tahsilat" KPI'sı ile AYNI seçici (doküman §8). */
+    { ikon:'fa-triangle-exclamation', sayi: GV.kpiPara('acikFatura').metin(0),
       etiket:'Açık bakiye', ton: kaynak.some(function(f){ return f.tahsilatDurum === 'vadesi-gecti'; }) ? 'danger' : 'warn',
       delta:{ yon:'down', metin: kaynak.filter(function(f){ return f.tahsilatDurum === 'vadesi-gecti'; }).length + ' fatura vadesi geçti' } }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('ftKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#ftKpiKapsam', { dislanan: GV.kpi('acikFatura').dislanan });
 
   var kolonlar = [
     { k:'no', ad:'Fatura No', kilitli:true, ciz: function(f){

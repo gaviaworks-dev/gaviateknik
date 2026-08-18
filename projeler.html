@@ -34,6 +34,7 @@
       <a class="btn btn-acc" href="proje-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Proje</a></div>
     </div>
     <div class="kpi-grid" id="prKpi"></div>
+    <div id="prKpiKapsam" hidden></div>
 
     <div class="gv-tabbar" role="tablist" aria-label="Proje görünümleri">
       <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-list" aria-hidden="true"></i>Liste</button>
@@ -97,6 +98,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -132,7 +134,8 @@
   }
 
   gvKpi('#prKpi', [
-    { ikon:'fa-diagram-project', sayi: GV.n(kaynak.filter(function(p){return p.durum==='aktif';}).length), etiket:'Aktif proje',
+    /* Panel KPI'sı ile AYNI seçici (doküman §8). */
+    { ikon:'fa-diagram-project', sayi: GV.n(GV.kpiSay('aktifProje')), etiket:'Aktif proje',
       delta:{ yon:'flat', metin: kaynak.length + ' toplam kayıt' } },
     { ikon:'fa-location-dot', sayi: GV.n(kaynak.reduce(function(t,p){return t+p.toplam;},0)), etiket:'Kapsamdaki lokasyon', ton:'info' },
     { ikon:'fa-circle-check', sayi: GV.pct((function(){
@@ -141,6 +144,9 @@
     { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,p){return t+p.gelir;},0)), etiket:'Toplam proje geliri',
       delta:{ yon:'up', metin: 'Brüt kâr ' + GV.tlKisa(kaynak.reduce(function(t,p){return t+p.gelir-p.maliyet;},0)) } }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('prKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#prKpiKapsam', { dislanan: GV.kpi('aktifProje').dislanan });
 
   var kolonlar = [
     { k:'kod', ad:'Proje', kilitli:true, ciz: function(p){

@@ -35,6 +35,7 @@
       <a class="btn btn-acc" href="kalibrasyonlar.html"><i class="fa-solid fa-vials" aria-hidden="true"></i>Kalibrasyon Kayıtları</a></div>
     </div>
     <div class="kpi-grid" id="ocKpi"></div>
+    <div id="ocKpiKapsam" hidden></div>
 
     <section class="gv-card">
       <div class="gv-listhead no-print">
@@ -83,6 +84,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -127,11 +129,15 @@
     { ikon:'fa-ruler-combined', sayi: GV.n(kaynak.length), etiket:'Kayıtlı ölçüm cihazı',
       delta:{ yon:'flat', metin: GV.n(kuruluslar().length) + ' kalibrasyon kuruluşu ile çalışılıyor' } },
     { ikon:'fa-circle-check', sayi: GV.n(kaynak.filter(function(c){ return c.durum === 'kullanimda'; }).length), etiket:'Kullanımda', ton:'ok' },
-    { ikon:'fa-hourglass-half', sayi: GV.n(kaynak.filter(function(c){ return c.kalanGun != null && c.kalanGun >= 0 && c.kalanGun <= ESIK; }).length),
-      etiket:'Kalibrasyonu ' + ESIK + ' gün içinde dolacak', ton:'warn' },
+    /* Panel KPI'sı ile AYNI seçici (doküman §8) — eşik GV.ayar'dan gelir. */
+    { ikon:'fa-hourglass-half', sayi: GV.n(GV.kpiSay('kalibrasyonUyarisi')),
+      etiket:'Kalibrasyonu ' + ESIK + ' gün içinde dolacak veya dolmuş', ton:'warn' },
     { ikon:'fa-triangle-exclamation', sayi: GV.n(kaynak.filter(function(c){ return c.gecmis; }).length),
       etiket:'Kalibrasyonu geçmiş — atanamaz', ton:'danger' }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('ocKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#ocKpiKapsam', { dislanan: GV.kpi('kalibrasyonUyarisi').dislanan });
 
   /* ================= ORTAK ROZET / AKSİYON ÜRETİCİLERİ ================= */
   function durumRozet(c){

@@ -510,6 +510,12 @@ window.demoApi = (function () {
     return gecikme({ ok: true }, 120);
   }
 
+  /* KPI kapsam filtresi silinmiş kayıtları AÇIKÇA raporlayabilsin diye
+     (doküman §8): koleksiyon(ad) silinmişleri zaten dışarıda bırakır. */
+  function silinmisSayisi(ad) {
+    return ((ortu.sil[ad] || []).length);
+  }
+
   function degisiklikSayisi() {
     var n = 0;
     Object.keys(ortu.ekle).forEach(function (k) { if (k !== 'islemKayitlari') n += ortu.ekle[k].length; });
@@ -619,6 +625,7 @@ window.demoApi = (function () {
     durumDegistir: durumDegistir,
     kayitAt: kayitAt,
     sifirla: sifirla,
+    silinmisSayisi: silinmisSayisi,
     degisiklikSayisi: degisiklikSayisi,
 
     /* arama */

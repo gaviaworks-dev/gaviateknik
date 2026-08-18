@@ -34,6 +34,7 @@
       <button class="btn btn-acc" type="button" id="thYeni"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Hakediş</button></div>
     </div>
     <div class="kpi-grid" id="thKpi"></div>
+    <div id="thKpiKapsam" hidden></div>
 
     <div class="gv-note" style="margin-bottom:20px">
       <i class="fa-solid fa-link" aria-hidden="true"></i>
@@ -75,6 +76,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -109,15 +111,18 @@
   if (taseronSuz) { var tt = A.kayit('taseronlar', taseronSuz); if (tt) GV.crumb(tt.kisaAd); }
 
   gvKpi('#thKpi', [
-    { ikon:'fa-hand-holding-dollar', sayi: GV.tlKisa(kaynak.reduce(function(t,h){ return t + h.tutar; }, 0)),
+    /* Para toplamları birim kovalarına ayrışır; panel KPI'sı ile aynı seçici. */
+    { ikon:'fa-hand-holding-dollar', sayi: GV.paraToplam(kaynak, 'tutar').metin(0),
       etiket:'Toplam hakediş', delta:{ yon:'flat', metin: kaynak.length + ' hakediş kaydı' } },
-    { ikon:'fa-circle-check', sayi: GV.tlKisa(kaynak.filter(function(h){ return h.durum === 'odemeye-uygun'; })
-        .reduce(function(t,h){ return t + h.tutar; }, 0)), etiket:'Ödemeye uygun', ton:'ok' },
-    { ikon:'fa-hourglass-half', sayi: GV.tlKisa(kaynak.filter(function(h){ return h.durum === 'musteri-tahsilati-bekleniyor'; })
-        .reduce(function(t,h){ return t + h.tutar; }, 0)), etiket:'Müşteri tahsilatı bekleyen', ton:'warn' },
-    { ikon:'fa-money-bill-transfer', sayi: GV.tlKisa(kaynak.filter(function(h){ return ['tam-odendi','kismen-odendi'].indexOf(h.durum) !== -1; })
-        .reduce(function(t,h){ return t + h.tutar; }, 0)), etiket:'Ödenen / kısmen ödenen', ton:'info' }
+    { ikon:'fa-circle-check', sayi: GV.kpiPara('odemeyeUygunHakedis').metin(0), etiket:'Ödemeye uygun / kısmen ödenen', ton:'ok' },
+    { ikon:'fa-hourglass-half', sayi: GV.paraToplam(kaynak.filter(function(h){ return h.durum === 'musteri-tahsilati-bekleniyor'; }), 'tutar').metin(0),
+      etiket:'Müşteri tahsilatı bekleyen', ton:'warn' },
+    { ikon:'fa-money-bill-transfer', sayi: GV.paraToplam(kaynak.filter(function(h){ return h.durum === 'tam-odendi'; }), 'tutar').metin(0),
+      etiket:'Tam ödenen', ton:'info' }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('thKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#thKpiKapsam', { dislanan: GV.kpi('odemeyeUygunHakedis').dislanan });
 
   var kolonlar = [
     { k:'no', ad:'Hakediş No', kilitli:true, ciz: function(h){

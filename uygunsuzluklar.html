@@ -34,6 +34,7 @@
       <button class="btn btn-acc" type="button" id="uyBildir"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button></div>
     </div>
     <div class="kpi-grid" id="uyKpi"></div>
+    <div id="uyKpiKapsam" hidden></div>
 
     <div class="gv-tabbar" role="tablist" aria-label="Uygunsuzluk görünümleri">
       <button class="gv-tab" role="tab" id="tbL" aria-controls="pnL" aria-selected="true"><i class="fa-solid fa-list" aria-hidden="true"></i>Liste</button>
@@ -97,6 +98,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -142,14 +144,18 @@
   if (raporSuz) { var rr = A.rapor(raporSuz); if (rr) GV.crumb(rr.no); }
 
   gvKpi('#uyKpi', [
-    { ikon:'fa-circle-exclamation', sayi: GV.n(kaynak.filter(function(u){ return u.durum !== 'kapandi'; }).length), etiket:'Açık uygunsuzluk',
+    /* Panel hızlı özeti ile AYNI seçici (doküman §8). */
+    { ikon:'fa-circle-exclamation', sayi: GV.n(GV.kpiSay('acikUygunsuzluk')), etiket:'Açık uygunsuzluk',
       delta:{ yon:'flat', metin: kaynak.filter(function(u){ return u.durum === 'kapandi'; }).length + ' kapandı' } },
     { ikon:'fa-fire', sayi: GV.n(kaynak.filter(function(u){ return u.onem === 'kritik' && u.durum !== 'kapandi'; }).length),
       etiket:'Açık kritik uygunsuzluk', ton:'danger' },
-    { ikon:'fa-clock', sayi: GV.n(kaynak.filter(function(u){ return u.gecikmisMi; }).length), etiket:'Termini geçen', ton:'danger' },
+    { ikon:'fa-clock', sayi: GV.n(GV.kpiSay('gecikmisUygunsuzluk')), etiket:'Termini geçen', ton:'danger' },
     { ikon:'fa-rotate-right', sayi: GV.n(kaynak.filter(function(u){ return u.yenidenKontrol === 'gerekli'; }).length),
       etiket:'Yeniden kontrol gerekli', ton:'warn' }
   ]);
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('uyKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#uyKpiKapsam', { dislanan: GV.kpi('acikUygunsuzluk').dislanan });
 
   var kolonlar = [
     { k:'baslik', ad:'Uygunsuzluk', kilitli:true, ciz: function(u){

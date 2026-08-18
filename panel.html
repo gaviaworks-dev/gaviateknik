@@ -97,6 +97,7 @@
     </div>
 
     <div class="kpi-grid" id="pnlKpi"></div>
+    <div id="pnlKpiKapsam" hidden></div>
 
     <div class="dash-cols">
       <div class="gv-stack">
@@ -220,6 +221,7 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
 <script src="assets/js/form-controller.js"></script>
+<script src="assets/js/kpi.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -253,8 +255,12 @@
     var g = GV.gun(BUGUN, i.tarih);
     return g != null && g >= 0 && g <= 14 && i.operasyonDurum === 'planlandi';
   }).sort(function(a,b){ return a.tarih.localeCompare(b.tarih); });
-  var onayBekleyen = raporlar.filter(function(r){ return r.durum === 'teknik-incelemede'; });
-  var faturayaHazir = lokasyonlar.filter(function(l){ return A.lokasyonFaturalanabilirMi(l.id).uygun; });
+  /* Doküman §8: panel KPI'ları ve liste toplamları AYNI seçiciden gelir.
+     Kapsam (arşiv / kapsam dışı / silinmiş) tek yerde tanımlıdır. */
+  var kpiOnay        = GV.kpi('onayBekleyenRapor');
+  var kpiFaturaHazir = GV.kpi('faturayaHazirLokasyon');
+  var onayBekleyen   = kpiOnay.kayitlar;
+  var faturayaHazir  = kpiFaturaHazir.kayitlar;
 
   /* ---------- hızlı özet satırı ---------- */
   document.getElementById('pnlHizli').innerHTML = [
@@ -262,39 +268,45 @@
     { i:'fa-stamp', b: onayBekleyen.length, e:'rapor onayı bekliyor', h:'rapor-onaylari.html' },
     { i:'fa-calendar-days', b: yaklasan.length, e:'yaklaşan kontrol (14 gün)', h:'planlama.html' },
     { i:'fa-file-invoice-dollar', b: faturayaHazir.length, e:'iş faturaya hazır', h:'fatura-gruplari.html' },
-    { i:'fa-triangle-exclamation', b: uygunsuzluklar.filter(function(u){return u.durum==='gecikti';}).length, e:'gecikmiş uygunsuzluk', h:'uygunsuzluklar.html', uyari:true }
+    { i:'fa-triangle-exclamation', b: GV.kpiSay('gecikmisUygunsuzluk'), e:'gecikmiş uygunsuzluk', h:'uygunsuzluklar.html', uyari:true }
   ].map(function(q){
     return '<a href="' + q.h + '"' + (q.uyari && q.b ? ' class="uyari"' : '') + '><i class="fa-solid ' + q.i + '" aria-hidden="true"></i><b>' + GV.n(q.b) + '</b> ' + q.e + '</a>';
   }).join('');
 
   /* ---------- KPI kartları ---------- */
-  var aktifProje = A.liste('projeler').filter(function(p){ return p.durum === 'aktif'; });
-  var kalibUyari = cihazlar.filter(function(c){
-    var g = A.gunFarki(BUGUN, c.kalibrasyonBitis);
-    return g != null && g <= 30;
-  });
-  var bekleyenTahsilat = faturalar.reduce(function(t,f){ return t + (f.kalan || 0); }, 0);
-  var odemeyeUygun = thakedis.filter(function(t){ return t.durum === 'odemeye-uygun' || t.durum === 'kismen-odendi'; });
+  var aktifProje       = GV.kpi('aktifProje').kayitlar;
+  var kalibUyari       = GV.kpi('kalibrasyonUyarisi').kayitlar;
+  var kapsamLokasyon   = GV.kpi('projeKapsamindakiLokasyon').kayitlar;
+  var bekleyenTahsilatP = GV.kpiPara('acikFatura');
+  var vadesiGecen      = GV.kpi('vadesiGecmisFatura').kayitlar;
+  var odemeyeUygunKpi  = GV.kpi('odemeyeUygunHakedis');
+  var odemeyeUygun     = odemeyeUygunKpi.kayitlar;
+  var odemeyeUygunP    = GV.kpiPara('odemeyeUygunHakedis');
+  var bekleyenTahsilat = GV.kurus.tl((bekleyenTahsilatP.tek() || { kurus: 0 }).kurus);
 
   gvKpi('#pnlKpi', [
     { ikon:'fa-diagram-project', sayi: GV.n(aktifProje.length), etiket:'Aktif proje / kampanya', link:'projeler.html',
       delta:{ yon:'up', metin: A.liste('projeler').length + ' toplam kayıt' } },
     { ikon:'fa-people-group', sayi: GV.n(sahadakiler.reduce(function(t,i){ return t + (i.ekipId||[]).length; }, 0)), etiket:'Bugün sahada olan personel', ton:'info', link:'saha-kontrol.html',
       delta:{ yon:'flat', metin: sahadakiler.length + ' lokasyonda ekip çalışıyor' } },
-    { ikon:'fa-location-dot', sayi: GV.n(lokasyonlar.filter(function(l){return l.projeId;}).length), etiket:'Proje kapsamındaki lokasyon', link:'lokasyonlar.html',
+    { ikon:'fa-location-dot', sayi: GV.n(kapsamLokasyon.length), etiket:'Proje kapsamındaki lokasyon', link:'lokasyonlar.html',
       delta:{ yon:'flat', metin: lokasyonlar.length + ' kayıt ana rehberde' } },
     { ikon:'fa-stamp', sayi: GV.n(onayBekleyen.length), etiket:'Teknik onay bekleyen rapor', ton:'warn', link:'rapor-onaylari.html',
       delta:{ yon: onayBekleyen.some(function(r){return r.slaDurum==='asildi';}) ? 'down' : 'flat',
               metin: onayBekleyen.filter(function(r){return r.slaDurum==='asildi';}).length + ' tanesinde SLA aşıldı' } },
     { ikon:'fa-file-circle-check', sayi: GV.n(faturayaHazir.length), etiket:'Faturaya hazır lokasyon', ton:'ok', link:'fatura-gruplari.html',
       delta:{ yon:'up', metin: gruplar.length + ' aktif fatura grubu' } },
-    { ikon:'fa-money-bill-wave', sayi: GV.tlKisa(bekleyenTahsilat), etiket:'Bekleyen tahsilat', ton: bekleyenTahsilat > 300000 ? 'danger':'info', link:'tahsilatlar.html',
-      delta:{ yon:'down', metin: faturalar.filter(function(f){return f.tahsilatDurum==='vadesi-gecti';}).length + ' fatura vadesi geçti' } },
-    { ikon:'fa-handshake-angle', sayi: GV.tlKisa(odemeyeUygun.reduce(function(t,x){return t+x.tutar;},0)), etiket:'Ödemeye uygun taşeron hakedişi', link:'taseron-hakedisleri.html',
+    { ikon:'fa-money-bill-wave', sayi: bekleyenTahsilatP.metin(0), etiket:'Bekleyen tahsilat', ton: bekleyenTahsilat > 300000 ? 'danger':'info', link:'tahsilatlar.html',
+      delta:{ yon:'down', metin: vadesiGecen.length + ' fatura vadesi geçti' } },
+    { ikon:'fa-handshake-angle', sayi: odemeyeUygunP.metin(0), etiket:'Ödemeye uygun taşeron hakedişi', link:'taseron-hakedisleri.html',
       delta:{ yon:'flat', metin: odemeyeUygun.length + ' hakediş kaydı' } },
-    { ikon:'fa-vials', sayi: GV.n(kalibUyari.length), etiket:'Kalibrasyon uyarısı', ton: kalibUyari.some(function(c){return A.gunFarki(BUGUN,c.kalibrasyonBitis)<0;}) ? 'danger':'warn', link:'kalibrasyonlar.html',
+    { ikon:'fa-vials', sayi: GV.n(kalibUyari.length), etiket:'Kalibrasyon uyarısı', ton: kalibUyari.some(function(c){return GV.saat.gecikmisMi(c.kalibrasyonBitis);}) ? 'danger':'warn', link:'kalibrasyonlar.html',
       delta:{ yon:'down', metin: cihazlar.filter(function(c){return c.durum==='kalibrasyon-gecmis';}).length + ' cihaz kullanım dışı' } }
   ]);
+
+  /* Kapsam filtresi ekranda GÖRÜNÜR olur (doküman §8). */
+  document.getElementById('pnlKpiKapsam').hidden = false;
+  GV.kpiKapsamNotu('#pnlKpiKapsam', { dislanan: kpiOnay.dislanan });
 
   /* ---------- bugün aksiyon gerektirenler ---------- */
   var aksiyonlar = [];
