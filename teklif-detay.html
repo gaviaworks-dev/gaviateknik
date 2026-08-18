@@ -100,7 +100,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'TKL-2026-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'teklifler.html', listeEtiket:'Teklifler' });
+  if (!id) return;
   var t = A.kayit('teklifler', id);
   if (!t) { gvNotFound({ kod:id, listeHref:'teklifler.html', listeEtiket:'Teklifler' }); return; }
   GV.crumb(t.no);

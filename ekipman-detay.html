@@ -116,7 +116,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'EKP-0001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'ekipmanlar.html', listeEtiket:'Ekipman listesi' });
+  if (!id) return;
   var e = A.ekipman(id);
   if (!e) { gvNotFound({ kod:id, listeHref:'ekipmanlar.html', listeEtiket:'Ekipman listesi' }); return; }
   GV.crumb(e.kod);

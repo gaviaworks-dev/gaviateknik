@@ -113,7 +113,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'SZL-2026-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'sozlesmeler.html', listeEtiket:'Sözleşmeler' });
+  if (!id) return;
   var s = A.kayit('sozlesmeler', id);
   if (!s) { gvNotFound({ kod:id, listeHref:'sozlesmeler.html', listeEtiket:'Sözleşmeler' }); return; }
   GV.crumb(s.no);

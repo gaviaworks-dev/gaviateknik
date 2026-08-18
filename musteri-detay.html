@@ -158,7 +158,9 @@
 <script>
 (function(){
   var A = window.demoApi;
-  var id = GV.q('id') || 'MST-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'musteriler.html', listeEtiket:'Müşteri listesi' });
+  if (!id) return;
   var m = A.kayit('musteriler', id);
   if (!m) { gvNotFound({ kod:id, listeHref:'musteriler.html', listeEtiket:'Müşteri listesi' }); return; }
   GV.crumb(m.kisaAd);

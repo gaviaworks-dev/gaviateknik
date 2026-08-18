@@ -135,7 +135,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'PRS-007';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'personeller.html', listeEtiket:'Personeller' });
+  if (!id) return;
   var p = A.kayit('personeller', id);
   if (!p) { gvNotFound({ kod:id, listeHref:'personeller.html', listeEtiket:'Personeller' }); return; }
   GV.crumb(p.ad);

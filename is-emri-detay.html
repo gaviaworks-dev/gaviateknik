@@ -162,7 +162,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'IE-2026-0011';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'is-emirleri.html', listeEtiket:'İş emirleri' });
+  if (!id) return;
   var ie = A.isEmri(id);
   if (!ie) { gvNotFound({ kod:id, listeHref:'is-emirleri.html', listeEtiket:'İş emirleri' }); return; }
   GV.crumb(ie.id);

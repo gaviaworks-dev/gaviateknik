@@ -136,7 +136,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'TSR-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'taseronlar.html', listeEtiket:'Taşeronlar' });
+  if (!id) return;
   var t = A.kayit('taseronlar', id);
   if (!t) { gvNotFound({ kod:id, listeHref:'taseronlar.html', listeEtiket:'Taşeronlar' }); return; }
   GV.crumb(t.kisaAd);

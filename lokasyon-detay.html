@@ -167,7 +167,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'LOK-0101';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'lokasyonlar.html', listeEtiket:'Lokasyon listesi' });
+  if (!id) return;
   var l = A.lokasyon(id);
   if (!l) { gvNotFound({ kod:id, listeHref:'lokasyonlar.html', listeEtiket:'Lokasyon listesi' }); return; }
   GV.crumb(l.kod);

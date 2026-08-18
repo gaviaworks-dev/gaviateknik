@@ -113,7 +113,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'UYG-2026-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'uygunsuzluklar.html', listeEtiket:'Uygunsuzluklar' });
+  if (!id) return;
   var u = A.kayit('uygunsuzluklar', id);
   if (!u) { gvNotFound({ kod:id, listeHref:'uygunsuzluklar.html', listeEtiket:'Uygunsuzluklar' }); return; }
   GV.crumb(u.id);

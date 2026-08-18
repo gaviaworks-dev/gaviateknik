@@ -105,7 +105,9 @@
 <script>
 (function(){
   var A = window.demoApi;
-  var id = GV.q('id') || 'HZM-KLD-001-D';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'hizmet-katalogu.html', listeEtiket:'Hizmet kataloğu' });
+  if (!id) return;
   var h = A.kayit('hizmetler', id);
   if (!h) { gvNotFound({ kod:id, listeHref:'hizmet-katalogu.html', listeEtiket:'Hizmet kataloğu' }); return; }
   GV.crumb(h.poz);

@@ -107,7 +107,9 @@
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
   var ESIK = GV.ayar('kalibrasyonEsik');  /* Ayarlar > Operasyon Ayarları'ndan gelir */
-  var id = GV.q('id') || 'CHZ-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'olcum-cihazlari.html', listeEtiket:'Ölçüm cihazları' });
+  if (!id) return;
   var c = A.kayit('olcumCihazlari', id);
   if (!c) { gvNotFound({ kod:id, listeHref:'olcum-cihazlari.html', listeEtiket:'Ölçüm cihazları' }); return; }
   GV.crumb(c.kod);

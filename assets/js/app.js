@@ -322,28 +322,94 @@
     });
   };
 
-  /* ================= KAYIT BULUNAMADI ================= */
-  window.gvNotFound = function (secenek) {
-    secenek = secenek || {};
+  /* ================= ROUTE KAYIT SEÇİMİ =================
+     Doküman §8 "Route ve kayıt seçimi":
+       · Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayıt kullanılmaz.
+       · Eksik id  → "Kayıt seçilmedi" ekranı (listeye dönüş aksiyonuyla).
+       · Geçersiz id → "Kayıt bulunamadı"; geri dön ve arama aksiyonu.
+       · Yetkisiz id → kaydın varlığını ifşa etmeyen aynı ekran.
+     Sayfa: `var id = GV.kayitId({...}); if (!id) return;` */
+
+  /* Ana bölgeyi boşaltıp (kırıntıyı koruyarak) tek bir durum kartı basar. */
+  function anaBolgeyeBas(html) {
     var ana = document.querySelector('main.gv-main');
-    if (!ana) return;
+    if (!ana) return null;
     var kirintilar = ana.querySelector('.gv-crumbs');
     ana.innerHTML = '';
     if (kirintilar) ana.appendChild(kirintilar);
     var d = document.createElement('div');
     d.className = 'gv-card gv-notfound';
-    d.innerHTML =
+    d.innerHTML = html;
+    ana.appendChild(d);
+    return d;
+  }
+
+  function listeBaglantisi(secenek) {
+    var href = secenek.listeHref || 'panel.html';
+    return GV.href ? GV.href(href) : href;
+  }
+
+  window.gvKayitSecilmedi = function (secenek) {
+    secenek = secenek || {};
+    anaBolgeyeBas(
+      '<div class="nf-ico"><i class="fa-solid fa-hand-pointer" aria-hidden="true"></i></div>'
+    + '<h2>Kayıt seçilmedi</h2>'
+    + '<p>Bu ekran tek bir kaydın ayrıntısını gösterir. Adres satırında kayıt '
+    + 'numarası yok. Listeden bir kayıt seçerek devam edin.</p>'
+    + '<div class="nf-acts">'
+    +   '<a class="btn btn-acc" href="' + listeBaglantisi(secenek) + '">'
+    +     '<i class="fa-solid fa-list" aria-hidden="true"></i>' + GV.esc(secenek.listeEtiket || 'Listeye dön') + '</a>'
+    +   '<button class="btn btn-ghost" type="button" data-gv-geri>'
+    +     '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Geri dön</button>'
+    + '</div>');
+  };
+
+  /**
+   * Detay sayfasının kayıt numarasını verir. Eksikse "Kayıt seçilmedi"
+   * ekranını basar ve null döner — ASLA ilk kayda düşmez.
+   * @returns {string|null}
+   */
+  GV.kayitId = function (secenek) {
+    var id = GV.q('id');
+    if (id) return id;
+    window.gvKayitSecilmedi(secenek);
+    return null;
+  };
+
+  /* ================= KAYIT BULUNAMADI ================= */
+  window.gvNotFound = function (secenek) {
+    secenek = secenek || {};
+    /* Metin, kaydın var olup olmadığını İFŞA ETMEZ: yetkisiz erişim ile
+       gerçekten olmayan kayıt aynı ekranı görür (doküman §8). */
+    anaBolgeyeBas(
       '<div class="nf-ico"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div>'
     + '<h2>Kayıt bulunamadı</h2>'
     + '<p>' + (secenek.kod ? '<span class="nf-code">' + GV.esc(secenek.kod) + '</span> kodlu kayıt ' : 'Aradığınız kayıt ')
     + 'sistemde yok veya erişim kapsamınızın dışında. Bağlantı eski olabilir.</p>'
     + '<div class="nf-acts">'
-    +   '<a class="btn btn-acc" href="' + (GV.href ? GV.href(secenek.listeHref || 'panel.html') : (secenek.listeHref || 'panel.html')) + '">'
+    +   '<a class="btn btn-acc" href="' + listeBaglantisi(secenek) + '">'
     +     '<i class="fa-solid fa-list" aria-hidden="true"></i>' + GV.esc(secenek.listeEtiket || 'Listeye dön') + '</a>'
-    +   '<a class="btn btn-ghost" href="' + (GV.href ? GV.href('panel.html') : 'panel.html') + '"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i>Ana panel</a>'
-    + '</div>';
-    ana.appendChild(d);
+    +   '<button class="btn btn-ghost" type="button" data-gv-ara>'
+    +     '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>Aramada dene</button>'
+    +   '<button class="btn btn-ghost" type="button" data-gv-geri>'
+    +     '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Geri dön</button>'
+    + '</div>');
   };
+
+  /* Durum kartlarındaki geri / arama aksiyonları */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-gv-geri]')) {
+      e.preventDefault();
+      if (history.length > 1) history.back(); else location.href = GV.href ? GV.href('panel.html') : 'panel.html';
+      return;
+    }
+    if (e.target.closest('[data-gv-ara]')) {
+      e.preventDefault();
+      var ara = document.getElementById('gvSearchInput');
+      if (ara) { ara.focus(); ara.select(); }
+      else location.href = GV.href ? GV.href('panel.html') : 'panel.html';
+    }
+  });
 
   /* ================= YAZDIRMA ================= */
   GV.yazdir = function () { window.print(); };

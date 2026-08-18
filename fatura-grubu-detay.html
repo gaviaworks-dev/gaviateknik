@@ -96,7 +96,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'FGR-2026-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'fatura-gruplari.html', listeEtiket:'Fatura grupları' });
+  if (!id) return;
   var g = A.kayit('faturaGruplari', id);
   if (!g) { gvNotFound({ kod:id, listeHref:'fatura-gruplari.html', listeEtiket:'Fatura grupları' }); return; }
   GV.crumb(g.no);

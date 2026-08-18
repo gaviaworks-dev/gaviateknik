@@ -161,7 +161,9 @@
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
-  var id = GV.q('id') || 'PRJ-2026-001';
+  /* Detay route'unda id ZORUNLUDUR; eksik id'de ilk kayda düşülmez. */
+  var id = GV.kayitId({ listeHref:'projeler.html', listeEtiket:'Proje listesi' });
+  if (!id) return;
   var p = A.kayit('projeler', id);
   if (!p) { gvNotFound({ kod:id, listeHref:'projeler.html', listeEtiket:'Proje listesi' }); return; }
   GV.crumb(p.kod);
