@@ -402,16 +402,14 @@
       + grup('Uygunsuzluklar', A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi'; }),
           function(){ return 'Uygunsuzluk'; }, function(u){ return u.baslik; });
 
-    gvModal({
+    gvModalForm({
       baslik:'Yeni düzeltici faaliyet', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
       metin:'DÖF kaydı bir kaynağa bağlanır; kaynak kaydı üzerinden izlenebilirlik sağlanır.',
       govde:'<div class="gform">'
-        + '<div class="gfield full" id="ynKaynakF"><label for="ynKaynak">Kaynak kaydı *</label>'
-        + '<select id="ynKaynak"><option value="">Seçiniz…</option>' + secenekHtml + '</select>'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Kaynak kaydı seçilmelidir.</div></div>'
-        + '<div class="gfield full" id="ynBaslikF"><label for="ynBaslik">Faaliyet başlığı *</label>'
-        + '<input type="text" id="ynBaslik" placeholder="Faaliyetin kısa tanımı">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Başlık zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="ynKaynak">Kaynak kaydı *</label>'
+        + '<select id="ynKaynak"><option value="">Seçiniz…</option>' + secenekHtml + '</select></div>'
+        + '<div class="gfield full"><label for="ynBaslik">Faaliyet başlığı *</label>'
+        + '<input type="text" id="ynBaslik" placeholder="Faaliyetin kısa tanımı"></div>'
         + '<div class="gfield full"><label for="ynAciklama">Açıklama</label>'
         + '<textarea id="ynAciklama" placeholder="Tespitin ayrıntısı"></textarea></div>'
         + '<div class="gfield full"><label for="ynKok">Kök neden</label>'
@@ -435,29 +433,34 @@
           }
         });
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var sec = kap.querySelector('#ynKaynak');
-            var baslik = kap.querySelector('#ynBaslik').value.trim();
-            kap.querySelector('#ynKaynakF').classList.toggle('is-err', !sec.value);
-            kap.querySelector('#ynBaslikF').classList.toggle('is-err', !baslik);
-            if (!sec.value) { sec.focus(); return false; }
-            if (!baslik) { kap.querySelector('#ynBaslik').focus(); return false; }
-            var kaynakAd = sec.options[sec.selectedIndex].getAttribute('data-kaynak');
-            A.ekle('duzelticiFaaliyetler', {
-              id: yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3),
-              kaynak: kaynakAd, kaynakId: sec.value, baslik: baslik,
-              aciklama: kap.querySelector('#ynAciklama').value.trim() || baslik,
-              kokNeden: kap.querySelector('#ynKok').value.trim() || 'Kök neden analizi yapılacak.',
-              faaliyet: kap.querySelector('#ynFaaliyet').value.trim() || 'Faaliyet planı hazırlanacak.',
-              sorumluId: kap.querySelector('#ynSorumlu').value, acilis: BUGUN,
-              termin: kap.querySelector('#ynTermin').value || null,
-              kapanis: null, durum:'acik', etkinlik: null
-            }).then(function(){
-              gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        ynKaynak:   { etiket:'Kaynak kaydı', zorunlu:true },
+        ynBaslik:   { etiket:'Faaliyet başlığı', zorunlu:true, enAz:5, enCok:160 },
+        ynAciklama: { etiket:'Açıklama', enCok:800 },
+        ynKok:      { etiket:'Kök neden', enCok:800 },
+        ynFaaliyet: { etiket:'Planlanan faaliyet', enCok:800 },
+        ynSorumlu:  { etiket:'Sorumlu', zorunlu:true },
+        ynTermin:   { etiket:'Termin', tur:'tarih', enAz: BUGUN }
+      },
+      ad:'OpenCorrectiveAction',
+      onayEtiket:'DÖF Aç', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var sec = yardim.kap.querySelector('#ynKaynak');
+        var kaynakAd = sec.options[sec.selectedIndex].getAttribute('data-kaynak');
+        return A.ekle('duzelticiFaaliyetler', {
+          id: yeniKod('duzelticiFaaliyetler', 'DOF-2026'),
+          kaynak: kaynakAd, kaynakId: v.ynKaynak, baslik: v.ynBaslik,
+          aciklama: v.ynAciklama || v.ynBaslik,
+          kokNeden: v.ynKok || 'Kök neden analizi yapılacak.',
+          faaliyet: v.ynFaaliyet || 'Faaliyet planı hazırlanacak.',
+          sorumluId: v.ynSorumlu, acilis: BUGUN,
+          termin: v.ynTermin || null,
+          kapanis: null, durum:'acik', etkinlik: null
+        }).then(function(){
+          gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   });
 

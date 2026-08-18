@@ -432,7 +432,7 @@
   });
 
   document.getElementById('fgYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni fatura grubu', ikon:'fa-plus',
       metin:'Parti büyüklüğü sözleşmeden gelir; gerekirse bu grup için değiştirebilirsiniz.',
       govde:'<div class="gform">'
@@ -451,23 +451,28 @@
         kap.querySelector('#fyProje').addEventListener('change', guncelle);
         guncelle();
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#fyAd').value.trim();
-            if (!ad) { gvToast('Grup adı zorunludur.', { ton:'danger' }); return false; }
-            var o = kap.querySelector('#fyProje').selectedOptions[0];
-            var no = GV.yeniKod('FGR-2026-Y');
-            A.ekle('faturaGruplari', {
-              id: no, no: no, projeId: kap.querySelector('#fyProje').value,
-              musteriId: o.getAttribute('data-musteri'), ad: ad,
-              hedefParti: Number(kap.querySelector('#fyHedef').value),
-              lokasyonlar: [], acilis: kap.querySelector('#fyAcilis').value || BUGUN,
-              durum:'doluyor', faturaIds: [], not:'Yeni açılan fatura grubu.'
-            }).then(function(){
-              gvToast('Fatura grubu oluşturuldu.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        fyProje:  { etiket:'Proje', zorunlu:true },
+        fyAd:     { etiket:'Grup adı', zorunlu:true, enAz:3, enCok:120 },
+        fyHedef:  { etiket:'Hedef parti büyüklüğü', tur:'sayi', zorunlu:true, enAz:1, enCok:200 },
+        fyAcilis: { etiket:'Açılış tarihi', tur:'tarih', zorunlu:true }
+      },
+      ad:'CreateInvoiceGroup',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var o = yardim.kap.querySelector('#fyProje').selectedOptions[0];
+        var no = GV.yeniKod('FGR-2026-Y');
+        return A.ekle('faturaGruplari', {
+          id: no, no: no, projeId: v.fyProje,
+          musteriId: o.getAttribute('data-musteri'), ad: v.fyAd,
+          hedefParti: Number(v.fyHedef),
+          lokasyonlar: [], acilis: v.fyAcilis || BUGUN,
+          durum:'doluyor', faturaIds: [], not:'Yeni açılan fatura grubu.'
+        }).then(function(){
+          gvToast('Fatura grubu oluşturuldu.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();

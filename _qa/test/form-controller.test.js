@@ -327,7 +327,9 @@ const MODAL_SAYFALAR = [
   'denetimler.html', 'musteri-sikayetleri.html', 'iletisim-kisileri.html',
   'kalite-dokumanlari.html', 'personel-detay.html', 'personeller.html',
   'portal-faturalar.html', 'portal-raporlar.html', 'portal-lokasyonlar.html',
-  'musteri-portali.html', 'rapor-detay.html', 'sozlesmeler.html'
+  'musteri-portali.html', 'rapor-detay.html', 'sozlesmeler.html',
+  'taseron-hakedisleri.html', 'yeniden-kontroller.html', 'cihaz-detay.html',
+  'duzeltici-faaliyetler.html', 'eksik-ekipmanlar.html', 'fatura-gruplari.html'
 ];
 
 test('migrate edilen modal formlar gvModalForm kullanıyor', () => {

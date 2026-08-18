@@ -281,7 +281,7 @@
       return;
     }
     var azami = kural.odenebilirTutar || h.tutar;
-    gvModal({
+    gvModalForm({
       baslik:'Taşeron ödeme onayı', ikon:'fa-money-bill-transfer',
       metin:'<b>' + GV.esc(h.no) + '</b> · ' + GV.esc(t ? t.kisaAd : '') + ' · hakediş tutarı <b>' + GV.tl(h.tutar) + '</b>'
         + (kural.kismi ? '<br><span style="color:var(--warning)">' + GV.esc(kural.uyari) + '</span>' : ''),
@@ -294,24 +294,27 @@
         + '<textarea id="odAciklama" placeholder="Ödeme referansı, dekont no"></textarea></div></div>'
         + '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>'
         + '<span><b>Yetkili onayı:</b> Bu işlem gerçek ödeme talimatı oluşturur ve işlem geçmişine kaydedilir.</span></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Ödemeyi Onayla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var tutar = Number(kap.querySelector('#odTutar').value || 0);
-            if (tutar <= 0 || tutar > azami) {
-              gvToast('Ödeme tutarı 1 ile ' + GV.tl(azami) + ' arasında olmalıdır.', { ton:'danger' }); return false;
-            }
-            var tam = tutar >= h.tutar;
-            GV.gecisUygula('taseronOdeme', 'taseronHakedisleri', hid, tam ? 'tam-odendi' : 'kismen-odendi', {
-              not: kap.querySelector('#odAciklama').value || 'Ödeme onaylandı.',
-              ekYama: { odemeTarihi: kap.querySelector('#odTarih').value || BUGUN }
-            }).then(function(g){
-                if (!g.ok) return;
-                gvResult(true, { baslik: tam ? 'Ödeme tamamlandı' : 'Kısmi ödeme kaydedildi',
-                  metin: GV.tl(tutar) + ' tutarındaki ödeme onaylandı.'
-                    + (tam ? '' : ' Kalan ' + GV.tl(h.tutar - tutar) + ' sonraki ödemede işlenecek.'),
-                  butonlar:[{ etiket:'Tamam', sinif:'btn-acc', tikla: function(){ location.reload(); } }] });
-              });
-          } }]
+      sema: {
+        odTutar:    { etiket:'Ödenecek tutar', tur:'sayi', zorunlu:true, enAz:1, enCok: azami },
+        odTarih:    { etiket:'Ödeme tarihi', tur:'tarih', zorunlu:true },
+        odAciklama: { etiket:'Açıklama', enCok:400 }
+      },
+      ad:'ApproveSubcontractorPayment',
+      onayEtiket:'Ödemeyi Onayla', onayIkon:'fa-check',
+      gonder: function(v){
+        var tutar = Number(v.odTutar);
+        var tam = tutar >= h.tutar;
+        return GV.gecisUygula('taseronOdeme', 'taseronHakedisleri', hid, tam ? 'tam-odendi' : 'kismen-odendi', {
+          not: v.odAciklama || 'Ödeme onaylandı.', sessiz: true,
+          ekYama: { odemeTarihi: v.odTarih || BUGUN }
+        }).then(function(g){
+          if (!g.ok) throw new Error(g.sebep);
+          gvResult(true, { baslik: tam ? 'Ödeme tamamlandı' : 'Kısmi ödeme kaydedildi',
+            metin: GV.tl(tutar) + ' tutarındaki ödeme onaylandı.'
+              + (tam ? '' : ' Kalan ' + GV.tl(h.tutar - tutar) + ' sonraki ödemede işlenecek.'),
+            butonlar:[{ etiket:'Tamam', sinif:'btn-acc', tikla: function(){ location.reload(); } }] });
+        });
+      }
     });
   }
 
@@ -322,7 +325,7 @@
   });
 
   document.getElementById('thYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni taşeron hakedişi', ikon:'fa-plus',
       govde:'<div class="gform">'
         + '<div class="gfield"><label for="hyTaseron">Taşeron *</label><select id="hyTaseron">'
@@ -334,22 +337,29 @@
         + '<div class="gfield"><label for="hyDonem">Dönem *</label><input type="month" id="hyDonem" value="2026-08"></div>'
         + '<div class="gfield"><label for="hyTutar">Tutar (₺) *</label><input type="number" id="hyTutar" min="0" value="0"></div>'
         + '<div class="gfield full"><label for="hyNot">Not</label><textarea id="hyNot"></textarea></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var tutar = Number(kap.querySelector('#hyTutar').value || 0);
-            if (!tutar) { gvToast('Hakediş tutarı zorunludur.', { ton:'danger' }); return false; }
-            var no = GV.yeniKod('TH-2026-Y');
-            A.ekle('taseronHakedisleri', {
-              id: no, no: no, taseronId: kap.querySelector('#hyTaseron').value,
-              projeId: kap.querySelector('#hyProje').value, donem: kap.querySelector('#hyDonem').value,
-              lokasyonlar: [], isEmirleri: [], tutar: tutar, tarih: BUGUN,
-              durum:'hakedis-hazirlaniyor', odemeTarihi: null, musteriFaturaId: null,
-              not: kap.querySelector('#hyNot').value.trim() || 'Yeni oluşturulan hakediş.'
-            }).then(function(){
-              gvToast('Taşeron hakedişi oluşturuldu.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        hyTaseron: { etiket:'Taşeron', zorunlu:true },
+        hyProje:   { etiket:'Proje', zorunlu:true },
+        hyDonem:   { etiket:'Dönem', zorunlu:true,
+                     desen:/^\d{4}-(0[1-9]|1[0-2])$/, mesaj:'Dönemi YYYY-AA biçiminde seçin.' },
+        hyTutar:   { etiket:'Tutar', tur:'sayi', zorunlu:true, enAz:1 },
+        hyNot:     { etiket:'Not', enCok:400 }
+      },
+      ad:'CreateSubcontractorPayable',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v){
+        var no = GV.yeniKod('TH-2026-Y');
+        return A.ekle('taseronHakedisleri', {
+          id: no, no: no, taseronId: v.hyTaseron,
+          projeId: v.hyProje, donem: v.hyDonem,
+          lokasyonlar: [], isEmirleri: [], tutar: Number(v.hyTutar), tarih: BUGUN,
+          durum:'hakedis-hazirlaniyor', odemeTarihi: null, musteriFaturaId: null,
+          not: v.hyNot || 'Yeni oluşturulan hakediş.'
+        }).then(function(){
+          gvToast('Taşeron hakedişi oluşturuldu.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 

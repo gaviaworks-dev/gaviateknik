@@ -227,7 +227,7 @@
       b.addEventListener('click', function(){
         var e = A.kayit('eksikEkipmanlar', b.getAttribute('data-yeniden'));
         var l = A.lokasyon(e.lokasyonId);
-        gvModal({
+        gvModalForm({
           baslik:'Yeniden kontrol talebi', ikon:'fa-rotate-right',
           metin:'<b>' + GV.esc(l ? l.ad : '') + '</b> lokasyonunda gösterilemeyen ekipman için yeniden kontrol planlanacak.',
           govde:'<div class="gform">'
@@ -237,20 +237,26 @@
             + '<option value="ucretsiz">Ücretsiz (GAVIA kaynaklı)</option></select></div>'
             + '<div class="gfield full"><label for="eeAciklama">Açıklama</label><textarea id="eeAciklama">'
             + GV.esc(e.aciklama) + '</textarea></div></div>',
-          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-            { etiket:'Talep Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-                A.ekle('yenidenKontroller', {
-                  id:GV.yeniKod('YKN-E'),
-                  uygunsuzlukId:null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
-                  talepEden:'GAVIA Teknik', planTarihi: kap.querySelector('#eeTarih').value || null,
-                  durum: kap.querySelector('#eeTarih').value ? 'planlandi' : 'talep-edildi',
-                  ucretli: kap.querySelector('#eeUcret').value === 'ucretli',
-                  aciklama: kap.querySelector('#eeAciklama').value
-                }).then(function(){
-                  gvToast('Yeniden kontrol talebi oluşturuldu.', { ton:'ok' });
-                  setTimeout(function(){ location.href = GV.href('yeniden-kontroller.html'); }, 900);
-                });
-              } }]
+          sema: {
+            eeTarih:    { etiket:'Planlanan tarih', tur:'tarih', enAz: A.bugun() },
+            eeUcret:    { etiket:'Ücretlendirme', zorunlu:true },
+            eeAciklama: { etiket:'Açıklama', zorunlu:true, enAz:10, enCok:600 }
+          },
+          ad:'RequestReinspection',
+          onayEtiket:'Talep Aç', onayIkon:'fa-check',
+          gonder: function(v){
+            return A.ekle('yenidenKontroller', {
+              id:GV.yeniKod('YKN-E'),
+              uygunsuzlukId:null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
+              talepEden:'GAVIA Teknik', planTarihi: v.eeTarih || null,
+              durum: v.eeTarih ? 'planlandi' : 'talep-edildi',
+              ucretli: v.eeUcret === 'ucretli',
+              aciklama: v.eeAciklama
+            }).then(function(){
+              gvToast('Yeniden kontrol talebi oluşturuldu.', { ton:'ok' });
+              setTimeout(function(){ location.href = GV.href('yeniden-kontroller.html'); }, 900);
+            });
+          }
         });
       });
     });
