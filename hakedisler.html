@@ -66,6 +66,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -89,8 +92,25 @@
     { ikon:'fa-coins', sayi: GV.tlKisa(kaynak.reduce(function(t,h){ return t + h.tutar; }, 0)), etiket:'Toplam hakediş tutarı' }
   ]);
 
-  var tablo = gvTable({ hedef:'#hkTablo', satirId: function(h){ return h.id; },
-    kolonlar: [
+  
+
+  var liste = gvList({
+    kaynak: 'hakedisler',
+    veri: function(){ return kaynak; },
+    arama: ['no','musteriAd','projeKod','donem','not'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'hazirlaniyor', ad:'Hazırlanıyor', ikon:'fa-file-pen' },
+      { k:'onay-bekliyor', ad:'Onay bekliyor', ikon:'fa-hourglass-half' },
+      { k:'faturalandi', ad:'Faturalandı', ikon:'fa-file-invoice-dollar' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
+      { k:'donem', ad:'Dönem', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(h){ return h.donem; }))).sort()
+          .map(function(d){ return { deger:d, ad:d }; }) }
+    ],
+    tablo: { hedef: '#hkTablo',
+      satirId: function(h){ return h.id; },
+      kolonlar: [
       { k:'no', ad:'Hakediş No', ciz: function(h){
           return '<div class="gcell-info"><div class="gcell-name">' + GV.esc(h.no) + '</div>'
             + '<div class="gcell-sub">' + GV.esc(h.donem) + ' dönemi</div></div>'; } },
@@ -120,18 +140,16 @@
             + '<a class="ia-btn" href="proje-detay.html?id=' + h.projeId + '" aria-label="Projeye git">'
             + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a></div>'; } }
     ],
-    bosDurum:{ ikon:'fa-calculator', baslik:'Hakediş bulunamadı', metin:'Filtrelerinize uyan hakediş yok.' },
-    altToplam: function(v){
+      altToplam: function(v){
       return '<tr><td data-lbl="" colspan="7">Toplam</td>'
         + '<td class="num">' + GV.tl(v.reduce(function(t,h){ return t + h.tutar; }, 0)) + '</td>'
         + '<td colspan="3"></td></tr>';
-    } });
-
-  var pager = gvPager({ hedef:'#hkPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-onay]').forEach(function(b){
+    } },
+    pager: { hedef: '#hkPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-calculator', baslik:'Hakediş bulunamadı', metin:'Filtrelerinize uyan hakediş yok.' },
+    bosDurum: { ikon:'fa-calculator', baslik:'Müşteri Hakedişleri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-onay]').forEach(function(b){
       b.addEventListener('click', function(){
         var h = A.kayit('hakedisler', b.getAttribute('data-onay'));
         gvConfirm({ baslik:'Hakediş onaylansın mı?',
@@ -147,26 +165,16 @@
         });
       });
     });
-  }
-
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','musteriAd','projeKod','donem','not'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'hazirlaniyor', ad:'Hazırlanıyor', ikon:'fa-file-pen' },
-      { k:'onay-bekliyor', ad:'Onay bekliyor', ikon:'fa-hourglass-half' },
-      { k:'faturalandi', ad:'Faturalandı', ikon:'fa-file-invoice-dollar' }] },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
-      { k:'donem', ad:'Dönem', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(h){ return h.donem; }))).sort()
-          .map(function(d){ return { deger:d, ad:d }; }) }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    }
   });
+  
+
+
+
+  
 
   document.getElementById('hkDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'hakedisler', modul:'Hakediş' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'hakedisler', modul:'Hakediş' });
   });
   document.getElementById('hkYeni').addEventListener('click', function(){
     gvModal({

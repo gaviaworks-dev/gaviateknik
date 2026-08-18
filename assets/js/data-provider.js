@@ -271,6 +271,22 @@
   }
 
   /**
+   * Toplama sorgusu — listenin sayfası değil, süzülmüş kümenin TAMAMI üzerinden
+   * hesap yapar (KPI, dağılım grafiği, toplam tutar). Gerçek backend'de ayrı bir
+   * aggregate uç noktasına karşılık gelir; UI'ya dizi DEĞİL, hesabın sonucu döner.
+   * @param {string} resource
+   * @param {ListQuery} query
+   * @param {(kayitlar:Array<Object>)=>*} hesap
+   * @returns {Promise<*>}
+   */
+  function ozet(resource, query, hesap) {
+    var sorgu = GV.sorguNormalize(query);
+    var tanim = tanimCoz(resource);
+    var kaynak = kapsamUygula(kaynakOku(resource, tanim), tanim);
+    return Promise.resolve(hesap(kaynak.filter(yuklem(tanim, sorgu))));
+  }
+
+  /**
    * @param {string} resource
    * @param {string} id
    * @returns {Promise<Object|null>}
@@ -328,6 +344,7 @@
   var saglayici = {
     list: list,
     get: get,
+    ozet: ozet,
     command: command,
     /* mock katmanı uzantıları */
     tanimla: tanimla,

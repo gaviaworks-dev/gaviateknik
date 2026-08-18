@@ -108,6 +108,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -263,20 +266,43 @@
           : '<span class="muted">' + GV.bos + '</span>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ikTablo', kolonlar:kolonlar, satirId: function(k){ return k.id; },
-    bosDurum:{ ikon:'fa-clock-rotate-left', baslik:'İşlem kaydı bulunamadı',
-      metin:'Filtrelerinize uyan denetim izi kaydı yok. Tarih aralığını genişletip yeniden deneyin.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'islem-kayitlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ikPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
+  gvCols({ tetik:'#gvColsBtn', anahtar:'islem-kayitlari', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'islem_kayitlari',
+    veri: function(){ return kaynak; },
+    arama: ['id','kayit','modulAd','kullaniciAd','rolAd','islemAd','onceki','yeni','aciklama','ip'],
+    cipler: {
+      secenekler: CIP_TURLERI.map(function(t){
+        return { k:t, ad: ISLEM[t][2], ikon: ISLEM[t][1] };
+      }).concat([{ k:'__diger', ad:'Diğer', ikon:'fa-ellipsis' }]),
+      suz: function(k, cip){
+        if (cip === '__diger') return CIP_TURLERI.indexOf(k.islem) === -1;
+        return k.islem === cip;
+      }
+    },
+    alanlar: [
+      { k:'modulAd', ad:'Modül', tur:'coklu', secenekler: modulSecenekleri },
+      { k:'rolAd', ad:'Rol', tur:'coklu', secenekler: rolSecenekleri },
+      { k:'kullaniciAnahtar', ad:'Kullanıcı', tur:'secim', secenekler: kullaniciSecenekleri },
+      { k:'tarih', ad:'İşlem tarihi', tur:'tarih' }
+    ],
+    tablo: { hedef: '#ikTablo',
+      kolonlar: kolonlar,
+      satirId: function(k){ return k.id; } },
+    pager: { hedef: '#ikPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-clock-rotate-left', baslik:'İşlem kaydı bulunamadı',
+      metin:'Filtrelerinize uyan denetim izi kaydı yok. Tarih aralığını genişletip yeniden deneyin.' },
+    bosDurum: { ikon:'fa-clock-rotate-left', baslik:'İşlem Kayıtları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    ozet: function(v){
+      dagilim(v);
+    }
+  });
+  
 
-  function ciz(v){
-    son = v;
-    pager.ayarla(v.length);
-    tablo.ciz(pager.dilim(v));
-    dagilim(v);
-  }
+
+
 
   /* ---------- dağılım grafikleri ---------- */
   var TONLAR = ['acc','info','warn','danger','mor','turuncu','ok','gri'];
@@ -352,30 +378,11 @@
   });
   kullaniciSecenekleri.sort(function(a,b){ return a.ad.localeCompare(b.ad, 'tr'); });
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','kayit','modulAd','kullaniciAd','rolAd','islemAd','onceki','yeni','aciklama','ip'],
-    cipler: {
-      secenekler: CIP_TURLERI.map(function(t){
-        return { k:t, ad: ISLEM[t][2], ikon: ISLEM[t][1] };
-      }).concat([{ k:'__diger', ad:'Diğer', ikon:'fa-ellipsis' }]),
-      suz: function(k, cip){
-        if (cip === '__diger') return CIP_TURLERI.indexOf(k.islem) === -1;
-        return k.islem === cip;
-      }
-    },
-    alanlar: [
-      { k:'modulAd', ad:'Modül', tur:'coklu', secenekler: modulSecenekleri },
-      { k:'rolAd', ad:'Rol', tur:'coklu', secenekler: rolSecenekleri },
-      { k:'kullaniciAnahtar', ad:'Kullanıcı', tur:'secim', secenekler: kullaniciSecenekleri },
-      { k:'tarih', ad:'İşlem tarihi', tur:'tarih' }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* ---------- dışa aktarım ---------- */
   document.getElementById('ikDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'islem-kayitlari', modul:'İşlem Kaydı' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'islem-kayitlari', modul:'İşlem Kaydı' });
   });
 })();
 </script>

@@ -89,6 +89,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -162,10 +165,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#eeTablo', kolonlar:kolonlar, secim:true, satirId: function(e){ return e.id; },
-    bosDurum:{ ikon:'fa-circle-check', baslik:'Fark kaydı yok',
-      metin:'Planlanan ile sahada bulunan miktarlar arasında kayda alınmış fark bulunmuyor.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#eeBulk', aksiyonlar:[
     { etiket:'Müşteriye bildir', ikon:'fa-paper-plane', tikla: function(s){ bildirimGonder(s); } },
@@ -193,12 +193,33 @@
         GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'eksik-ekipmanlar', modul:'Eksik Ekipman' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'eksik-ekipmanlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#eePager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-yeniden]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'eksik-ekipmanlar', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'eksik_ekipmanlar',
+    veri: function(){ return kaynak; },
+    arama: ['lokasyonAd','musteriAd','hizmetAd','poz','aciklama'],
+    cipler: { alan:'tur', secenekler: Object.keys(turBilgi).map(function(k){
+      return { k:k, ad:turBilgi[k][2], ikon:turBilgi[k][1] }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'lokasyonId', ad:'Lokasyon', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(e){ return e.lokasyonId; })))
+          .map(function(lid){ var l = A.lokasyon(lid); return { deger:lid, ad: l ? l.ad : lid }; }) },
+      { k:'durum', ad:'Kayıt durumu', tur:'coklu', secenekler:[
+        { deger:'musteri-bildirildi', ad:'Müşteriye bildirildi' }, { deger:'mutabakatta', ad:'Mutabakatta' },
+        { deger:'musteri-onayladi', ad:'Müşteri onayladı' }, { deger:'yeniden-kontrol-bekliyor', ad:'Yeniden kontrol bekliyor' }] },
+      { k:'miktar', ad:'Miktar', tur:'aralik' }
+    ],
+    tablo: { hedef: '#eeTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(e){ return e.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#eePager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-circle-check', baslik:'Fark kaydı yok',
+      metin:'Planlanan ile sahada bulunan miktarlar arasında kayda alınmış fark bulunmuyor.' },
+    bosDurum: { ikon:'fa-circle-check', baslik:'Eksik ve Gösterilmeyen Ekipmanlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-yeniden]').forEach(function(b){
       b.addEventListener('click', function(){
         var e = A.kayit('eksikEkipmanlar', b.getAttribute('data-yeniden'));
         var l = A.lokasyon(e.lokasyonId);
@@ -229,7 +250,11 @@
         });
       });
     });
-  }
+    }
+  });
+  
+
+
 
   function bildirimGonder(idler){
     var kayitlar = idler.map(function(i){ return A.kayit('eksikEkipmanlar', i); }).filter(Boolean);
@@ -272,25 +297,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['lokasyonAd','musteriAd','hizmetAd','poz','aciklama'],
-    cipler: { alan:'tur', secenekler: Object.keys(turBilgi).map(function(k){
-      return { k:k, ad:turBilgi[k][2], ikon:turBilgi[k][1] }; }) },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'lokasyonId', ad:'Lokasyon', tur:'coklu', secenekler: Array.from(new Set(kaynak.map(function(e){ return e.lokasyonId; })))
-          .map(function(lid){ var l = A.lokasyon(lid); return { deger:lid, ad: l ? l.ad : lid }; }) },
-      { k:'durum', ad:'Kayıt durumu', tur:'coklu', secenekler:[
-        { deger:'musteri-bildirildi', ad:'Müşteriye bildirildi' }, { deger:'mutabakatta', ad:'Mutabakatta' },
-        { deger:'musteri-onayladi', ad:'Müşteri onayladı' }, { deger:'yeniden-kontrol-bekliyor', ad:'Yeniden kontrol bekliyor' }] },
-      { k:'miktar', ad:'Miktar', tur:'aralik' }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('eeDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'eksik-ekipmanlar', modul:'Eksik Ekipman' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'eksik-ekipmanlar', modul:'Eksik Ekipman' });
   });
   document.getElementById('eeBildir').addEventListener('click', function(){
     bildirimGonder(kaynak.filter(function(e){ return e.durum !== 'musteri-bildirildi'; }).map(function(e){ return e.id; }));

@@ -277,3 +277,21 @@ test('sıralama kuralı varken id tie-breaker eklenir', async () => {
   DP.tanimla('t', { kaynak: () => veri });
   assert.deepStrictEqual((await DP.list('t', { sort: 'g:asc' })).data.map(x => x.id), ['A-1', 'M-5', 'Z-9']);
 });
+
+test('ozet() süzülmüş kümenin tamamı üzerinden hesap yapar, diziyi UI\'ya vermez', async () => {
+  const { DP } = kur();
+  const veri = kayitlar(59, i => ({ tutar: 100, durum: i < 10 ? 'acik' : 'kapali' }));
+  DP.tanimla('t', { kaynak: () => veri, alanlar: [{ k: 'durum', tur: 'coklu' }] });
+  const toplam = await DP.ozet('t', { pageSize: 20, filters: { durum: ['acik'] } },
+    d => d.reduce((t, k) => t + k.tutar, 0));
+  assert.strictEqual(toplam, 1000);
+});
+
+test('ozet() sayfa numarasından etkilenmez', async () => {
+  const { DP } = kur();
+  DP.tanimla('t', { kaynak: () => kayitlar(59) });
+  const a = await DP.ozet('t', { page: 1, pageSize: 20 }, d => d.length);
+  const b = await DP.ozet('t', { page: 3, pageSize: 20 }, d => d.length);
+  assert.strictEqual(a, 59);
+  assert.strictEqual(b, 59);
+});

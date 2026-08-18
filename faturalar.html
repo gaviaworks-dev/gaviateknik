@@ -68,6 +68,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -133,17 +136,7 @@
           + '<i class="fa-solid fa-print" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ftTablo', kolonlar:kolonlar, secim:true, satirId: function(f){ return f.id; },
-    bosDurum:{ ikon:'fa-file-invoice-dollar', baslik:'Fatura bulunamadı', metin:'Filtrelerinize uyan fatura yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); },
-    altToplam: function(v){
-      return '<tr><td data-lbl="" colspan="5">Toplam</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.araToplam; }, 0)) + '</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.toplam; }, 0)) + '</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)) + '</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.kalan; }, 0)) + '</td>'
-        + '<td colspan="3"></td></tr>';
-    } });
+  
 
   var bulk = gvBulk({ hedef:'#ftBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'faturalar', modul:'Fatura' }); } },
@@ -169,18 +162,48 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'faturalar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ftPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-fatura-ac]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'faturalar', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'faturalar',
+    veri: function(){ return kaynak; },
+    arama: ['no','musteriAd','aciklama','projeKod'],
+    cipler: { alan:'tahsilatDurum', secenekler: A.durumListesi('tahsilat').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(x){ return { deger:x.id, ad:x.kisaAd }; }) },
+      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
+      { k:'tarih', ad:'Fatura tarihi', tur:'tarih' },
+      { k:'toplam', ad:'Tutar (₺)', tur:'aralik' },
+      { k:'kismiMi', ad:'Yalnız kısmi faturalar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#ftTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(f){ return f.id; },
+      secimDegisti: function(s){ bulk.ciz(s); },
+      altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="5">Toplam</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.araToplam; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.toplam; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.kalan; }, 0)) + '</td>'
+        + '<td colspan="3"></td></tr>';
+    } },
+    pager: { hedef: '#ftPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-invoice-dollar', baslik:'Fatura bulunamadı', metin:'Filtrelerinize uyan fatura yok.' },
+    bosDurum: { ikon:'fa-file-invoice-dollar', baslik:'Faturalar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-fatura-ac]').forEach(function(b){
       b.addEventListener('click', function(){ faturaAc(b.getAttribute('data-fatura-ac')); });
     });
     document.querySelectorAll('[data-fatura-yazdir]').forEach(function(b){
       b.addEventListener('click', function(){ faturaAc(b.getAttribute('data-fatura-yazdir'), true); });
     });
-  }
+    }
+  });
+  
+
+
 
   function faturaAc(fid, yazdir){
     var f = A.kayit('faturalar', fid);
@@ -240,23 +263,10 @@
     if (yazdir) setTimeout(function(){ window.print(); }, 400);
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','musteriAd','aciklama','projeKod'],
-    cipler: { alan:'tahsilatDurum', secenekler: A.durumListesi('tahsilat').map(function(d){
-      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(x){ return { deger:x.id, ad:x.kisaAd }; }) },
-      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
-      { k:'tarih', ad:'Fatura tarihi', tur:'tarih' },
-      { k:'toplam', ad:'Tutar (₺)', tur:'aralik' },
-      { k:'kismiMi', ad:'Yalnız kısmi faturalar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('ftDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'faturalar', modul:'Fatura' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'faturalar', modul:'Fatura' });
   });
 
   var acilis = GV.q('id');

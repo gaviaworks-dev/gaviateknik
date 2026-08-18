@@ -83,6 +83,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -214,17 +217,44 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#dfTablo', kolonlar:kolonlar, satirId: function(f){ return f.id; },
-    bosDurum:{ ikon:'fa-circle-check', baslik:'Düzeltici faaliyet yok',
-      metin:'Filtrelerinize uyan DÖF kaydı bulunmuyor.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'duzeltici-faaliyetler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#dfPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-detay]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'duzeltici-faaliyetler', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'duzeltici_faaliyetler',
+    veri: function(){ return kaynak; },
+    arama: ['id','baslik','aciklama','kokNeden','faaliyet','kaynak','kaynakId','sorumluAd'],
+    cipler: {
+      alan:'durum',
+      secenekler:[
+        { k:'acik',    ad:'Açık',    ikon:'fa-circle-dot' },
+        { k:'gecikti', ad:'Gecikti', ikon:'fa-triangle-exclamation' },
+        { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
+      ],
+      suz: function(f, k){
+        if (k === 'gecikti') return !!f.gecikmisMi;
+        if (k === 'acik') return f.durum !== 'kapandi';
+        return f.durum === 'kapandi';
+      }
+    },
+    alanlar: [
+      { k:'kaynak', ad:'Kaynak', tur:'coklu', secenekler: KAYNAKLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
+      { k:'sorumluId', ad:'Sorumlu', tur:'secim', secenekler: A.liste('personeller')
+        .filter(function(p){ return kaynak.some(function(f){ return f.sorumluId === p.id; }); })
+        .map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
+      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle',
+        secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }] }
+    ],
+    tablo: { hedef: '#dfTablo',
+      kolonlar: kolonlar,
+      satirId: function(f){ return f.id; } },
+    pager: { hedef: '#dfPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-circle-check', baslik:'Düzeltici faaliyet yok',
+      metin:'Filtrelerinize uyan DÖF kaydı bulunmuyor.' },
+    bosDurum: { ikon:'fa-circle-check', baslik:'Düzeltici Faaliyetler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-detay]').forEach(function(b){
       b.addEventListener('click', function(){ detay(b.getAttribute('data-detay')); });
     });
     document.querySelectorAll('[data-kapat]').forEach(function(b){
@@ -233,7 +263,12 @@
     document.querySelectorAll('[data-etkin]').forEach(function(b){
       b.addEventListener('click', function(){ etkinlikDogrula(b.getAttribute('data-etkin')); });
     });
-  }
+    }
+  });
+  
+
+
+
 
   /* ---------------- detay modalı ---------------- */
   function detay(id){
@@ -420,37 +455,11 @@
   });
 
   document.getElementById('dfDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'duzeltici-faaliyetler', modul:'Düzeltici Faaliyet' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'duzeltici-faaliyetler', modul:'Düzeltici Faaliyet' });
   });
 
   /* ---------------- filtre ---------------- */
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','baslik','aciklama','kokNeden','faaliyet','kaynak','kaynakId','sorumluAd'],
-    cipler: {
-      alan:'durum',
-      secenekler:[
-        { k:'acik',    ad:'Açık',    ikon:'fa-circle-dot' },
-        { k:'gecikti', ad:'Gecikti', ikon:'fa-triangle-exclamation' },
-        { k:'kapandi', ad:'Kapandı', ikon:'fa-circle-check' }
-      ],
-      suz: function(f, k){
-        if (k === 'gecikti') return !!f.gecikmisMi;
-        if (k === 'acik') return f.durum !== 'kapandi';
-        return f.durum === 'kapandi';
-      }
-    },
-    alanlar: [
-      { k:'kaynak', ad:'Kaynak', tur:'coklu', secenekler: KAYNAKLAR.map(function(k){ return { deger:k.ad, ad:k.ad }; }) },
-      { k:'sorumluId', ad:'Sorumlu', tur:'secim', secenekler: A.liste('personeller')
-        .filter(function(p){ return kaynak.some(function(f){ return f.sorumluId === p.id; }); })
-        .map(function(p){ return { deger:p.id, ad:p.ad }; }) },
-      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
-      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle',
-        secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* ---------------- grafikler ---------------- */
   var donutVeri = KAYNAKLAR.map(function(k){

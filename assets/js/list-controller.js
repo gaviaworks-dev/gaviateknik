@@ -54,6 +54,8 @@
    * @param {Object} [secenek.bosDurum]        gerçek boş liste ekranı
    * @param {Object} [secenek.filtreBosDurum]  filtre sonucu boş ekranı
    * @param {(sonuc:PagedResult)=>void} [secenek.ciz]      özel çizim
+   * @param {(kayitlar:Array<Object>)=>void} [secenek.ozet] süzülmüş kümenin
+   *        TAMAMI üzerinden hesap (KPI, dağılım) — sayfa dilimi değil
    * @param {(sonuc:PagedResult)=>void} [secenek.degisti]  her sonuçtan sonra
    */
   window.gvList = function (secenek) {
@@ -226,6 +228,10 @@
 
       sonSonuc = sonuc;
       if (tabloKap) tabloKap.removeAttribute('aria-busy');
+
+      /* Süzülmüş kümenin tamamı üzerinden hesap (KPI, dağılım, toplam).
+         Sayfa scripti burada da `await` yazmaz; hesabı biz çağırırız. */
+      if (secenek.ozet) await DP.ozet(kaynakAd, sorgu, secenek.ozet);
 
       if (pager) {
         if (pager.sayfaya) pager.sayfaya(sayfa, boyut);

@@ -83,6 +83,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -134,9 +137,7 @@
           + '<i class="fa-solid fa-pen" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ikTablo', kolonlar:kolonlar, secim:true, satirId: function(k){ return k.id; },
-    bosDurum:{ ikon:'fa-address-book', baslik:'Kişi bulunamadı', metin:'Filtrelerinize uyan iletişim kişisi yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#ikBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'iletisim-kisileri', modul:'İletişim' }); } },
@@ -158,19 +159,38 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'iletisim-kisileri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ikPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-gorusme]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'iletisim-kisileri', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'iletisim_kisileri',
+    veri: function(){ return kaynak; },
+    arama: ['ad','unvan','eposta','telefon','musteriAd','lokasyonAd','iletisimRolu'],
+    cipler: { alan:'iletisimRolu', secenekler: A.liste('iletisimRolleri').map(function(r){ return { k:r, ad:r }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kapsam', ad:'Kapsam', tur:'secim', secenekler:[{ deger:'Merkez', ad:'Merkez / genel' }, { deger:'Lokasyon', ad:'Lokasyon bazlı' }] },
+      { k:'birincil', ad:'Yalnız birincil yetkililer', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#ikTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(k){ return k.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#ikPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-address-book', baslik:'Kişi bulunamadı', metin:'Filtrelerinize uyan iletişim kişisi yok.' },
+    bosDurum: { ikon:'fa-address-book', baslik:'İletişim Kişileri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-gorusme]').forEach(function(b){
       b.addEventListener('click', function(){ gorusmeKaydet(b.getAttribute('data-gorusme')); });
     });
     document.querySelectorAll('[data-duzenle]').forEach(function(b){
       b.addEventListener('click', function(){ kisiFormu(A.kayit('iletisimKisileri', b.getAttribute('data-duzenle'))); });
     });
-  }
+    }
+  });
+  
+
+
+
 
   function kisiFormu(mevcut){
     gvModal({
@@ -242,20 +262,10 @@
   document.getElementById('ikYeni').addEventListener('click', function(){ kisiFormu(null); });
   document.getElementById('ikKayitEkle').addEventListener('click', function(){ gorusmeKaydet(null); });
   document.getElementById('ikDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'iletisim-kisileri', modul:'İletişim' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'iletisim-kisileri', modul:'İletişim' });
   });
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['ad','unvan','eposta','telefon','musteriAd','lokasyonAd','iletisimRolu'],
-    cipler: { alan:'iletisimRolu', secenekler: A.liste('iletisimRolleri').map(function(r){ return { k:r, ad:r }; }) },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'kapsam', ad:'Kapsam', tur:'secim', secenekler:[{ deger:'Merkez', ad:'Merkez / genel' }, { deger:'Lokasyon', ad:'Lokasyon bazlı' }] },
-      { k:'birincil', ad:'Yalnız birincil yetkililer', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* --- iletişim geçmişi --- */
   var gecmis = A.liste('iletisimGecmisi')

@@ -92,6 +92,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -201,23 +204,42 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#dnTablo', kolonlar:kolonlar, satirId: function(d){ return d.id; },
-    bosDurum:{ ikon:'fa-clipboard-check', baslik:'Denetim kaydı yok',
-      metin:'Filtrelerinize uyan denetim bulunmuyor. Yeni bir denetim planlayabilirsiniz.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'denetimler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#dnPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-detay]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'denetimler', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'denetimler',
+    veri: function(){ return kaynak; },
+    arama: ['id','tur','kapsam','denetciAd','birimAd','rapor'],
+    cipler: { alan:'turK', secenekler: TURLER.map(function(t){ return { k:t.k, ad:t.ad, ikon:t.ikon }; }) },
+    alanlar: [
+      { k:'durum', ad:'Durum', tur:'coklu', secenekler:[
+        { deger:'planlandi', ad:'Planlandı' }, { deger:'acik', ad:'Açık' }, { deger:'kapandi', ad:'Kapandı' }] },
+      { k:'tarih', ad:'Denetim tarihi', tur:'tarih' },
+      { k:'denetciId', ad:'Denetçi', tur:'secim', secenekler: A.liste('personeller')
+        .filter(function(p){ return kaynak.some(function(d){ return d.denetciId === p.id; }); })
+        .map(function(p){ return { deger:p.id, ad:p.ad }; }) }
+    ],
+    tablo: { hedef: '#dnTablo',
+      kolonlar: kolonlar,
+      satirId: function(d){ return d.id; } },
+    pager: { hedef: '#dnPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-clipboard-check', baslik:'Denetim kaydı yok',
+      metin:'Filtrelerinize uyan denetim bulunmuyor. Yeni bir denetim planlayabilirsiniz.' },
+    bosDurum: { ikon:'fa-clipboard-check', baslik:'Denetimler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-detay]').forEach(function(b){
       b.addEventListener('click', function(){ detay(b.getAttribute('data-detay')); });
     });
     document.querySelectorAll('[data-bulgu]').forEach(function(b){
       b.addEventListener('click', function(){ bulguEkle(b.getAttribute('data-bulgu')); });
     });
-  }
+    }
+  });
+  
+
+
+
 
   /* ---------------- detay modalı ---------------- */
   function detay(id){
@@ -434,24 +456,11 @@
   });
 
   document.getElementById('dnDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'denetimler', modul:'Denetim' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'denetimler', modul:'Denetim' });
   });
 
   /* ---------------- filtre ---------------- */
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','tur','kapsam','denetciAd','birimAd','rapor'],
-    cipler: { alan:'turK', secenekler: TURLER.map(function(t){ return { k:t.k, ad:t.ad, ikon:t.ikon }; }) },
-    alanlar: [
-      { k:'durum', ad:'Durum', tur:'coklu', secenekler:[
-        { deger:'planlandi', ad:'Planlandı' }, { deger:'acik', ad:'Açık' }, { deger:'kapandi', ad:'Kapandı' }] },
-      { k:'tarih', ad:'Denetim tarihi', tur:'tarih' },
-      { k:'denetciId', ad:'Denetçi', tur:'secim', secenekler: A.liste('personeller')
-        .filter(function(p){ return kaynak.some(function(d){ return d.denetciId === p.id; }); })
-        .map(function(p){ return { deger:p.id, ad:p.ad }; }) }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* ---------------- grafikler ---------------- */
   var donutVeri = [

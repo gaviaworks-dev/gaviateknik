@@ -67,6 +67,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -128,9 +131,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ieTablo', kolonlar:kolonlar, secim:true, satirId: function(i){ return i.id; },
-    bosDurum:{ ikon:'fa-clipboard-check', baslik:'İş emri bulunamadı', metin:'Filtrelerinize uyan iş emri yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#ieBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'is-emirleri', modul:'İş Emri' }); } },
@@ -167,12 +168,9 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'is-emirleri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#iePager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'is-emirleri', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'is_emirleri',
     veri: function(){ return kaynak; },
     arama: ['id','lokasyonAd','musteriAd','ekipMetni','taseronAd','bolge','il'],
     cipler: { alan:'operasyonDurum', secenekler: A.durumListesi('operasyon')
@@ -187,11 +185,23 @@
       { k:'musteriTarihOnayi', ad:'Yalnız tarih onayı bekleyenler', tur:'toggle',
         suz: function(i,v){ return v !== 'evet' || !i.musteriTarihOnayi; }, secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#ieTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(i){ return i.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#iePager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-clipboard-check', baslik:'İş emri bulunamadı', metin:'Filtrelerinize uyan iş emri yok.' },
+    bosDurum: { ikon:'fa-clipboard-check', baslik:'İş Emirleri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('ieDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'is-emirleri', modul:'İş Emri' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'is-emirleri', modul:'İş Emri' });
   });
 })();
 </script>
