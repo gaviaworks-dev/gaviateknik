@@ -571,7 +571,7 @@
         var birim = birimBul(durum.aktifBirim);
         var mk = b.getAttribute('data-uygunsuzluk');
         var madde = maddeler(birim.kat).filter(function(x){ return x.k === mk; })[0];
-        gvModal({
+        gvModalForm({
           baslik:'Uygunsuzluk kaydet', ikon:'fa-circle-exclamation', ton:'danger', genislik:'gv-modal-lg',
           metin: GV.esc(birim.ad + ' — ' + madde.ad),
           govde:'<div class="gform">'
@@ -585,23 +585,28 @@
             + '<textarea id="uyOneri" placeholder="Yapılması gereken işlem"></textarea></div>'
             + '<div class="gfield full"><label class="gfield-inline"><input type="checkbox" id="uyYeniden" checked>'
             + ' Düzeltme sonrası yeniden kontrol gerekli</label></div></div>',
-          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-            { etiket:'Kaydet', sinif:'btn-danger', ikon:'fa-check', tikla: function(kap){
-                var acik = kap.querySelector('#uyAciklama').value.trim();
-                var oneri = kap.querySelector('#uyOneri').value.trim();
-                if (!acik || !oneri) { gvToast('Teknik açıklama ve önerilen faaliyet zorunludur.', { ton:'danger' }); return false; }
-                A.ekle('uygunsuzluklar', {
-                  id:GV.yeniKod('UYG-S'), raporId: ie.raporId, lokasyonId: ie.lokasyonId,
-                  ekipmanId: birim.tur === 'ekipman' ? birim.id : null, hizmetId: birim.hizmetId,
-                  onem: kap.querySelector('#uyOnem').value, tespit: BUGUN,
-                  baslik: madde.ad + ' — ' + birim.ad, aciklama: acik, oneri: oneri,
-                  sorumluTaraf:'musteri', sorumluKisi: durum.imzalayan,
-                  termin: kap.querySelector('#uyTermin').value || null,
-                  durum:'acik', kapanis:null,
-                  yenidenKontrol: kap.querySelector('#uyYeniden').checked ? 'gerekli' : 'gerekmiyor',
-                  musteriBildirimi: null
-                }).then(function(){ gvToast('Uygunsuzluk kaydedildi.', { ton:'ok' }); });
-              } }]
+          sema: {
+            uyOnem:     { etiket:'Önem derecesi', zorunlu:true },
+            uyTermin:   { etiket:'Termin', tur:'tarih', enAz: BUGUN },
+            uyAciklama: { etiket:'Teknik açıklama', zorunlu:true, enAz:10, enCok:1000 },
+            uyOneri:    { etiket:'Önerilen düzeltici faaliyet', zorunlu:true, enAz:10, enCok:800 }
+          },
+          ad:'RecordNonconformity',
+          onaySinif:'btn-danger',
+          onayEtiket:'Kaydet', onayIkon:'fa-check',
+          gonder: function(v, yardim){
+            return A.ekle('uygunsuzluklar', {
+              id:GV.yeniKod('UYG-S'), raporId: ie.raporId, lokasyonId: ie.lokasyonId,
+              ekipmanId: birim.tur === 'ekipman' ? birim.id : null, hizmetId: birim.hizmetId,
+              onem: v.uyOnem, tespit: BUGUN,
+              baslik: madde.ad + ' — ' + birim.ad, aciklama: v.uyAciklama, oneri: v.uyOneri,
+              sorumluTaraf:'musteri', sorumluKisi: durum.imzalayan,
+              termin: v.uyTermin || null,
+              durum:'acik', kapanis:null,
+              yenidenKontrol: yardim.kap.querySelector('#uyYeniden').checked ? 'gerekli' : 'gerekmiyor',
+              musteriBildirimi: null
+            }).then(function(){ gvToast('Uygunsuzluk kaydedildi.', { ton:'ok' }); });
+          }
         });
       });
     });

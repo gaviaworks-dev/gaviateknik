@@ -253,7 +253,7 @@
 
   function sablonUygula(secililer){
     var hedefler = secililer || [];
-    gvModal({
+    gvModalForm({
       baslik:'Envanter şablonu uygula', ikon:'fa-wand-magic-sparkles', genislik:'gv-modal-lg',
       metin: hedefler.length
         ? '<b>' + hedefler.length + ' lokasyona</b> şablon uygulanacak. Metrekare bazlı kalemler lokasyon alanına göre ölçeklenir.'
@@ -272,12 +272,19 @@
         + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
         + '<span>Şablondan gelen miktarlar <b>ön envanterdir</b>, kesin değildir. Saha kontrolünde doğrulanır; '
         + 'fark çıkarsa müşteriyle mutabakata sunulur.</span></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Uygula', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var sid = kap.querySelector('#oeSablonSec').value;
+      sema: { oeSablonSec: { etiket:'Şablon', zorunlu:true } },
+      ad:'ApplyInventoryTemplate',
+      onayEtiket:'Uygula', onayIkon:'fa-check',
+      gonderOncesi: function(v, kap){
+        var hedef = hedefler.length ? hedefler
+          : Array.prototype.slice.call(kap.querySelectorAll('#oeHedefSec option:checked')).map(function(o){ return o.value; });
+        return hedef.length ? '' : 'En az bir hedef lokasyon seçin.';
+      },
+      gonder: function(v, yardim){
+            var kap = yardim.kap;
+            var sid = v.oeSablonSec;
             var hedef = hedefler.length ? hedefler
               : Array.prototype.slice.call(kap.querySelectorAll('#oeHedefSec option:checked')).map(function(o){ return o.value; });
-            if (!hedef.length) { gvToast('En az bir hedef lokasyon seçin.', { ton:'danger' }); return false; }
             var s = A.kayit('envanterSablonlari', sid);
             var temelM2 = { 'SBL-ENV-MARKET':1750, 'SBL-ENV-DEPO':5800, 'SBL-ENV-FABRIKA':21500 }[sid] || 1750;
             var islemler = [];
@@ -295,11 +302,11 @@
                 }));
               });
             });
-            Promise.all(islemler).then(function(){
+            return Promise.all(islemler).then(function(){
               gvToast(hedef.length + ' lokasyona şablon uygulandı (' + islemler.length + ' kalem).', { ton:'ok' });
               setTimeout(function(){ location.reload(); }, 900);
             });
-          } }]
+      }
     });
   }
 

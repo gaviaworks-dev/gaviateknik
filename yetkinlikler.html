@@ -418,7 +418,7 @@
   });
 
   document.getElementById('ykYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni yetkinlik', ikon:'fa-plus', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="yyAd">Yetkinlik adı *</label>'
@@ -432,23 +432,27 @@
         + '<div class="gfield full"><label for="yyBelge">Belge türü *</label>'
         + '<input type="text" id="yyBelge" placeholder="Örnek: Vinç Muayene Yetki Belgesi">'
         + '<span class="gf-hint">Belge türü, personel belgelerinin kayıt sırasında doğrulanacağı referanstır.</span></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#yyAd').value.trim();
-            var belgeTuru = kap.querySelector('#yyBelge').value.trim();
-            if (!ad || !belgeTuru) { gvToast('Yetkinlik adı ve belge türü zorunludur.', { ton:'danger' }); return false; }
-            var varOlan = A.liste('yetkinlikler').some(function(y){
-              return y.ad.toLocaleLowerCase('tr-TR') === ad.toLocaleLowerCase('tr-TR'); });
-            if (varOlan) { gvToast('Aynı adda bir yetkinlik zaten tanımlı.', { ton:'danger' }); return false; }
-            var yid = GV.yeniKod('YTK-');
-            A.ekle('yetkinlikler', {
-              id: yid, ad: ad, kategori: kap.querySelector('#yyKat').value,
-              belgeTuru: belgeTuru, gecerlilikAy: Number(kap.querySelector('#yySure').value)
-            }).then(function(){
-              gvToast(ad + ' yetkinliği eklendi. Personel ataması yapılana kadar kapsama boşluğu olarak listelenir.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        yyAd:    { etiket:'Yetkinlik adı', zorunlu:true, enAz:5, enCok:120,
+                   ozel: function(v){
+                     return A.liste('yetkinlikler').some(function(y){
+                       return y.ad.toLocaleLowerCase('tr-TR') === v.toLocaleLowerCase('tr-TR'); })
+                       ? 'Aynı adda bir yetkinlik zaten tanımlı.' : ''; } },
+        yyKat:   { etiket:'Hizmet kategorisi', zorunlu:true },
+        yySure:  { etiket:'Belge geçerlilik süresi', tur:'sayi', zorunlu:true, enAz:1, enCok:120 },
+        yyBelge: { etiket:'Belge türü', zorunlu:true, enAz:5, enCok:120 }
+      },
+      ad:'CreateCompetency',
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('yetkinlikler', {
+          id: GV.yeniKod('YTK'), ad: v.yyAd, kategori: v.yyKat,
+          belgeTuru: v.yyBelge, gecerlilikAy: Number(v.yySure)
+        }).then(function(){
+          gvToast(v.yyAd + ' yetkinliği eklendi. Personel ataması yapılana kadar kapsama boşluğu olarak listelenir.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   });
 })();

@@ -233,7 +233,7 @@
     var f = A.kayit('faturalar', fid);
     var m = A.kayit('musteriler', f.musteriId);
     var bagli = A.liste('taseronHakedisleri').filter(function(t){ return t.musteriFaturaId === fid; });
-    gvModal({
+    gvModalForm({
       baslik:'Tahsilat kaydet', ikon:'fa-money-bill-transfer', genislik:'gv-modal-lg',
       metin:'<b>' + GV.esc(f.no) + '</b> · ' + GV.esc(m ? m.kisaAd : '') + ' · kalan bakiye <b>' + GV.tl(f.kalan) + '</b>',
       govde:'<div class="gform">'
@@ -271,22 +271,27 @@
         kap.querySelector('#thTutar').addEventListener('input', etkiCiz);
         etkiCiz();
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Tahsilatı Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var t = Number(kap.querySelector('#thTutar').value || 0);
-            if (t <= 0) { gvToast('Tahsilat tutarı sıfırdan büyük olmalıdır.', { ton:'danger' }); return false; }
-            if (t > f.kalan) { gvToast('Tahsilat tutarı kalan bakiyeyi aşamaz.', { ton:'danger' }); return false; }
+      sema: {
+        thTutar:    { etiket:'Tahsil edilen tutar', tur:'sayi', zorunlu:true, enAz:1, enCok: f.kalan },
+        thTarih:    { etiket:'Tahsilat tarihi', tur:'tarih', zorunlu:true },
+        thYontem:   { etiket:'Ödeme yöntemi', zorunlu:true },
+        thRef:      { etiket:'Referans no', enCok:60 },
+        thAciklama: { etiket:'Açıklama', enCok:400 }
+      },
+      ad:'RecordCollection',
+      onayEtiket:'Tahsilatı Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+            var t = Number(v.thTutar);
             var yeniTahsil = f.tahsilEdilen + t;
             var yeniKalan = f.toplam - yeniTahsil;
             var yeniDurum = yeniKalan <= 0 ? 'tam-tahsil'
               : (GV.gun(BUGUN, f.vade) < 0 ? 'vadesi-gecti' : 'kismen-tahsil');
-            A.ekle('tahsilatlar', {
+            return A.ekle('tahsilatlar', {
               id:GV.yeniKod('THS-Y'),
               faturaId: fid, musteriId: f.musteriId,
-              tarih: kap.querySelector('#thTarih').value || BUGUN, tutar: t,
-              yontem: kap.querySelector('#thYontem').value,
-              aciklama: kap.querySelector('#thAciklama').value.trim()
-                || (kap.querySelector('#thRef').value.trim() ? 'Referans: ' + kap.querySelector('#thRef').value.trim() : 'Tahsilat kaydedildi.'),
+              tarih: v.thTarih || BUGUN, tutar: t,
+              yontem: v.thYontem,
+              aciklama: v.thAciklama || (v.thRef ? 'Referans: ' + v.thRef : 'Tahsilat kaydedildi.'),
               tam: yeniKalan <= 0
             }).then(function(){
               return GV.gecisUygula('tahsilat', 'faturalar', fid, yeniDurum, {
@@ -307,7 +312,7 @@
                   + (bagli.length ? ' Bağlı ' + bagli.length + ' taşeron hakedişinin ödeme durumu yeniden değerlendirildi.' : ''),
                 butonlar:[{ etiket:'Tamam', sinif:'btn-acc', tikla: function(){ location.reload(); } }] });
             });
-          } }]
+      }
     });
   }
 

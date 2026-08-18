@@ -196,7 +196,7 @@
     GV.disaAktar({ kayitSayisi: kaynak.length, dosyaAdi:'rapor-sablonlari', modul:'Rapor Şablonu' });
   });
   document.getElementById('rsYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni rapor şablonu', ikon:'fa-plus',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="rsAd">Şablon adı *</label><input type="text" id="rsAd" placeholder="Yürüyen Merdiven Muayene Raporu"></div>'
@@ -206,21 +206,26 @@
         + '<div class="gfield full"><label for="rsOnay">Onaylayacak kişi</label><select id="rsOnay">'
         + A.liste('personeller').filter(function(p){ return ['Teknik','Kalite','Yönetim'].indexOf(p.birim) !== -1; })
             .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad + ' — ' + p.gorev) + '</option>'; }).join('') + '</select></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#rsAd').value.trim();
-            if (!ad) { gvToast('Şablon adı zorunludur.', { ton:'danger' }); return false; }
-            A.ekle('raporSablonlari', {
-              id:GV.yeniKod('SBL-Y'),
-              ad: ad, kategoriId: kap.querySelector('#rsKat').value, versiyon:'v1', yayin: null,
-              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-004',
-              onaylayanId: kap.querySelector('#rsOnay').value,
-              bolumSayisi: Number(kap.querySelector('#rsBolum').value || 9), durum:'taslak'
-            }).then(function(){
-              gvToast('Rapor şablonu oluşturuldu (taslak).', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        rsAd:     { etiket:'Şablon adı', zorunlu:true, enAz:5, enCok:160 },
+        rsKat:    { etiket:'Hizmet kategorisi', zorunlu:true },
+        rsBolum:  { etiket:'Bölüm sayısı', tur:'sayi', zorunlu:true, enAz:3, enCok:20 },
+        rsOnay:   { etiket:'Onaylayacak kişi', zorunlu:true }
+      },
+      ad:'CreateReportTemplate',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('raporSablonlari', {
+          id:GV.yeniKod('SBL-Y'),
+          ad: v.rsAd, kategoriId: v.rsKat, versiyon:'v1', yayin: null,
+          hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-004',
+          onaylayanId: v.rsOnay,
+          bolumSayisi: Number(v.rsBolum || 9), durum:'taslak'
+        }).then(function(){
+          gvToast('Rapor şablonu oluşturuldu (taslak).', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();

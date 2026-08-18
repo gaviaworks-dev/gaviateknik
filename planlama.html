@@ -203,7 +203,7 @@
       var l = A.lokasyon(b.getAttribute('data-tarih'));
       var kisi = A.liste('iletisimKisileri').filter(function(k){
         return k.lokasyonId === l.id || (k.musteriId === l.musteriId && k.birincil); })[0];
-      gvModal({
+      gvModalForm({
         baslik:'Kontrol tarihi öner', ikon:'fa-calendar-check',
         metin:'<b>' + GV.esc(l.ad) + '</b> için müşteriye kontrol tarihi önerilecek. '
           + 'Müşteri onayı alınmadan iş emri sahaya çıkamaz.',
@@ -219,27 +219,33 @@
           + GV.esc('Sayın yetkili, ' + l.ad + ' lokasyonunda periyodik kontrol çalışmamızı planlıyoruz. '
             + 'Ekipmanların çalışır ve erişilebilir olması, operatörlerin hazır bulunması ve saha giriş izinlerinin '
             + 'tamamlanması gerekmektedir. Önerilen tarihi onaylamanızı rica ederiz.') + '</textarea></div></div>',
-        butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-          { etiket:'Öneriyi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-              var t = kap.querySelector('#plTarih').value;
-              GV.gecisUygula('operasyon', 'lokasyonlar', l.id, 'tarih-onayi-bekleniyor', {
-                not: GV.d(t) + ' tarihi müşteriye önerildi.'
-              }).then(function(g){
-                  if (!g.ok) return null;
-                  return A.ekle('iletisimGecmisi', {
-                    id:GV.yeniKod('ILT-P'),
-                    musteriId: l.musteriId, lokasyonId: l.id, kisiId: kap.querySelector('#plKisi').value,
-                    tur:'tarih-onayi', tarih: BUGUN + 'T09:00:00',
-                    kullaniciId: (GV.rolBilgi || {}).personelId,
-                    konu:'Kontrol tarihi önerisi — ' + GV.d(t),
-                    ozet: kap.querySelector('#plNot').value.substring(0, 200)
-                  });
-                }).then(function(x){
-                  if (!x) return;
-                  gvToast('Tarih önerisi gönderildi, onay bekleniyor.', { ton:'ok' });
-                  setTimeout(function(){ location.reload(); }, 900);
-                });
-            } }]
+        sema: {
+          plTarih: { etiket:'Önerilen tarih', tur:'tarih', zorunlu:true, enAz: BUGUN },
+          plSaat:  { etiket:'Saat', zorunlu:true,
+                     desen:/^([01][0-9]|2[0-3]):[0-5][0-9]$/, mesaj:'Saati SS:DD biçiminde girin.' },
+          plKisi:  { etiket:'Bilgilendirilecek yetkili', zorunlu:true },
+          plNot:   { etiket:'Mesaj', zorunlu:true, enAz:20, enCok:1200 }
+        },
+        ad:'ProposeInspectionDate',
+        onayEtiket:'Öneriyi Gönder', onayIkon:'fa-paper-plane',
+        gonder: function(v){
+          return GV.gecisUygula('operasyon', 'lokasyonlar', l.id, 'tarih-onayi-bekleniyor', {
+            not: GV.d(v.plTarih) + ' tarihi müşteriye önerildi.', sessiz: true
+          }).then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            return A.ekle('iletisimGecmisi', {
+              id:GV.yeniKod('ILT-P'),
+              musteriId: l.musteriId, lokasyonId: l.id, kisiId: v.plKisi,
+              tur:'tarih-onayi', tarih: BUGUN + 'T09:00:00',
+              kullaniciId: (GV.rolBilgi || {}).personelId,
+              konu:'Kontrol tarihi önerisi — ' + GV.d(v.plTarih),
+              ozet: v.plNot.substring(0, 200)
+            });
+          }).then(function(){
+            gvToast('Tarih önerisi gönderildi, onay bekleniyor.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 900);
+          });
+        }
       });
     });
   });

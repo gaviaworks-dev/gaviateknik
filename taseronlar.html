@@ -190,7 +190,7 @@
   });
 
   document.getElementById('tsYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni taşeron', ikon:'fa-plus', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="tyUnvan">Firma unvanı *</label><input type="text" id="tyUnvan" placeholder="Örnek Teknik Muayene Ltd. Şti."></div>'
@@ -211,29 +211,45 @@
         + '<div class="gfield"><label for="tyMasraf">Masraf sorumluluğu</label><select id="tyMasraf">'
         + '<option value="taseron">Taşeron</option><option value="gavia">GAVIA Teknik</option>'
         + '<option value="paylasimli">Paylaşımlı</option></select></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var unvan = kap.querySelector('#tyUnvan').value.trim();
-            var kisa = kap.querySelector('#tyKisa').value.trim();
-            var bolgeler = Array.prototype.slice.call(kap.querySelectorAll('#tyBolge option:checked')).map(function(o){ return o.value; });
-            var kapsam = Array.prototype.slice.call(kap.querySelectorAll('#tyKapsam option:checked')).map(function(o){ return o.value; });
-            if (!unvan || !kisa || !bolgeler.length || !kapsam.length) {
-              gvToast('Unvan, kısa ad, bölge ve kapsam zorunludur.', { ton:'danger' }); return false;
-            }
-            var kod = GV.yeniKod('TSR-');
-            A.ekle('taseronlar', {
-              id: kod, kod: kod, unvan: unvan, kisaAd: kisa, bolgeler: bolgeler, kapsam: kapsam,
-              yetkili: kap.querySelector('#tyYetkili').value.trim(),
-              telefon: kap.querySelector('#tyTel').value.trim(), eposta: kap.querySelector('#tyMail').value.trim(),
-              durum:'aktif', fiyatListesiId: null,
-              odemeKurali: kap.querySelector('#tyOdeme').value,
-              masrafSahibi: kap.querySelector('#tyMasraf').value,
-              performans: 75, sozlesmeBitis: null, personelSayisi: 0, cihazSayisi: 0
-            }).then(function(){
-              gvToast('Taşeron kaydedildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        tyUnvan:   { etiket:'Firma unvanı', zorunlu:true, enAz:5, enCok:160,
+                     ozel: function(v){
+                       return A.liste('taseronlar').some(function(t){
+                         return String(t.unvan || '').toLocaleLowerCase('tr-TR') === v.toLocaleLowerCase('tr-TR'); })
+                         ? 'Bu unvanla kayıtlı bir taşeron zaten var.' : ''; } },
+        tyKisa:    { etiket:'Kısa ad', zorunlu:true, enAz:2, enCok:60 },
+        tyYetkili: { etiket:'Yetkili kişi', zorunlu:true, enAz:3, enCok:80 },
+        tyTel:     { etiket:'Telefon', tur:'telefon' },
+        tyMail:    { etiket:'E-posta', tur:'eposta' },
+        tyOdeme:   { etiket:'Ödeme kuralı', zorunlu:true },
+        tyMasraf:  { etiket:'Masraf sorumluluğu', zorunlu:true }
+      },
+      ad:'CreateSubcontractor',
+      /* Çoklu seçim alanları şemayla ifade edilmez; koşulları üste düşer. */
+      gonderOncesi: function(v, kap){
+        var b = kap.querySelectorAll('#tyBolge option:checked').length;
+        var k = kap.querySelectorAll('#tyKapsam option:checked').length;
+        if (!b) return 'En az bir hizmet bölgesi seçin.';
+        if (!k) return 'En az bir hizmet kapsamı seçin.';
+        return '';
+      },
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var kap = yardim.kap;
+        var bolgeler = Array.prototype.slice.call(kap.querySelectorAll('#tyBolge option:checked')).map(function(o){ return o.value; });
+        var kapsam = Array.prototype.slice.call(kap.querySelectorAll('#tyKapsam option:checked')).map(function(o){ return o.value; });
+        var kod = GV.yeniKod('TSR');
+        return A.ekle('taseronlar', {
+          id: kod, kod: kod, unvan: v.tyUnvan, kisaAd: v.tyKisa, bolgeler: bolgeler, kapsam: kapsam,
+          yetkili: v.tyYetkili, telefon: v.tyTel, eposta: v.tyMail,
+          durum:'aktif', fiyatListesiId: null,
+          odemeKurali: v.tyOdeme, masrafSahibi: v.tyMasraf,
+          performans: 75, sozlesmeBitis: null, personelSayisi: 0, cihazSayisi: 0
+        }).then(function(){
+          gvToast('Taşeron kaydedildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 

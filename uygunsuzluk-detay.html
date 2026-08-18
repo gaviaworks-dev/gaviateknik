@@ -375,7 +375,7 @@
 
   var dofBtn = document.getElementById('udDofAc');
   if (dofBtn) dofBtn.addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Düzeltici faaliyet aç', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
       metin:'Bu uygunsuzluk kalite sisteminde düzeltici faaliyete kaynak olarak bağlanacak.',
       govde:'<div class="gform">'
@@ -387,21 +387,29 @@
         + A.liste('personeller').filter(function(p){ return ['Kalite','Teknik','Operasyon'].indexOf(p.birim) !== -1; })
             .map(function(p){ return '<option value="' + p.id + '">' + GV.esc(p.ad) + '</option>'; }).join('') + '</select></div>'
         + '<div class="gfield"><label for="dfTermin">Termin</label><input type="date" id="dfTermin"></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            A.ekle('duzelticiFaaliyetler', {
-              id:GV.yeniKod('DOF-Y'),
-              kaynak:'Uygunsuzluk', kaynakId: u.id,
-              baslik: kap.querySelector('#dfBaslik').value.trim(),
-              aciklama: u.aciklama, kokNeden: kap.querySelector('#dfKok').value.trim() || 'Kök neden analizi yapılacak.',
-              faaliyet: kap.querySelector('#dfFaaliyet').value.trim(),
-              sorumluId: kap.querySelector('#dfSorumlu').value, acilis: BUGUN,
-              termin: kap.querySelector('#dfTermin').value || null, kapanis: null, durum:'acik', etkinlik: null
-            }).then(function(){
-              gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        dfBaslik:   { etiket:'Faaliyet başlığı', zorunlu:true, enAz:5, enCok:160 },
+        dfKok:      { etiket:'Kök neden', enCok:800 },
+        dfFaaliyet: { etiket:'Planlanan faaliyet', zorunlu:true, enAz:5, enCok:800 },
+        dfSorumlu:  { etiket:'Sorumlu', zorunlu:true },
+        dfTermin:   { etiket:'Termin', tur:'tarih', enAz: BUGUN }
+      },
+      ad:'OpenCorrectiveAction',
+      onayEtiket:'DÖF Aç', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('duzelticiFaaliyetler', {
+          id:GV.yeniKod('DOF-Y'),
+          kaynak:'Uygunsuzluk', kaynakId: u.id,
+          baslik: v.dfBaslik,
+          aciklama: u.aciklama, kokNeden: v.dfKok || 'Kök neden analizi yapılacak.',
+          faaliyet: v.dfFaaliyet,
+          sorumluId: v.dfSorumlu, acilis: BUGUN,
+          termin: v.dfTermin || null, kapanis: null, durum:'acik', etkinlik: null
+        }).then(function(){
+          gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();
