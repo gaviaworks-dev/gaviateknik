@@ -166,3 +166,5 @@ Branch: `faz-15-kapanis`.
 gerçek backend, gerçek auth, dosya yükleme, Playwright kurulumu.
 
 **Şartname (`_docs/REVIZYON.md`) bu fazla kapandı.**
+
+| 2026-08-19 | 8b (düzeltme) | _qa/tarama.js · _qa/test/panel-rol.test.js | **0 bulgu (13 rol × 73 sayfa)** / YAPISAL SORUN YOK · 462 test geçti | 84dbe4f | **Protokol ihlali ve düzeltmesi:** adım 5 ve 7 taramaları yalnız `sahip` rolüyle koşuldu; 13 rollük tarama kapanışta çalıştırılınca panelde 71 "boş alan" bulgusu çıktı. Sebep: rolün izin kapsamı dışında kalan widget kabı bilerek çizilmiyor ve `hidden` işaretleniyor; tarama bunu boş kart sanıyordu. `tarama.js` artık `[data-widget][hidden]` içini atlıyor, istisnanın yalnız gizli kaplara açıldığı ayrı bir testle kilitlendi. Bundan sonraki turlarda tarama **13 rolle** koşulmalı (`node _qa/durum.js` bunu zaten yapıyor). |
