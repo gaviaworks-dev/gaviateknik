@@ -101,3 +101,15 @@ Branch: `faz-13-algoritma`.
 | 2026-08-18 | 5-g6 | on-envanter · planlama · rapor-sablonlari · tahsilatlar · taseronlar · uygunsuzluk-detay · yetkinlikler · saha-kontrol-formu (8 modal form) | 0 bulgu / YAPISAL SORUN YOK · 205 test geçti | da89dd4 | **Kayıt yapan modal form kalmadı: 32 sayfa, 46 modal formun tamamı gvModalForm sözleşmesinde.** |
 | 2026-08-18 | 6 | assets/js/para-zaman.js (yeni) · demo-api.js · forms.js · form-controller.js · fatura-gruplari · faturalar · hakedisler · taseronlar · musteriler · onaylar · raporlar · panel · 73 sayfa (script) · _qa/test/para-zaman.test.js · CLAUDE.md | 0 bulgu / YAPISAL SORUN YOK · 223 test geçti | 2cd0aa1 | Demo veri TL cinsinden kalmaya devam ediyor; kuruş **hesap sırasında** kullanılıyor (veri göçü yapılmadı). Kayıtlarda `paraBirimi` yoksa TRY sayılır; yeni faturalar alanı taşıyor. |
 | 2026-08-18 | 7 | assets/js/kpi.js (yeni) · assets/js/demo-api.js · panel · rapor-onaylari · projeler · uygunsuzluklar · taseron-hakedisleri · faturalar · olcum-cihazlari · 73 sayfa (script) · _qa/test/kpi.test.js · _qa/durum.js · CLAUDE.md | 0 bulgu / YAPISAL SORUN YOK · 238 test geçti | e979636 | Ortak seçici 7 ekranda kullanıldı; kalan liste KPI'ları kendi yerel filtrelerini koruyor (panelde karşılığı olmayan metrikler). Kapsam filtresi localStorage'da kalıcı (`gv_tk_kpi_kapsam`). |
+
+
+---
+
+# GAVIA · Faz 14 — ADIM DEFTERİ
+
+Kapsam: `_docs/REVIZYON.md` §9 (responsive denetim ve revizyon şartları)
++ §8 uygunsuzluk akışı düzeltmesi. Branch: `faz-14-responsive`.
+
+| Tarih | Adım | Dosyalar | Tarama | Commit | Bilinen kusur |
+|---|---|---|---|---|---|
+| 2026-08-18 | 1 | assets/js/durum-makinesi.js (uygunsuzluk akışı + `GV.akisRozet`) · assets/js/demo-data.js (11 kayıt, 6 yeni alan) · assets/js/kpi.js · uygunsuzluk-detay · uygunsuzluklar · lokasyon-detay · rapor-detay · ekipman-detay · portal-raporlar · gunluk-ozet · musteri-portali · _qa/test/uygunsuzluk-akisi.test.js (yeni) · _qa/test/durum-makinesi.test.js · CLAUDE.md | 0 bulgu / YAPISAL SORUN YOK · 253 test geçti | 49dc5c5 | `gecikti` artık saklanan aşama değil; localStorage overlay'inde eski `gecikti` değeri kalmış bir kayıt varsa aşama rozetinde "—" görünür (çekirdek veride yok, `demoApi.sifirla()` temizler). Portal ekranı müşteriye iç aşama adlarını sadeleştirerek gösterir. |
