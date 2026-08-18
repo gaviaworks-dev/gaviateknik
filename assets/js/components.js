@@ -47,46 +47,101 @@
     return { ac: ac };
   };
 
-  /* ================= SAYFALAMA ================= */
+  /* ================= SAYFALAMA =================
+     Yeni seçeneklerin TAMAMI varsayılan olarak KAPALIDIR; bugün gvPager
+     kullanan sayfaların davranışı bit düzeyinde aynı kalır.
+       boyut        : sayfa başına kayıt (varsayılan 15 — DEĞİŞTİRİLMEDİ)
+       url          : true → sayfa numarasını ?page ile URL'ye yazar/okur
+       boyutSecici  : true → 10/20/50 seçici gösterir
+       boyutlar     : seçici için özel liste
+       sikisik      : true → numara düğmeleri yerine yalnız "n / m" göstergesi
+     Yeni yöntem: sayfaya(n, boyut) — sayfa durumunu dışarıdan kurar
+     (ListController sayfa durumunun sahibidir, pager onun görünümüdür).
+     ============================================================== */
   window.gvPager = function (secenek) {
     var kap = typeof secenek.hedef === 'string' ? document.querySelector(secenek.hedef) : secenek.hedef;
     if (!kap) return null;
+    var boyutlar = secenek.boyutlar || (GV.SAYFA_BOYUTLARI || [10, 20, 50]);
     var boyut = secenek.boyut || 15;
     var sayfa = 1, toplam = 0;
 
+    /* url:true — sayfa numarası paylaşılabilir olsun isteyen sayfalar için.
+       ListController kendi URL yazımını yaptığı için bu seçeneği açmaz. */
+    if (secenek.url) {
+      var ilk = Number(GV.q ? GV.q('page') : null);
+      if (isFinite(ilk) && ilk > 0) sayfa = Math.trunc(ilk);
+      var ilkBoyut = Number(GV.q ? GV.q('pageSize') : null);
+      if (secenek.boyutSecici && boyutlar.indexOf(ilkBoyut) !== -1) boyut = ilkBoyut;
+    }
+
+    function urlYaz(push) {
+      if (!secenek.url || !GV.qCok) return;
+      GV.qCok({
+        page: sayfa > 1 ? sayfa : null,
+        pageSize: secenek.boyutSecici && boyut !== (secenek.boyut || 15) ? boyut : null
+      }, { push: !!push });
+    }
+
+    function sayfaSayisi() { return Math.max(1, Math.ceil(toplam / boyut)); }
+
+    function boyutSeciciHtml() {
+      if (!secenek.boyutSecici) return '';
+      return '<label class="pg-size"><span class="gv-sr">Sayfa başına kayıt</span>'
+        + '<select data-boyut aria-label="Sayfa başına kayıt sayısı">'
+        + boyutlar.map(function (b) {
+            return '<option value="' + b + '"' + (b === boyut ? ' selected' : '') + '>' + b + ' / sayfa</option>';
+          }).join('')
+        + '</select></label>';
+    }
+
     function ciz() {
-      var sayfaSayisi = Math.max(1, Math.ceil(toplam / boyut));
-      if (sayfa > sayfaSayisi) sayfa = sayfaSayisi;
+      var adet = sayfaSayisi();
+      if (sayfa > adet) sayfa = adet;
       var bas = toplam ? (sayfa - 1) * boyut + 1 : 0;
       var son = Math.min(toplam, sayfa * boyut);
       var h = '<div class="pg-count">' + (toplam ? (GV.n(bas) + '–' + GV.n(son) + ' / ' + GV.n(toplam) + ' kayıt') : 'Kayıt yok') + '</div>'
-            + '<div class="pg-btns">'
+            + '<div class="pg-btns">' + boyutSeciciHtml()
             + '<button class="pg-btn" data-git="onceki"' + (sayfa <= 1 ? ' disabled' : '') + ' aria-label="Önceki sayfa"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>'
-            + '<span class="pg-compact">' + sayfa + ' / ' + sayfaSayisi + '</span>';
-      var numaralar = [];
-      for (var i = 1; i <= sayfaSayisi; i++) {
-        if (i === 1 || i === sayfaSayisi || Math.abs(i - sayfa) <= 1) numaralar.push(i);
-        else if (numaralar[numaralar.length - 1] !== '…') numaralar.push('…');
+            + '<span class="pg-compact">' + sayfa + ' / ' + adet + '</span>';
+      if (!secenek.sikisik) {
+        var numaralar = [];
+        for (var i = 1; i <= adet; i++) {
+          if (i === 1 || i === adet || Math.abs(i - sayfa) <= 1) numaralar.push(i);
+          else if (numaralar[numaralar.length - 1] !== '…') numaralar.push('…');
+        }
+        numaralar.forEach(function (n) {
+          h += n === '…' ? '<span class="pg-gap">…</span>'
+            : '<button class="pg-num' + (n === sayfa ? ' is-on' : '') + '" data-git="' + n + '"'
+              + (n === sayfa ? ' aria-current="page"' : '') + ' aria-label="' + n + '. sayfa">' + n + '</button>';
+        });
       }
-      numaralar.forEach(function (n) {
-        h += n === '…' ? '<span class="pg-gap">…</span>'
-          : '<button class="pg-num' + (n === sayfa ? ' is-on' : '') + '" data-git="' + n + '"'
-            + (n === sayfa ? ' aria-current="page"' : '') + ' aria-label="' + n + '. sayfa">' + n + '</button>';
-      });
-      h += '<button class="pg-btn" data-git="sonraki"' + (sayfa >= sayfaSayisi ? ' disabled' : '') + ' aria-label="Sonraki sayfa"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button></div>';
+      h += '<button class="pg-btn" data-git="sonraki"' + (sayfa >= adet ? ' disabled' : '') + ' aria-label="Sonraki sayfa"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button></div>';
       kap.innerHTML = h;
-      kap.hidden = toplam <= boyut && sayfa === 1;
+      /* Tek sayfalık listede pager gizlenir; boyut seçici açıksa görünür kalır
+         ki kullanıcı 10'a düşürüp sayfalamayı geri getirebilsin. */
+      kap.hidden = toplam <= boyut && sayfa === 1 && !secenek.boyutSecici;
     }
 
     kap.addEventListener('click', function (e) {
       var b = e.target.closest('[data-git]');
       if (!b || b.disabled) return;
       var v = b.getAttribute('data-git');
-      var sayfaSayisi = Math.max(1, Math.ceil(toplam / boyut));
+      var adet = sayfaSayisi();
       if (v === 'onceki') sayfa = Math.max(1, sayfa - 1);
-      else if (v === 'sonraki') sayfa = Math.min(sayfaSayisi, sayfa + 1);
+      else if (v === 'sonraki') sayfa = Math.min(adet, sayfa + 1);
       else sayfa = Number(v);
       ciz();
+      urlYaz(true);
+      if (secenek.degisti) secenek.degisti(sayfa, boyut);
+    });
+
+    kap.addEventListener('change', function (e) {
+      var s = e.target.closest('[data-boyut]');
+      if (!s) return;
+      boyut = Number(s.value);
+      sayfa = 1;                       /* pageSize değişince page daima 1 */
+      ciz();
+      urlYaz(false);
       if (secenek.degisti) secenek.degisti(sayfa, boyut);
     });
 
@@ -95,6 +150,11 @@
         toplam = t;
         if (sayfayiSifirla) sayfa = 1;
         ciz();
+      },
+      /* Sayfa durumunu dışarıdan kurar — çizim ayarla() ile yapılır. */
+      sayfaya: function (n, yeniBoyut) {
+        if (yeniBoyut) boyut = yeniBoyut;
+        sayfa = Math.max(1, Math.trunc(Number(n) || 1));
       },
       dilim: function (dizi) { return dizi.slice((sayfa - 1) * boyut, sayfa * boyut); },
       sayfa: function () { return sayfa; },
