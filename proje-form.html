@@ -204,12 +204,12 @@
       + '<th scope="col" class="num">Alan (m²)</th><th scope="col">Durum</th></tr></thead><tbody>'
       + aday.map(function(l){
           var secili = secilenLok.indexOf(l.id) !== -1;
-          return '<tr><td><span class="row-chk"><input type="checkbox" class="pf-lok" value="' + l.id + '"' + (secili ? ' checked' : '')
+          return '<tr><td data-lbl=""><span class="row-chk"><input type="checkbox" class="pf-lok" value="' + l.id + '"' + (secili ? ' checked' : '')
             + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-            + '<td><b class="t-strong">' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</span></td>'
-            + '<td>' + GV.esc(l.markaAd) + '</td><td>' + GV.esc(l.bolge + ' / ' + l.il) + '</td>'
-            + '<td class="num">' + GV.n(l.m2) + '</td>'
-            + '<td>' + (l.projeId ? '<span class="gtag mint">Bu projede</span>' : '<span class="gtag">Rehberde</span>') + '</td></tr>';
+            + '<td data-lbl="Lokasyon"><b class="t-strong">' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</span></td>'
+            + '<td data-lbl="Marka">' + GV.esc(l.markaAd) + '</td><td data-lbl="Bölge">' + GV.esc(l.bolge + ' / ' + l.il) + '</td>'
+            + '<td data-lbl="Alan (m²)" class="num">' + GV.n(l.m2) + '</td>'
+            + '<td data-lbl="Durum">' + (l.projeId ? '<span class="gtag mint">Bu projede</span>' : '<span class="gtag">Rehberde</span>') + '</td></tr>';
         }).join('') + '</tbody></table></div>';
 
     kap.querySelectorAll('.pf-lok').forEach(function(c){

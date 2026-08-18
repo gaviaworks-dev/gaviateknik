@@ -287,7 +287,7 @@
             + GV.esc(kaynakAd[h.kaynak] || h.kaynak) + '</span></td>'
             + '<td data-lbl="Tutar" class="num">' + GV.tl(bf * h.planlananMiktar) + '</td></tr>';
         }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td class="num">'
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
       + GV.tl(hizmetler.reduce(function(t,h){ return t + A.birimSatisFiyati(h.hizmetId, proje ? proje.fiyatListesiId : null) * h.planlananMiktar; }, 0))
       + '</td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-list-check', baslik:'Hizmet kapsamı tanımsız',

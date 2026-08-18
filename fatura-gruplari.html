@@ -215,12 +215,12 @@
           + '<th scope="col" class="num">Tutar</th></tr></thead><tbody>'
           + aday.map(function(l){
               var k = A.lokasyonFaturalanabilirMi(l.id);
-              return '<tr><td><span class="row-chk"><input type="checkbox" class="fg-lok-sec" value="' + l.id + '"'
+              return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="fg-lok-sec" value="' + l.id + '"'
                 + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-                + '<td><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
-                + '<td>' + (k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun')
+                + '<td data-lbl="Lokasyon"><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
+                + '<td data-lbl="Fatura Durumu">' + (k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun')
                     : GV.rozetOzel('warn','fa-hourglass-half', k.sebep)) + '</td>'
-                + '<td class="num">' + GV.tl(A.lokasyonFaturaTutari(l.id, g.projeId)) + '</td></tr>';
+                + '<td data-lbl="Tutar" class="num">' + GV.tl(A.lokasyonFaturaTutari(l.id, g.projeId)) + '</td></tr>';
             }).join('') + '</tbody></table></div>'
         : '<div class="gv-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
           + '<span>Bu projede gruba eklenebilecek başka lokasyon kalmadı.</span></div>',
@@ -277,16 +277,16 @@
         + '<th scope="col" class="num">Bu Fatura</th><th scope="col" class="num">Kalan</th>'
         + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
         + satirlar.map(function(x, i){
-            return '<tr data-satir="' + i + '"><td>' + GV.esc(x.lokasyonAd) + '</td>'
-              + '<td><b>' + GV.esc(x.mtb.poz) + '</b></td><td>' + GV.esc(x.mtb.hizmetAd) + '</td>'
-              + '<td class="num">' + GV.n(x.mtb.faturalanabilir) + '</td>'
-              + '<td class="num">' + GV.n(x.mtb.faturalanan) + '</td>'
-              + '<td class="num"><label class="gv-sr" for="fgM' + i + '">' + GV.esc(x.mtb.hizmetAd) + ' fatura miktarı</label>'
+            return '<tr data-satir="' + i + '"><td data-lbl="Lokasyon">' + GV.esc(x.lokasyonAd) + '</td>'
+              + '<td data-lbl="Poz"><b>' + GV.esc(x.mtb.poz) + '</b></td><td data-lbl="Hizmet">' + GV.esc(x.mtb.hizmetAd) + '</td>'
+              + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(x.mtb.faturalanabilir) + '</td>'
+              + '<td data-lbl="Önceki Fatura" class="num">' + GV.n(x.mtb.faturalanan) + '</td>'
+              + '<td data-lbl="Bu Fatura" class="num"><label class="gv-sr" for="fgM' + i + '">' + GV.esc(x.mtb.hizmetAd) + ' fatura miktarı</label>'
               + '<input type="number" id="fgM' + i + '" data-miktar="' + i + '" min="0" max="' + x.mtb.kalan + '" value="' + x.mtb.kalan + '"'
               + ' style="width:88px;padding:6px 8px;font-size:12.5px;border:1px solid var(--line);border-radius:6px;text-align:right"></td>'
-              + '<td class="num" data-kalan="' + i + '">0</td>'
-              + '<td class="num">' + GV.tl(x.birimFiyat) + '</td>'
-              + '<td class="num" data-tutar="' + i + '">' + GV.tl(x.birimFiyat * x.mtb.kalan) + '</td></tr>';
+              + '<td data-lbl="Kalan" class="num" data-kalan="' + i + '">0</td>'
+              + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(x.birimFiyat) + '</td>'
+              + '<td data-lbl="Tutar" class="num" data-tutar="' + i + '">' + GV.tl(x.birimFiyat * x.mtb.kalan) + '</td></tr>';
           }).join('') + '</tbody></table></div>'
         + '<div id="fgOzetKutu" style="margin-top:16px"></div>'
         + '<div id="fgUyari"></div>',

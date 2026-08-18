@@ -208,11 +208,11 @@
             + '<td data-lbl="Marj" class="num">' + GV.pct(marj) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td>'
-      + '<td class="num">' + GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)) + '</td>'
-      + '<td></td><td></td>'
-      + '<td class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.maliyetTutar; }, 0)) + '</td>'
-      + '<td class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.tutar; }, 0)) + '</td>'
-      + '<td></td></tr></tfoot></table></div>'
+      + '<td data-lbl="Adet" class="num">' + GV.n(kalemler.reduce(function(x,k){ return x + k.miktar; }, 0)) + '</td>'
+      + '<td data-lbl="Birim"></td><td data-lbl="Müşteri Satış Fiyatı"></td>'
+      + '<td data-lbl="Taşeron Maliyeti" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.maliyetTutar; }, 0)) + '</td>'
+      + '<td data-lbl="Tutar" class="num">' + GV.tl(kalemler.reduce(function(x,k){ return x + k.tutar; }, 0)) + '</td>'
+      + '<td data-lbl="Marj"></td></tr></tfoot></table></div>'
       + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i>'
       + '<span><b>Taşeron maliyeti kolonu yalnız iç kullanım içindir.</b> Müşteriye gönderilen teklif çıktısında '
       + 've müşteri portalında bu kolon görünmez.</span></div>'

@@ -353,8 +353,8 @@
             + '<td data-lbl="Açıklama">' + GV.esc(t.aciklama) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="5">Toplam</td>'
-      + '<td class="num">' + GV.tl(hareketler.reduce(function(x,t){ return x + t.tutar; }, 0)) + '</td>'
-      + '<td colspan="2"></td></tr></tfoot></table></div>'
+      + '<td data-lbl="Tutar" class="num">' + GV.tl(hareketler.reduce(function(x,t){ return x + t.tutar; }, 0)) + '</td>'
+      + '<td data-lbl="" colspan="2"></td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-money-bill-transfer', baslik:'Tahsilat hareketi yok',
         metin:'Henüz kaydedilmiş tahsilat bulunmuyor.' });
 

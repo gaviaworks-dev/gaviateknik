@@ -286,8 +286,8 @@
         + kayitlar.map(function(u){
             var l = A.lokasyon(u.lokasyonId);
             var o = onemAd[u.onem] || onemAd.orta;
-            return '<tr><td>' + GV.esc(u.baslik) + '</td><td>' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
-              + '<td>' + GV.esc(l ? l.ad : '—') + '</td><td>' + GV.d(u.termin) + '</td></tr>';
+            return '<tr><td data-lbl="Uygunsuzluk">' + GV.esc(u.baslik) + '</td><td data-lbl="Önem">' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
+              + '<td data-lbl="Lokasyon">' + GV.esc(l ? l.ad : '—') + '</td><td data-lbl="Termin">' + GV.d(u.termin) + '</td></tr>';
           }).join('') + '</tbody></table></div>',
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
         { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(){

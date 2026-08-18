@@ -301,11 +301,11 @@
             var gerekli = Array.from(new Set(A.lokasyonHizmetleri(i.lokasyonId).map(function(h){
               var hz = A.kayit('hizmetler', h.hizmetId); return hz ? hz.yetkinlik : null; }).filter(Boolean)));
             var karsilanan = gerekli.filter(function(y){ return A.personelAtanabilir(pid, y).uygun; });
-            return '<tr><td><span class="row-chk"><input type="radio" name="prIeRadio" value="' + i.id + '"'
+            return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="radio" name="prIeRadio" value="' + i.id + '"'
               + ' aria-label="' + GV.esc(i.id) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-              + '<td><b>' + GV.esc(i.id) + '</b></td><td>' + GV.esc(i.lokasyonAd) + '</td>'
-              + '<td>' + GV.d(i.tarih) + '</td>'
-              + '<td>' + (!gerekli.length ? '<span class="muted">Yetkinlik gerekmiyor</span>'
+              + '<td data-lbl="İş Emri"><b>' + GV.esc(i.id) + '</b></td><td data-lbl="Lokasyon">' + GV.esc(i.lokasyonAd) + '</td>'
+              + '<td data-lbl="Tarih">' + GV.d(i.tarih) + '</td>'
+              + '<td data-lbl="Yetkinlik Uyumu">' + (!gerekli.length ? '<span class="muted">Yetkinlik gerekmiyor</span>'
                   : karsilanan.length === gerekli.length ? GV.rozetOzel('ok','fa-check','Tam uyum')
                   : karsilanan.length ? GV.rozetOzel('warn','fa-triangle-exclamation', karsilanan.length + '/' + gerekli.length + ' yetkinlik')
                   : GV.rozetOzel('danger','fa-ban','Yetkinlik yok')) + '</td></tr>';

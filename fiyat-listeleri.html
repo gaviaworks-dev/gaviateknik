@@ -185,9 +185,9 @@
         + '<th scope="col" class="num">' + (satisMi ? 'Satış Fiyatı' : 'Taşeron Maliyeti') + '</th></tr></thead><tbody>'
         + A.liste('hizmetler').filter(function(h){ return h.durum === 'aktif'; }).map(function(h){
             var deger = satisMi ? A.birimSatisFiyati(h.id, f.id) : A.birimMaliyet(h.id);
-            return '<tr><td><b>' + GV.esc(h.poz) + '</b></td><td>' + GV.esc(h.ad) + '</td>'
-              + '<td>' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-              + '<td class="num">' + GV.tl(deger) + '</td></tr>';
+            return '<tr><td data-lbl="Poz"><b>' + GV.esc(h.poz) + '</b></td><td data-lbl="Hizmet">' + GV.esc(h.ad) + '</td>'
+              + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
+              + '<td data-lbl="" class="num">' + GV.tl(deger) + '</td></tr>';
           }).join('') + '</tbody></table></div>',
       butonlar:[
         { etiket:'Kapat', sinif:'btn-ghost' },

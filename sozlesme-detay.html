@@ -233,7 +233,7 @@
             + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(x.fiyat) + '</td>'
             + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(x.fiyat * x.miktar) + '</b></td></tr>';
         }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td class="num">'
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
       + GV.tl(pozListe.reduce(function(t,x){ return t + x.fiyat * x.miktar; }, 0)) + '</td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-list-check', baslik:'Pozisyon yok', metin:'Bu sözleşme kapsamında hizmet pozisyonu tanımlanmadı.' });
 

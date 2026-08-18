@@ -277,12 +277,12 @@
             var uygunlar = gerekli.filter(function(y){ return A.personelAtanabilir(p.id, y).uygun; });
             var genel = A.personelAtanabilir(p.id, null);
             var atanabilir = genel.uygun && (gerekli.length === 0 || uygunlar.length > 0);
-            return '<tr><td><span class="row-chk"><input type="checkbox" class="id-pers" value="' + p.id + '"'
+            return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="id-pers" value="' + p.id + '"'
               + (atanabilir ? '' : ' disabled') + (mevcutEkip.indexOf(p.id) !== -1 ? ' checked' : '')
               + ' aria-label="' + GV.esc(p.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-              + '<td><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
-              + '<td>' + (gerekli.length ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + ' yetkinlik' : 'Yetkinlik gerekmiyor') + '</td>'
-              + '<td>' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir')
+              + '<td data-lbl="Personel"><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
+              + '<td data-lbl="Yetkinlik Uyumu">' + (gerekli.length ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + ' yetkinlik' : 'Yetkinlik gerekmiyor') + '</td>'
+              + '<td data-lbl="Durum">' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir')
                   : GV.rozetOzel('danger','fa-ban', genel.uygun ? 'Gerekli yetkinlik yok' : genel.sebep)) + '</td></tr>';
           }).join('') + '</tbody></table></div>',
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
@@ -335,13 +335,13 @@
         + A.liste('olcumCihazlari').map(function(c){
             var k = A.cihazAtanabilir(c.id);
             var kapsamli = c.kapsam.some(function(x){ return kategoriler.indexOf(x) !== -1; });
-            return '<tr><td><span class="row-chk"><input type="checkbox" class="id-cihaz" value="' + c.id + '"'
+            return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="id-cihaz" value="' + c.id + '"'
               + (k.uygun ? '' : ' disabled') + (mevcutCihaz.indexOf(c.id) !== -1 ? ' checked' : '')
               + ' aria-label="' + GV.esc(c.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-              + '<td><b>' + GV.esc(c.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</span></td>'
-              + '<td>' + (kapsamli ? '<span class="gtag mint">Bu iş için gerekli</span>' : '<span class="gtag">Kapsam dışı</span>') + '</td>'
-              + '<td>' + GV.d(c.kalibrasyonBitis) + '</td>'
-              + '<td>' + (k.uygun ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.kalanGun + ' gün kaldı') : GV.rozetOzel('ok','fa-check','Geçerli'))
+              + '<td data-lbl="Cihaz"><b>' + GV.esc(c.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</span></td>'
+              + '<td data-lbl="Kapsam">' + (kapsamli ? '<span class="gtag mint">Bu iş için gerekli</span>' : '<span class="gtag">Kapsam dışı</span>') + '</td>'
+              + '<td data-lbl="Kalibrasyon">' + GV.d(c.kalibrasyonBitis) + '</td>'
+              + '<td data-lbl="Durum">' + (k.uygun ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.kalanGun + ' gün kaldı') : GV.rozetOzel('ok','fa-check','Geçerli'))
                   : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
           }).join('') + '</tbody></table></div>',
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
@@ -373,8 +373,8 @@
             + '<td data-lbl="Tahmini Süre" class="num">' + GV.n(Math.round(sure / 60)) + ' saat</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td>'
-      + '<td class="num">' + GV.n(hizmetler.reduce(function(t,h){ return t + h.planlananMiktar; }, 0)) + '</td>'
-      + '<td colspan="2"></td><td class="num">' + GV.n(Math.round(hizmetler.reduce(function(t,h){
+      + '<td data-lbl="Miktar" class="num">' + GV.n(hizmetler.reduce(function(t,h){ return t + h.planlananMiktar; }, 0)) + '</td>'
+      + '<td data-lbl="" colspan="2"></td><td data-lbl="Tahmini Süre" class="num">' + GV.n(Math.round(hizmetler.reduce(function(t,h){
           var hz = A.kayit('hizmetler', h.hizmetId);
           return t + (hz ? hz.sure * (hz.birim === 'adet' ? h.planlananMiktar : 1) : 0); }, 0) / 60)) + ' saat</td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-list-check', baslik:'Hizmet kalemi yok',

@@ -160,7 +160,7 @@
                 : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="4">Toplam faturalanabilir</td>'
-      + '<td class="num">' + GV.tl(d.toplamTutar) + '</td><td></td></tr></tfoot></table></div>'
+      + '<td data-lbl="Faturalanabilir Tutar" class="num">' + GV.tl(d.toplamTutar) + '</td><td data-lbl="Uygunluk"></td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-location-dot', baslik:'Grupta lokasyon yok',
         metin:'Bu fatura grubuna henüz lokasyon eklenmedi.' });
 
@@ -195,10 +195,10 @@
             + '<td data-lbl="Kalan Tutar" class="num">' + GV.tl(k.birimFiyat * k.mtb.kalan) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="3">Toplam</td>'
-      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanabilir; }, 0)) + '</td>'
-      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanan; }, 0)) + '</td>'
-      + '<td class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.kalan; }, 0)) + '</td>'
-      + '<td></td><td class="num">' + GV.tl(kalemler.reduce(function(t,k){ return t + k.birimFiyat * k.mtb.kalan; }, 0)) + '</td></tr></tfoot></table></div>'
+      + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanabilir; }, 0)) + '</td>'
+      + '<td data-lbl="Önceki Faturalanan" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanan; }, 0)) + '</td>'
+      + '<td data-lbl="Kalan" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.kalan; }, 0)) + '</td>'
+      + '<td data-lbl="Birim Fiyat"></td><td data-lbl="Kalan Tutar" class="num">' + GV.tl(kalemler.reduce(function(t,k){ return t + k.birimFiyat * k.mtb.kalan; }, 0)) + '</td></tr></tfoot></table></div>'
       + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>'
       + '<span><b>Mükerrer faturalama engeli:</b> her satırda <i>önceki faturalanan + bu fatura</i> toplamı '
       + '<i>faturalanabilir</i> miktarı aşamaz. Kalan miktar sonraki faturaya devreder.</span></div>'

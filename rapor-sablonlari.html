@@ -156,8 +156,8 @@
                 + maddeler.length + ')</b><div class="gv-tscroll"><table class="gtable"><thead><tr>'
                 + '<th scope="col">Kod</th><th scope="col">Kriter</th><th scope="col">Ölçüm</th></tr></thead><tbody>'
                 + maddeler.map(function(m){
-                    return '<tr><td><b>' + GV.esc(m.k) + '</b></td><td>' + GV.esc(m.ad) + '</td>'
-                      + '<td>' + (m.olcum ? GV.esc(m.olcum.ad + (m.olcum.birim ? ' (' + m.olcum.birim + ')' : '')) : '—') + '</td></tr>';
+                    return '<tr><td data-lbl="Kod"><b>' + GV.esc(m.k) + '</b></td><td data-lbl="Kriter">' + GV.esc(m.ad) + '</td>'
+                      + '<td data-lbl="Ölçüm">' + (m.olcum ? GV.esc(m.olcum.ad + (m.olcum.birim ? ' (' + m.olcum.birim + ')' : '')) : '—') + '</td></tr>';
                   }).join('') + '</tbody></table></div>'
               : '') + '</div>',
           butonlar:[{ etiket:'Kapat', sinif:'btn-ghost' }]

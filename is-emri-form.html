@@ -170,15 +170,15 @@
           var atanabilir = genel.uygun && (gerekli.length === 0 || uygunlar.length > 0);
           var sebep = !genel.uygun ? genel.sebep
             : (gerekli.length && !uygunlar.length) ? 'Gerekli yetkinliklerin hiçbirine sahip değil' : null;
-          return '<tr><td><span class="row-chk"><input type="checkbox" class="if-pers" value="' + p.id + '"'
+          return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="if-pers" value="' + p.id + '"'
             + (atanabilir ? '' : ' disabled') + (secilenEkip.indexOf(p.id) !== -1 ? ' checked' : '')
             + ' aria-label="' + GV.esc(p.ad) + ' ata"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-            + '<td><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
-            + '<td>' + (gerekli.length
+            + '<td data-lbl="Personel"><b>' + GV.esc(p.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(p.gorev) + '</span></td>'
+            + '<td data-lbl="Yetkinlik Uyumu">' + (gerekli.length
                 ? GV.n(uygunlar.length) + ' / ' + GV.n(gerekli.length) + (uygunlar.length ? '' : ' <span class="gtag danger"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>yetersiz</span>')
                 : '<span class="muted">Yetkinlik gerekmiyor</span>') + '</td>'
-            + '<td class="num">' + GV.n(p.isYuku) + '</td>'
-            + '<td>' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir') : GV.rozetOzel('danger','fa-ban', sebep || 'Atanamaz')) + '</td></tr>';
+            + '<td data-lbl="İş Yükü" class="num">' + GV.n(p.isYuku) + '</td>'
+            + '<td data-lbl="Durum">' + (atanabilir ? GV.rozetOzel('ok','fa-check','Atanabilir') : GV.rozetOzel('danger','fa-ban', sebep || 'Atanamaz')) + '</td></tr>';
         }).join('') + '</tbody></table></div>';
 
     kap.querySelectorAll('.if-pers').forEach(function(c){
@@ -203,13 +203,13 @@
       + A.liste('olcumCihazlari').map(function(c){
           var k = A.cihazAtanabilir(c.id);
           var gerekliMi = c.kapsam.some(function(x){ return kategoriler.indexOf(x) !== -1; });
-          return '<tr><td><span class="row-chk"><input type="checkbox" class="if-cihaz" value="' + c.id + '"'
+          return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="if-cihaz" value="' + c.id + '"'
             + (k.uygun ? '' : ' disabled') + (secilenCihaz.indexOf(c.id) !== -1 ? ' checked' : '')
             + ' aria-label="' + GV.esc(c.ad) + ' ata"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-            + '<td><b>' + GV.esc(c.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</span></td>'
-            + '<td>' + (gerekliMi ? '<span class="gtag mint">Bu iş için gerekli</span>' : '<span class="gtag">Kapsam dışı</span>') + '</td>'
-            + '<td>' + GV.d(c.kalibrasyonBitis) + '</td>'
-            + '<td>' + (k.uygun
+            + '<td data-lbl="Cihaz"><b>' + GV.esc(c.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(c.kod + ' · ' + c.marka + ' ' + c.model) + '</span></td>'
+            + '<td data-lbl="Kapsam">' + (gerekliMi ? '<span class="gtag mint">Bu iş için gerekli</span>' : '<span class="gtag">Kapsam dışı</span>') + '</td>'
+            + '<td data-lbl="Kalibrasyon Bitişi">' + GV.d(c.kalibrasyonBitis) + '</td>'
+            + '<td data-lbl="Durum">' + (k.uygun
                 ? (k.uyari ? GV.rozetOzel('warn','fa-clock', k.kalanGun + ' gün kaldı') : GV.rozetOzel('ok','fa-check','Geçerli'))
                 : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
         }).join('') + '</tbody></table></div>';
@@ -237,10 +237,10 @@
         + h.map(function(x){
             var hz = A.kayit('hizmetler', x.hizmetId);
             var sure = hz ? hz.sure * (hz.birim === 'adet' ? x.planlananMiktar : 1) : 0;
-            return '<tr><td><b>' + GV.esc(x.poz) + '</b></td><td>' + GV.esc(x.hizmetAd) + '</td>'
-              + '<td class="num">' + GV.n(x.planlananMiktar) + '</td>'
-              + '<td>' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
-              + '<td class="num">' + GV.n(Math.round(sure / 60)) + ' saat</td></tr>';
+            return '<tr><td data-lbl="Poz"><b>' + GV.esc(x.poz) + '</b></td><td data-lbl="Hizmet">' + GV.esc(x.hizmetAd) + '</td>'
+              + '<td data-lbl="Miktar" class="num">' + GV.n(x.planlananMiktar) + '</td>'
+              + '<td data-lbl="Birim">' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
+              + '<td data-lbl="Süre" class="num">' + GV.n(Math.round(sure / 60)) + ' saat</td></tr>';
           }).join('') + '</tbody></table></div>'
       : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
         + '<span>Bu lokasyon için hizmet kapsamı tanımlı değil. Ön envanter oluşturulmadan iş emri açılırsa '

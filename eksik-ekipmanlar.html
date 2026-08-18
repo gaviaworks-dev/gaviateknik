@@ -269,9 +269,9 @@
         + kayitlar.map(function(k){
             var l = A.lokasyon(k.lokasyonId), h = A.kayit('hizmetler', k.hizmetId);
             var t = turBilgi[k.tur] || turBilgi.eksik;
-            return '<tr><td>' + GV.esc(l ? l.ad : '—') + '</td><td>' + GV.esc(h ? h.ad : '—') + '</td>'
-              + '<td>' + GV.rozetOzel(t[0], t[1], t[2]) + '</td>'
-              + '<td class="num">' + GV.n(k.miktar) + '</td></tr>';
+            return '<tr><td data-lbl="Lokasyon">' + GV.esc(l ? l.ad : '—') + '</td><td data-lbl="Hizmet">' + GV.esc(h ? h.ad : '—') + '</td>'
+              + '<td data-lbl="Tür">' + GV.rozetOzel(t[0], t[1], t[2]) + '</td>'
+              + '<td data-lbl="Miktar" class="num">' + GV.n(k.miktar) + '</td></tr>';
           }).join('') + '</tbody></table></div>'
         + '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>'
         + '<span>Bu farklar mutabakat tablosuna işlenmiştir. Müşteri onayı alınmadan '

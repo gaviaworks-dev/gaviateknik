@@ -366,9 +366,9 @@
             + '<td data-lbl="Tahsilat">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="Toplam" colspan="3">Toplam</td>'
-      + '<td class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.toplam;},0)) + '</td>'
-      + '<td class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.tahsilEdilen;},0)) + '</td>'
-      + '<td class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.kalan;},0)) + '</td><td></td></tr></tfoot></table></div>'
+      + '<td data-lbl="Toplam" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.toplam;},0)) + '</td>'
+      + '<td data-lbl="Tahsil" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.tahsilEdilen;},0)) + '</td>'
+      + '<td data-lbl="Kalan" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.kalan;},0)) + '</td><td data-lbl="Tahsilat"></td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu müşteriye kesilmiş fatura bulunmuyor.' });
 
   /* --- iletişim geçmişi --- */

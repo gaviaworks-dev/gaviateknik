@@ -263,10 +263,10 @@
         ? '<div class="gv-tscroll"><table class="gtable"><thead><tr><th scope="col">Seç</th><th scope="col">Lokasyon</th>'
           + '<th scope="col">İl</th><th scope="col">Tür</th></tr></thead><tbody>'
           + disarida.map(function(l){
-              return '<tr><td><span class="row-chk"><input type="checkbox" class="pd-lok-sec" value="' + l.id + '"'
+              return '<tr><td data-lbl="Seç"><span class="row-chk"><input type="checkbox" class="pd-lok-sec" value="' + l.id + '"'
                 + ' aria-label="' + GV.esc(l.ad) + ' seç"><span class="chk-box"><i class="fa-solid fa-check" aria-hidden="true"></i></span></span></td>'
-                + '<td><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
-                + '<td>' + GV.esc(l.il) + '</td><td>' + GV.esc(l.tur) + '</td></tr>';
+                + '<td data-lbl="Lokasyon"><b>' + GV.esc(l.ad) + '</b><br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod) + '</span></td>'
+                + '<td data-lbl="İl">' + GV.esc(l.il) + '</td><td data-lbl="Tür">' + GV.esc(l.tur) + '</td></tr>';
             }).join('') + '</tbody></table></div>'
         : '<div class="gv-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
           + '<span>' + GV.esc(m ? m.kisaAd : 'Müşteri') + ' için ana rehberde projeye dâhil edilmemiş lokasyon kalmadı.</span></div>',
@@ -315,7 +315,7 @@
             + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(bf) + '</td>'
             + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(bf * x.miktar) + '</b></td></tr>';
         }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td class="num">' + GV.tl(o.gelir) + '</td></tr></tfoot></table></div>'
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">' + GV.tl(o.gelir) + '</td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-file-signature', baslik:'Poz tanımlı değil', metin:'Bu projede henüz hizmet pozisyonu kapsama alınmadı.' });
 
   /* --- planlanan / gerçekleşen miktarlar --- */

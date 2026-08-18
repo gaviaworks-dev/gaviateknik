@@ -20,3 +20,4 @@
 | 2026-08-18 | 5e | aksiyon-merkezi · bildirimler · onaylar · rapor-onaylari · envanter-mutabakati · fatura-gruplari · fiyat-listeleri · assets/js/list-controller.js | 0 bulgu / YAPISAL SORUN YOK · 71 test geçti · matris 41/41 | 71e1365 | fatura-gruplari ve fiyat-listeleri'ne yeni pager eklendi; envanter-mutabakati'nda gvFilter birikme kusuru kapandı |
 | 2026-08-18 | 6 | assets/js/navigation.js · _qa/test/navigation.test.js | 0 bulgu / YAPISAL SORUN YOK · 87 test geçti | fb30d13 | — |
 | 2026-08-18 | 7 | assets/js/tooltip.js · assets/css/gavia-ui.css · assets/js/navigation.js · 72 sayfa (script etiketi) · _qa/test/tooltip.test.js | 0 bulgu / YAPISAL SORUN YOK · 100 test geçti | 5207cff | — |
+| 2026-08-18 | 8 | assets/js/app.js · 14 detay sayfası · _qa/test/route-id.test.js | 0 bulgu / YAPISAL SORUN YOK · 121 test geçti | 789869e | — |

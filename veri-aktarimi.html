@@ -414,11 +414,11 @@
             return '<th scope="col">' + GV.esc(x.ad) + '</th>'; }).join('')
         + '</tr></thead><tbody>'
         + f.satirlar.slice(0, 5).map(function(satir, i){
-            return '<tr><td><b>' + (i + 2) + '</b></td>'
+            return '<tr><td data-lbl="Satır"><b>' + (i + 2) + '</b></td>'
               + h.filter(function(x){ return d.eslesme[x.k]; }).map(function(x){
                   var idx = f.kolonlar.indexOf(d.eslesme[x.k]);
                   var v = idx >= 0 ? satir[idx] : '';
-                  return '<td>' + (v && v !== '—' ? GV.esc(v) : '<span class="muted">boş</span>') + '</td>';
+                  return '<td data-lbl="">' + (v && v !== '—' ? GV.esc(v) : '<span class="muted">boş</span>') + '</td>';
                 }).join('') + '</tr>';
           }).join('') + '</tbody></table></div>'
         + '<p class="gf-hint" style="margin-top:12px">' + GV.n(f.satirlar.length)
@@ -497,9 +497,9 @@
           ? '<div class="gv-tscroll"><table class="gtable"><thead><tr>'
             + '<th scope="col">Satır</th><th scope="col">Kayıt</th><th scope="col">Tespit Edilen Sorunlar</th></tr></thead><tbody>'
             + ht.map(function(x){
-                return '<tr><td><b>' + x.satir + '</b></td>'
-                  + '<td>' + GV.esc(x.kayit.ad || x.kayit.musteriKod || x.kayit.lokasyonKod || x.kayit.eposta || '—') + '</td>'
-                  + '<td>' + x.sorunlar.map(function(s){
+                return '<tr><td data-lbl="Satır"><b>' + x.satir + '</b></td>'
+                  + '<td data-lbl="Kayıt">' + GV.esc(x.kayit.ad || x.kayit.musteriKod || x.kayit.lokasyonKod || x.kayit.eposta || '—') + '</td>'
+                  + '<td data-lbl="Tespit Edilen Sorunlar">' + x.sorunlar.map(function(s){
                       return '<span class="gtag danger" style="margin:2px 3px 2px 0"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>' + GV.esc(s) + '</span>'; }).join('') + '</td></tr>';
               }).join('') + '</tbody></table></div>'
             + '<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
@@ -560,9 +560,9 @@
             + '<th scope="col" class="num">Aktarım Sonrası</th><th scope="col" class="num">Fark</th></tr></thead><tbody>'
             + s9.mutabakat.map(function(m){
                 return '<tr><th scope="row">' + GV.esc(m.ad) + '</th>'
-                  + '<td class="num">' + GV.n(m.once) + '</td>'
-                  + '<td class="num">' + GV.n(m.sonra) + '</td>'
-                  + '<td class="num">' + (m.sonra - m.once > 0
+                  + '<td data-lbl="Ölçüt" class="num">' + GV.n(m.once) + '</td>'
+                  + '<td data-lbl="Aktarım Öncesi" class="num">' + GV.n(m.sonra) + '</td>'
+                  + '<td data-lbl="Aktarım Sonrası" class="num">' + (m.sonra - m.once > 0
                       ? '<span class="diff plus"><i class="fa-solid fa-plus" aria-hidden="true"></i>' + GV.n(m.sonra - m.once) + '</span>'
                       : '<span class="diff zero">0</span>') + '</td></tr>';
               }).join('') + '</tbody></table></div>'

@@ -207,9 +207,9 @@
             + GV.esc({ sablon:'Şablon', musteri:'Müşteri bildirimi', kesif:'Saha keşfi' }[x.kaynak] || x.kaynak) + '</span></td>'
             + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', l.operasyonDurum) + '</td></tr>';
         }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td><td class="num">'
+      + '</tbody><tfoot><tr><td data-lbl="" colspan="2">Toplam</td><td data-lbl="Miktar" class="num">'
       + GV.n(kullanim.reduce(function(t,x){ return t + x.planlananMiktar; }, 0)) + ' ' + GV.esc(birimAd[h.birim] || h.birim)
-      + '</td><td colspan="2"></td></tr></tfoot></table></div>'
+      + '</td><td data-lbl="" colspan="2"></td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-location-dot', baslik:'Kullanımda değil',
         metin:'Bu hizmet henüz hiçbir lokasyonun kapsamına alınmadı.' });
 

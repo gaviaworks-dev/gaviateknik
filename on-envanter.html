@@ -234,11 +234,11 @@
           + '<th scope="col">Birim</th><th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
           + h.map(function(x){
               var bf = A.birimSatisFiyati(x.hizmetId, proje ? proje.fiyatListesiId : null);
-              return '<tr><td><b>' + GV.esc(x.poz) + '</b></td><td>' + GV.esc(x.hizmetAd) + '</td>'
-                + '<td class="num">' + GV.n(x.planlananMiktar) + '</td>'
-                + '<td>' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
-                + '<td class="num">' + GV.tl(bf) + '</td>'
-                + '<td class="num">' + GV.tl(bf * x.planlananMiktar) + '</td></tr>';
+              return '<tr><td data-lbl="Poz"><b>' + GV.esc(x.poz) + '</b></td><td data-lbl="Hizmet">' + GV.esc(x.hizmetAd) + '</td>'
+                + '<td data-lbl="Miktar" class="num">' + GV.n(x.planlananMiktar) + '</td>'
+                + '<td data-lbl="Birim">' + GV.esc(birimAd[x.birim] || x.birim) + '</td>'
+                + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(bf) + '</td>'
+                + '<td data-lbl="Tutar" class="num">' + GV.tl(bf * x.planlananMiktar) + '</td></tr>';
             }).join('') + '</tbody></table></div>'
         : '<div class="gv-note warn"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>'
           + '<span>Ön envanter olmadan planlama ve fiyatlandırma yapılamaz. Uygun bir şablon uygulayın veya saha keşfi planlayın.</span></div>',
@@ -341,10 +341,10 @@
           + s.kalemler.map(function(k){
               var h = A.kayit('hizmetler', k.hizmetId);
               if (!h) return '';
-              return '<tr><td><b>' + GV.esc(h.poz) + '</b></td><td>' + GV.esc(h.ad) + '</td>'
-                + '<td class="num">' + GV.n(k.miktar) + '</td>'
-                + '<td>' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-                + '<td>' + (h.birim === 'metrekare' ? '<span class="gtag mint">Alana göre ölçeklenir</span>'
+              return '<tr><td data-lbl="Poz"><b>' + GV.esc(h.poz) + '</b></td><td data-lbl="Hizmet">' + GV.esc(h.ad) + '</td>'
+                + '<td data-lbl="Temel Miktar" class="num">' + GV.n(k.miktar) + '</td>'
+                + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
+                + '<td data-lbl="Ölçeklenir mi?">' + (h.birim === 'metrekare' ? '<span class="gtag mint">Alana göre ölçeklenir</span>'
                     : h.birim === 'sistem' || h.birim === 'dokuman' ? '<span class="gtag">Sabit</span>'
                     : '<span class="gtag">Orantılı</span>') + '</td></tr>';
             }).join('') + '</tbody></table></div>',

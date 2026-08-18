@@ -338,8 +338,8 @@
             + '<td data-lbl="Ödeme Tarihi">' + GV.d(h.odemeTarihi) + '</td></tr>';
         }).join('')
       + '</tbody><tfoot><tr><td data-lbl="" colspan="3">Toplam</td>'
-      + '<td class="num">' + GV.tl(hakedisler.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
-      + '<td colspan="3"></td></tr></tfoot></table></div>'
+      + '<td data-lbl="Tutar" class="num">' + GV.tl(hakedisler.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
+      + '<td data-lbl="" colspan="3"></td></tr></tfoot></table></div>'
     : gvEmpty({ ikon:'fa-hand-holding-dollar', baslik:'Hakediş yok', metin:'Bu taşeron için hakediş oluşmadı.' });
 
   /* --- belgeler --- */

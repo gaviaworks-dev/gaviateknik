@@ -310,14 +310,14 @@
         + (p.durum === 'izinli' ? ' · izinli' : '') + '</span></th>';
       veri.forEach(function(y){
         var c = hucre(p, y);
-        h += '<td style="text-align:center"><span class="mx-cell ' + c.ton + '" role="img" aria-label="'
+        h += '<td data-lbl="Personel" style="text-align:center"><span class="mx-cell ' + c.ton + '" role="img" aria-label="'
           + GV.esc(c.aria) + '" title="' + GV.esc(c.aria) + '"><i class="fa-solid ' + c.ikon + '" aria-hidden="true"></i></span></td>';
       });
       h += '</tr>';
     });
     h += '</tbody><tfoot><tr><th scope="row" style="text-align:left">Atanabilir personel</th>'
       + veri.map(function(y){
-          return '<td style="text-align:center">' + (y.yetkinSayi
+          return '<td data-lbl="Personel" style="text-align:center">' + (y.yetkinSayi
             ? '<b class="t-strong">' + GV.n(y.yetkinSayi) + '</b>'
             : '<b style="color:var(--danger)">0</b>') + '</td>';
         }).join('') + '</tr></tfoot></table></div>';
