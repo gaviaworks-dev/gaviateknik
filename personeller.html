@@ -334,7 +334,7 @@
   });
 
   document.getElementById('prYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni personel', ikon:'fa-plus', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield"><label for="pyAd">Ad Soyad *</label><input type="text" id="pyAd"></div>'
@@ -353,26 +353,31 @@
         + A.liste('yetkinlikler').map(function(y){ return '<option value="' + y.id + '">' + GV.esc(y.ad) + '</option>'; }).join('')
         + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim. Yetkinlik belgesi ayrıca personel detayından eklenir.</span></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#pyAd').value.trim();
-            if (!ad) { gvToast('Ad Soyad zorunludur.', { ton:'danger' }); return false; }
-            var yetkinlikler = Array.prototype.slice.call(kap.querySelectorAll('#pyYetkinlik option:checked'))
-              .map(function(o){ return o.value; });
-            var ini = ad.split(' ').map(function(x){ return x[0]; }).join('').substring(0,2).toLocaleUpperCase('tr-TR');
-            var pid = GV.yeniKod('PRS-Y');
-            A.ekle('personeller', {
-              id: pid, ad: ad, gorev: kap.querySelector('#pyGorev').value,
-              birim: kap.querySelector('#pyBirim').value, ini: ini, durum:'aktif',
-              ise: kap.querySelector('#pyIse').value || BUGUN,
-              yetkinlikler: yetkinlikler, isYuku: 0,
-              telefon: kap.querySelector('#pyTel').value.trim(),
-              eposta: kap.querySelector('#pyMail').value.trim()
-            }).then(function(){
-              gvToast('Personel kaydedildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        pyAd:    { etiket:'Ad Soyad', zorunlu:true, enAz:3, enCok:80 },
+        pyGorev: { etiket:'Görev', zorunlu:true },
+        pyBirim: { etiket:'Birim', zorunlu:true },
+        pyIse:   { etiket:'İşe giriş tarihi', tur:'tarih', zorunlu:true, enCok: BUGUN },
+        pyTel:   { etiket:'Telefon', tur:'telefon' },
+        pyMail:  { etiket:'E-posta', tur:'eposta' }
+      },
+      ad:'CreateStaff',
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var yetkinlikler = Array.prototype.slice.call(yardim.kap.querySelectorAll('#pyYetkinlik option:checked'))
+          .map(function(o){ return o.value; });
+        var ini = v.pyAd.split(' ').map(function(x){ return x[0]; }).join('').substring(0,2).toLocaleUpperCase('tr-TR');
+        return A.ekle('personeller', {
+          id: GV.yeniKod('PRS-Y'), ad: v.pyAd, gorev: v.pyGorev,
+          birim: v.pyBirim, ini: ini, durum:'aktif',
+          ise: v.pyIse || BUGUN,
+          yetkinlikler: yetkinlikler, isYuku: 0,
+          telefon: v.pyTel, eposta: v.pyMail
+        }).then(function(){
+          gvToast('Personel kaydedildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 
@@ -454,7 +459,7 @@
       var kayit = A.kayit('personelBelgeleri', b.getAttribute('data-yenile'));
       var y = A.kayit('yetkinlikler', kayit.yetkinlikId);
       var p = A.kayit('personeller', kayit.personelId);
-      gvModal({
+      gvModalForm({
         baslik:'Yetkinlik belgesi yenile', ikon:'fa-rotate',
         metin:'<b>' + GV.esc(p ? p.ad : '') + '</b> · ' + GV.esc(y ? y.ad : '')
           + ' belgesi yenilenecek. Geçerlilik süresi ' + (y ? y.gecerlilikAy : 24) + ' aydır.',
@@ -475,18 +480,21 @@
           kap.querySelector('#byBas').addEventListener('change', hesapla);
           hesapla();
         },
-        butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-          { etiket:'Yenile', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-              var no = kap.querySelector('#byNo').value.trim();
-              var bas = kap.querySelector('#byBas').value;
-              if (!no || !bas) { gvToast('Belge no ve başlangıç tarihi zorunludur.', { ton:'danger' }); return false; }
-              A.guncelle('personelBelgeleri', kayit.id, {
-                belgeNo: no, baslangic: bas, bitis: kap.querySelector('#byBit').value || null
-              }).then(function(){
-                gvToast('Yetkinlik belgesi yenilendi.', { ton:'ok' });
-                setTimeout(function(){ location.reload(); }, 800);
-              });
-            } }]
+        sema: {
+          byNo:  { etiket:'Belge no', zorunlu:true, enAz:3, enCok:40 },
+          byBas: { etiket:'Başlangıç tarihi', tur:'tarih', zorunlu:true }
+        },
+        ad:'RenewCompetencyCertificate',
+        onayEtiket:'Yenile', onayIkon:'fa-check',
+        gonder: function(v, yardim){
+          return A.guncelle('personelBelgeleri', kayit.id, {
+            belgeNo: v.byNo, baslangic: v.byBas,
+            bitis: yardim.kap.querySelector('#byBit').value || null
+          }).then(function(){
+            gvToast('Yetkinlik belgesi yenilendi.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        }
       });
     });
   });

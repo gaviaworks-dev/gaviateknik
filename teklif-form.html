@@ -274,9 +274,15 @@
         veri.ekGider = t.ekGider;
         veri.durum = aksiyon === 'gonder' ? 'gonderildi' : (mevcut ? mevcut.durum : 'hazirlaniyor');
         veri.projeId = veri.projeId || null;
+        /* Doküman §8: durum alanı tam-form yamasıyla YAZILMAZ. */
         var yeniTklNo = GV.yeniKod('TKL-2026-Y');
+        var ayrik = GV.durumAyikla(veri, ['durum']);
         var islem = mevcut
-          ? A.guncelle('teklifler', mevcut.id, Object.assign({}, veri, { revizyon: (mevcut.revizyon || 0) + 1 }))
+          ? A.guncelle('teklifler', mevcut.id,
+              Object.assign({}, ayrik.yama, { revizyon: (mevcut.revizyon || 0) + 1 })).then(function(r){
+                return GV.durumlariUygula({ durum:'teklif' }, 'teklifler', mevcut.id, ayrik.durumlar)
+                  .then(function(){ return r; });
+              })
           : A.ekle('teklifler', Object.assign({
               id: yeniTklNo, no: yeniTklNo,
               revizyon: 0 }, veri));

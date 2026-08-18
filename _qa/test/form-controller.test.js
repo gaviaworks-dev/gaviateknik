@@ -319,4 +319,51 @@ test('şemadaki her alan formda gerçekten var (migrate edilen sayfalar)', () =>
   }
 });
 
+/* ---------- modal formlar ---------- */
+
+/* Her grup bittiğinde bu liste büyür; migrate edilen sayfa geri dönerse
+   test kırılır. */
+const MODAL_SAYFALAR = [
+  'denetimler.html', 'musteri-sikayetleri.html', 'iletisim-kisileri.html',
+  'kalite-dokumanlari.html', 'personel-detay.html', 'personeller.html'
+];
+
+test('migrate edilen modal formlar gvModalForm kullanıyor', () => {
+  for (const f of MODAL_SAYFALAR) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    assert.ok(s.includes('gvModalForm('), f + ' gvModalForm kullanmıyor');
+    assert.ok(s.includes('assets/js/form-controller.js'), f + ' dosyayı yüklemiyor');
+  }
+});
+
+test('gvModalForm çağrılarının hepsinde şema, komut adı ve gönder var', () => {
+  for (const f of fs.readdirSync(KOK).filter(x => x.endsWith('.html'))) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    let i = s.indexOf('gvModalForm({');
+    while (i !== -1) {
+      let j = i + 'gvModalForm({'.length, d = 1;
+      while (j < s.length && d) {
+        if (s[j] === '{') d++;
+        else if (s[j] === '}') d--;
+        j++;
+      }
+      const blok = s.slice(i, j);
+      const satir = s.slice(0, i).split('\n').length;
+      assert.ok(/\bsema\s*:/.test(blok), f + ':' + satir + ' gvModalForm şemasız');
+      assert.ok(/\bgonder\s*:/.test(blok), f + ':' + satir + " gvModalForm gönder'siz");
+      assert.ok(/\bad\s*:/.test(blok), f + ':' + satir + ' gvModalForm komut adı yok');
+      i = s.indexOf('gvModalForm({', j);
+    }
+  }
+});
+
+test('modal formlarda elle is-err yönetimi kalmadı', () => {
+  const ihlal = [];
+  for (const f of MODAL_SAYFALAR) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    if (s.includes("classList.toggle('is-err'")) ihlal.push(f);
+  }
+  assert.deepStrictEqual(ihlal, []);
+});
+
 }

@@ -197,7 +197,7 @@
 
 
   function kisiFormu(mevcut){
-    gvModal({
+    gvModalForm({
       baslik: mevcut ? 'İletişim kişisini düzenle' : 'Yeni iletişim kişisi', ikon:'fa-address-book', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield"><label for="ikAd">Ad Soyad *</label><input type="text" id="ikAd" value="' + GV.esc(mevcut ? mevcut.ad : '') + '"></div>'
@@ -212,27 +212,33 @@
         + '<div class="gfield"><label for="ikMail">E-posta</label><input type="email" id="ikMail" value="' + GV.esc(mevcut ? mevcut.eposta : '') + '"></div>'
         + '<div class="gfield full"><label class="gfield-inline"><input type="checkbox" id="ikBirincil"' + (mevcut && mevcut.birincil ? ' checked' : '') + '> Birincil yetkili</label></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket: mevcut ? 'Güncelle' : 'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#ikAd').value.trim();
-            if (!ad) { gvToast('Ad Soyad zorunludur.', { ton:'danger' }); return false; }
-            var veri = { ad: ad, unvan: kap.querySelector('#ikUnvan').value.trim(),
-              musteriId: kap.querySelector('#ikMusteri').value, iletisimRolu: kap.querySelector('#ikRol').value,
-              telefon: kap.querySelector('#ikTel').value.trim(), eposta: kap.querySelector('#ikMail').value.trim(),
-              birincil: kap.querySelector('#ikBirincil').checked };
-            var islem = mevcut ? A.guncelle('iletisimKisileri', mevcut.id, veri)
-              : A.ekle('iletisimKisileri', Object.assign({ id:GV.yeniKod('KSI-Y'), lokasyonId:null }, veri));
-            islem.then(function(){
-              gvToast(mevcut ? 'Kişi güncellendi.' : 'Kişi eklendi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 700);
-            });
-          } }]
+      sema: {
+        ikAd:      { etiket:'Ad Soyad', zorunlu:true, enAz:3, enCok:80 },
+        ikUnvan:   { etiket:'Unvan', enCok:80 },
+        ikMusteri: { etiket:'Müşteri', zorunlu:true },
+        ikRol:     { etiket:'İletişim rolü', zorunlu:true },
+        ikTel:     { etiket:'Telefon', tur:'telefon' },
+        ikMail:    { etiket:'E-posta', tur:'eposta' }
+      },
+      ad: 'SaveContact',
+      onayEtiket: mevcut ? 'Güncelle' : 'Kaydet', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var veri = { ad: v.ikAd, unvan: v.ikUnvan, musteriId: v.ikMusteri,
+          iletisimRolu: v.ikRol, telefon: v.ikTel, eposta: v.ikMail,
+          birincil: yardim.kap.querySelector('#ikBirincil').checked };
+        var islem = mevcut ? A.guncelle('iletisimKisileri', mevcut.id, veri)
+          : A.ekle('iletisimKisileri', Object.assign({ id:GV.yeniKod('KSI-Y'), lokasyonId:null }, veri));
+        return islem.then(function(){
+          gvToast(mevcut ? 'Kişi güncellendi.' : 'Kişi eklendi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 700);
+        });
+      }
     });
   }
 
   function gorusmeKaydet(kisiId){
     var k = A.kayit('iletisimKisileri', kisiId);
-    gvModal({
+    gvModalForm({
       baslik:'Görüşme kaydet', ikon:'fa-comments', genislik:'gv-modal-lg',
       metin: k ? '<b>' + GV.esc(k.ad) + '</b> ile yapılan görüşme iletişim geçmişine eklenecek.' : 'Görüşme kaydı iletişim geçmişine eklenecek.',
       govde:'<div class="gform">'
@@ -245,21 +251,26 @@
         + '<div class="gfield full"><label for="igKonu">Konu *</label><input type="text" id="igKonu" placeholder="Görüşme konusu"></div>'
         + '<div class="gfield full"><label for="igOzet">Özet</label><textarea id="igOzet" placeholder="Görüşmede konuşulanlar ve varılan sonuç"></textarea></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var konu = kap.querySelector('#igKonu').value.trim();
-            if (!konu) { gvToast('Konu alanı zorunludur.', { ton:'danger' }); return false; }
-            A.ekle('iletisimGecmisi', {
-              id:GV.yeniKod('ILT-Y'),
-              musteriId: k ? k.musteriId : null, lokasyonId: k ? k.lokasyonId : null, kisiId: kisiId,
-              tur: kap.querySelector('#igTur').value, tarih: kap.querySelector('#igTarih').value + 'T00:00:00',
-              kullaniciId: (GV.rolBilgi || {}).personelId, konu: konu,
-              ozet: kap.querySelector('#igOzet').value.trim() || 'Özet girilmedi.'
-            }).then(function(){
-              gvToast('Görüşme kaydedildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 700);
-            });
-          } }]
+      sema: {
+        igTur:   { etiket:'Görüşme türü', zorunlu:true },
+        igTarih: { etiket:'Tarih', tur:'tarih', zorunlu:true, enCok: A.bugun() },
+        igKonu:  { etiket:'Konu', zorunlu:true, enAz:3, enCok:160 },
+        igOzet:  { etiket:'Özet', enCok:800 }
+      },
+      ad: 'LogContactActivity',
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('iletisimGecmisi', {
+          id:GV.yeniKod('ILT-Y'),
+          musteriId: k ? k.musteriId : null, lokasyonId: k ? k.lokasyonId : null, kisiId: kisiId,
+          tur: v.igTur, tarih: v.igTarih + 'T00:00:00',
+          kullaniciId: (GV.rolBilgi || {}).personelId, konu: v.igKonu,
+          ozet: v.igOzet || 'Özet girilmedi.'
+        }).then(function(){
+          gvToast('Görüşme kaydedildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 700);
+        });
+      }
     });
   }
 

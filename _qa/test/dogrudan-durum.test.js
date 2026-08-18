@@ -126,3 +126,41 @@ test('geçişte kullanılan hedef durumlar akışta tanımlı (sabit metinli ça
   }
   assert.deepStrictEqual(hatali, []);
 });
+
+/* Yama DEĞİŞKEN üzerinden gidiyorsa da durum alanı yakalanmalı: sayfa
+   formları bütün alanları tek nesnede toplayıp guncelle'ye veriyor. */
+test('değişkenle taşınan yamalarda da durum alanı doğrudan yazılmıyor', () => {
+  const DURUM_ANAHTAR = /\b(durum|operasyonDurum|raporDurum|faturaDurum|tahsilatDurum)\s*[:=]/;
+  const ihlal = [];
+  for (const f of sayfalar()) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    const re = /A\.guncelle\(\s*'([^']+)'\s*,\s*[^,]+?,\s*([A-Za-z_$][\w$]*)\s*\)/g;
+    let m;
+    while ((m = re.exec(s))) {
+      const degisken = m[2];
+      const onceki = s.slice(Math.max(0, m.index - 3000), m.index);
+      /* değişkene durum atanmış mı ya da tanımında durum var mı */
+      const tanim = onceki.lastIndexOf('var ' + degisken + ' =');
+      const govde = tanim === -1 ? '' : onceki.slice(tanim);
+      const atama = new RegExp('\\b' + degisken + '\\.(durum|operasyonDurum|raporDurum|faturaDurum|tahsilatDurum)\\s*=').test(onceki);
+      if (atama || (govde && DURUM_ANAHTAR.test(govde.split(';')[0]))) {
+        ihlal.push(`${f}:${s.slice(0, m.index).split('\n').length} (${degisken})`);
+      }
+    }
+  }
+  assert.deepStrictEqual(ihlal, [], 'durum alanı taşıyan yama guncelle ile yazılıyor');
+});
+
+test('sayfa formları durum alanını GV.durumAyikla ile ayırıyor', () => {
+  const FORMLAR = {
+    'musteri-form.html': 'durum', 'ekipman-form.html': 'durum',
+    'lokasyon-form.html': 'operasyonDurum', 'proje-form.html': 'durum',
+    'is-emri-form.html': 'operasyonDurum', 'teklif-form.html': 'durum'
+  };
+  for (const [f, alan] of Object.entries(FORMLAR)) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    assert.ok(s.includes('GV.durumAyikla('), f + ' durumAyikla kullanmıyor');
+    assert.ok(s.includes("'" + alan + "'"), `${f}: ${alan} ayıklanmıyor`);
+    assert.ok(s.includes('GV.durumlariUygula('), f + ' geçişi uygulamıyor');
+  }
+});

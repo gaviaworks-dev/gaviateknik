@@ -767,6 +767,40 @@
   };
 
   /**
+   * Form yamasından durum alanlarını AYIRIR. Sayfa formları bütün alanları
+   * tek nesnede toplayıp `guncelle`ye veriyor; durum alanı o yamada
+   * kalırsa makine atlanmış olur (doküman §8).
+   * @param {Object} yama
+   * @param {string[]} durumAlanlari
+   * @returns {{yama:Object, durumlar:Object}}
+   */
+  GV.durumAyikla = function (yama, durumAlanlari) {
+    var temiz = {}, durumlar = {};
+    Object.keys(yama || {}).forEach(function (k) {
+      if (durumAlanlari.indexOf(k) !== -1) durumlar[k] = yama[k];
+      else temiz[k] = yama[k];
+    });
+    return { yama: temiz, durumlar: durumlar };
+  };
+
+  /**
+   * Ayrılan durum alanlarını sırayla geçiş olarak uygular. Kayıt zaten o
+   * durumdaysa ya da geçiş tanımlı değilse SESSİZCE atlanır ve sonuçta
+   * raporlanır — yazma yine de yapılmaz.
+   * @returns {Promise<Array<{alan:string, ok:boolean, sebep?:string}>>}
+   */
+  GV.durumlariUygula = function (eslesme, koleksiyon, id, durumlar, ctx) {
+    var isler = Object.keys(durumlar || {}).map(function (alan) {
+      var akis = eslesme[alan];
+      if (!akis) return Promise.resolve({ alan: alan, ok: false, sebep: 'Akış eşlemesi yok.' });
+      return GV.gecisUygula(akis, koleksiyon, id, durumlar[alan],
+        Object.assign({ alan: alan, sessiz: true }, ctx || {}))
+        .then(function (g) { return { alan: alan, ok: g.ok, sebep: g.sebep, kod: g.kod }; });
+    });
+    return Promise.all(isler);
+  };
+
+  /**
    * Toplu geçiş — her kayıt TEK TEK denenir. Kural nedeniyle geçemeyenler
    * sessizce yutulmaz; sebebiyle birlikte döner.
    * @returns {Promise<{toplam:number, basarili:number, engel:Array<{id:string, sebep:string, kod:string}>}>}

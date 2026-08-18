@@ -502,7 +502,7 @@
             tikla: function(){ location.href = GV.href ? GV.href('is-emirleri.html') : 'is-emirleri.html'; return false; } }] });
       return;
     }
-    gvModal({
+    gvModalForm({
       baslik:'İş emrine ata', ikon:'fa-user-plus', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="paIsEmri">İş emri *</label><select id="paIsEmri">'
@@ -516,29 +516,32 @@
         + 'yetkinliği olmayan personel kontrole atanamaz.</span></div>'
         + '<div class="gfield full"><label for="paNot">Görevlendirme notu</label>'
         + '<textarea id="paNot" rows="2" placeholder="Ekip içi rol, ulaşım veya ekipman notu"></textarea></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Ekibe Ekle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ieId = kap.querySelector('#paIsEmri').value;
-            var yId = kap.querySelector('#paYetkinlik').value;
-            var not = kap.querySelector('#paNot').value.trim();
-            if (!yId) { gvToast('Atanacak kontrol kapsamını seçin.', { ton:'danger' }); return false; }
-            var kural = A.personelAtanabilir(p.id, yId);
-            if (!kural.uygun) {
-              gvToast('Atama yapılamaz: ' + kural.sebep, { ton:'danger' });
-              return false;
-            }
-            var ie = A.kayit('isEmirleri', ieId);
-            if (!ie) { gvToast('İş emri bulunamadı.', { ton:'danger' }); return false; }
-            var ekip = (ie.ekipId || []).slice();
-            if (ekip.indexOf(p.id) === -1) ekip.push(p.id);
-            A.guncelle('isEmirleri', ieId, { ekipId: ekip }).then(function(){
-              A.kayitAt('guncelleme', 'isEmirleri', ieId, null, p.id,
-                'Personel ekibe eklendi (' + ((ytk(yId) || {}).ad || yId) + ')' + (not ? ' — ' + not : ''));
-              gvToast(p.ad + ' · ' + ieId + ' iş emri ekibine eklendi.'
-                + (kural.uyari ? ' Uyarı: ' + kural.uyari : ''), { ton: kural.uyari ? 'warn' : 'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        paIsEmri:    { etiket:'İş emri', zorunlu:true,
+                       ozel: function(v){ return A.kayit('isEmirleri', v) ? '' : 'İş emri bulunamadı.'; } },
+        /* Yetkinliği olmayan personel kontrole atanamaz — kural demoApi'de. */
+        paYetkinlik: { etiket:'Kontrol kapsamı', zorunlu:true,
+                       ozel: function(v){
+                         var k = A.personelAtanabilir(p.id, v);
+                         return k.uygun ? '' : k.sebep; } },
+        paNot:       { etiket:'Görevlendirme notu', enCok:400 }
+      },
+      ad:'AssignStaffToWorkOrder',
+      onayEtiket:'Ekibe Ekle', onayIkon:'fa-check',
+      gonder: function(v){
+        var kural = A.personelAtanabilir(p.id, v.paYetkinlik);
+        var ie = A.kayit('isEmirleri', v.paIsEmri);
+        var ekip = (ie.ekipId || []).slice();
+        if (ekip.indexOf(p.id) === -1) ekip.push(p.id);
+        return A.guncelle('isEmirleri', v.paIsEmri, { ekipId: ekip }).then(function(){
+          A.kayitAt('guncelleme', 'isEmirleri', v.paIsEmri, null, p.id,
+            'Personel ekibe eklendi (' + ((ytk(v.paYetkinlik) || {}).ad || v.paYetkinlik) + ')'
+            + (v.paNot ? ' — ' + v.paNot : ''));
+          gvToast(p.ad + ' · ' + v.paIsEmri + ' iş emri ekibine eklendi.'
+            + (kural.uyari ? ' Uyarı: ' + kural.uyari : ''), { ton: kural.uyari ? 'warn' : 'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   }
 
@@ -557,7 +560,7 @@
             tikla: function(){ location.href = GV.href ? GV.href('yetkinlikler.html') : 'yetkinlikler.html'; return false; } }] });
       return;
     }
-    gvModal({
+    gvModalForm({
       baslik:'Belge yenile', ikon:'fa-rotate', genislik:'gv-modal-lg',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="pbYetkinlik">Yetkinlik belgesi *</label><select id="pbYetkinlik">'
@@ -568,29 +571,30 @@
         + '<div class="gfield"><label for="pbBit">Yeni bitiş tarihi *</label><input type="date" id="pbBit">'
         + '<span class="gf-hint">Bitiş tarihi belge türünün geçerlilik süresine göre girilir; sistem tarih üretmez.</span></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Belgeyi Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var sec = kap.querySelector('#pbYetkinlik').value;
-            var no = kap.querySelector('#pbNo').value.trim();
-            var bas = kap.querySelector('#pbBas').value;
-            var bit = kap.querySelector('#pbBit').value;
-            if (!no || !bas || !bit) { gvToast('Belge no, başlangıç ve bitiş tarihi zorunludur.', { ton:'danger' }); return false; }
-            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
-            if (bit < BUGUN) { gvToast('Yenilenen belgenin bitiş tarihi geçmiş olamaz.', { ton:'danger' }); return false; }
-            var sonra;
-            if (sec.indexOf('v:') === 0) {
-              sonra = A.guncelle('personelBelgeleri', sec.substring(2), { belgeNo: no, baslangic: bas, bitis: bit });
-            } else {
-              var yId = sec.substring(2);
-              sonra = A.ekle('personelBelgeleri', {
-                id: GV.yeniKod('PBG-U'),
-                personelId: p.id, yetkinlikId: yId, belgeNo: no, baslangic: bas, bitis: bit });
-            }
-            sonra.then(function(){
-              gvToast('Belge güncellendi; geçerlilik ' + GV.d(bit) + ' tarihine uzatıldı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        pbYetkinlik: { etiket:'Yetkinlik belgesi', zorunlu:true },
+        pbNo:  { etiket:'Belge no', zorunlu:true, enAz:3, enCok:40 },
+        pbBas: { etiket:'Başlangıç tarihi', tur:'tarih', zorunlu:true },
+        pbBit: { etiket:'Bitiş tarihi', tur:'tarih', zorunlu:true, sonra:'pbBas', enAz: BUGUN }
+      },
+      ad:'RenewCompetencyCertificate',
+      onayEtiket:'Belgeyi Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+        var sonra;
+        if (v.pbYetkinlik.indexOf('v:') === 0) {
+          sonra = A.guncelle('personelBelgeleri', v.pbYetkinlik.substring(2),
+            { belgeNo: v.pbNo, baslangic: v.pbBas, bitis: v.pbBit });
+        } else {
+          sonra = A.ekle('personelBelgeleri', {
+            id: GV.yeniKod('PBG-U'),
+            personelId: p.id, yetkinlikId: v.pbYetkinlik.substring(2),
+            belgeNo: v.pbNo, baslangic: v.pbBas, bitis: v.pbBit });
+        }
+        return sonra.then(function(){
+          gvToast('Belge güncellendi; geçerlilik ' + GV.d(v.pbBit) + ' tarihine uzatıldı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   }
 

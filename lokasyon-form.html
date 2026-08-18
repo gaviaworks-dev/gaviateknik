@@ -379,9 +379,17 @@
       veri.projeId = veri.projeId || null;
       veri.taseronId = veri.taseronId || null;
 
+      /* Doküman §8: durum alanı tam-form yamasıyla YAZILMAZ; yamadan
+         ayrılıp geçiş olarak uygulanır. Yeni kayıtta durum başlangıç
+         değeridir, geçiş sayılmaz. */
       var yeniLokKod = GV.yeniKod('LOK-Y');
+      var ayrik = GV.durumAyikla(veri, ['operasyonDurum']);
       var islem = mevcut
-        ? A.guncelle('lokasyonlar', mevcut.id, veri)
+        ? A.guncelle('lokasyonlar', mevcut.id, ayrik.yama).then(function(r){
+            return GV.durumlariUygula({ operasyonDurum:'operasyon' }, 'lokasyonlar', mevcut.id,
+              ayrik.durumlar, { ekYama: veri.kontrolTarihi ? { kontrolTarihi: veri.kontrolTarihi } : null })
+              .then(function(){ return r; });
+          })
         : A.ekle('lokasyonlar', Object.assign({
             id: yeniLokKod,
             kod: veri.kod || yeniLokKod,

@@ -324,14 +324,13 @@
   /* ---------------- çözüm kaydet ve kapat ---------------- */
   function cozumKaydet(id){
     var s = kayitBul(id);
-    gvModal({
+    gvModalForm({
       baslik:'Çözüm kaydet ve kapat', ikon:'fa-handshake-angle', genislik:'gv-modal-lg', ton:'warn',
       metin:'<b>' + GV.esc(s.id) + '</b> şikâyeti kapatılacak. Çözüm metni müşteriye yazılı olarak bildirilir '
         + 've kapanış tarihi ' + GV.d(BUGUN) + ' olarak kaydedilir.',
       govde:'<div class="gform">'
-        + '<div class="gfield full" id="czCozumF"><label for="czCozum">Çözüm metni *</label>'
-        + '<textarea id="czCozum" placeholder="Şikâyetin nasıl çözüldüğü ve müşteriye ne bildirildiği…"></textarea>'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Çözüm metni zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="czCozum">Çözüm metni *</label>'
+        + '<textarea id="czCozum" placeholder="Şikâyetin nasıl çözüldüğü ve müşteriye ne bildirildiği…"></textarea></div>'
         + '<div class="gfield"><label for="czPuan">Müşteri memnuniyet puanı</label><select id="czPuan">'
         + '<option value="">Değerlendirilmedi</option>'
         + [5,4,3,2,1].map(function(p){
@@ -340,45 +339,47 @@
         + '<div class="gfield"><label class="lh-toggle" for="czDof"><input type="checkbox" id="czDof"' + (s.dofId ? ' disabled' : '') + '> '
         + (s.dofId ? 'Bu şikâyete bağlı DÖF zaten var' : 'Kapanışla birlikte düzeltici faaliyet aç') + '</label></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet ve Kapat', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var cozum = kap.querySelector('#czCozum').value.trim();
-            kap.querySelector('#czCozumF').classList.toggle('is-err', !cozum);
-            if (!cozum) { kap.querySelector('#czCozum').focus(); return false; }
-            var puan = kap.querySelector('#czPuan').value;
-            var dofIster = !s.dofId && kap.querySelector('#czDof').checked;
-            var yeniDof = dofIster ? yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3) : null;
-            var yama = { durum:'kapandi', cozum: cozum, kapanis: BUGUN,
-              memnuniyet: puan ? Number(puan) : null };
-            if (yeniDof) yama.dofId = yeniDof;
-            A.guncelle('musteriSikayetleri', s.id, yama).then(function(){
-              A.kayitAt('kapatma', 'Müşteri Şikâyeti', s.id, (DURUM[s.durum] || DURUM.acik)[2], 'Kapandı', cozum);
-              if (!yeniDof) return null;
-              return A.ekle('duzelticiFaaliyetler', {
-                id: yeniDof, kaynak:'Müşteri Şikâyeti', kaynakId: s.id,
-                baslik: s.konu, aciklama: s.aciklama,
-                kokNeden:'Kök neden analizi yapılacak.',
-                faaliyet: cozum,
-                sorumluId: s.atananId || 'PRS-005', acilis: BUGUN, termin: null,
-                kapanis: null, durum:'acik', etkinlik: null
-              });
-            }).then(function(){
-              gvToast(yeniDof ? 'Şikâyet kapatıldı ve düzeltici faaliyet açıldı.' : 'Şikâyet kapatıldı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        czCozum: { etiket:'Çözüm metni', zorunlu:true, enAz:10, enCok:1000 },
+        czPuan:  { etiket:'Memnuniyet puanı' }
+      },
+      ad:'CloseComplaint',
+      onayEtiket:'Kaydet ve Kapat', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var dofIster = !s.dofId && yardim.kap.querySelector('#czDof').checked;
+        var yeniDof = dofIster ? yeniKod('duzelticiFaaliyetler', 'DOF-2026') : null;
+        /* Durum geçişi tek kapıdan; çözüm/kapanış alanları aynı komutun parçası. */
+        var ek = { cozum: v.czCozum, kapanis: BUGUN, memnuniyet: v.czPuan ? Number(v.czPuan) : null };
+        if (yeniDof) ek.dofId = yeniDof;
+        return GV.gecisUygula('sikayet', 'musteriSikayetleri', s.id, 'kapandi', {
+          not: v.czCozum, ekYama: ek
+        }).then(function(g){
+          if (!g.ok) throw new Error(g.sebep);
+          if (!yeniDof) return null;
+          return A.ekle('duzelticiFaaliyetler', {
+            id: yeniDof, kaynak:'Müşteri Şikâyeti', kaynakId: s.id,
+            baslik: s.konu, aciklama: s.aciklama,
+            kokNeden:'Kök neden analizi yapılacak.',
+            faaliyet: v.czCozum,
+            sorumluId: s.atananId || 'PRS-005', acilis: BUGUN, termin: null,
+            kapanis: null, durum:'acik', etkinlik: null
+          });
+        }).then(function(){
+          gvToast(yeniDof ? 'Şikâyet kapatıldı ve düzeltici faaliyet açıldı.' : 'Şikâyet kapatıldı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   }
 
   /* ---------------- DÖF aç ---------------- */
   function dofAc(s){
-    gvModal({
+    gvModalForm({
       baslik:'Düzeltici faaliyet aç', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
       metin:'<b>' + GV.esc(s.id) + '</b> şikâyeti kaynak olarak bağlanacak.',
       govde:'<div class="gform">'
-        + '<div class="gfield full" id="skDfBaslikF"><label for="skDfBaslik">Faaliyet başlığı *</label>'
-        + '<input type="text" id="skDfBaslik" value="' + GV.esc(s.konu) + '">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Başlık zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="skDfBaslik">Faaliyet başlığı *</label>'
+        + '<input type="text" id="skDfBaslik" value="' + GV.esc(s.konu) + '"></div>'
         + '<div class="gfield full"><label for="skDfKok">Kök neden</label>'
         + '<textarea id="skDfKok" placeholder="Şikâyetin kök nedeni"></textarea></div>'
         + '<div class="gfield full"><label for="skDfFaaliyet">Planlanan faaliyet</label>'
@@ -389,27 +390,32 @@
               + GV.esc(p.ad + ' — ' + p.birim) + '</option>'; }).join('') + '</select></div>'
         + '<div class="gfield"><label for="skDfTermin">Termin</label><input type="date" id="skDfTermin"></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var baslik = kap.querySelector('#skDfBaslik').value.trim();
-            kap.querySelector('#skDfBaslikF').classList.toggle('is-err', !baslik);
-            if (!baslik) { kap.querySelector('#skDfBaslik').focus(); return false; }
-            var yeni = yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3);
-            A.ekle('duzelticiFaaliyetler', {
-              id: yeni, kaynak:'Müşteri Şikâyeti', kaynakId: s.id, baslik: baslik,
-              aciklama: s.aciklama,
-              kokNeden: kap.querySelector('#skDfKok').value.trim() || 'Kök neden analizi yapılacak.',
-              faaliyet: kap.querySelector('#skDfFaaliyet').value.trim() || 'Faaliyet planı hazırlanacak.',
-              sorumluId: kap.querySelector('#skDfSorumlu').value, acilis: BUGUN,
-              termin: kap.querySelector('#skDfTermin').value || null,
-              kapanis: null, durum:'acik', etkinlik: null
-            }).then(function(){
-              return A.guncelle('musteriSikayetleri', s.id, { dofId: yeni });
-            }).then(function(){
-              gvToast('Düzeltici faaliyet açıldı ve şikâyete bağlandı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        skDfBaslik:   { etiket:'Faaliyet başlığı', zorunlu:true, enAz:5, enCok:160 },
+        skDfKok:      { etiket:'Kök neden', enCok:600 },
+        skDfFaaliyet: { etiket:'Planlanan faaliyet', enCok:600 },
+        skDfSorumlu:  { etiket:'Sorumlu', zorunlu:true },
+        skDfTermin:   { etiket:'Termin', tur:'tarih', enAz: BUGUN }
+      },
+      ad:'OpenCorrectiveAction',
+      onayEtiket:'DÖF Aç', onayIkon:'fa-check',
+      gonder: function(v){
+        var yeni = yeniKod('duzelticiFaaliyetler', 'DOF-2026');
+        return A.ekle('duzelticiFaaliyetler', {
+          id: yeni, kaynak:'Müşteri Şikâyeti', kaynakId: s.id, baslik: v.skDfBaslik,
+          aciklama: s.aciklama,
+          kokNeden: v.skDfKok || 'Kök neden analizi yapılacak.',
+          faaliyet: v.skDfFaaliyet || 'Faaliyet planı hazırlanacak.',
+          sorumluId: v.skDfSorumlu, acilis: BUGUN,
+          termin: v.skDfTermin || null,
+          kapanis: null, durum:'acik', etkinlik: null
+        }).then(function(){
+          return A.guncelle('musteriSikayetleri', s.id, { dofId: yeni });
+        }).then(function(){
+          gvToast('Düzeltici faaliyet açıldı ve şikâyete bağlandı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   }
 
@@ -424,7 +430,7 @@
     }
     var ilkMusteri = musteriler.length ? musteriler[0].id : null;
 
-    gvModal({
+    gvModalForm({
       baslik:'Yeni şikâyet kaydı', ikon:'fa-comment-dots', genislik:'gv-modal-lg',
       metin:'Şikâyet ve itirazlar kayıt altına alınır; değerlendirme süreci prosedüre göre yürütülür.',
       govde:'<div class="gform">'
@@ -433,18 +439,15 @@
         + '</select></div>'
         + '<div class="gfield"><label for="ysLokasyon">Lokasyon</label><select id="ysLokasyon">'
         + (ilkMusteri ? lokasyonSecenek(ilkMusteri) : '<option value="">Genel</option>') + '</select></div>'
-        + '<div class="gfield" id="ysTarihF"><label for="ysTarih">Şikâyet tarihi *</label>'
-        + '<input type="date" id="ysTarih" value="' + BUGUN + '">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Tarih zorunludur.</div></div>'
+        + '<div class="gfield"><label for="ysTarih">Şikâyet tarihi *</label>'
+        + '<input type="date" id="ysTarih" value="' + BUGUN + '"></div>'
         + '<div class="gfield"><label for="ysKanal">Geliş kanalı *</label><select id="ysKanal">'
         + KANALLAR.map(function(k){ return '<option value="' + GV.esc(k.ad) + '">' + GV.esc(k.ad) + '</option>'; }).join('')
         + '</select></div>'
-        + '<div class="gfield full" id="ysKonuF"><label for="ysKonu">Konu *</label>'
-        + '<input type="text" id="ysKonu" placeholder="Şikâyetin kısa başlığı">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Konu zorunludur.</div></div>'
-        + '<div class="gfield full" id="ysAciklamaF"><label for="ysAciklama">Açıklama *</label>'
-        + '<textarea id="ysAciklama" placeholder="Müşterinin bildirdiği durumun ayrıntısı…"></textarea>'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="ysKonu">Konu *</label>'
+        + '<input type="text" id="ysKonu" placeholder="Şikâyetin kısa başlığı"></div>'
+        + '<div class="gfield full"><label for="ysAciklama">Açıklama *</label>'
+        + '<textarea id="ysAciklama" placeholder="Müşterinin bildirdiği durumun ayrıntısı…"></textarea></div>'
         + '<div class="gfield"><label for="ysAtanan">Atanan *</label><select id="ysAtanan">'
         + A.liste('personeller').filter(function(p){ return p.durum === 'aktif'; })
             .map(function(p){ return '<option value="' + p.id + '"' + (p.id === 'PRS-005' ? ' selected' : '') + '>'
@@ -457,31 +460,33 @@
           kap.querySelector('#ysLokasyon').innerHTML = lokasyonSecenek(this.value);
         });
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Şikâyeti Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var konu = kap.querySelector('#ysKonu').value.trim();
-            var aciklama = kap.querySelector('#ysAciklama').value.trim();
-            var tarih = kap.querySelector('#ysTarih').value;
-            kap.querySelector('#ysKonuF').classList.toggle('is-err', !konu);
-            kap.querySelector('#ysAciklamaF').classList.toggle('is-err', !aciklama);
-            kap.querySelector('#ysTarihF').classList.toggle('is-err', !tarih);
-            if (!konu) { kap.querySelector('#ysKonu').focus(); return false; }
-            if (!aciklama) { kap.querySelector('#ysAciklama').focus(); return false; }
-            if (!tarih) { kap.querySelector('#ysTarih').focus(); return false; }
-            A.ekle('musteriSikayetleri', {
-              id: yeniKod('musteriSikayetleri', 'SKY-2026-', 3),
-              musteriId: kap.querySelector('#ysMusteri').value,
-              lokasyonId: kap.querySelector('#ysLokasyon').value || null,
-              tarih: tarih, kanal: kap.querySelector('#ysKanal').value,
-              konu: konu, aciklama: aciklama,
-              atananId: kap.querySelector('#ysAtanan').value,
-              durum: kap.querySelector('#ysDurum').value,
-              cozum: null, kapanis: null, dofId: null, memnuniyet: null
-            }).then(function(){
-              gvToast('Şikâyet kaydedildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        ysMusteri:  { etiket:'Müşteri', zorunlu:true },
+        ysLokasyon: { etiket:'Lokasyon' },
+        ysTarih:    { etiket:'Şikâyet tarihi', tur:'tarih', zorunlu:true, enCok: BUGUN },
+        ysKanal:    { etiket:'Geliş kanalı', zorunlu:true },
+        ysKonu:     { etiket:'Konu', zorunlu:true, enAz:5, enCok:160 },
+        ysAciklama: { etiket:'Açıklama', zorunlu:true, enAz:10, enCok:1000 },
+        ysAtanan:   { etiket:'Atanan', zorunlu:true },
+        ysDurum:    { etiket:'Durum', zorunlu:true }
+      },
+      ad:'CreateComplaint',
+      onayEtiket:'Şikâyeti Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('musteriSikayetleri', {
+          id: yeniKod('musteriSikayetleri', 'SKY-2026'),
+          musteriId: v.ysMusteri,
+          lokasyonId: v.ysLokasyon || null,
+          tarih: v.ysTarih, kanal: v.ysKanal,
+          konu: v.ysKonu, aciklama: v.ysAciklama,
+          atananId: v.ysAtanan,
+          durum: v.ysDurum,
+          cozum: null, kapanis: null, dofId: null, memnuniyet: null
+        }).then(function(){
+          gvToast('Şikâyet kaydedildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   });
 

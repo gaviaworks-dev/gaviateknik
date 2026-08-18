@@ -294,9 +294,16 @@
         ? 'Marka adı boş bırakılamaz; boş satırları doldurun veya kaldırın.' : '';
     },
     gonder: function(veri, yardim){
+      /* Doküman §8: durum alanı tam-form yamasıyla YAZILMAZ; yamadan
+         ayrılıp geçiş olarak uygulanır. Yeni kayıtta durum başlangıç
+         değeridir, geçiş sayılmaz. */
       var yeniMstKod = GV.yeniKod('MST-Y');
+      var ayrik = GV.durumAyikla(veri, ['durum']);
       var islem = mevcut
-        ? A.guncelle('musteriler', mevcut.id, veri)
+        ? A.guncelle('musteriler', mevcut.id, ayrik.yama).then(function(r){
+            return GV.durumlariUygula({ durum:'musteri' }, 'musteriler', mevcut.id, ayrik.durumlar)
+              .then(function(){ return r; });
+          })
         : A.ekle('musteriler', Object.assign({
             id: yeniMstKod,
             kod: veri.kod || yeniMstKod,

@@ -308,7 +308,7 @@
   /* ---------------- bulgu ekleme modalı ---------------- */
   function bulguEkle(id){
     var d = kayitBul(id);
-    gvModal({
+    gvModalForm({
       baslik:'Bulgu ekle', ikon:'fa-plus', genislik:'gv-modal-lg',
       metin:'<b>' + GV.esc(d.id) + '</b> denetimine yeni bulgu kaydedilecek.',
       govde:'<div class="gform">'
@@ -321,61 +321,65 @@
         + A.liste('kaliteDokumanlari').filter(function(k){ return k.durum === 'yayinda'; })
             .map(function(k){ return '<option value="' + GV.esc(k.id) + '">' + GV.esc(k.kod + ' · ' + k.ad) + '</option>'; }).join('')
         + '</select></div>'
-        + '<div class="gfield full" id="bgAciklamaF"><label for="bgAciklama">Bulgu açıklaması *</label>'
-        + '<textarea id="bgAciklama" placeholder="Tespit edilen uygunsuzluğun tanımı…"></textarea>'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Bulgu açıklaması zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="bgAciklama">Bulgu açıklaması *</label>'
+        + '<textarea id="bgAciklama" placeholder="Tespit edilen uygunsuzluğun tanımı…"></textarea></div>'
         + '<div class="gfield full"><label class="lh-toggle" for="bgDof"><input type="checkbox" id="bgDof" checked> Bu bulgu için düzeltici faaliyet aç</label>'
         + '<span class="gf-hint">Major bulgularda düzeltici faaliyet açılması zorunludur.</span></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Bulguyu Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var metin = kap.querySelector('#bgAciklama').value.trim();
-            kap.querySelector('#bgAciklamaF').classList.toggle('is-err', !metin);
-            if (!metin) { kap.querySelector('#bgAciklama').focus(); return false; }
-            var sinif = kap.querySelector('#bgSinif').value;
-            var maddeSec = kap.querySelector('#bgMadde');
-            var madde = maddeSec.value ? A.kayit('kaliteDokumanlari', maddeSec.value) : null;
-            var maddeMetin = madde ? ' (İlgili doküman: ' + madde.kod + ' · ' + madde.ad + ')' : '';
-            var dofIster = kap.querySelector('#bgDof').checked || sinif === 'major';
-            var yama = { durum: d.durum === 'planlandi' ? 'acik' : d.durum };
-            if (sinif === 'gozlem') yama.gozlem = (d.gozlem || 0) + 1;
-            else {
-              yama.bulguSayisi = (d.bulguSayisi || 0) + 1;
-              if (sinif === 'major') yama.majorSayisi = (d.majorSayisi || 0) + 1;
-              else yama.minorSayisi = (d.minorSayisi || 0) + 1;
-            }
-            A.guncelle('denetimler', d.id, yama).then(function(){
-              A.kayitAt('bulgu-ekleme', 'Denetim', d.id, GV.n(d.bulguSayisi),
-                GV.n((yama.bulguSayisi != null ? yama.bulguSayisi : d.bulguSayisi)),
-                (sinif === 'major' ? 'Major' : sinif === 'minor' ? 'Minor' : 'Gözlem') + ': ' + metin + maddeMetin);
-              if (!dofIster) return null;
-              return A.ekle('duzelticiFaaliyetler', {
-                id: yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3),
-                kaynak: d.tur, kaynakId: d.id,
-                baslik: metin.length > 70 ? metin.substring(0, 70) + '…' : metin,
-                aciklama: metin + maddeMetin, kokNeden:'Kök neden analizi yapılacak.',
-                faaliyet:'Faaliyet planı hazırlanacak.',
-                sorumluId: d.denetciId || 'PRS-005', acilis: BUGUN, termin: null,
-                kapanis: null, durum:'acik', etkinlik: null
-              });
-            }).then(function(){
-              gvToast(dofIster ? 'Bulgu kaydedildi ve düzeltici faaliyet açıldı.' : 'Bulgu kaydedildi.',
-                { ton: sinif === 'major' ? 'warn' : 'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        bgSinif:     { etiket:'Bulgu sınıfı', zorunlu:true },
+        bgMadde:     { etiket:'İlgili madde / doküman' },
+        bgAciklama:  { etiket:'Bulgu açıklaması', zorunlu:true, enAz:10, enCok:600 }
+      },
+      ad:'AddAuditFinding',
+      onayEtiket:'Bulguyu Kaydet', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var madde = v.bgMadde ? A.kayit('kaliteDokumanlari', v.bgMadde) : null;
+        var maddeMetin = madde ? ' (İlgili doküman: ' + madde.kod + ' · ' + madde.ad + ')' : '';
+        var dofIster = yardim.kap.querySelector('#bgDof').checked || v.bgSinif === 'major';
+        var sayac = {};
+        if (v.bgSinif === 'gozlem') sayac.gozlem = (d.gozlem || 0) + 1;
+        else {
+          sayac.bulguSayisi = (d.bulguSayisi || 0) + 1;
+          if (v.bgSinif === 'major') sayac.majorSayisi = (d.majorSayisi || 0) + 1;
+          else sayac.minorSayisi = (d.minorSayisi || 0) + 1;
+        }
+        /* Sayaç güncellemesi ile durum geçişi AYRI işlerdir. */
+        return A.guncelle('denetimler', d.id, sayac).then(function(){
+          return GV.gecisUygula('denetim', 'denetimler', d.id, 'acik', {
+            sessiz:true, not:'İlk bulgu kaydedildi.' });
+        }).then(function(){
+          A.kayitAt('bulgu-ekleme', 'Denetim', d.id, GV.n(d.bulguSayisi),
+            GV.n(sayac.bulguSayisi != null ? sayac.bulguSayisi : d.bulguSayisi),
+            (v.bgSinif === 'major' ? 'Major' : v.bgSinif === 'minor' ? 'Minor' : 'Gözlem')
+            + ': ' + v.bgAciklama + maddeMetin);
+          if (!dofIster) return null;
+          return A.ekle('duzelticiFaaliyetler', {
+            id: yeniKod('duzelticiFaaliyetler', 'DOF-2026'),
+            kaynak: d.tur, kaynakId: d.id,
+            baslik: v.bgAciklama.length > 70 ? v.bgAciklama.substring(0, 70) + '…' : v.bgAciklama,
+            aciklama: v.bgAciklama + maddeMetin, kokNeden:'Kök neden analizi yapılacak.',
+            faaliyet:'Faaliyet planı hazırlanacak.',
+            sorumluId: d.denetciId || 'PRS-005', acilis: BUGUN, termin: null,
+            kapanis: null, durum:'acik', etkinlik: null
+          });
+        }).then(function(){
+          gvToast(dofIster ? 'Bulgu kaydedildi ve düzeltici faaliyet açıldı.' : 'Bulgu kaydedildi.',
+            { ton: v.bgSinif === 'major' ? 'warn' : 'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   }
 
   /* ---------------- DÖF açma modalı ---------------- */
   function dofAc(d){
-    gvModal({
+    gvModalForm({
       baslik:'Düzeltici faaliyet aç', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
       metin:'<b>' + GV.esc(d.id) + '</b> denetimi kaynak olarak bağlanacak.',
       govde:'<div class="gform">'
-        + '<div class="gfield full" id="dfBaslikF"><label for="dfBaslik">Faaliyet başlığı *</label>'
-        + '<input type="text" id="dfBaslik" value="' + GV.esc(d.kapsam) + '" placeholder="Faaliyetin kısa tanımı">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Başlık zorunludur.</div></div>'
+        + '<div class="gfield full"><label for="dfBaslik">Faaliyet başlığı *</label>'
+        + '<input type="text" id="dfBaslik" value="' + GV.esc(d.kapsam) + '" placeholder="Faaliyetin kısa tanımı"></div>'
         + '<div class="gfield full"><label for="dfKok">Kök neden</label>'
         + '<textarea id="dfKok" placeholder="Bulgunun kök nedeni"></textarea></div>'
         + '<div class="gfield full"><label for="dfFaaliyet">Planlanan faaliyet</label>'
@@ -386,43 +390,46 @@
               + GV.esc(p.ad + ' — ' + p.birim) + '</option>'; }).join('') + '</select></div>'
         + '<div class="gfield"><label for="dfTermin">Termin</label><input type="date" id="dfTermin"></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var baslik = kap.querySelector('#dfBaslik').value.trim();
-            kap.querySelector('#dfBaslikF').classList.toggle('is-err', !baslik);
-            if (!baslik) { kap.querySelector('#dfBaslik').focus(); return false; }
-            A.ekle('duzelticiFaaliyetler', {
-              id: yeniKod('duzelticiFaaliyetler', 'DOF-2026-', 3),
-              kaynak: d.tur, kaynakId: d.id, baslik: baslik,
-              aciklama: d.kapsam,
-              kokNeden: kap.querySelector('#dfKok').value.trim() || 'Kök neden analizi yapılacak.',
-              faaliyet: kap.querySelector('#dfFaaliyet').value.trim() || 'Faaliyet planı hazırlanacak.',
-              sorumluId: kap.querySelector('#dfSorumlu').value, acilis: BUGUN,
-              termin: kap.querySelector('#dfTermin').value || null,
-              kapanis: null, durum:'acik', etkinlik: null
-            }).then(function(){
-              gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
-              setTimeout(function(){ location.href = GV.href('duzeltici-faaliyetler.html'); }, 900);
-            });
-          } }]
+      sema: {
+        dfBaslik:   { etiket:'Faaliyet başlığı', zorunlu:true, enAz:5, enCok:160 },
+        dfKok:      { etiket:'Kök neden', enCok:600 },
+        dfFaaliyet: { etiket:'Planlanan faaliyet', enCok:600 },
+        dfSorumlu:  { etiket:'Sorumlu', zorunlu:true },
+        dfTermin:   { etiket:'Termin', tur:'tarih', enAz: BUGUN }
+      },
+      ad:'OpenCorrectiveAction',
+      onayEtiket:'DÖF Aç', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('duzelticiFaaliyetler', {
+          id: yeniKod('duzelticiFaaliyetler', 'DOF-2026'),
+          kaynak: d.tur, kaynakId: d.id, baslik: v.dfBaslik,
+          aciklama: d.kapsam,
+          kokNeden: v.dfKok || 'Kök neden analizi yapılacak.',
+          faaliyet: v.dfFaaliyet || 'Faaliyet planı hazırlanacak.',
+          sorumluId: v.dfSorumlu, acilis: BUGUN,
+          termin: v.dfTermin || null,
+          kapanis: null, durum:'acik', etkinlik: null
+        }).then(function(){
+          gvToast('Düzeltici faaliyet açıldı.', { ton:'ok' });
+          setTimeout(function(){ location.href = GV.href('duzeltici-faaliyetler.html'); }, 900);
+        });
+      }
     });
   }
 
   /* ---------------- yeni denetim ---------------- */
   document.getElementById('dnYeni').addEventListener('click', function(){
     var birimler = ['Operasyon','Teknik','Kalite','Finans','Satış','Bilgi Sistemleri','Tüm süreçler'];
-    gvModal({
+    gvModalForm({
       baslik:'Yeni denetim planla', ikon:'fa-calendar-plus', genislik:'gv-modal-lg',
       metin:'Planlanan denetim kalite programına eklenir; bulgular denetim gerçekleştikten sonra girilir.',
       govde:'<div class="gform">'
         + '<div class="gfield"><label for="ydTur">Denetim türü *</label><select id="ydTur">'
         + TURLER.map(function(t){ return '<option value="' + GV.esc(t.ad) + '">' + GV.esc(t.ad) + '</option>'; }).join('')
         + '</select></div>'
-        + '<div class="gfield" id="ydTarihF"><label for="ydTarih">Denetim tarihi *</label><input type="date" id="ydTarih" value="' + BUGUN + '">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Denetim tarihi zorunludur.</div></div>'
-        + '<div class="gfield full" id="ydKapsamF"><label for="ydKapsam">Kapsam *</label>'
-        + '<input type="text" id="ydKapsam" placeholder="Denetlenecek süreç ve faaliyetler">'
-        + '<div class="gf-err"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Kapsam zorunludur.</div></div>'
+        + '<div class="gfield"><label for="ydTarih">Denetim tarihi *</label><input type="date" id="ydTarih" value="' + BUGUN + '"></div>'
+        + '<div class="gfield full"><label for="ydKapsam">Kapsam *</label>'
+        + '<input type="text" id="ydKapsam" placeholder="Denetlenecek süreç ve faaliyetler"></div>'
         + '<div class="gfield"><label for="ydDenetci">Denetçi</label><select id="ydDenetci">'
         + '<option value="">Dış denetçi kuruluş</option>'
         + A.liste('personeller').filter(function(p){ return p.durum === 'aktif'; })
@@ -436,27 +443,28 @@
         + A.liste('taseronlar').map(function(t){ return '<option value="' + t.id + '">' + GV.esc(t.kisaAd) + '</option>'; }).join('')
         + '</optgroup></select></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Denetimi Planla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var kapsam = kap.querySelector('#ydKapsam').value.trim();
-            var tarih = kap.querySelector('#ydTarih').value;
-            kap.querySelector('#ydKapsamF').classList.toggle('is-err', !kapsam);
-            kap.querySelector('#ydTarihF').classList.toggle('is-err', !tarih);
-            if (!kapsam) { kap.querySelector('#ydKapsam').focus(); return false; }
-            if (!tarih) { kap.querySelector('#ydTarih').focus(); return false; }
-            A.ekle('denetimler', {
-              id: yeniKod('denetimler', 'DNT-2026-', 3),
-              tur: kap.querySelector('#ydTur').value,
-              kapsam: kapsam, tarih: tarih,
-              denetciId: kap.querySelector('#ydDenetci').value || null,
-              denetlenenBirim: kap.querySelector('#ydBirim').value,
-              bulguSayisi: 0, majorSayisi: 0, minorSayisi: 0, gozlem: 0,
-              durum:'planlandi', rapor: null
-            }).then(function(){
-              gvToast('Denetim planlandı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        ydTur:     { etiket:'Denetim türü', zorunlu:true },
+        ydTarih:   { etiket:'Denetim tarihi', tur:'tarih', zorunlu:true },
+        ydKapsam:  { etiket:'Kapsam', zorunlu:true, enAz:5, enCok:200 },
+        ydDenetci: { etiket:'Denetçi' },
+        ydBirim:   { etiket:'Denetlenen birim', zorunlu:true }
+      },
+      ad:'PlanAudit',
+      onayEtiket:'Denetimi Planla', onayIkon:'fa-check',
+      gonder: function(v){
+        return A.ekle('denetimler', {
+          id: yeniKod('denetimler', 'DNT-2026'),
+          tur: v.ydTur, kapsam: v.ydKapsam, tarih: v.ydTarih,
+          denetciId: v.ydDenetci || null,
+          denetlenenBirim: v.ydBirim,
+          bulguSayisi: 0, majorSayisi: 0, minorSayisi: 0, gozlem: 0,
+          durum:'planlandi', rapor: null
+        }).then(function(){
+          gvToast('Denetim planlandı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   });
 

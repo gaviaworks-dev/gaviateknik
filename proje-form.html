@@ -313,9 +313,14 @@
     veri.yil = Number(veri.yil);
     veri.partiBuyuklugu = Number(veri.partiBuyuklugu);
     veri.raporSlaGun = Number(veri.raporSlaGun);
+    /* Doküman §8: durum alanı tam-form yamasıyla YAZILMAZ. */
     var yeniPrjKod = GV.yeniKod('PRJ-' + veri.yil + '-Y');
+    var ayrik = GV.durumAyikla(veri, ['durum']);
     var islem = mevcut
-      ? A.guncelle('projeler', mevcut.id, veri)
+      ? A.guncelle('projeler', mevcut.id, ayrik.yama).then(function(r){
+          return GV.durumlariUygula({ durum:'proje' }, 'projeler', mevcut.id, ayrik.durumlar)
+            .then(function(){ return r; });
+        })
       : A.ekle('projeler', Object.assign({
           id: yeniPrjKod, kod: yeniPrjKod
         }, veri));

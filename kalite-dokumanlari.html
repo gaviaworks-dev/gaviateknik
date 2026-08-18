@@ -350,7 +350,7 @@
 
   function yayinOnayi(did){
     var d = A.kayit('kaliteDokumanlari', did);
-    gvModal({
+    gvModalForm({
       baslik:'Doküman yayın onayı', ikon:'fa-stamp',
       metin:'<b>' + GV.esc(d.kod + ' ' + d.versiyon) + '</b> yayımlanacak ve ilgili modüllerde kullanıma açılacak.',
       govde:'<div class="gform">'
@@ -374,22 +374,27 @@
         kap.querySelector('#kdSure').addEventListener('input', hesapla);
         hesapla();
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Yayımla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var y = kap.querySelector('#kdYayin').value;
-            if (!y) { gvToast('Yayın tarihi zorunludur.', { ton:'danger' }); return false; }
-            GV.gecisUygula('kaliteDokuman', 'kaliteDokumanlari', did, 'yayinda', {
-              not: kap.querySelector('#kdOnayNot').value,
-              ekYama: {
-                yayin: y, gecerlilik: kap.querySelector('#kdGecer').value || null,
-                onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-002'
-              }
-            }).then(function(g){
-              if (!g.ok) return;
-              gvToast(d.kod + ' yayımlandı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        kdYayin:   { etiket:'Yayın tarihi', tur:'tarih', zorunlu:true },
+        kdSure:    { etiket:'Geçerlilik süresi (ay)', tur:'sayi', zorunlu:true, enAz:6, enCok:120 },
+        kdOnayNot: { etiket:'Onay notu', enCok:600 }
+      },
+      ad:'PublishQualityDocument',
+      onayEtiket:'Yayımla', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        return GV.gecisUygula('kaliteDokuman', 'kaliteDokumanlari', did, 'yayinda', {
+          not: v.kdOnayNot, sessiz: true,
+          ekYama: {
+            yayin: v.kdYayin,
+            gecerlilik: yardim.kap.querySelector('#kdGecer').value || null,
+            onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-002'
+          }
+        }).then(function(g){
+          if (!g.ok) throw new Error(g.sebep);
+          gvToast(d.kod + ' yayımlandı.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   }
 
@@ -400,7 +405,7 @@
   });
 
   document.getElementById('kdYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni kalite dokümanı', ikon:'fa-plus', genislik:'gv-modal-lg',
       metin:'Yeni doküman <b>onay bekleyen</b> durumda oluşturulur; yayın onayı verilene kadar kullanıma açılmaz.',
       govde:'<div class="gform">'
@@ -416,28 +421,33 @@
         + '<div class="gfield full"><label for="dyModul">İlgili modüller</label><select id="dyModul" multiple size="5">'
         + ['Operasyon','Teknik','Kalite','Satış','Taşeron','Finans'].map(function(m){ return '<option>' + m + '</option>'; }).join('')
         + '</select><span class="gf-hint">Ctrl/Cmd ile çoklu seçim yapabilirsiniz.</span></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var kod = kap.querySelector('#dyKod').value.trim();
-            var ad = kap.querySelector('#dyAd').value.trim();
-            if (!kod || !ad) { gvToast('Doküman kodu ve adı zorunludur.', { ton:'danger' }); return false; }
-            if (A.liste('kaliteDokumanlari').some(function(x){ return x.kod === kod; })) {
-              gvToast('Bu doküman kodu zaten kullanılıyor.', { ton:'danger' }); return false;
-            }
-            var tur = kap.querySelector('#dyTur').value;
-            var modul = Array.prototype.slice.call(kap.querySelectorAll('#dyModul option:checked')).map(function(o){ return o.value; });
-            A.ekle('kaliteDokumanlari', {
-              id:GV.yeniKod('KLT-Y'),
-              kod: kod, ad: ad, tur: tur, versiyon:'v1', yayin: null,
-              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-005',
-              onaylayanId: kap.querySelector('#dyOnay').value,
-              gecerlilik: null, modul: modul.length ? modul : ['Kalite'],
-              durum:'onayda', sayfa: Number(kap.querySelector('#dySayfa').value || 8)
-            }).then(function(){
-              gvToast('Doküman oluşturuldu, yayın onayına gönderildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        dyKod:   { etiket:'Doküman kodu', zorunlu:true, enAz:2, enCok:16,
+                   ozel: function(v){
+                     return A.liste('kaliteDokumanlari').some(function(x){ return x.kod === v; })
+                       ? 'Bu doküman kodu zaten kullanılıyor.' : ''; } },
+        dyTur:   { etiket:'Tür', zorunlu:true },
+        dyAd:    { etiket:'Doküman adı', zorunlu:true, enAz:5, enCok:160 },
+        dySayfa: { etiket:'Sayfa sayısı', tur:'sayi', zorunlu:true, enAz:1, enCok:200 },
+        dyOnay:  { etiket:'Onaylayacak kişi', zorunlu:true }
+      },
+      ad:'CreateQualityDocument',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var modul = Array.prototype.slice.call(yardim.kap.querySelectorAll('#dyModul option:checked'))
+          .map(function(o){ return o.value; });
+        return A.ekle('kaliteDokumanlari', {
+          id:GV.yeniKod('KLT-Y'),
+          kod: v.dyKod, ad: v.dyAd, tur: v.dyTur, versiyon:'v1', yayin: null,
+          hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-005',
+          onaylayanId: v.dyOnay,
+          gecerlilik: null, modul: modul.length ? modul : ['Kalite'],
+          durum:'onayda', sayfa: Number(v.dySayfa || 8)
+        }).then(function(){
+          gvToast('Doküman oluşturuldu, yayın onayına gönderildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 

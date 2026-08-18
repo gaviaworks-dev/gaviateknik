@@ -367,8 +367,15 @@
       veri.projeId = l ? l.projeId : null;
       if (!mevcut) { veri.raporDurum = 'baslatilmadi'; veri.hazirlikTamam = false; veri.bitis = null; veri.raporId = null; }
 
+      /* Doküman §8: durum alanı tam-form yamasıyla YAZILMAZ; yamadan
+         ayrılıp geçiş olarak uygulanır. Yeni kayıtta durum başlangıç
+         değeridir, geçiş sayılmaz. */
+      var ayrik = GV.durumAyikla(veri, ['operasyonDurum']);
       var islem = mevcut
-        ? A.guncelle('isEmirleri', mevcut.id, veri)
+        ? A.guncelle('isEmirleri', mevcut.id, ayrik.yama).then(function(r){
+            return GV.durumlariUygula({ operasyonDurum:'operasyon' }, 'isEmirleri', mevcut.id,
+              ayrik.durumlar, { ekYama: { tarih: veri.tarih } }).then(function(){ return r; });
+          })
         : A.ekle('isEmirleri', Object.assign({
             id:GV.yeniKod('IE-2026-Y') }, veri));
 
