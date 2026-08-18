@@ -123,7 +123,7 @@
     { b: bugunkuler.reduce(function(t,i){ return t + (i.ekipId||[]).length; }, 0), e: 'sahadaki personel', alt: 'Toplam ' + A.liste('personeller').filter(function(p){return p.durum==='aktif';}).length + ' aktif personel', ton:'var(--gv-action)' },
     { b: raporlar.filter(function(r){ return r.durum === 'teknik-incelemede'; }).length, e: 'teknik onay bekleyen rapor', alt: raporlar.filter(function(r){return r.slaDurum==='asildi';}).length + ' tanesinde SLA aşıldı', ton:'var(--warning)' },
     { b: ajanda.length, e: 'ajanda kaydı', alt: ajanda.filter(function(a){return a.ton==='danger';}).length + ' tanesi kritik', ton:'var(--ink-2)' },
-    { b: A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi'; }).length, e: 'açık uygunsuzluk', alt: A.liste('uygunsuzluklar').filter(function(u){return u.durum==='gecikti';}).length + ' tanesi gecikti', ton:'var(--danger)' }
+    { b: A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi'; }).length, e: 'açık uygunsuzluk', alt: A.liste('uygunsuzluklar').filter(function(u){ return u.durum !== 'kapandi' && GV.saat.gecikmisMi(u.termin); }).length + ' tanesi gecikti', ton:'var(--danger)' }
   ].map(function(c){
     return '<div class="go-cell"><b>' + GV.n(c.b) + '</b><span>' + c.e + '</span>'
       + '<div class="go-alt" style="color:' + c.ton + '">' + GV.esc(c.alt) + '</div></div>';

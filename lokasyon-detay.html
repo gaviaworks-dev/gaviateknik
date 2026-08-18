@@ -399,9 +399,7 @@
                 : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
                 : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
                 : '<span class="muted">Gerekmiyor</span>') + '</td>'
-            + '<td data-lbl="Durum">' + (u.durum === 'kapandi' ? GV.rozetOzel('ok','fa-circle-check','Kapandı')
-                : u.durum === 'gecikti' ? GV.rozetOzel('danger','fa-clock','Gecikti')
-                : GV.rozetOzel('warn','fa-circle-dot','Açık')) + '</td></tr>';
+            + '<td data-lbl="Durum">' + GV.akisRozet('uygunsuzluk', u.durum) + '</td></tr>';
         }).join('') + '</tbody></table></div>'
     : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Bu lokasyonda tespit edilmiş uygunsuzluk bulunmuyor.' });
 

@@ -215,8 +215,9 @@
   GV.kpiTanim('gecikmisUygunsuzluk', {
     koleksiyon: 'uygunsuzluklar', aciklama: 'Gecikmiş uygunsuzluk',
     kosul: function (u) {
+      /* "Gecikti" saklanan aşama değil, terminden türeyen işarettir. */
       if (u.durum === 'kapandi') return false;
-      return u.durum === 'gecikti' || GV.saat.gecikmisMi(u.termin);
+      return GV.saat.gecikmisMi(u.termin);
     }
   });
 

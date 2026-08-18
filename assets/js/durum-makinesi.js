@@ -24,9 +24,10 @@
      Doküman "Ticari"   = teklif → sozlesme → hakedis → mutabakat
                         → fatura → tahsilat → taseronOdeme
      Doküman "Proje"    = proje akışı
-     Doküman "Uygunsuzluk" = uygunsuzluk akışı; ara aşamalar (aksiyon
-       planlandı / uygulandı / kanıt yüklendi) ayrı `duzelticiFaaliyetler`
-       kayıtlarında yaşar, uygunsuzluğun kendi alanında değil.
+     Doküman "Uygunsuzluk" = uygunsuzluk akışı; altı aşamanın tamamı
+       (açık → aksiyon planlandı → uygulandı → kanıt yüklendi →
+       doğrulandı → kapandı) kaydın kendi `durum` alanında yaşar.
+       `duzelticiFaaliyetler` bunun yerine geçmez, yanında durur.
 
    Global API: GV.akis · GV.akisListesi · GV.gecisDene · GV.gecisHedefleri
                GV.gecisUygula · GV.gecisButonu
@@ -202,26 +203,65 @@
       }
     },
 
-    /* ---- UYGUNSUZLUK ---- */
+    /* ---- UYGUNSUZLUK — doküman §8: Açık → Aksiyon Planlandı → Uygulandı
+            → Kanıt Yüklendi → Doğrulandı → Kapandı.
+
+       "Gecikti" bir AŞAMA DEĞİL, terminden türeyen bir işarettir
+       (`GV.saat.gecikmisMi(termin)`). Kayıtta saklanmaz; saklansaydı
+       geciken kaydın zincirdeki yeri kaybolurdu. ---- */
     uygunsuzluk: {
       ad: 'Uygunsuzluk', koleksiyon: 'uygunsuzluklar', alan: 'durum',
       durumlar: [
-        { k: 'acik',    ad: 'Açık',    ton: 'danger', ikon: 'fa-circle-exclamation' },
-        { k: 'gecikti', ad: 'Gecikti', ton: 'danger', ikon: 'fa-clock' },
-        { k: 'kapandi', ad: 'Kapandı', ton: 'ok',     ikon: 'fa-circle-check' }
+        { k: 'acik',              ad: 'Açık',              ton: 'danger', ikon: 'fa-circle-exclamation' },
+        { k: 'aksiyon-planlandi', ad: 'Aksiyon Planlandı', ton: 'warn',   ikon: 'fa-clipboard-list' },
+        { k: 'uygulandi',         ad: 'Uygulandı',         ton: 'warn',   ikon: 'fa-screwdriver-wrench' },
+        { k: 'kanit-yuklendi',    ad: 'Kanıt Yüklendi',    ton: 'info',   ikon: 'fa-paperclip' },
+        { k: 'dogrulandi',        ad: 'Doğrulandı',        ton: 'info',   ikon: 'fa-clipboard-check' },
+        { k: 'kapandi',           ad: 'Kapandı',           ton: 'ok',     ikon: 'fa-circle-check' }
       ],
       gecis: {
-        'acik':    ['gecikti', 'kapandi'],
-        'gecikti': ['acik', 'kapandi'],
-        'kapandi': ['acik']
+        'acik':              ['aksiyon-planlandi'],
+        'aksiyon-planlandi': ['uygulandi', 'acik'],
+        'uygulandi':         ['kanit-yuklendi', 'aksiyon-planlandi'],
+        'kanit-yuklendi':    ['dogrulandi', 'uygulandi'],
+        'dogrulandi':        ['kapandi', 'kanit-yuklendi'],
+        'kapandi':           ['acik']
       },
       izin: {
-        'kapandi': YONETIM.concat(['teknik', 'kalite', 'operasyon']),
-        'acik': YONETIM.concat(['teknik', 'kalite', 'operasyon'])
+        'aksiyon-planlandi': YONETIM.concat(['teknik', 'kalite', 'operasyon']),
+        'uygulandi':         YONETIM.concat(['teknik', 'kalite', 'operasyon', 'saha', 'taseron']),
+        'kanit-yuklendi':    YONETIM.concat(['teknik', 'kalite', 'operasyon', 'saha', 'taseron']),
+        'dogrulandi':        YONETIM.concat(['teknik', 'kalite']),
+        'kapandi':           YONETIM.concat(['teknik', 'kalite']),
+        'acik':              YONETIM.concat(['teknik', 'kalite', 'operasyon'])
       },
-      zorunlu: { 'kapandi': ['kapanis'] },
-      onKosul: { 'kapandi': function (k) { return yenidenKontrolTamamMi(k); } },
-      etiket: { 'kapandi': 'Uygunsuzluğu kapat', 'acik': 'Yeniden aç' }
+      zorunlu: {
+        'aksiyon-planlandi': ['aksiyonPlani', 'termin', 'sorumluTaraf'],
+        'uygulandi':         ['uygulamaTarihi'],
+        'kanit-yuklendi':    ['kanit'],
+        'dogrulandi':        ['dogrulayanId', 'dogrulamaTarihi'],
+        'kapandi':           ['kapanis']
+      },
+      onKosul: {
+        /* CloseNonconformity — doküman §8 komut sınırı: aksiyon ve kanıt
+           mevcut; yeniden kontrol gerekiyorsa tamamlanmış olmalı. */
+        'kapandi': function (k) { return yenidenKontrolTamamMi(k); },
+        'dogrulandi': function (k) {
+          var kanit = k && k.kanit;
+          if (!kanit || (Array.isArray(kanit) ? !kanit.length : !kanit)) {
+            return { uygun: false, sebep: 'Kanıt yüklenmeden doğrulama yapılamaz.' };
+          }
+          return { uygun: true };
+        }
+      },
+      etiket: {
+        'aksiyon-planlandi': 'Aksiyon planını kaydet',
+        'uygulandi':         'Uygulandı işaretle',
+        'kanit-yuklendi':    'Kanıt yükle',
+        'dogrulandi':        'Doğrula',
+        'kapandi':           'Uygunsuzluğu kapat',
+        'acik':              'Yeniden aç'
+      }
     },
 
     /* ---- TİCARİ ZİNCİR: TEKLİF ---- */
@@ -609,6 +649,18 @@
     var l = GV.akisDurumlari(ad);
     for (var i = 0; i < l.length; i++) if (l[i].k === k) return l[i];
     return { k: k, ad: k || '—', ton: 'off', ikon: 'fa-circle' };
+  };
+
+  /**
+   * Akış durumunun hazır rozeti — liste, detay ve KPI aynı enumu
+   * kullansın diye tek yerden basılır (doküman §8).
+   * @param {string} akisAd
+   * @param {string} k
+   * @returns {string} HTML
+   */
+  GV.akisRozet = function (akisAd, k) {
+    var d = GV.akisDurum(akisAd, k);
+    return GV.rozetOzel ? GV.rozetOzel(d.ton, d.ikon, d.ad) : esc(d.ad);
   };
 
   function alanDolu(kayit, ctx, alan) {

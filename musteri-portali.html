@@ -292,7 +292,7 @@
     .sort(function(a,b){ return String(a.vade).localeCompare(String(b.vade)); });
 
   var kapsamDisi = loklar.filter(function(l){ return ['iptal','kapsam-disi'].indexOf(l.operasyonDurum) !== -1; }).length;
-  var gecikenUyg = uygunsuzluklar.filter(function(u){ return u.durum === 'gecikti' || (u.kalanGun != null && u.kalanGun < 0); }).length;
+  var gecikenUyg = uygunsuzluklar.filter(function(u){ return u.kalanGun != null && u.kalanGun < 0; }).length;
 
   gvKpi('#prtKpi', [
     { ikon:'fa-location-dot', sayi: GV.n(loklar.length), etiket:'Lokasyonunuz', link:'portal-lokasyonlar.html',

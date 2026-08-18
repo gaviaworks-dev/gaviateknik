@@ -219,8 +219,7 @@
             + '<td data-lbl="Önem">' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
             + '<td data-lbl="Tespit">' + GV.d(u.tespit) + '</td>'
             + '<td data-lbl="Termin">' + GV.d(u.termin) + '</td>'
-            + '<td data-lbl="Durum">' + (u.durum === 'kapandi' ? GV.rozetOzel('ok','fa-circle-check','Kapandı')
-                : u.durum === 'gecikti' ? GV.rozetOzel('danger','fa-clock','Gecikti') : GV.rozetOzel('warn','fa-circle-dot','Açık')) + '</td></tr>';
+            + '<td data-lbl="Durum">' + GV.akisRozet('uygunsuzluk', u.durum) + '</td></tr>';
         }).join('') + '</tbody></table></div>'
     : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk geçmişi temiz',
         metin:'Bu ekipmanda kayda alınmış uygunsuzluk bulunmuyor.' });

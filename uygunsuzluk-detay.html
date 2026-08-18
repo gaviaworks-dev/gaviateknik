@@ -137,15 +137,16 @@
   var yeniden = A.liste('yenidenKontroller').filter(function(y){ return y.uygunsuzlukId === u.id; })[0];
   var dof = A.liste('duzelticiFaaliyetler').filter(function(d){ return d.kaynakId === u.id; })[0];
   var kalanGun = u.termin ? GV.gun(BUGUN, u.termin) : null;
+  var dogrulayan = u.dogrulayanId ? A.kayit('personeller', u.dogrulayanId) : null;
 
   document.getElementById('recHead').innerHTML =
     '<div class="rec-mark ' + (o[0] === 'danger' ? 'danger' : o[0] === 'warn' ? 'warn' : 'info') + '">'
     + '<i class="fa-solid ' + o[1] + '" aria-hidden="true"></i></div>'
     + '<div class="rec-id"><div class="rc-code">' + GV.esc(u.id) + '</div><h1>' + GV.esc(u.baslik) + '</h1>'
     + '<div class="rc-meta">' + GV.rozetOzel(o[0], o[1], o[2] + ' önem')
-    + (u.durum === 'kapandi' ? GV.rozetOzel('ok','fa-circle-check','Kapandı')
-       : u.durum === 'gecikti' ? GV.rozetOzel('danger','fa-clock','Termini geçti')
-       : GV.rozetOzel('warn','fa-circle-dot','Açık'))
+    + GV.akisRozet('uygunsuzluk', u.durum)
+    + (u.durum !== 'kapandi' && kalanGun != null && kalanGun < 0
+       ? GV.rozetOzel('danger','fa-clock','Termini geçti') : '')
     + '<span><i class="fa-solid fa-location-dot" aria-hidden="true"></i><a href="lokasyon-detay.html?id=' + u.lokasyonId + '">'
     + GV.esc(l ? l.ad : '—') + '</a></span>'
     + '<span><i class="fa-solid fa-calendar" aria-hidden="true"></i>Tespit: ' + GV.d(u.tespit) + '</span>'
@@ -154,9 +155,7 @@
     + '<div class="rec-acts no-print">'
     + '<a class="btn btn-ghost" href="uygunsuzluklar.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Listeye Dön</a>'
     + '<button class="btn btn-ghost" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>'
-    + (u.durum !== 'kapandi'
-      ? '<button class="btn btn-acc" type="button" id="udKapat"><i class="fa-solid fa-check" aria-hidden="true"></i>Uygunsuzluğu Kapat</button>'
-      : '<button class="btn btn-ghost" type="button" id="udAc"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Yeniden Aç</button>')
+    + '<span id="udUstAksiyon"></span>'
     + '</div>';
 
   gvTabs('.gv-tabbar');
@@ -193,7 +192,15 @@
     + '<div class="info-row"><dt>Sorumlu taraf</dt><dd>' + (u.sorumluTaraf === 'musteri' ? 'Müşteri' : 'GAVIA Teknik') + '</dd></div>'
     + '<div class="info-row"><dt>Sorumlu kişi</dt><dd>' + GV.esc(kisi ? kisi.ad : GV.bos) + '</dd></div>'
     + '<div class="info-row"><dt>Termin</dt><dd>' + GV.d(u.termin) + '</dd></div>'
-    + '<div class="info-row"><dt>Durum</dt><dd>' + (u.durum === 'kapandi' ? 'Tamamlandı' : 'Devam ediyor') + '</dd></div></dl>'
+    + '<div class="info-row"><dt>Aşama</dt><dd>' + GV.akisRozet('uygunsuzluk', u.durum) + '</dd></div>'
+    + '<div class="info-row"><dt>Aksiyon planı</dt><dd>' + (u.aksiyonPlani ? GV.esc(u.aksiyonPlani) : GV.bos) + '</dd></div>'
+    + '<div class="info-row"><dt>Plan tarihi</dt><dd>' + GV.d(u.planTarihi) + '</dd></div>'
+    + '<div class="info-row"><dt>Uygulama tarihi</dt><dd>' + GV.d(u.uygulamaTarihi) + '</dd></div>'
+    + '<div class="info-row"><dt>Kanıt</dt><dd>' + ((u.kanit && u.kanit.length)
+        ? u.kanit.map(function(x){ return '<span class="gtag ok"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>' + GV.esc(x) + '</span>'; }).join(' ')
+        : GV.bos) + '</dd></div>'
+    + '<div class="info-row"><dt>Doğrulayan</dt><dd>' + (dogrulayan
+        ? GV.esc(dogrulayan.ad + ' — ' + dogrulayan.gorev) + ' · ' + GV.d(u.dogrulamaTarihi) : GV.bos) + '</dd></div></dl>'
     + (dof
       ? '<div class="gv-note" style="margin-top:16px"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>'
         + '<span>Bu uygunsuzluk <b><a href="duzeltici-faaliyetler.html?id=' + dof.id + '">' + GV.esc(dof.id) + '</a></b> '
@@ -242,6 +249,23 @@
     + (u.musteriBildirimi ? '' : '<button class="btn btn-acc" type="button" id="udBildir" style="margin-top:16px">'
         + '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button>');
 
+  /* Doküman §8 uygunsuzluk zinciri — altı aşama tek kaynaktan
+     (durum makinesi) okunur; buradaki sıra makinedeki sırayla aynıdır. */
+  var ASAMA_SIRA = GV.akisDurumlari('uygunsuzluk').map(function(d){ return d.k; });
+  var suAn = ASAMA_SIRA.indexOf(u.durum);
+
+  function asamaAdimi(k, altBaslik, tarih, aksiyonYapildi, aksiyonBekleyen){
+    var d = GV.akisDurum('uygunsuzluk', k);
+    var i = ASAMA_SIRA.indexOf(k);
+    var gecti = suAn >= i;
+    return {
+      ton: gecti ? (k === 'kapandi' ? 'ok' : 'ok') : (suAn + 1 === i ? 'warn' : 'idle'),
+      simdi: suAn + 1 === i || (suAn === i && k !== 'kapandi'),
+      ikon: d.ikon, baslik: d.ad, altBaslik: altBaslik,
+      aksiyon: gecti ? aksiyonYapildi : aksiyonBekleyen, tarih: tarih
+    };
+  }
+
   var surecAdimlari = [
     { ton:'ok', ikon:'fa-magnifying-glass', baslik:'Uygunsuzluk tespit edildi',
       altBaslik: (r ? r.personelAd + ' · ' + r.no : 'Saha kontrolü'), aksiyon:'Tespit', tarih: u.tespit },
@@ -249,15 +273,17 @@
       ikon:'fa-paper-plane', baslik:'Müşteriye bildirildi',
       altBaslik: kisi ? kisi.ad + ' — ' + kisi.iletisimRolu : 'Yetkili tanımsız',
       aksiyon: u.musteriBildirimi ? 'Bildirildi' : 'Bekliyor', tarih: u.musteriBildirimi },
-    { ton: u.durum === 'kapandi' ? 'ok' : (kalanGun != null && kalanGun < 0) ? 'danger' : 'warn',
-      simdi: u.durum !== 'kapandi',
-      ikon:'fa-screwdriver-wrench', baslik:'Düzeltici faaliyet',
-      altBaslik: u.oneri, aksiyon: u.durum === 'kapandi' ? 'Tamamlandı'
-        : (kalanGun != null && kalanGun < 0) ? Math.abs(kalanGun) + ' gün gecikme' : 'Devam ediyor',
-      tarih: u.termin,
-      not: (kalanGun != null && kalanGun < 0 && u.durum !== 'kapandi')
-        ? 'Termin aşıldı. Müşteriye hatırlatma yapılmalı ve gerekirse üst yönetime raporlanmalıdır.' : null,
-      notTon:'danger' },
+    Object.assign(asamaAdimi('aksiyon-planlandi',
+      u.aksiyonPlani || u.oneri, u.planTarihi, 'Planlandı', 'Plan bekleniyor'),
+      { not: (kalanGun != null && kalanGun < 0 && u.durum !== 'kapandi')
+          ? 'Termin aşıldı (' + Math.abs(kalanGun) + ' gün). Müşteriye hatırlatma yapılmalı ve gerekirse üst yönetime raporlanmalıdır.' : null,
+        notTon:'danger' }),
+    asamaAdimi('uygulandi',
+      u.uygulamaTarihi ? 'Düzeltme sahada uygulandı.' : 'Düzeltmenin uygulanması bekleniyor.',
+      u.uygulamaTarihi, 'Uygulandı', 'Bekliyor'),
+    asamaAdimi('kanit-yuklendi',
+      (u.kanit && u.kanit.length) ? u.kanit.join(' · ') : 'Belge, fotoğraf veya test kaydı bekleniyor.',
+      null, GV.n((u.kanit || []).length) + ' kanıt', 'Kanıt yok'),
     { ton: u.yenidenKontrol === 'tamamlandi' ? 'ok'
         : u.yenidenKontrol === 'planlandi' ? 'warn'
         : u.yenidenKontrol === 'gerekli' ? 'danger' : 'idle',
@@ -267,9 +293,12 @@
         : u.yenidenKontrol === 'planlandi' ? 'Planlandı'
         : u.yenidenKontrol === 'gerekli' ? 'Gerekli' : 'Gerekmiyor',
       tarih: yeniden ? yeniden.planTarihi : null },
-    { ton: u.durum === 'kapandi' ? 'ok' : 'idle', ikon:'fa-circle-check', baslik:'Uygunsuzluk kapatıldı',
-      altBaslik: u.durum === 'kapandi' ? 'Düzeltme doğrulandı' : 'Kapatma bekleniyor',
-      aksiyon: u.durum === 'kapandi' ? 'Kapandı' : 'Bekliyor', tarih: u.kapanis }
+    asamaAdimi('dogrulandi',
+      dogrulayan ? dogrulayan.ad + ' — ' + dogrulayan.gorev : 'Doğrulayan atanmadı.',
+      u.dogrulamaTarihi, 'Doğrulandı', 'Bekliyor'),
+    asamaAdimi('kapandi',
+      u.durum === 'kapandi' ? 'Düzeltme doğrulandı ve kayıt kapatıldı.' : 'Kapatma bekleniyor.',
+      u.kapanis, 'Kapandı', 'Bekliyor')
   ];
   gvChain('#udSurec', surecAdimlari);
 
@@ -294,54 +323,279 @@
       + (u.kapanis ? ' · Kapanış ' + GV.d(u.kapanis) : '') + '</div></div>'
     : '<p class="muted" style="font-size:13px">Bu uygunsuzluk için termin tarihi belirlenmedi.</p>';
 
-  var islemler = [];
-  if (u.durum !== 'kapandi') {
-    islemler.push('<button class="btn btn-acc btn-block" type="button" id="udKapat2"><i class="fa-solid fa-check" aria-hidden="true"></i>Uygunsuzluğu Kapat</button>');
-    if (!u.musteriBildirimi) islemler.push('<button class="btn btn-ghost btn-block" type="button" id="udBildir2"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button>');
-    if (!yeniden) islemler.push('<button class="btn btn-ghost btn-block" type="button" id="udYenidenAc2"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Yeniden Kontrol Talebi</button>');
+  /* ================= AŞAMA GEÇİŞLERİ =================
+     Butonlar durum makinesinden türetilir; uygun olmayan geçiş GİZLENMEZ,
+     `GV.gecisButonu` ile disabled sebebiyle birlikte gösterilir (doküman §8). */
+
+  /* Aşamaya ait alanlar — geri alındığında temizlenecek olanlar. */
+  var ASAMA_ALAN = {
+    'aksiyon-planlandi': { aksiyonPlani: null, planTarihi: null },
+    'uygulandi':         { uygulamaTarihi: null },
+    'kanit-yuklendi':    { kanit: [] },
+    'dogrulandi':        { dogrulayanId: null, dogrulamaTarihi: null },
+    'kapandi':           { kapanis: null }
+  };
+
+  function geriTemizle(hedef){
+    var hi = ASAMA_SIRA.indexOf(hedef), yama = {};
+    ASAMA_SIRA.forEach(function(k, i){
+      if (i > hi && ASAMA_ALAN[k]) Object.keys(ASAMA_ALAN[k]).forEach(function(a){ yama[a] = ASAMA_ALAN[k][a]; });
+    });
+    return yama;
   }
+
+  function tamam(mesaj, ton){
+    gvToast(mesaj, { ton: ton || 'ok' });
+    setTimeout(function(){ location.reload(); }, 800);
+  }
+
+  function uygula(hedef, ctx){
+    return GV.gecisUygula('uygunsuzluk', 'uygunsuzluklar', u.id, hedef, ctx);
+  }
+
+  /* --- geri alma: tek onay + zorunlu gerekçe, sonraki aşama alanları temizlenir --- */
+  function geriAl(hedef){
+    var d = GV.akisDurum('uygunsuzluk', hedef);
+    gvConfirm({ baslik: d.ad + ' aşamasına geri alınsın mı?', ton:'warn',
+      metin:'<b>' + GV.esc(u.baslik) + '</b> kaydı <b>' + GV.esc(GV.akisDurum('uygunsuzluk', u.durum).ad)
+        + '</b> aşamasından <b>' + GV.esc(d.ad) + '</b> aşamasına döndürülecek. '
+        + 'Sonraki aşamalarda girilen bilgiler (uygulama tarihi, kanıt, doğrulama, kapanış) temizlenir. '
+        + 'İşlem denetim izine yazılır.',
+      onayEtiket:'Geri al', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
+      notYer:'Geri alma gerekçesi…'
+    }).then(function(c){
+      if (!c.onay) return;
+      uygula(hedef, { not: c.not, ekYama: geriTemizle(hedef) }).then(function(g){
+        if (g.ok) tamam(d.ad + ' aşamasına geri alındı.', 'warn');
+      });
+    });
+  }
+
+  function personelSecenek(secili){
+    return A.liste('personeller').filter(function(x){
+      return x.durum === 'aktif' && (x.birim === 'Teknik' || x.birim === 'Kalite');
+    }).map(function(x){
+      return '<option value="' + x.id + '"' + (x.id === secili ? ' selected' : '') + '>'
+        + GV.esc(x.ad + ' — ' + x.gorev) + '</option>';
+    }).join('');
+  }
+
+  /* --- ileri geçişler: her aşamanın zorunlu alanı kendi modalinde toplanır --- */
+  var ILERI = {
+    'aksiyon-planlandi': function(){
+      gvModalForm({
+        baslik:'Aksiyon planı', ikon:'fa-clipboard-list', genislik:'gv-modal-lg',
+        metin:'<b>' + GV.esc(u.baslik) + '</b> için düzeltici aksiyon planı kaydedilir. '
+          + 'Plan ve termin girilmeden uygulama aşamasına geçilemez.',
+        govde:'<div class="gform">'
+          + '<div class="gfield full"><label for="udPlan">Aksiyon planı *</label>'
+          + '<textarea id="udPlan" rows="3" placeholder="Ne yapılacak, kim yapacak, nasıl doğrulanacak…">'
+          + GV.esc(u.aksiyonPlani || u.oneri || '') + '</textarea></div>'
+          + '<div class="gfield"><label for="udTerminA">Termin *</label>'
+          + '<input type="date" id="udTerminA" value="' + (u.termin || '') + '"></div>'
+          + '<div class="gfield"><label for="udSorumlu">Sorumlu taraf *</label><select id="udSorumlu">'
+          + '<option value="musteri"' + (u.sorumluTaraf === 'musteri' ? ' selected' : '') + '>Müşteri</option>'
+          + '<option value="gavia"' + (u.sorumluTaraf !== 'musteri' ? ' selected' : '') + '>GAVIA Teknik</option>'
+          + '</select></div></div>',
+        sema: {
+          udPlan:    { etiket:'Aksiyon planı', zorunlu:true, enAz:10, enCok:600 },
+          udTerminA: { etiket:'Termin', tur:'tarih', zorunlu:true },
+          udSorumlu: { etiket:'Sorumlu taraf', zorunlu:true }
+        },
+        ad:'PlanNonconformityAction',
+        onayEtiket:'Planı kaydet', onayIkon:'fa-clipboard-check',
+        gonder: function(v){
+          return uygula('aksiyon-planlandi', {
+            not:'Aksiyon planı kaydedildi', sessiz:true,
+            ekYama: { aksiyonPlani: v.udPlan, termin: v.udTerminA,
+                      sorumluTaraf: v.udSorumlu, planTarihi: BUGUN }
+          }).then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            tamam('Aksiyon planı kaydedildi.');
+          });
+        }
+      });
+    },
+    'uygulandi': function(){
+      gvModalForm({
+        baslik:'Düzeltme uygulandı', ikon:'fa-screwdriver-wrench',
+        metin:'Planlanan düzeltmenin sahada uygulandığı işaretlenir. Kanıt bir sonraki aşamada yüklenir.',
+        govde:'<div class="gform">'
+          + '<div class="gfield"><label for="udUygTarih">Uygulama tarihi *</label>'
+          + '<input type="date" id="udUygTarih" value="' + BUGUN + '" max="' + BUGUN + '"></div>'
+          + '<div class="gfield full"><label for="udUygNot">Uygulama notu</label>'
+          + '<textarea id="udUygNot" rows="2" placeholder="Yapılan işlem, kullanılan malzeme…"></textarea></div></div>',
+        sema: {
+          udUygTarih: { etiket:'Uygulama tarihi', tur:'tarih', zorunlu:true },
+          udUygNot:   { etiket:'Uygulama notu', enCok:400 }
+        },
+        ad:'MarkNonconformityApplied',
+        onayEtiket:'Uygulandı işaretle', onayIkon:'fa-check',
+        gonderOncesi: function(v){
+          return v.udUygTarih > BUGUN ? 'Uygulama tarihi gelecekte olamaz.' : '';
+        },
+        gonder: function(v){
+          return uygula('uygulandi', {
+            not: v.udUygNot || 'Düzeltme uygulandı', sessiz:true,
+            ekYama: { uygulamaTarihi: v.udUygTarih }
+          }).then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            tamam('Uygulama kaydedildi.');
+          });
+        }
+      });
+    },
+    'kanit-yuklendi': function(){
+      gvModalForm({
+        baslik:'Kanıt yükle', ikon:'fa-paperclip', genislik:'gv-modal-lg',
+        metin:'Düzeltmeyi kanıtlayan belge, fotoğraf veya test kaydı listelenir. '
+          + 'Demo ortamında dosya sunucuya gitmez; <b>kanıt adı</b> kayda yazılır.',
+        govde:'<div class="gform">'
+          + '<div class="gfield full"><label for="udKanit">Kanıtlar * <span class="gf-hint">Her satıra bir kanıt</span></label>'
+          + '<textarea id="udKanit" rows="4" placeholder="Değişim irsaliyesi&#10;Montaj fotoğrafı&#10;Test tutanağı">'
+          + GV.esc((u.kanit || []).join('\n')) + '</textarea></div></div>',
+        sema: { udKanit: { etiket:'Kanıtlar', zorunlu:true, enCok:600 } },
+        ad:'AttachNonconformityEvidence',
+        onayEtiket:'Kanıtı kaydet', onayIkon:'fa-paperclip',
+        gonder: function(v){
+          var liste = v.udKanit.split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
+          if (!liste.length) throw new Error('En az bir kanıt satırı girin.');
+          return uygula('kanit-yuklendi', {
+            not: liste.length + ' kanıt eklendi', sessiz:true, ekYama: { kanit: liste }
+          }).then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            tamam(liste.length + ' kanıt kaydedildi.');
+          });
+        }
+      });
+    },
+    'dogrulandi': function(){
+      gvModalForm({
+        baslik:'Düzeltmeyi doğrula', ikon:'fa-clipboard-check', genislik:'gv-modal-lg',
+        metin:'Kanıt ve saha durumu incelenerek düzeltme doğrulanır. '
+          + 'Doğrulayan kişi düzeltmeyi uygulayandan farklı olabilir.',
+        govde:'<div class="gform">'
+          + '<div class="gfield"><label for="udDogrulayan">Doğrulayan *</label>'
+          + '<select id="udDogrulayan">' + personelSecenek(u.dogrulayanId) + '</select></div>'
+          + '<div class="gfield"><label for="udDogTarih">Doğrulama tarihi *</label>'
+          + '<input type="date" id="udDogTarih" value="' + BUGUN + '" max="' + BUGUN + '"></div>'
+          + '<div class="gfield full"><label for="udDogNot">Doğrulama notu</label>'
+          + '<textarea id="udDogNot" rows="2" placeholder="Nasıl doğrulandı: belge incelemesi, saha kontrolü, ölçüm…"></textarea></div></div>'
+          + (u.yenidenKontrol === 'gerekli' && (!yeniden || yeniden.durum !== 'tamamlandi')
+            ? '<div class="gv-note warn" style="margin-top:14px"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>'
+              + '<span>Bu kayıt <b>yeniden kontrol</b> gerektiriyor. Doğrulama yapılabilir ancak '
+              + 'yeniden kontrol tamamlanmadan <b>kapatma</b> aşamasına geçilemez.</span></div>' : ''),
+        sema: {
+          udDogrulayan: { etiket:'Doğrulayan', zorunlu:true },
+          udDogTarih:   { etiket:'Doğrulama tarihi', tur:'tarih', zorunlu:true },
+          udDogNot:     { etiket:'Doğrulama notu', enCok:400 }
+        },
+        ad:'VerifyNonconformity',
+        onayEtiket:'Doğrula', onayIkon:'fa-clipboard-check',
+        gonder: function(v){
+          return uygula('dogrulandi', {
+            not: v.udDogNot || 'Düzeltme doğrulandı', sessiz:true,
+            ekYama: { dogrulayanId: v.udDogrulayan, dogrulamaTarihi: v.udDogTarih }
+          }).then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            tamam('Düzeltme doğrulandı.');
+          });
+        }
+      });
+    },
+    'kapandi': function(){
+      var yenidenEksik = u.yenidenKontrol === 'gerekli' && (!yeniden || yeniden.durum !== 'tamamlandi');
+      gvConfirm({ baslik:'Uygunsuzluk kapatılsın mı?',
+        metin:'<b>' + GV.esc(u.baslik) + '</b> kapatılacak. '
+          + (yenidenEksik
+            ? '<b>Bu kayıt yeniden kontrol gerektiriyor ve doğrulama tamamlanmadı.</b> '
+              + 'Sahada doğrulanmadan kapatılamaz.' : ''),
+        ton: yenidenEksik ? 'danger' : 'warn',
+        onayEtiket:'Kapat', onayIkon:'fa-check', notAlani:true, notZorunlu:true,
+        notYer:'Kapanış gerekçesi ve doğrulama özeti…'
+      }).then(function(c){
+        if (!c.onay) return;
+        uygula('kapandi', { not: c.not, ekYama: { kapanis: BUGUN } }).then(function(g){
+          if (g.ok) tamam('Uygunsuzluk kapatıldı.');
+        });
+      });
+    },
+    'acik': function(){
+      gvConfirm({ baslik:'Uygunsuzluk yeniden açılsın mı?', ton:'warn',
+        metin:'Kayıt <b>Açık</b> aşamasına döndürülecek; sonraki aşamaların bilgileri temizlenir. '
+          + 'Bu işlem denetim izine yazılır.',
+        onayEtiket:'Yeniden aç', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
+        notYer:'Yeniden açma gerekçesi…'
+      }).then(function(c){
+        if (!c.onay) return;
+        uygula('acik', { not: c.not, ekYama: geriTemizle('acik') }).then(function(g){
+          if (g.ok) tamam('Uygunsuzluk yeniden açıldı.', 'warn');
+        });
+      });
+    }
+  };
+
+  /* Modalin TOPLAYACAĞI alanlar butonu kilitlemez — yoksa kullanıcı alanı
+     girebileceği ekranı hiç açamazdı. Butonda kalan sebepler gerçek
+     engellerdir: izin, önceki durum, iş kuralı. */
+  var MODAL_ALAN = {
+    'aksiyon-planlandi': ['aksiyonPlani', 'termin', 'sorumluTaraf'],
+    'uygulandi':         ['uygulamaTarihi'],
+    'kanit-yuklendi':    ['kanit'],
+    'dogrulandi':        ['dogrulayanId', 'dogrulamaTarihi'],
+    'kapandi':           ['kapanis']
+  };
+
+  var hedefler = GV.gecisHedefleri('uygunsuzluk', u).map(function(h){
+    var alanlar = MODAL_ALAN[h.k];
+    if (!alanlar || ASAMA_SIRA.indexOf(h.k) < suAn) return h;
+    var veri = {};
+    alanlar.forEach(function(a){ veri[a] = '(modalde girilecek)'; });
+    var d = GV.gecisDene('uygunsuzluk', u, h.k, { veri: veri });
+    return Object.assign({}, h, { uygun: d.uygun, sebep: d.sebep, kod: d.kod });
+  });
+  var ileriHedef = hedefler.filter(function(h){ return ASAMA_SIRA.indexOf(h.k) > suAn; })[0] || null;
+
+  var islemler = [];
+  hedefler.forEach(function(h, i){
+    var geri = ASAMA_SIRA.indexOf(h.k) < suAn;
+    islemler.push('<button class="btn ' + (geri ? 'btn-ghost' : 'btn-acc') + ' btn-block" type="button"'
+      + ' data-asama="' + h.k + '" id="udAsama' + i + '">'
+      + '<i class="fa-solid ' + (geri ? 'fa-rotate-left' : h.ikon) + '" aria-hidden="true"></i>'
+      + GV.esc(geri && h.k !== 'acik' ? h.ad + ' aşamasına geri al' : h.etiket) + '</button>');
+  });
+  islemler.push('<div id="udAsamaSebep" hidden></div>');
+  if (u.durum !== 'kapandi' && !u.musteriBildirimi) islemler.push('<button class="btn btn-ghost btn-block" type="button" id="udBildir2"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Müşteriye Bildir</button>');
+  if (u.durum !== 'kapandi' && !yeniden) islemler.push('<button class="btn btn-ghost btn-block" type="button" id="udYenidenAc2"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Yeniden Kontrol Talebi</button>');
   if (r) islemler.push('<a class="btn btn-ghost btn-block" href="rapor-detay.html?id=' + r.id + '"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>İlgili Rapor</a>');
   islemler.push('<button class="btn btn-ghost btn-block" type="button" data-yazdir><i class="fa-solid fa-print" aria-hidden="true"></i>Yazdır</button>');
   document.getElementById('udIslem').innerHTML = islemler.join('');
 
-  function kapat(){
-    gvConfirm({ baslik:'Uygunsuzluk kapatılsın mı?',
-      metin:'<b>' + GV.esc(u.baslik) + '</b> kapatılacak. '
-        + (u.yenidenKontrol === 'gerekli' && (!yeniden || yeniden.durum !== 'tamamlandi')
-          ? '<b>Bu kayıt yeniden kontrol gerektiriyor ve doğrulama tamamlanmadı.</b> '
-            + 'Sahada doğrulanmadan kapatılması denetimde bulgu oluşturabilir.' : ''),
-      ton: (u.yenidenKontrol === 'gerekli' && (!yeniden || yeniden.durum !== 'tamamlandi')) ? 'danger' : 'warn',
-      onayEtiket:'Kapat', onayIkon:'fa-check', notAlani:true, notZorunlu:true,
-      notYer:'Düzeltmenin nasıl doğrulandığı (belge, fotoğraf, saha kontrolü)…'
-    }).then(function(s){
-      if (!s.onay) return;
-      GV.gecisUygula('uygunsuzluk', 'uygunsuzluklar', u.id, 'kapandi', {
-        not: s.not, ekYama: { kapanis: BUGUN }
-      }).then(function(g){
-        if (!g.ok) return;
-        gvToast('Uygunsuzluk kapatıldı.', { ton:'ok' });
-        setTimeout(function(){ location.reload(); }, 800);
-      });
-    });
+  /* Üst barda sıradaki ileri aşama; yapılamıyorsa gizlenmez, sebebi yazılır. */
+  if (ileriHedef) {
+    document.getElementById('udUstAksiyon').innerHTML =
+      '<button class="btn btn-acc" type="button" data-asama="' + ileriHedef.k + '" id="udUst">'
+      + '<i class="fa-solid ' + ileriHedef.ikon + '" aria-hidden="true"></i>' + GV.esc(ileriHedef.etiket) + '</button>';
   }
-  ['udKapat','udKapat2'].forEach(function(b){ var e = document.getElementById(b); if (e) e.addEventListener('click', kapat); });
 
-  var acBtn = document.getElementById('udAc');
-  if (acBtn) acBtn.addEventListener('click', function(){
-    gvConfirm({ baslik:'Uygunsuzluk yeniden açılsın mı?', ton:'warn',
-      metin:'Kapatılmış uygunsuzluk yeniden açılacak. Bu işlem denetim izinde kaydedilir.',
-      onayEtiket:'Yeniden aç', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true, notYer:'Yeniden açma gerekçesi…'
-    }).then(function(s){
-      if (!s.onay) return;
-      GV.gecisUygula('uygunsuzluk', 'uygunsuzluklar', u.id, 'acik', {
-        not: s.not, ekYama: { kapanis: null }
-      }).then(function(g){
-        if (!g.ok) return;
-        gvToast('Uygunsuzluk yeniden açıldı.', { ton:'warn' });
-        setTimeout(function(){ location.reload(); }, 800);
-      });
-    });
+  var sebepKabi = document.getElementById('udAsamaSebep');
+  hedefler.forEach(function(h, i){
+    var btn = document.getElementById('udAsama' + i);
+    if (!btn) return;
+    GV.gecisButonu(btn, h, (ileriHedef && h.k === ileriHedef.k) ? sebepKabi : null);
+    if (h.uygun) btn.addEventListener('click', function(){ asamaCalistir(h.k); });
   });
+  var ustBtn = document.getElementById('udUst');
+  if (ustBtn && ileriHedef) {
+    GV.gecisButonu(ustBtn, ileriHedef);
+    if (ileriHedef.uygun) ustBtn.addEventListener('click', function(){ asamaCalistir(ileriHedef.k); });
+  }
+
+  function asamaCalistir(hedef){
+    if (ASAMA_SIRA.indexOf(hedef) < suAn && hedef !== 'acik') return geriAl(hedef);
+    var fn = ILERI[hedef];
+    if (fn) fn();
+  }
 
   function bildir(){
     A.guncelle('uygunsuzluklar', u.id, { musteriBildirimi: BUGUN }).then(function(){

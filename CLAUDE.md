@@ -160,6 +160,10 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
   Sayfa scripti `guncelle()` ile durum alanı yazmaz. Geçiş; önceki durum,
   izin, zorunlu alan ve iş kuralı ön koşulundan geçer. Geçiş yapılamıyorsa
   buton gizlenmez — `GV.gecisButonu` ile disabled sebebi gösterilir.
+- **Uygunsuzluk altı aşamalıdır** ve aşama atlanamaz: `acik` → `aksiyon-planlandi`
+  → `uygulandi` → `kanit-yuklendi` → `dogrulandi` → `kapandi`. "Gecikti" bir aşama
+  DEĞİLDİR; terminden türer (`GV.saat.gecikmisMi(termin)`) ve kayıtta saklanmaz.
+  Aşama rozeti tek yerden basılır: `GV.akisRozet('uygunsuzluk', durum)`.
 - **Kalibrasyonu geçmiş cihaz** iş emrine atanamaz (buton `disabled` + kırmızı uyarı).
 - **Yetkinliği olmayan personel** ilgili kontrole atanamaz.
 - Ana lokasyon rehberi ≠ projedeki lokasyon ≠ tamamlanan ≠ faturalanan (4 ayrı bilgi).

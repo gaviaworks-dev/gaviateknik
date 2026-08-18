@@ -213,14 +213,19 @@ test('iş kuralı: mutabakatı ve raporu tamam olan lokasyon fatura grubuna alı
 test('iş kuralı: yeniden kontrol gerekiyorsa uygunsuzluk kapanmaz', () => {
   const acik = A.liste('yenidenKontroller').filter(y => y.durum !== 'tamamlandi')[0];
   assert.ok(acik, 'tamamlanmamış yeniden kontrol olmalı');
-  const u = { id: acik.uygunsuzlukId, durum: 'acik', kapanis: '2026-08-18', yenidenKontrol: 'gerekli' };
+  /* Faz 14: kapanış artık DOĞRULANDI aşamasından yapılır (doküman §8 altı aşama). */
+  const u = { id: acik.uygunsuzlukId, durum: 'dogrulandi', kapanis: '2026-08-18',
+              kanit: ['x'], dogrulayanId: 'PRS-004', dogrulamaTarihi: '2026-08-16',
+              yenidenKontrol: 'gerekli' };
   const s = GV.gecisDene('uygunsuzluk', u, 'kapandi', { rol: 'kalite' });
   assert.strictEqual(s.uygun, false);
   assert.strictEqual(s.kod, 'kural');
 });
 
 test('iş kuralı: yeniden kontrol gerekmiyorsa uygunsuzluk kapanır', () => {
-  const u = { id: 'UYG-YOK', durum: 'acik', kapanis: '2026-08-18', yenidenKontrol: 'gerekmiyor' };
+  const u = { id: 'UYG-YOK', durum: 'dogrulandi', kapanis: '2026-08-18',
+              kanit: ['x'], dogrulayanId: 'PRS-004', dogrulamaTarihi: '2026-08-16',
+              yenidenKontrol: 'gerekmiyor' };
   assert.strictEqual(GV.gecisDene('uygunsuzluk', u, 'kapandi', { rol: 'kalite' }).uygun, true);
 });
 

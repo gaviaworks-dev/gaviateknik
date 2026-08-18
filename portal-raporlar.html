@@ -157,10 +157,14 @@
   function uygunsuzlukRozet(u){
     if (u.durum === 'kapandi') return GV.rozetOzel('ok','fa-circle-check','Kapatıldı');
     var g = GV.gun(BUGUN, u.termin);
-    if (u.durum === 'gecikti' || (g != null && g < 0)) {
-      return GV.rozetOzel('danger','fa-clock','Termini geçti' + (g != null ? ' · ' + Math.abs(g) + ' gün' : ''));
+    if (g != null && g < 0) {
+      return GV.rozetOzel('danger','fa-clock','Termini geçti' + ' · ' + Math.abs(g) + ' gün');
     }
-    return GV.rozetOzel('warn','fa-hourglass-half','Açık' + (g != null ? ' · ' + g + ' gün kaldı' : ''));
+    /* Portalda müşteri iç aşama adlarını değil, kendi bakış açısını görür:
+       düzeltme sürüyor mu, doğrulandı mı. Aşama adı durum makinesinden gelir. */
+    var d = GV.akisDurum('uygunsuzluk', u.durum);
+    return GV.rozetOzel(d.ton === 'ok' ? 'ok' : 'warn', d.ikon,
+      d.ad + (g != null ? ' · ' + g + ' gün kaldı' : ''));
   }
 
   /* ================= SEKME 1 — RAPORLAR ================= */
@@ -315,7 +319,7 @@
       return Object.assign({}, u, {
         lokasyonAd: l ? l.ad : GV.bos,
         raporNo: r ? r.no : null,
-        gecikti: u.durum !== 'kapandi' && (u.durum === 'gecikti' || (g != null && g < 0))
+        gecikti: u.durum !== 'kapandi' && g != null && g < 0
       });
     }).sort(function(a,b){
       if (a.gecikti !== b.gecikti) return a.gecikti ? -1 : 1;
