@@ -96,6 +96,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -169,9 +172,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#trTablo', kolonlar:kolonlar, secim:true, satirId: function(r){ return r.id; },
-    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor bulunamadı', metin:'Filtrelerinize uyan teknik rapor yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#trBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'teknik-raporlar', modul:'Teknik Rapor' }); } },
@@ -197,15 +198,11 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'teknik-raporlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#trPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'teknik-raporlar', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'teknik_raporlar',
     veri: function(){ return kaynak; },
     arama: ['no','id','lokasyonAd','musteriAd','personelAd','kategoriAd'],
-    arsivAlani:'arsivMi',
     cipler: { alan:'durum', secenekler: A.durumListesi('rapor').map(function(d){
       return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
     alanlar: [
@@ -218,11 +215,24 @@
         { deger:'uygun', ad:'Süre içinde' }, { deger:'yaklasti', ad:'Süre yaklaştı' }, { deger:'asildi', ad:'Süre aşıldı' }] },
       { k:'kontrolTarihi', ad:'Kontrol tarihi', tur:'tarih' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    arsivAlani: 'arsivMi',
+    tablo: { hedef: '#trTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(r){ return r.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#trPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-lines', baslik:'Rapor bulunamadı', metin:'Filtrelerinize uyan teknik rapor yok.' },
+    bosDurum: { ikon:'fa-file-lines', baslik:'Teknik Raporlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('trDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'teknik-raporlar', modul:'Teknik Rapor' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'teknik-raporlar', modul:'Teknik Rapor' });
   });
 
   /* --- grafikler --- */

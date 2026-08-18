@@ -55,6 +55,7 @@
       </div>
       <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
       <div class="gc-body flush" id="tsTablo"></div>
+      <div class="gv-pager" id="tsPager" hidden></div>
     </section>
 
     <div class="gv-botsec">
@@ -79,6 +80,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -110,8 +114,7 @@
       etiket:'Ödenmemiş hakediş', ton:'danger' }
   ]);
 
-  var tablo = gvTable({ hedef:'#tsTablo', satirId: function(t){ return t.id; },
-    kolonlar: [
+    var kolonlar = [
       { k:'kisaAd', ad:'Taşeron', kilitli:true, ciz: function(t){
           return '<div class="gcell"><div class="gcell-mark">' + GV.esc(t.kisaAd.substring(0,2).toLocaleUpperCase('tr-TR')) + '</div>'
             + '<div class="gcell-info"><div class="gcell-name"><a href="taseron-detay.html?id=' + t.id + '">' + GV.esc(t.unvan) + '</a></div>'
@@ -144,14 +147,15 @@
             + '<a class="ia-btn" href="taseron-detay.html?id=' + t.id + '" aria-label="' + GV.esc(t.kisaAd) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
             + '<a class="ia-btn" href="taseron-hakedisleri.html?taseron=' + t.id + '" aria-label="' + GV.esc(t.kisaAd) + ' hakedişleri">'
             + '<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></a></div>'; } }
-    ],
-    bosDurum:{ ikon:'fa-people-carry-box', baslik:'Taşeron bulunamadı', metin:'Filtrelerinize uyan taşeron yok.' } });
+    ];
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'taseronlar', kolonlar: tablo.kolonlar, degisti: function(){ tablo.ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; tablo.ciz(v); }
 
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'taseronlar', kolonlar: kolonlar, degisti: function(){ liste.yenile(); } });
+
+
+
+  var liste = gvList({
+    kaynak: 'taseronlar',
     veri: function(){ return kaynak; },
     arama: ['kod','unvan','kisaAd','yetkili','bolgeMetni','kapsamMetni'],
     cipler: { alan:'durum', secenekler:[
@@ -168,11 +172,17 @@
         { deger:'fatura-vadesinde', ad:'Fatura vadesinde' }] },
       { k:'performans', ad:'Performans puanı', tur:'aralik' }
     ],
-    degisti: ciz
+    tablo: { hedef: '#tsTablo',
+      satirId: function(t){ return t.id; },
+      kolonlar: kolonlar },
+    pager: { hedef: '#tsPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-people-carry-box', baslik:'Taşeron bulunamadı', metin:'Filtrelerinize uyan taşeron yok.' },
+    bosDurum: { ikon:'fa-people-carry-box', baslik:'Taşeronlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
 
   document.getElementById('tsDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'taseronlar', modul:'Taşeron' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'taseronlar', modul:'Taşeron' });
   });
 
   document.getElementById('tsYeni').addEventListener('click', function(){

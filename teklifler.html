@@ -81,6 +81,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -144,15 +147,7 @@
           + '<i class="fa-solid fa-copy" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#tkTablo', kolonlar:kolonlar, secim:true, satirId: function(t){ return t.id; },
-    bosDurum:{ ikon:'fa-file-contract', baslik:'Teklif bulunamadı', metin:'Filtrelerinize uyan teklif yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); },
-    altToplam: function(v){
-      return '<tr><td data-lbl="" colspan="4">Toplam</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(x,t){ return x + t.toplamSatis; }, 0)) + '</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(x,t){ return x + t.kar; }, 0)) + '</td>'
-        + '<td colspan="4"></td></tr>';
-    } });
+  
 
   var bulk = gvBulk({ hedef:'#tkBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'teklifler', modul:'Teklif' }); } },
@@ -172,12 +167,36 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'teklifler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#tkPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-kopyala-teklif]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'teklifler', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'teklifler',
+    veri: function(){ return kaynak; },
+    arama: ['no','konu','musteriAd','hazirlayanAd','notlar'],
+    cipler: { alan:'durum', secenekler: Object.keys(durumAd).map(function(k){
+      return { k:k, ad: durumAd[k][2], ikon: durumAd[k][1] }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
+      { k:'toplamSatis', ad:'Teklif tutarı (₺)', tur:'aralik' },
+      { k:'tarih', ad:'Teklif tarihi', tur:'tarih' },
+      { k:'suresiGecti', ad:'Yalnız süresi dolanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#tkTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(t){ return t.id; },
+      secimDegisti: function(s){ bulk.ciz(s); },
+      altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="4">Toplam</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(x,t){ return x + t.toplamSatis; }, 0)) + '</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(x,t){ return x + t.kar; }, 0)) + '</td>'
+        + '<td colspan="4"></td></tr>';
+    } },
+    pager: { hedef: '#tkPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-contract', baslik:'Teklif bulunamadı', metin:'Filtrelerinize uyan teklif yok.' },
+    bosDurum: { ikon:'fa-file-contract', baslik:'Teklifler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-kopyala-teklif]').forEach(function(b){
       b.addEventListener('click', function(){
         var t = A.kayit('teklifler', b.getAttribute('data-kopyala-teklif'));
         gvConfirm({ baslik:'Teklif kopyalansın mı?',
@@ -197,25 +216,16 @@
           });
       });
     });
-  }
-
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','konu','musteriAd','hazirlayanAd','notlar'],
-    cipler: { alan:'durum', secenekler: Object.keys(durumAd).map(function(k){
-      return { k:k, ad: durumAd[k][2], ikon: durumAd[k][1] }; }) },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
-      { k:'toplamSatis', ad:'Teklif tutarı (₺)', tur:'aralik' },
-      { k:'tarih', ad:'Teklif tarihi', tur:'tarih' },
-      { k:'suresiGecti', ad:'Yalnız süresi dolanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    }
   });
+  
+
+
+
+  
 
   document.getElementById('tkDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'teklifler', modul:'Teklif' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'teklifler', modul:'Teklif' });
   });
 
   gvDonut('#tkDonut', Object.keys(durumAd).map(function(k){

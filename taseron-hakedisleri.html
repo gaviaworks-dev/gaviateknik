@@ -74,6 +74,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -149,14 +152,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#thTablo', kolonlar:kolonlar, secim:true, satirId: function(h){ return h.id; },
-    bosDurum:{ ikon:'fa-hand-holding-dollar', baslik:'Hakediş bulunamadı', metin:'Filtrelerinize uyan hakediş yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); },
-    altToplam: function(v){
-      return '<tr><td data-lbl="" colspan="4">Toplam</td>'
-        + '<td class="num">' + GV.tl(v.reduce(function(t,h){ return t + h.tutar; }, 0)) + '</td>'
-        + '<td colspan="5"></td></tr>';
-    } });
+  
 
   var bulk = gvBulk({ hedef:'#thBulk', aksiyonlar:[
     { etiket:'Ödeme onayı', ikon:'fa-money-bill-transfer', tikla: function(s){
@@ -189,18 +185,46 @@
         GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'taseron-hakedisleri', modul:'Taşeron Hakedişi' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'taseron-hakedisleri', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#thPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-hakedis]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'taseron-hakedisleri', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'taseron_hakedisleri',
+    veri: function(){ return kaynak; },
+    arama: ['no','taseronAd','projeKod','donem','not'],
+    cipler: { alan:'durum', secenekler: A.durumListesi('taseronOdeme').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'taseronId', ad:'Taşeron', tur:'coklu', secenekler: A.liste('taseronlar').map(function(t){ return { deger:t.id, ad:t.kisaAd }; }) },
+      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
+      { k:'donem', ad:'Dönem', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(h){ return h.donem; }))).sort()
+          .map(function(d){ return { deger:d, ad:d }; }) },
+      { k:'tutar', ad:'Tutar (₺)', tur:'aralik' },
+      { k:'odenebilir', ad:'Yalnız ödenebilir olanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#thTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(h){ return h.id; },
+      secimDegisti: function(s){ bulk.ciz(s); },
+      altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="4">Toplam</td>'
+        + '<td class="num">' + GV.tl(v.reduce(function(t,h){ return t + h.tutar; }, 0)) + '</td>'
+        + '<td colspan="5"></td></tr>';
+    } },
+    pager: { hedef: '#thPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-hand-holding-dollar', baslik:'Hakediş bulunamadı', metin:'Filtrelerinize uyan hakediş yok.' },
+    bosDurum: { ikon:'fa-hand-holding-dollar', baslik:'Taşeron Hakedişleri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-hakedis]').forEach(function(b){
       b.addEventListener('click', function(){ hakedisAc(b.getAttribute('data-hakedis')); });
     });
     document.querySelectorAll('[data-ode]').forEach(function(b){
       b.addEventListener('click', function(){ odemeYap(b.getAttribute('data-ode')); });
     });
-  }
+    }
+  });
+  
+
+
 
   function hakedisAc(hid){
     var h = A.kayit('taseronHakedisleri', hid);
@@ -285,24 +309,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','taseronAd','projeKod','donem','not'],
-    cipler: { alan:'durum', secenekler: A.durumListesi('taseronOdeme').map(function(d){
-      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
-    alanlar: [
-      { k:'taseronId', ad:'Taşeron', tur:'coklu', secenekler: A.liste('taseronlar').map(function(t){ return { deger:t.id, ad:t.kisaAd }; }) },
-      { k:'projeId', ad:'Proje', tur:'coklu', secenekler: A.liste('projeler').map(function(p){ return { deger:p.id, ad:p.kod }; }) },
-      { k:'donem', ad:'Dönem', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(h){ return h.donem; }))).sort()
-          .map(function(d){ return { deger:d, ad:d }; }) },
-      { k:'tutar', ad:'Tutar (₺)', tur:'aralik' },
-      { k:'odenebilir', ad:'Yalnız ödenebilir olanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('thDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'taseron-hakedisleri', modul:'Taşeron Hakedişi' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'taseron-hakedisleri', modul:'Taşeron Hakedişi' });
   });
 
   document.getElementById('thYeni').addEventListener('click', function(){

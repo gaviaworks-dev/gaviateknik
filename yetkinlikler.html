@@ -79,6 +79,7 @@
     <div id="pnListe" role="tabpanel" aria-labelledby="tbListe">
       <section class="gv-card">
         <div class="gc-body flush" id="ykTablo"></div>
+        <div class="gv-pager" id="ykPager" hidden></div>
       </section>
     </div>
 
@@ -112,6 +113,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -211,8 +215,7 @@
     });
   }
 
-  var tablo = gvTable({ hedef:'#ykTablo', satirId: function(y){ return y.id; },
-    kolonlar: [
+    var kolonlar = [
       { k:'ad', ad:'Yetkinlik', kilitli:true, ciz: function(y){
           return '<div class="gcell"><div class="gcell-mark" style="background:' + y.kategoriRenk + '18;color:' + y.kategoriRenk + '">'
             + '<i class="fa-solid ' + y.kategoriIkon + '" aria-hidden="true"></i></div>'
@@ -244,8 +247,8 @@
             + GV.esc(y.ad) + ' yetkin personel listesi"><i class="fa-solid fa-users" aria-hidden="true"></i></button>'
             + '<a class="ia-btn" href="hizmet-katalogu.html?f_yetkinlik=' + GV.esc(y.id) + '" aria-label="'
             + GV.esc(y.ad) + ' gerektiren hizmetler"><i class="fa-solid fa-list" aria-hidden="true"></i></a></div>'; } }
-    ],
-    bosDurum:{ ikon:'fa-certificate', baslik:'Yetkinlik bulunamadı', metin:'Filtrelerinize uyan yetkinlik yok.' } });
+    ];
+
 
   document.getElementById('ykTablo').addEventListener('click', function(e){
     var b = e.target.closest('[data-personel]');
@@ -366,19 +369,14 @@
   }
 
   /* ---------- çizim ve filtre ---------- */
-  var son = kaynak;
-  function ciz(v){
-    son = v;
-    tablo.ciz(v);
-    document.getElementById('cntListe').textContent = GV.n(v.length);
-    matrisCiz(v);
-    kapsamaCiz(v);
-  }
+
+
 
   gvTabs('.gv-tabbar');
-  gvCols({ tetik:'#gvColsBtn', anahtar:'yetkinlikler', kolonlar: tablo.kolonlar, degisti: function(){ tablo.ciz(son); } });
+  gvCols({ tetik:'#gvColsBtn', anahtar:'yetkinlikler', kolonlar: kolonlar, degisti: function(){ liste.yenile(); } });
 
-  gvFilter({
+  var liste = gvList({
+    kaynak: 'yetkinlikler',
     veri: function(){ return kaynak; },
     arama: ['id','ad','belgeTuru','kategoriAd'],
     cipler: { alan:'kategori', secenekler: kategoriler.filter(function(k){
@@ -396,12 +394,23 @@
         secenekler:[{ deger:'evet', ad:'Evet' }, { deger:'hayir', ad:'Hayır' }],
         suz: function(y,v){ return v === 'evet' ? y.yaklasanSayi > 0 : y.yaklasanSayi === 0; } }
     ],
-    degisti: ciz
+    tablo: { hedef: '#ykTablo',
+      satirId: function(y){ return y.id; },
+      kolonlar: kolonlar },
+    pager: { hedef: '#ykPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-certificate', baslik:'Yetkinlik bulunamadı', metin:'Filtrelerinize uyan yetkinlik yok.' },
+    bosDurum: { ikon:'fa-certificate', baslik:'Yetkinlikler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    ozet: function(v){
+      document.getElementById('cntListe').textContent = GV.n(v.length);
+    matrisCiz(v);
+    kapsamaCiz(v);
+    }
   });
+  
 
   /* ---------- sayfa aksiyonları ---------- */
   document.getElementById('ykDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'yetkinlikler', modul:'Yetkinlik' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'yetkinlikler', modul:'Yetkinlik' });
   });
 
   document.getElementById('ykYeni').addEventListener('click', function(){

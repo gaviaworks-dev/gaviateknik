@@ -55,6 +55,7 @@
       </div>
       <div class="gv-achips-row no-print" id="gvAchips" hidden></div>
       <div class="gc-body flush" id="rsTablo"></div>
+      <div class="gv-pager" id="rsPager" hidden></div>
     </section>
   </main>
 </div>
@@ -65,6 +66,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -88,8 +92,23 @@
     { ikon:'fa-file-lines', sayi: GV.n(kaynak.reduce(function(t,s){ return t + s.raporSayisi; }, 0)), etiket:'Üretilen rapor', ton:'ok' }
   ]);
 
-  var tablo = gvTable({ hedef:'#rsTablo', satirId: function(s){ return s.id; },
-    kolonlar: [
+  
+
+
+
+  var liste = gvList({
+    kaynak: 'rapor_sablonlari',
+    veri: function(){ return kaynak; },
+    arama: ['id','ad','katAd','hazirlayanAd'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' }, { k:'taslak', ad:'Taslak', ikon:'fa-pen-ruler' }] },
+    alanlar: [
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) }
+    ],
+    tablo: { hedef: '#rsTablo',
+      satirId: function(s){ return s.id; },
+      kolonlar: [
       { k:'ad', ad:'Şablon', ciz: function(s){
           return '<div class="gcell"><div class="gcell-mark" style="background:' + s.katRenk + '1f;color:' + s.katRenk + '">'
             + '<i class="fa-solid ' + s.katIkon + '" aria-hidden="true"></i></div>'
@@ -111,12 +130,12 @@
             + '<i class="fa-solid fa-eye" aria-hidden="true"></i></button>'
             + '<button class="ia-btn" type="button" data-surum="' + s.id + '" aria-label="' + GV.esc(s.ad) + ' yeni sürüm">'
             + '<i class="fa-solid fa-code-branch" aria-hidden="true"></i></button></div>'; } }
-    ],
-    bosDurum:{ ikon:'fa-file-code', baslik:'Şablon bulunamadı', metin:'Filtrelerinize uyan rapor şablonu yok.' } });
-
-  function ciz(v){
-    tablo.ciz(v);
-    document.querySelectorAll('[data-onizle]').forEach(function(b){
+    ] },
+    pager: { hedef: '#rsPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-code', baslik:'Şablon bulunamadı', metin:'Filtrelerinize uyan rapor şablonu yok.' },
+    bosDurum: { ikon:'fa-file-code', baslik:'Rapor Şablonları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    ozet: function(v){
+      document.querySelectorAll('[data-onizle]').forEach(function(b){
       b.addEventListener('click', function(){
         var s = A.kayit('raporSablonlari', b.getAttribute('data-onizle'));
         var maddeler = A.harita('kontrolMaddeleri')[s.kategoriId] || [];
@@ -165,19 +184,9 @@
         });
       });
     });
-  }
-
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','ad','katAd','hazirlayanAd'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'yayinda', ad:'Yayında', ikon:'fa-circle-check' }, { k:'taslak', ad:'Taslak', ikon:'fa-pen-ruler' }] },
-    alanlar: [
-      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
-      { k:'hazirlayanId', ad:'Hazırlayan', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) }
-    ],
-    degisti: ciz
+    }
   });
+  
 
   document.getElementById('rsDisa').addEventListener('click', function(){
     GV.disaAktar({ kayitSayisi: kaynak.length, dosyaAdi:'rapor-sablonlari', modul:'Rapor Şablonu' });

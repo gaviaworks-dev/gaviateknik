@@ -66,6 +66,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -127,16 +130,32 @@
           + '<i class="fa-solid fa-eye" aria-hidden="true"></i></a></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ykTablo', kolonlar:kolonlar, satirId: function(y){ return y.id; },
-    bosDurum:{ ikon:'fa-rotate-right', baslik:'Yeniden kontrol talebi yok',
-      metin:'Tekrarlanması gereken kontrol bulunmuyor.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'yeniden-kontroller', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ykPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-planla]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'yeniden-kontroller', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'yeniden_kontroller',
+    veri: function(){ return kaynak; },
+    arama: ['id','lokasyonAd','musteriAd','aciklama','uygunsuzlukBaslik'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'talep-edildi', ad:'Talep edildi', ikon:'fa-hourglass-half' },
+      { k:'planlandi', ad:'Planlandı', ikon:'fa-calendar-check' },
+      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-circle-check' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'talepEden', ad:'Talep eden', tur:'secim', secenekler:[
+        { deger:'GAVIA Teknik', ad:'GAVIA Teknik' }, { deger:'Müşteri', ad:'Müşteri' }] },
+      { k:'ucretli', ad:'Yalnız ücretliler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#ykTablo',
+      kolonlar: kolonlar,
+      satirId: function(y){ return y.id; } },
+    pager: { hedef: '#ykPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-rotate-right', baslik:'Yeniden kontrol talebi yok',
+      metin:'Tekrarlanması gereken kontrol bulunmuyor.' },
+    bosDurum: { ikon:'fa-rotate-right', baslik:'Yeniden Kontroller listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-planla]').forEach(function(b){
       b.addEventListener('click', function(){ planla(b.getAttribute('data-planla')); });
     });
     document.querySelectorAll('[data-tamamla]').forEach(function(b){
@@ -155,7 +174,11 @@
         });
       });
     });
-  }
+    }
+  });
+  
+
+
 
   function planla(yid){
     var y = A.kayit('yenidenKontroller', yid);
@@ -188,24 +211,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','lokasyonAd','musteriAd','aciklama','uygunsuzlukBaslik'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'talep-edildi', ad:'Talep edildi', ikon:'fa-hourglass-half' },
-      { k:'planlandi', ad:'Planlandı', ikon:'fa-calendar-check' },
-      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-circle-check' }] },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'talepEden', ad:'Talep eden', tur:'secim', secenekler:[
-        { deger:'GAVIA Teknik', ad:'GAVIA Teknik' }, { deger:'Müşteri', ad:'Müşteri' }] },
-      { k:'ucretli', ad:'Yalnız ücretliler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('ykDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'yeniden-kontroller', modul:'Yeniden Kontrol' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'yeniden-kontroller', modul:'Yeniden Kontrol' });
   });
 
   document.getElementById('ykYeni').addEventListener('click', function(){

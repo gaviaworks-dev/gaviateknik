@@ -96,6 +96,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -191,9 +194,7 @@
             : '') + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#uyTablo', kolonlar:kolonlar, secim:true, satirId: function(u){ return u.id; },
-    bosDurum:{ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Filtrelerinize uyan uygunsuzluk kaydı bulunmuyor.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#uyBulk', aksiyonlar:[
     { etiket:'Müşteriye bildir', ikon:'fa-paper-plane', tikla: function(s){ bildir(s); } },
@@ -220,12 +221,34 @@
         GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'uygunsuzluklar', modul:'Uygunsuzluk' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'uygunsuzluklar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#uyPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-kapat]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'uygunsuzluklar', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'uygunsuzluklar',
+    veri: function(){ return kaynak; },
+    arama: ['id','baslik','aciklama','lokasyonAd','musteriAd','hizmetAd'],
+    cipler: { alan:'onem', secenekler: ['kritik','yuksek','orta','dusuk'].map(function(k){
+      return { k:k, ad: onemAd[k][2], ikon: onemAd[k][1] }; }) },
+    alanlar: [
+      { k:'durum', ad:'Durum', tur:'coklu', secenekler:[
+        { deger:'acik', ad:'Açık' }, { deger:'gecikti', ad:'Gecikti' }, { deger:'kapandi', ad:'Kapandı' }] },
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
+      { k:'yenidenKontrol', ad:'Yeniden kontrol', tur:'secim', secenekler:[
+        { deger:'gerekli', ad:'Gerekli' }, { deger:'planlandi', ad:'Planlandı' },
+        { deger:'tamamlandi', ad:'Tamamlandı' }, { deger:'gerekmiyor', ad:'Gerekmiyor' }] },
+      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
+      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#uyTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(u){ return u.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#uyPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Filtrelerinize uyan uygunsuzluk kaydı bulunmuyor.' },
+    bosDurum: { ikon:'fa-circle-check', baslik:'Uygunsuzluklar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-kapat]').forEach(function(b){
       b.addEventListener('click', function(){
         var u = A.kayit('uygunsuzluklar', b.getAttribute('data-kapat'));
         gvConfirm({ baslik:'Uygunsuzluk kapatılsın mı?',
@@ -245,7 +268,11 @@
         });
       });
     });
-  }
+    }
+  });
+  
+
+
 
   function bildir(idler){
     var kayitlar = idler.map(function(i){ return A.kayit('uygunsuzluklar', i); }).filter(Boolean);
@@ -272,27 +299,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['id','baslik','aciklama','lokasyonAd','musteriAd','hizmetAd'],
-    cipler: { alan:'onem', secenekler: ['kritik','yuksek','orta','dusuk'].map(function(k){
-      return { k:k, ad: onemAd[k][2], ikon: onemAd[k][1] }; }) },
-    alanlar: [
-      { k:'durum', ad:'Durum', tur:'coklu', secenekler:[
-        { deger:'acik', ad:'Açık' }, { deger:'gecikti', ad:'Gecikti' }, { deger:'kapandi', ad:'Kapandı' }] },
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'kategoriId', ad:'Hizmet kategorisi', tur:'coklu', secenekler: A.liste('hizmetKategorileri').map(function(k){ return { deger:k.id, ad:k.ad }; }) },
-      { k:'yenidenKontrol', ad:'Yeniden kontrol', tur:'secim', secenekler:[
-        { deger:'gerekli', ad:'Gerekli' }, { deger:'planlandi', ad:'Planlandı' },
-        { deger:'tamamlandi', ad:'Tamamlandı' }, { deger:'gerekmiyor', ad:'Gerekmiyor' }] },
-      { k:'termin', ad:'Termin tarihi', tur:'tarih' },
-      { k:'gecikmisMi', ad:'Yalnız termini geçenler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('uyDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'uygunsuzluklar', modul:'Uygunsuzluk' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'uygunsuzluklar', modul:'Uygunsuzluk' });
   });
   document.getElementById('uyBildir').addEventListener('click', function(){
     var bildirilmemis = kaynak.filter(function(u){ return !u.musteriBildirimi; }).map(function(u){ return u.id; });
