@@ -53,6 +53,7 @@
                 <label for="pMarka">Marka</label>
                 <select id="pMarka" name="markaId"><option value="">Önce müşteri seçin…</option></select>
                 <span class="gf-hint">Marka seçilirse yalnız o markanın lokasyonları kapsama alınabilir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="pYil">Kontrol Yılı <span class="req" aria-hidden="true">*</span></label>
@@ -71,13 +72,14 @@
               </div>
               <div class="gfield">
                 <label for="pBit">Bitiş Tarihi <span class="req" aria-hidden="true">*</span></label>
-                <input type="date" id="pBit" name="bitis" required data-dogrula="bitis">
+                <input type="date" id="pBit" name="bitis" required>
                 <span class="gf-hint">Bitiş, başlangıçtan sonra olmalıdır.</span>
                 <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="pAciklama">Kapsam Açıklaması</label>
                 <textarea id="pAciklama" name="aciklama" placeholder="Kaç lokasyonda, hangi hizmet kategorilerinde kontrol yapılacağını özetleyin."></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -89,6 +91,7 @@
                 <label for="pSozlesme">Sözleşme</label>
                 <select id="pSozlesme" name="sozlesmeId"><option value="">Sözleşmesiz (tekil iş)</option></select>
                 <span class="gf-hint">Sözleşme seçilirse parti büyüklüğü ve vade sözleşmeden gelir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="pFiyat">Fiyat Listesi <span class="req" aria-hidden="true">*</span></label>
@@ -113,6 +116,7 @@
                 <select id="pDurum" name="durum">
                   <option value="planlama">Planlama</option><option value="aktif">Aktif</option><option value="tamamlandi">Tamamlandı</option>
                 </select>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -135,7 +139,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         
@@ -268,23 +273,39 @@
       : '<p class="muted" style="font-size:13px">Tahmini değer için lokasyon seçin.</p>';
   }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'proje-form' + (id ? '-' + id : ''), iptalHref:'projeler.html',
-    ozelDogrula: function(kural, deger, f){
-      if (kural === 'bitis') {
-        var bas = f.querySelector('#pBas').value;
-        if (bas && deger && deger <= bas) return 'Bitiş tarihi başlangıçtan sonra olmalıdır.';
-      }
-      return '';
-    },
-    gonder: function(veri, aksiyon, yardim){
+  /* Ortak form standardı (doküman §11) + doküman §8 CreateProject ön koşulu:
+     müşteri aktif, tarih aralığı geçerli, proje kodu benzersiz. */
+  var SEMA = {
+    ad:        { etiket:'Proje adı', zorunlu:true, enAz:5, enCok:180 },
+    musteriId: { etiket:'Müşteri', zorunlu:true,
+                 ozel: function(v){
+                   var m = v ? A.kayit('musteriler', v) : null;
+                   if (!m) return 'Müşteri seçin.';
+                   return m.durum === 'pasif' ? 'Arşivlenmiş müşteriye yeni proje açılamaz.' : ''; } },
+    markaId:   { etiket:'Marka', zorunlu:true },
+    yil:       { etiket:'Yıl', tur:'sayi', zorunlu:true, enAz:2020, enCok:2100 },
+    yoneticiId:{ etiket:'Proje yöneticisi', zorunlu:true },
+    baslangic: { etiket:'Başlangıç', tur:'tarih', zorunlu:true },
+    bitis:     { etiket:'Bitiş', tur:'tarih', zorunlu:true, sonra:'baslangic' },
+    aciklama:  { etiket:'Açıklama', enCok:600 },
+    partiBuyuklugu: { etiket:'Parti büyüklüğü', tur:'sayi', zorunlu:true, enAz:1, enCok:100 },
+    raporSlaGun:    { etiket:'Rapor SLA (gün)', tur:'sayi', zorunlu:true, enAz:1, enCok:90 },
+    durum:     { etiket:'Proje durumu', zorunlu:true }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateProject',
+    anahtar:'proje-form' + (id ? '-' + id : ''), iptalHref:'projeler.html',
+    sema: SEMA,
+    gonder: function(veri, yardim){
       if (!secilenLok.length) {
-        gvConfirm({ baslik:'Lokasyonsuz proje kaydedilsin mi?', ton:'warn',
+        return gvConfirm({ baslik:'Lokasyonsuz proje kaydedilsin mi?', ton:'warn',
           metin:'Projeye hiç lokasyon seçmediniz. Kapsam sonradan da eklenebilir; proje planlama durumunda açılacak.',
-          onayEtiket:'Yine de kaydet', onayIkon:'fa-check' }).then(function(s){ if (s.onay) kaydet(veri, yardim); });
-        return;
+          onayEtiket:'Yine de kaydet', onayIkon:'fa-check' }).then(function(s){
+            return s.onay ? kaydet(veri, yardim) : null;
+          });
       }
-      kaydet(veri, yardim);
+      return kaydet(veri, yardim);
     }
   });
 
@@ -298,7 +319,7 @@
       : A.ekle('projeler', Object.assign({
           id: yeniPrjKod, kod: yeniPrjKod
         }, veri));
-    islem.then(function(r){
+    return islem.then(function(r){
       var pid = mevcut ? mevcut.id : r.kayit.id;
       /* Kapsam ataması ve operasyon geçişi ayrı işlerdir; projede ZATEN
          olan lokasyonun operasyon durumu korunur. */

@@ -48,6 +48,7 @@
                 <label for="lKod">Sistem Kodu</label>
                 <input type="text" id="lKod" name="kod" placeholder="Otomatik üretilir">
                 <span class="gf-hint">GAVIA sistem kodu. Boş bırakılırsa otomatik atanır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="lMusteriKod">Müşteri Lokasyon Kodu <span class="req" aria-hidden="true">*</span></label>
@@ -110,10 +111,12 @@
                 <label for="lTaseron">Taşeron</label>
                 <select id="lTaseron" name="taseronId"><option value="">Atanmadı (GAVIA ekibi)</option></select>
                 <span class="gf-hint" id="lTaseronUyari"></span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="lAdres">Açık Adres</label>
                 <textarea id="lAdres" name="adres" placeholder="Mahalle, cadde, no"></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -125,6 +128,7 @@
                 <label for="lProje">Kontrol Projesi</label>
                 <select id="lProje" name="projeId"><option value="">Projeye dâhil değil (yalnız rehberde)</option></select>
                 <span class="gf-hint">Ana rehberde bulunmak ile projeye dâhil olmak ayrı bilgilerdir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="lOpDurum">Operasyon Durumu <span class="req" aria-hidden="true">*</span></label>
@@ -135,15 +139,18 @@
                 <label for="lKontrol">Kontrol Tarihi</label>
                 <input type="date" id="lKontrol" name="kontrolTarihi">
                 <span class="gf-hint">Boş bırakılabilir; tarih onaylanınca girilir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="lSonraki">Sonraki Kontrol Tarihi</label>
                 <input type="date" id="lSonraki" name="sonrakiKontrol" readonly>
                 <span class="gf-hint" id="lSonrakiNot">Kontrol tarihi girildiğinde hizmet periyoduna göre hesaplanır. Ana tarih boşsa boş kalır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="lNot">Not</label>
                 <textarea id="lNot" name="not" placeholder="Tadilat, taşınma, erişim kısıtı gibi özel durumlar"></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -166,7 +173,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         
@@ -339,9 +347,33 @@
       + '<div class="info-row"><dt>Sonraki kontrol</dt><dd>' + GV.d(v.sonrakiKontrol) + '</dd></div>';
   }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'lokasyon-form' + (id ? '-' + id : ''), iptalHref:'lokasyonlar.html',
-    gonder: function(veri, aksiyon, yardim){
+  /* Ortak form standardı (doküman §11). */
+  var SEMA = {
+    ad:         { etiket:'Lokasyon adı', zorunlu:true, enAz:3, enCok:140 },
+    kod:        { etiket:'Lokasyon kodu', enCok:24,
+                  ozel: function(v){
+                    if (!v) return '';
+                    var c = A.kayit('lokasyonlar', v);
+                    return (!c || (mevcut && c.id === mevcut.id)) ? '' : 'Bu lokasyon kodu kullanılıyor.'; } },
+    musteriKod: { etiket:'Müşteri şube kodu', enCok:24 },
+    musteriId:  { etiket:'Müşteri', zorunlu:true },
+    markaId:    { etiket:'Marka', zorunlu:true },
+    tur:        { etiket:'Lokasyon türü', zorunlu:true },
+    m2:         { etiket:'Kapalı alan (m²)', tur:'sayi', enAz:0, enCok:500000 },
+    il:         { etiket:'İl', zorunlu:true },
+    ilce:       { etiket:'İlçe', enCok:60 },
+    bolge:      { etiket:'Bölge', zorunlu:true },
+    adres:      { etiket:'Adres', enCok:400 },
+    operasyonDurum: { etiket:'Operasyon durumu', zorunlu:true },
+    kontrolTarihi:  { etiket:'Kontrol tarihi', tur:'tarih' },
+    not:        { etiket:'Not', enCok:600 }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateLocation',
+    anahtar:'lokasyon-form' + (id ? '-' + id : ''), iptalHref:'lokasyonlar.html',
+    sema: SEMA,
+    gonder: function(veri, yardim){
       veri.m2 = Number(veri.m2 || 0);
       if (!veri.kontrolTarihi) veri.sonrakiKontrol = null;
       veri.projeId = veri.projeId || null;
@@ -357,7 +389,7 @@
             raporTarihi:null, raporTeslimTarihi:null, yetkiliId:null, ekipId:[]
           }, veri));
 
-      islem.then(function(r){
+      return islem.then(function(r){
         var lid = mevcut ? mevcut.id : r.kayit.id;
         if (!secilenSablon) return lid;
         var s = A.kayit('envanterSablonlari', secilenSablon);

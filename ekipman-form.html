@@ -58,11 +58,13 @@
               <div class="gfield">
                 <label for="eKod">Ekipman Kodu</label>
                 <input type="text" id="eKod" name="kod" placeholder="Otomatik üretilir">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="eQr">QR / Barkod</label>
                 <input type="text" id="eQr" name="qr" placeholder="Lokasyon seçilince önerilir">
                 <span class="gf-hint">Saha ekibi bu kodu okutarak doğrudan kontrol formuna ulaşır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="eMarka">Marka <span class="req" aria-hidden="true">*</span></label>
@@ -77,6 +79,7 @@
               <div class="gfield">
                 <label for="eSeri">Seri Numarası</label>
                 <input type="text" id="eSeri" name="seri" placeholder="FO-2021-1234">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="eYil">Üretim Yılı</label>
@@ -87,12 +90,14 @@
                 <label for="eKapasite">Kapasite</label>
                 <input type="text" id="eKapasite" name="kapasite" placeholder="1.800 kg">
                 <span class="gf-hint">Yük testi bu değere göre uygulanır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="eDurum">Kullanım Durumu</label>
                 <select id="eDurum" name="durum">
                   <option value="aktif">Aktif</option><option value="bakimda">Bakımda</option><option value="kullanim-disi">Kullanım dışı</option>
                 </select>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -104,16 +109,19 @@
                 <label for="eSonKontrol">Son Kontrol Tarihi</label>
                 <input type="date" id="eSonKontrol" name="sonKontrol">
                 <span class="gf-hint">İlk kez kaydediliyorsa boş bırakın.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="ePeriyot">Kontrol Periyodu (ay)</label>
                 <input type="number" id="ePeriyot" name="periyotAy" min="0" max="120" readonly>
                 <span class="gf-hint">Seçilen hizmet pozisyonundan gelir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="eSonraki">Sonraki Kontrol Tarihi</label>
                 <input type="date" id="eSonraki" name="sonrakiKontrol" readonly>
                 <span class="gf-hint" id="eSonrakiNot">Son kontrol tarihi ve periyottan hesaplanır. Ana tarih boşsa boş kalır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>
@@ -140,7 +148,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         
@@ -221,9 +230,32 @@
       + '<div class="info-row"><dt>QR kodu</dt><dd>' + GV.esc(v.qr || GV.bos) + '</dd></div>';
   }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'ekipman-form' + (id ? '-' + id : ''), iptalHref:'ekipmanlar.html',
-    gonder: function(veri, aksiyon, yardim){
+  /* Ortak form standardı (doküman §11). */
+  var SEMA = {
+    lokasyonId: { etiket:'Lokasyon', zorunlu:true },
+    hizmetId:   { etiket:'Hizmet', zorunlu:true },
+    ad:         { etiket:'Ekipman adı', zorunlu:true, enAz:2, enCok:120 },
+    kod:        { etiket:'Ekipman kodu', enCok:24,
+                  ozel: function(v){
+                    if (!v) return '';
+                    var c = A.kayit('ekipmanlar', v);
+                    return (!c || (mevcut && c.id === mevcut.id)) ? '' : 'Bu ekipman kodu kullanılıyor.'; } },
+    qr:         { etiket:'QR / etiket', enCok:40 },
+    marka:      { etiket:'Marka', enCok:60 },
+    model:      { etiket:'Model', enCok:60 },
+    seri:       { etiket:'Seri numarası', enCok:60 },
+    uretimYili: { etiket:'Üretim yılı', tur:'sayi', enAz:1950, enCok:2100 },
+    kapasite:   { etiket:'Kapasite', enCok:60 },
+    durum:      { etiket:'Kullanım durumu', zorunlu:true },
+    sonKontrol: { etiket:'Son kontrol tarihi', tur:'tarih' },
+    periyotAy:  { etiket:'Periyot (ay)', tur:'sayi', zorunlu:true, enAz:1, enCok:120 }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateEquipment',
+    anahtar:'ekipman-form' + (id ? '-' + id : ''), iptalHref:'ekipmanlar.html',
+    sema: SEMA,
+    gonder: function(veri, yardim){
       veri.uretimYili = Number(veri.uretimYili || 0);
       veri.periyotAy = Number(veri.periyotAy || 0);
       if (!veri.sonKontrol) { veri.sonKontrol = null; veri.sonrakiKontrol = null; }
@@ -240,7 +272,7 @@
             kod: veri.kod || yeniEkpKod
           }, veri));
 
-      islem.then(function(r){
+      return islem.then(function(r){
         yardim.taslakSil(); yardim.kirliSifirla();
         gvResult(true, {
           baslik: mevcut ? 'Ekipman güncellendi' : 'Ekipman kaydedildi',

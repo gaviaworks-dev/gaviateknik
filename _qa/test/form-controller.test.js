@@ -278,8 +278,11 @@ test('temiz formda çıkış uyarısı sorulmaz', () => {
 
 /* ---------- migrate edilen sayfalar ---------- */
 
-test('musteri-form ve is-emri-form FormController kullanıyor', () => {
-  for (const f of ['musteri-form.html', 'is-emri-form.html']) {
+const FORMLAR = ['musteri-form.html', 'is-emri-form.html', 'ekipman-form.html',
+                 'lokasyon-form.html', 'proje-form.html', 'teklif-form.html'];
+
+test('sayfa formlarının hepsi FormController kullanıyor', () => {
+  for (const f of FORMLAR) {
     const s = fs.readFileSync(path.join(KOK, f), 'utf8');
     assert.ok(s.includes('gvFormController('), f + ' FormController kullanmıyor');
     assert.ok(!/\bgvForm\(/.test(s), f + ' hâlâ eski gvForm çağırıyor');
@@ -288,8 +291,24 @@ test('musteri-form ve is-emri-form FormController kullanıyor', () => {
   }
 });
 
+test('şemadaki her alanın .gfield bloğunda hata yuvası var', () => {
+  for (const f of FORMLAR) {
+    const s = fs.readFileSync(path.join(KOK, f), 'utf8');
+    const blok = s.slice(s.indexOf('var SEMA = {'), s.indexOf('var form = gvFormController'));
+    const adlar = [...blok.matchAll(/^\s{4}([A-Za-zğüşiöçİĞÜŞÖÇ]+)\s*:/gm)].map(m => m[1]);
+    for (const ad of adlar) {
+      const i = s.indexOf('name="' + ad + '"');
+      const bas = s.lastIndexOf('<div class="gfield', i);
+      const son = s.indexOf('<div class="gfield', i);
+      const parca = s.slice(bas, son === -1 ? i + 800 : son);
+      if (parca.includes('type="checkbox"')) continue;
+      assert.ok(parca.includes('gf-err'), `${f}: ${ad} alanında .gf-err yuvası yok`);
+    }
+  }
+});
+
 test('şemadaki her alan formda gerçekten var (migrate edilen sayfalar)', () => {
-  for (const f of ['musteri-form.html', 'is-emri-form.html']) {
+  for (const f of FORMLAR) {
     const s = fs.readFileSync(path.join(KOK, f), 'utf8');
     const blok = s.slice(s.indexOf('var SEMA = {'), s.indexOf('var form = gvFormController'));
     const adlar = [...blok.matchAll(/^\s{4}([A-Za-zğüşiöçİĞÜŞÖÇ]+)\s*:/gm)].map(m => m[1]);

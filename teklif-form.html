@@ -48,6 +48,7 @@
                 <label for="tProje">İlgili Proje</label>
                 <select id="tProje" name="projeId"><option value="">Proje bağlı değil</option></select>
                 <span class="gf-hint">Proje seçilirse fiyatlar o projenin fiyat listesinden gelir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="tKonu">Teklif Konusu <span class="req" aria-hidden="true">*</span></label>
@@ -73,10 +74,12 @@
                 <label for="tFiyatListesi">Fiyat Listesi</label>
                 <select id="tFiyatListesi" name="fiyatListesiId"></select>
                 <span class="gf-hint">Satır eklerken birim fiyat bu listeden önerilir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="tNotlar">Notlar</label>
                 <textarea id="tNotlar" name="notlar" placeholder="İskonto, ödeme koşulu, kapsam dışı kalemler"></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -91,14 +94,17 @@
               <div class="gfield">
                 <label for="tUlasim">Ulaşım Gideri (₺)</label>
                 <input type="number" id="tUlasim" name="ulasim" min="0" value="0">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="tKonaklama">Konaklama Gideri (₺)</label>
                 <input type="number" id="tKonaklama" name="konaklama" min="0" value="0">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="tDiger">Diğer Giderler (₺)</label>
                 <input type="number" id="tDiger" name="diger" min="0" value="0">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="tMasrafSahibi">Masraf Sorumluluğu</label>
@@ -108,6 +114,7 @@
                   <option value="taseron">Taşeron karşılar</option>
                 </select>
                 <span class="gf-hint">Sözleşmede parametrik olarak tanımlanır.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>
@@ -126,7 +133,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         <button class="btn btn-dark" type="button" data-form-aksiyon="gonder"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Kaydet ve Gönder</button>
@@ -231,18 +239,32 @@
 
   function hesapla(){ if (satirMotoru) satirMotoru.hesapla(); }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'teklif-form' + (id ? '-' + id : ''), iptalHref:'teklifler.html',
-    ozelDogrula: function(kural, deger, f){
-      if (kural === 'gecerlilik') {
-        var t = f.querySelector('#tTarih').value;
-        if (t && deger && deger <= t) return 'Geçerlilik tarihi teklif tarihinden sonra olmalıdır.';
-      }
-      return '';
+  /* Ortak form standardı (doküman §11). Hizmet satırları form alanı değil;
+     koşulları gonderOncesi ile üstteki özete düşer. */
+  var SEMA = {
+    musteriId: { etiket:'Müşteri', zorunlu:true },
+    projeId:   { etiket:'Proje' },
+    konu:      { etiket:'Teklif konusu', zorunlu:true, enAz:5, enCok:180 },
+    tarih:     { etiket:'Teklif tarihi', tur:'tarih', zorunlu:true },
+    gecerlilik:{ etiket:'Geçerlilik tarihi', tur:'tarih', zorunlu:true, sonra:'tarih' },
+    lokasyonSayisi: { etiket:'Lokasyon sayısı', tur:'sayi', zorunlu:true, enAz:1, enCok:5000 },
+    fiyatListesiId: { etiket:'Fiyat listesi', zorunlu:true },
+    notlar:    { etiket:'Notlar', enCok:800 },
+    ulasim:    { etiket:'Ulaşım gideri', tur:'sayi', enAz:0 },
+    konaklama: { etiket:'Konaklama gideri', tur:'sayi', enAz:0 },
+    diger:     { etiket:'Diğer gider', tur:'sayi', enAz:0 }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateQuote',
+    anahtar:'teklif-form' + (id ? '-' + id : ''), iptalHref:'teklifler.html',
+    sema: SEMA,
+    gonderOncesi: function(){
+      return satirMotoru.toplamlar().satirSayisi ? '' : 'En az bir hizmet satırı ekleyin.';
     },
-    gonder: function(veri, aksiyon, yardim){
+    gonder: function(veri, yardim){
       var t = satirMotoru.toplamlar();
-      if (!t.satirSayisi) { gvToast('En az bir hizmet satırı ekleyin.', { ton:'danger' }); return; }
+      var aksiyon = yardim.aksiyon;
 
       function kaydet(){
         veri.lokasyonSayisi = Number(veri.lokasyonSayisi || 1);
@@ -258,7 +280,7 @@
           : A.ekle('teklifler', Object.assign({
               id: yeniTklNo, no: yeniTklNo,
               revizyon: 0 }, veri));
-        islem.then(function(r){
+        return islem.then(function(r){
           yardim.taslakSil(); yardim.kirliSifirla();
           gvResult(true, {
             baslik: aksiyon === 'gonder' ? 'Teklif kaydedildi ve gönderildi'
@@ -275,19 +297,16 @@
       }
 
       if (t.karOran < 0.25) {
-        gvConfirm({ baslik:'Kârlılık eşiğin altında', ton:'danger',
+        return gvConfirm({ baslik:'Kârlılık eşiğin altında', ton:'danger',
           metin:'Brüt marj <b>' + GV.pct(t.karOran) + '</b>; firma politikası asgari %25 öngörüyor. '
             + 'Yine de kaydetmek istiyor musunuz?',
           onayEtiket:'Yine de kaydet', onayIkon:'fa-check',
           notAlani:true, notZorunlu:true, notYer:'Düşük marj gerekçesi (yönetim onayı için)…'
-        }).then(function(s){ if (s.onay) kaydet(); });
-        return;
+        }).then(function(s){ return s.onay ? kaydet() : null; });
       }
-      kaydet();
+      return kaydet();
     }
   });
-
-  document.getElementById('tGecerlilik').setAttribute('data-dogrula', 'gecerlilik');
   document.getElementById('tMusteri').addEventListener('change', musteriDegisti);
   document.getElementById('tFiyatListesi').addEventListener('change', hesapla);
   ['tUlasim','tKonaklama','tDiger','tMasrafSahibi'].forEach(function(x){
