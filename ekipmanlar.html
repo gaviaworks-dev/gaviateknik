@@ -69,6 +69,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -132,10 +135,6 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#ekTablo', kolonlar:kolonlar, secim:true, satirId: function(e){ return e.id; },
-    bosDurum:{ ikon:'fa-gears', baslik:'Ekipman bulunamadı', metin:'Filtrelerinize uyan ekipman kartı yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
-
   var bulk = gvBulk({ hedef:'#ekBulk', aksiyonlar:[
     { etiket:'QR etiketi yazdır', ikon:'fa-qrcode', tikla: function(s){
         gvModal({ baslik:'QR etiketleri', ikon:'fa-qrcode', genislik:'gv-modal-lg',
@@ -170,11 +169,12 @@
         GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'ekipmanlar', modul:'Ekipman' }); } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'ekipmanlar', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#ekPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
+  /* Kolon tercihi listeden ÖNCE okunur; ilk çizim kayıtlı tercihle yapılsın. */
+  gvCols({ tetik:'#gvColsBtn', anahtar:'ekipmanlar', kolonlar:kolonlar,
+    degisti: function(){ liste.yenile(); } });
+
+  /* Satır içi QR etiketi düğmeleri her çizimden sonra yeniden bağlanır. */
+  function etiketleriBagla(){
     document.querySelectorAll('[data-etiket]').forEach(function(b){
       b.addEventListener('click', function(){
         var e = A.kayit('ekipmanlar', b.getAttribute('data-etiket'));
@@ -191,7 +191,8 @@
     });
   }
 
-  gvFilter({
+  var liste = gvList({
+    kaynak: 'ekipmanListesi',
     veri: function(){ return kaynak; },
     arama: ['kod','qr','ad','marka','model','seri','lokasyonAdi'],
     cipler: { alan:'durum', secenekler:[
@@ -206,11 +207,20 @@
       { k:'uretimYili', ad:'Üretim yılı', tur:'aralik' },
       { k:'gecikti', ad:'Yalnız kontrol tarihi geçenler', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef:'#ekTablo', ad:'Ekipman envanteri', kolonlar:kolonlar, secim:true,
+      satirId: function(e){ return e.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef:'#ekPager', boyut:20, boyutSecici:true },
+    bosDurum: { ikon:'fa-gears', baslik:'Kayıtlı ekipman yok',
+      metin:'Periyodik kontrole giren ekipmanlar burada listelenir. İlk ekipman kartını oluşturarak başlayın.',
+      aksiyonlar:'<a class="btn btn-acc" href="ekipman-form.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Ekipman</a>' },
+    filtreBosDurum: { ikon:'fa-gears', baslik:'Ekipman bulunamadı',
+      metin:'Filtrelerinize uyan ekipman kartı yok.' },
+    degisti: function(){ etiketleriBagla(); }
   });
 
   document.getElementById('ekDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'ekipmanlar', modul:'Ekipman' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'ekipmanlar', modul:'Ekipman' });
   });
 
   document.getElementById('ekQr').addEventListener('click', function(){

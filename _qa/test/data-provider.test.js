@@ -263,3 +263,17 @@ test('nextCursor yalnız sonraki sayfa varken üretilir ve deterministiktir', as
   assert.ok(a.pagination.nextCursor);
   assert.strictEqual(a.pagination.nextCursor, b.pagination.nextCursor);
 });
+
+test('hiç sıralama kuralı yoksa kaynak sırası korunur (id\'ye göre yeniden dizmez)', async () => {
+  const { DP } = kur();
+  const veri = [{ id: 'Z-9' }, { id: 'A-1' }, { id: 'M-5' }];
+  DP.tanimla('t', { kaynak: () => veri });
+  assert.deepStrictEqual((await DP.list('t', {})).data.map(x => x.id), ['Z-9', 'A-1', 'M-5']);
+});
+
+test('sıralama kuralı varken id tie-breaker eklenir', async () => {
+  const { DP } = kur();
+  const veri = [{ id: 'Z-9', g: 1 }, { id: 'A-1', g: 1 }, { id: 'M-5', g: 1 }];
+  DP.tanimla('t', { kaynak: () => veri });
+  assert.deepStrictEqual((await DP.list('t', { sort: 'g:asc' })).data.map(x => x.id), ['A-1', 'M-5', 'Z-9']);
+});

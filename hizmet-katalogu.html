@@ -82,6 +82,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -111,24 +114,31 @@
     { ikon:'fa-percent', sayi: GV.pct(kaynak.reduce(function(t,h){ return t + h.marj; }, 0) / (kaynak.length || 1)), etiket:'Ortalama brüt marj', ton:'ok' }
   ]);
 
-  var aktifKat = null;
+  /* Kategori kartları 'kat' filtresinin kısayoludur; ayrı bir durum tutmaz,
+     böylece kart seçimi de aktif filtre çipi olarak görünür ve temizlenebilir. */
+  function aktifKat(){
+    var v = liste && liste.filtre.durum.gelismis.kat;
+    return (Array.isArray(v) && v.length === 1) ? v[0] : null;
+  }
   function katCiz(){
+    var secili = aktifKat();
     document.getElementById('hkKategori').innerHTML = A.liste('hizmetKategorileri').map(function(k){
       var n = kaynak.filter(function(h){ return h.kat === k.id; }).length;
-      return '<button type="button" class="hk-kart' + (aktifKat === k.id ? ' is-on' : '') + '" data-kat="' + k.id + '"'
-        + ' aria-pressed="' + (aktifKat === k.id ? 'true' : 'false') + '">'
+      return '<button type="button" class="hk-kart' + (secili === k.id ? ' is-on' : '') + '" data-kat="' + k.id + '"'
+        + ' aria-pressed="' + (secili === k.id ? 'true' : 'false') + '">'
         + '<span class="hk-ico" style="background:' + k.renk + '1f;color:' + k.renk + '">'
         + '<i class="fa-solid ' + k.ikon + '" aria-hidden="true"></i></span>'
         + '<span class="hk-txt"><b>' + GV.esc(k.ad) + '</b><span>' + GV.n(n) + ' hizmet pozisyonu</span></span></button>';
     }).join('');
     document.querySelectorAll('[data-kat]').forEach(function(b){
       b.addEventListener('click', function(){
-        aktifKat = aktifKat === b.getAttribute('data-kat') ? null : b.getAttribute('data-kat');
-        katCiz(); filtre.uygula();
+        var id = b.getAttribute('data-kat');
+        if (aktifKat() === id) delete liste.filtre.durum.gelismis.kat;
+        else liste.filtre.durum.gelismis.kat = [id];
+        liste.filtre.uygula();
       });
     });
   }
-  katCiz();
 
   var kolonlar = [
     { k:'poz', ad:'Poz Kodu', kilitli:true, ciz: function(h){
@@ -164,10 +174,6 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#hkTablo', kolonlar:kolonlar, secim:true, satirId: function(h){ return h.id; },
-    bosDurum:{ ikon:'fa-list-check', baslik:'Hizmet bulunamadı', metin:'Filtrelerinize uyan hizmet pozisyonu yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
-
   var bulk = gvBulk({ hedef:'#hkBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'hizmet-katalogu', modul:'Hizmet' }); } },
     { etiket:'Pasife al', ikon:'fa-circle-minus', sinif:'btn-ghost', tikla: function(s){
@@ -184,13 +190,13 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'hizmet-katalogu', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#hkPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
+  /* Kolon tercihi listeden ÖNCE okunur; ilk çizim kayıtlı tercihle yapılsın. */
+  gvCols({ tetik:'#gvColsBtn', anahtar:'hizmet-katalogu', kolonlar:kolonlar,
+    degisti: function(){ liste.yenile(); } });
 
-  var filtre = gvFilter({
-    veri: function(){ return aktifKat ? kaynak.filter(function(h){ return h.kat === aktifKat; }) : kaynak; },
+  var liste = gvList({
+    kaynak: 'hizmetKatalogu',
+    veri: function(){ return kaynak; },
     arama: ['id','poz','ad','katAd','yetkinlikAd'],
     cipler: { alan:'durum', secenekler:[
       { k:'aktif', ad:'Aktif', ikon:'fa-circle-check' }, { k:'pasif', ad:'Pasif', ikon:'fa-circle-minus' }] },
@@ -201,11 +207,20 @@
       { k:'yetkinlik', ad:'Gerekli yetkinlik', tur:'secim', secenekler: A.liste('yetkinlikler').map(function(y){ return { deger:y.id, ad:y.ad }; }) },
       { k:'satisFiyat', ad:'Satış fiyatı (₺)', tur:'aralik' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef:'#hkTablo', ad:'Hizmet kataloğu', kolonlar:kolonlar, secim:true,
+      satirId: function(h){ return h.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef:'#hkPager', boyut:20, boyutSecici:true },
+    bosDurum: { ikon:'fa-list-check', baslik:'Hizmet kataloğu boş',
+      metin:'Periyodik kontrol hizmetleri burada tanımlanır. İlk hizmet pozisyonunu ekleyerek başlayın.',
+      aksiyonlar:'<button class="btn btn-acc" type="button" onclick="document.getElementById(\'hkYeni\').click()"><i class="fa-solid fa-plus" aria-hidden="true"></i>Yeni Hizmet</button>' },
+    filtreBosDurum: { ikon:'fa-list-check', baslik:'Hizmet bulunamadı',
+      metin:'Filtrelerinize uyan hizmet pozisyonu yok.' },
+    degisti: function(){ katCiz(); }
   });
 
   document.getElementById('hkDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'hizmet-katalogu', modul:'Hizmet' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'hizmet-katalogu', modul:'Hizmet' });
   });
 
   document.getElementById('hkYeni').addEventListener('click', function(){

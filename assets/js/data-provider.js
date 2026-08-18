@@ -178,6 +178,10 @@
    */
   function kararliSirala(dizi, kurallar) {
     var hepsi = (kurallar || []).slice();
+    /* Hiç sıralama kuralı yoksa kaynak sırası korunur — koleksiyonun kendi
+       sırası zaten deterministiktir ve sayfalama kararlıdır. Burada id'ye
+       göre sıralamak, migrate edilen sayfaların görünen sırasını değiştirirdi. */
+    if (!hepsi.length) return dizi.slice();
     /* id tie-breaker — aynı değerli kayıtlar sayfalar arasında tekrarlanmaz */
     if (!hepsi.some(function (k) { return k.field === 'id'; })) hepsi.push({ field: 'id', direction: 'asc' });
     /* index yedeği: localeCompare eşitliğinde bile giriş sırası korunur */
