@@ -170,6 +170,61 @@
     urlUygula(u, secenek);
   };
 
+  /* ================= KIRILIM TOKENLARI =================
+     Eşiğin TEK TANIMI `gavia-ui.css` `:root` içindeki `--bp-*` bloğudur.
+     Buradaki sayılar CSS yüklenmemişse (yazdırma önizlemesi, jsdom) devreye
+     giren yedektir; `_qa/test/kirilim.test.js` ikisinin ayrışmasına izin
+     vermez. Sayfa kodu piksel yazmaz — `GV.altinda('sm')` kullanır. */
+  var BP_YEDEK = { xl: 1280, lg: 1100, md: 980, sm: 640, xs: 480 };
+  var bpOnbellek = null;
+
+  function bpOku() {
+    if (bpOnbellek) return bpOnbellek;
+    var c = {};
+    var stil = null;
+    try {
+      stil = window.getComputedStyle ? window.getComputedStyle(document.documentElement) : null;
+    } catch (e) { stil = null; }
+    Object.keys(BP_YEDEK).forEach(function (k) {
+      var v = stil ? parseFloat(stil.getPropertyValue('--bp-' + k)) : NaN;
+      c[k] = isNaN(v) || v <= 0 ? BP_YEDEK[k] : v;
+    });
+    bpOnbellek = c;
+    return c;
+  }
+
+  /** Kırılım eşikleri (px) — CSS tokenlarından okunur. */
+  GV.kirilim = function () { return bpOku(); };
+
+  /** Kırılım eşiği (px). @param {'xl'|'lg'|'md'|'sm'|'xs'} ad */
+  GV.bp = function (ad) { return bpOku()[ad]; };
+
+  /** Viewport bu kırılımın ALTINDA mı (CSS `max-width` ile aynı sınır). */
+  GV.altinda = function (ad) {
+    var e = bpOku()[ad];
+    if (e == null) return false;
+    if (window.matchMedia) return window.matchMedia('(max-width: ' + e + 'px)').matches;
+    return (window.innerWidth || 0) <= e;
+  };
+
+  /**
+   * Kırılım değişimini izler. `cb(altinda)` hemen bir kez, sonra her
+   * geçişte çağrılır. Dinleyiciyi kaldıran fonksiyon döner.
+   */
+  GV.kirilimIzle = function (ad, cb) {
+    var e = bpOku()[ad];
+    if (!window.matchMedia) { cb(GV.altinda(ad)); return function () {}; }
+    var mq = window.matchMedia('(max-width: ' + e + 'px)');
+    function el() { cb(mq.matches); }
+    el();
+    if (mq.addEventListener) mq.addEventListener('change', el);
+    else if (mq.addListener) mq.addListener(el);
+    return function () {
+      if (mq.removeEventListener) mq.removeEventListener('change', el);
+      else if (mq.removeListener) mq.removeListener(el);
+    };
+  };
+
   /* ================= TOAST ================= */
   var toastKap = null;
   function toastKapsayici() {

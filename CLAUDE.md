@@ -60,6 +60,13 @@ Tam değişken bloğu `assets/css/gavia-ui.css` `:root` içinde — **dokümanda
 | Çizgi | `--line` #E4E7EE · `--line-2` |
 | Durum | `--success` `--warning` `--danger` `--info` (+ `-tint`) |
 | Ölçü | `--rail-width` 76px · `--menu-width` 264px · `--topbar-height` 64px |
+| Kırılım | `--bp-xl` 1280 · `--bp-lg` 1100 · `--bp-md` 980 · `--bp-sm` 640 · `--bp-xs` 480 |
+
+**Kırılım eşikleri tek yerde tanımlıdır** — `gavia-ui.css` `:root` içindeki
+`--bp-*` bloğu. CSS `@media` koşulu `var()` kabul etmediği için literal yazılır,
+ama her `@media` satırı hangi tokena bağlı olduğunu yorumla belirtir ve
+`_qa/test/kirilim.test.js` kaçak eşiğe izin vermez. JS tarafı piksel yazmaz:
+`GV.altinda('sm')` · `GV.bp('md')` · `GV.kirilimIzle('xs', cb)`.
 
 **Renk anlamı:** yeşil = tamamlandı/uygun/onaylı · sarı = bekleyen/yaklaşan · kırmızı = hata/gecikme/kritik · mavi = bilgi/normal.
 **Renk tek başına durum göstergesi olamaz** — her rozet ikon + metin taşır.

@@ -1,18 +1,24 @@
 /* =====================================================================
    GAVIA — RESPONSIVE KURALLAR
-   Kırılım eşikleri dokümandan birebir: 1100 / 980 / 640 / 480.
+   ---------------------------------------------------------------------
+   Eşikler `gavia-ui.css` içindeki KIRILIM TOKENLARI bloğunda tanımlıdır
+   (`--bp-xl/lg/md/sm/xs` = 1280/1100/980/640/480). `@media` koşulu
+   `var()` kabul etmediği için literal yazılır; her literalin yanında
+   hangi token olduğu belirtilir ve `_qa/test/kirilim.test.js` ikisinin
+   ayrışmasına izin vermez.
+
    Bu dosya en son yüklenir; kırılımlar önceki dosyaların kurallarını ezer.
    ===================================================================== */
 
 /* ============ ≤1280px — yoğunluk ============ */
-@media (max-width: 1280px) {
+@media (max-width: 1280px) { /* --bp-xl */
   .kpi-num { font-size: 22px }
   .gv-cols { grid-template-columns: minmax(0, 1fr) 300px }
   .form-grid { grid-template-columns: minmax(0, 1fr) 290px }
 }
 
 /* ============ ≤1100px — iki kolon → tek kolon ============ */
-@media (max-width: 1100px) {
+@media (max-width: 1100px) { /* --bp-lg */
   .gv-cols, .form-grid, .dash-cols { grid-template-columns: minmax(0, 1fr) }
   .gv-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .gv-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
@@ -22,7 +28,7 @@
 }
 
 /* ============ ≤980px — sol navigasyon off-canvas ============ */
-@media (max-width: 980px) {
+@media (max-width: 980px) { /* --bp-md */
   .gv-rail { transform: translateX(-100%); transition: transform .28s var(--ease) }
   .gv-menu { transform: translateX(calc(-100% - var(--rail-width))); transition: transform .28s var(--ease) }
   body.nav-open .gv-rail, body.nav-open .gv-menu { transform: translateX(0) }
@@ -48,7 +54,7 @@
 }
 
 /* ============ ≤640px — mobil kart tabloları ============ */
-@media (max-width: 640px) {
+@media (max-width: 640px) { /* --bp-sm */
   .gv-top { gap: 8px }
   .gv-search { max-width: none; min-width: 104px }
   .gv-top-tools { gap: 6px }
@@ -152,7 +158,7 @@
 }
 
 /* ============ ≤480px — dar telefon ============ */
-@media (max-width: 480px) {
+@media (max-width: 480px) { /* --bp-xs */
   .gv-main { padding-left: 12px; padding-right: 12px }
   .kpi-card { flex-direction: column; align-items: flex-start; gap: 8px; padding: 15px }
   .kpi-num { font-size: 19px }
@@ -188,5 +194,5 @@
 }
 
 /* ============ YARDIMCI GÖRÜNÜRLÜK ============ */
-@media (max-width: 640px) { .gv-desktop-only { display: none !important } }
-@media (min-width: 641px) { .gv-mobile-only { display: none !important } }
+@media (max-width: 640px) { /* --bp-sm */ .gv-desktop-only { display: none !important } }
+@media (min-width: 641px) { /* --bp-sm üstü (640 + 1) */ .gv-mobile-only { display: none !important } }

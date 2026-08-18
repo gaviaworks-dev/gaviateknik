@@ -66,6 +66,34 @@
   --hair: rgba(233, 238, 241, .09);
 }
 
+/* =====================================================================
+   KIRILIM TOKENLARI — eşiklerin TEK TANIMI
+   ---------------------------------------------------------------------
+   CSS `@media` koşulu `var()` kabul etmez; bu yüzden eşik "token" olarak
+   burada tanımlanır ve CSS dosyalarındaki `@media` literalleri buna karşı
+   `_qa/test/kirilim.test.js` ile KİLİTLENİR: bir dosyada tokenda olmayan
+   bir genişlik eşiği kullanılırsa test kırılır.
+
+   JS tarafı eşiği yine buradan okur (`GV.kirilim`, app.js) — bir eşik iki
+   yerde iki farklı sayı olamaz.
+
+   Değerler doküman §9 "Breakpoint sözleşmesi" ile birebirdir; bu fazda
+   DEĞİŞMEZ, yalnız merkezileşir.
+
+     --bp-xl 1280  ≤ : dar KPI ve sağ kolon, tablo kapsayıcısı kayabilir
+     --bp-lg 1100  ≤ : dashboard tek ana kolon, gridler iki kolon
+     --bp-md  980  ≤ : off-canvas menü, burger, iki kolon kart
+     --bp-sm  640  ≤ : tek kolon grid, compact pager, tablo-kart, filtre drawer
+     --bp-xs  480  ≤ : kompakt üst bar, tam genişlik form, tek kolon KPI, tam ekran modal
+   ===================================================================== */
+:root {
+  --bp-xl: 1280px;
+  --bp-lg: 1100px;
+  --bp-md: 980px;
+  --bp-sm: 640px;
+  --bp-xs: 480px;
+}
+
 /* ============ RESET / TEMEL ============ */
 * { margin: 0; padding: 0; box-sizing: border-box }
 
@@ -261,7 +289,7 @@ body:has([class*="modal-ov"].open, [class*="fpanel-ov"].open) { overflow: hidden
 .gv-divider:hover .gv-grip, .gv-divider.is-drag .gv-grip {
   color: var(--gv-mint); border-color: rgba(var(--mint-rgb), .6);
 }
-@media (min-width: 981px) {
+@media (min-width: 981px) { /* --bp-md üstü (980 + 1) */
   body.gv-collapsed .gv-menu { width: 0; opacity: 0; pointer-events: none; border-right-color: transparent }
   body.gv-collapsed .gv-top { left: var(--rail-width) }
   body.gv-collapsed .gv-main { margin-left: var(--rail-width) }
