@@ -66,6 +66,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -143,15 +146,33 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#szTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
-    bosDurum:{ ikon:'fa-file-signature', baslik:'Sözleşme bulunamadı', metin:'Filtrelerinize uyan sözleşme yok.' } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesmeler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#szPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-yenile]').forEach(function(b){
+  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesmeler', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'sozlesmeler',
+    veri: function(){ return kaynak; },
+    arama: ['no','ad','musteriAd','kapsam','notlar'],
+    cipler: { alan:'durum', secenekler:[
+      { k:'yururlukte', ad:'Yürürlükte', ikon:'fa-file-signature' },
+      { k:'sona-erdi', ad:'Sona erdi', ikon:'fa-clock-rotate-left' }] },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'taseronOdemeKurali', ad:'Taşeron ödeme kuralı', tur:'secim', secenekler:[
+        { deger:'musteri-tahsilati-sonrasi', ad:'Müşteri tahsilatı sonrası' },
+        { deger:'fatura-vadesinde', ad:'Fatura vadesinde' }] },
+      { k:'partiBuyuklugu', ad:'Fatura partisi (lokasyon)', tur:'aralik' },
+      { k:'bedel', ad:'Sözleşme bedeli (₺)', tur:'aralik' },
+      { k:'yenilemeYaklasti', ad:'Yalnız bitişi yaklaşanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#szTablo',
+      kolonlar: kolonlar,
+      satirId: function(s){ return s.id; } },
+    pager: { hedef: '#szPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-signature', baslik:'Sözleşme bulunamadı', metin:'Filtrelerinize uyan sözleşme yok.' },
+    bosDurum: { ikon:'fa-file-signature', baslik:'Sözleşmeler listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-yenile]').forEach(function(b){
       b.addEventListener('click', function(){
         var s = A.kayit('sozlesmeler', b.getAttribute('data-yenile'));
         gvModal({
@@ -187,28 +208,16 @@
         });
       });
     });
-  }
-
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','ad','musteriAd','kapsam','notlar'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'yururlukte', ad:'Yürürlükte', ikon:'fa-file-signature' },
-      { k:'sona-erdi', ad:'Sona erdi', ikon:'fa-clock-rotate-left' }] },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'taseronOdemeKurali', ad:'Taşeron ödeme kuralı', tur:'secim', secenekler:[
-        { deger:'musteri-tahsilati-sonrasi', ad:'Müşteri tahsilatı sonrası' },
-        { deger:'fatura-vadesinde', ad:'Fatura vadesinde' }] },
-      { k:'partiBuyuklugu', ad:'Fatura partisi (lokasyon)', tur:'aralik' },
-      { k:'bedel', ad:'Sözleşme bedeli (₺)', tur:'aralik' },
-      { k:'yenilemeYaklasti', ad:'Yalnız bitişi yaklaşanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    }
   });
+  
+
+
+
+  
 
   document.getElementById('szDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'sozlesmeler', modul:'Sözleşme' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'sozlesmeler', modul:'Sözleşme' });
   });
   document.getElementById('szYeni').addEventListener('click', function(){
     gvModal({

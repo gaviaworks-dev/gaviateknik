@@ -14,3 +14,4 @@
 | 2026-08-18 | 3 | assets/js/components.js (gvPager) · assets/css/components.css | 0 bulgu / YAPISAL SORUN YOK · 67 test geçti | c983520 | — |
 | 2026-08-18 | 4 | hizmet-katalogu.html · ekipmanlar.html · assets/js/data-provider.js | 0 bulgu / YAPISAL SORUN YOK · 69 test geçti | 08a8e2e | — |
 | 2026-08-18 | 5a | is-emirleri · denetimler · duzeltici-faaliyetler · eksik-ekipmanlar · faturalar · hakedisler · iletisim-kisileri · islem-kayitlari · assets/js/data-provider.js (ozet) | 0 bulgu / YAPISAL SORUN YOK · 71 test geçti · 8/8 sayfa toplam kayıt aynı | 5ebceb9 | pageSize 15/12 olan sayfalar 20'ye taşındı — satır yoğunluğu bilinçli değişti |
+| 2026-08-18 | 5b | kalibrasyonlar · kalite-dokumanlari · lokasyonlar · musteri-sikayetleri · musteriler · olcum-cihazlari · on-envanter · personeller | 0 bulgu / YAPISAL SORUN YOK · 71 test geçti · 8/8 sayfa toplam kayıt aynı | 2a02952 | — |

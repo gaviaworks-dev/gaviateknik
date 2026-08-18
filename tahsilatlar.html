@@ -98,6 +98,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -136,8 +139,24 @@
       delta:{ yon:'down', metin: acikFaturalar.filter(function(f){ return f.gecikmeGun > 0; }).length + ' fatura gecikmede' } }
   ]);
 
-  var tablo = gvTable({ hedef:'#thTablo', satirId: function(f){ return f.id; },
-    kolonlar: [
+  
+
+  var liste = gvList({
+    kaynak: 'tahsilatlar',
+    veri: function(){ return faturalar; },
+    arama: ['no','musteriAd','aciklama'],
+    cipler: { alan:'tahsilatDurum', secenekler: A.durumListesi('tahsilat').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
+    alanlar: [
+      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
+      { k:'vade', ad:'Vade tarihi', tur:'tarih' },
+      { k:'kalan', ad:'Kalan bakiye (₺)', tur:'aralik' },
+      { k:'gecikmeGun', ad:'Yalnız gecikmiş olanlar', tur:'toggle',
+        suz: function(f,v){ return v !== 'evet' || f.gecikmeGun > 0; }, secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
+    ],
+    tablo: { hedef: '#thTablo',
+      satirId: function(f){ return f.id; },
+      kolonlar: [
       { k:'no', ad:'Fatura', ciz: function(f){
           return '<div class="gcell-info"><div class="gcell-name"><a href="faturalar.html?id=' + f.id + '">' + GV.esc(f.no) + '</a></div>'
             + '<div class="gcell-sub">' + GV.d(f.tarih) + '</div></div>'; } },
@@ -170,20 +189,18 @@
               : '<span class="gtag ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Kapandı</span>')
             + '</div>'; } }
     ],
-    bosDurum:{ ikon:'fa-money-bill-transfer', baslik:'Fatura bulunamadı', metin:'Filtrelerinize uyan fatura yok.' },
-    altToplam: function(v){
+      altToplam: function(v){
       return '<tr><td data-lbl="" colspan="3">Toplam</td>'
         + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.toplam; }, 0)) + '</td>'
         + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)) + '</td>'
         + '<td class="num">' + GV.tl(v.reduce(function(t,f){ return t + f.kalan; }, 0)) + '</td>'
         + '<td colspan="5"></td></tr>';
-    } });
-
-  var pager = gvPager({ hedef:'#thPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = faturalar;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('[data-tahsilat]').forEach(function(b){
+    } },
+    pager: { hedef: '#thPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-money-bill-transfer', baslik:'Fatura bulunamadı', metin:'Filtrelerinize uyan fatura yok.' },
+    bosDurum: { ikon:'fa-money-bill-transfer', baslik:'Tahsilatlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('[data-tahsilat]').forEach(function(b){
       b.addEventListener('click', function(){ tahsilatKaydet(b.getAttribute('data-tahsilat')); });
     });
     document.querySelectorAll('[data-hatirlat]').forEach(function(b){
@@ -202,7 +219,11 @@
         });
       });
     });
-  }
+    }
+  });
+  
+
+
 
   function tahsilatKaydet(fid){
     var f = A.kayit('faturalar', fid);
@@ -285,23 +306,10 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return faturalar; },
-    arama: ['no','musteriAd','aciklama'],
-    cipler: { alan:'tahsilatDurum', secenekler: A.durumListesi('tahsilat').map(function(d){
-      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
-    alanlar: [
-      { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
-      { k:'vade', ad:'Vade tarihi', tur:'tarih' },
-      { k:'kalan', ad:'Kalan bakiye (₺)', tur:'aralik' },
-      { k:'gecikmeGun', ad:'Yalnız gecikmiş olanlar', tur:'toggle',
-        suz: function(f,v){ return v !== 'evet' || f.gecikmeGun > 0; }, secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   document.getElementById('thDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'tahsilatlar', modul:'Tahsilat' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'tahsilatlar', modul:'Tahsilat' });
   });
   document.getElementById('thYeni').addEventListener('click', function(){
     var acik = faturalar.filter(function(f){ return f.kalan > 0; });

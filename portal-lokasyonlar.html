@@ -74,6 +74,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -168,18 +171,40 @@
           + GV.esc(l.ad) + ' detayını aç"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#plTablo', kolonlar:kolonlar,
-    bosDurum:{ ikon:'fa-location-dot', baslik:'Lokasyon bulunamadı',
-      metin:'Aramanıza veya seçtiğiniz filtrelere uyan lokasyon yok.' } });
+  
 
-  var pager = gvPager({ hedef:'#plPager', boyut:12, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('#plTablo [data-detay]').forEach(function(b){
+  var liste = gvList({
+    kaynak: 'portal_lokasyonlar',
+    veri: function(){ return kaynak; },
+    arama: ['ad','musteriKod','il','ilce','markaAd'],
+    cipler: { alan:'portalGrup', secenekler:[
+      { k:'planlandi',  ad:'Kontrol planlandı',  ikon:'fa-calendar-days' },
+      { k:'tamamlandi', ad:'Kontrol tamamlandı', ikon:'fa-circle-check' },
+      { k:'bilgi',      ad:'Bilgi bekleniyor',   ikon:'fa-circle-question' }
+    ] },
+    alanlar: [
+      { k:'markaId', ad:'Marka', tur:'coklu',
+        secenekler: A.liste('markalar').filter(function(m){ return m.musteriId === musteriId; })
+          .map(function(m){ return { deger:m.id, ad:m.ad }; }) },
+      { k:'il', ad:'İl', tur:'coklu',
+        secenekler: Array.from(new Set(kaynak.map(function(l){ return l.il; }))).sort(function(a,b){
+          return String(a).localeCompare(String(b), 'tr'); }).map(function(i){ return { deger:i, ad:i }; }) }
+    ],
+    tablo: { hedef: '#plTablo',
+      kolonlar: kolonlar },
+    pager: { hedef: '#plPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-location-dot', baslik:'Lokasyon bulunamadı',
+      metin:'Aramanıza veya seçtiğiniz filtrelere uyan lokasyon yok.' },
+    bosDurum: { ikon:'fa-location-dot', baslik:'Lokasyonlarım listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('#plTablo [data-detay]').forEach(function(b){
       b.addEventListener('click', function(){ detayAc(b.getAttribute('data-detay')); });
     });
-  }
+    }
+  });
+  
+
+
 
   /* ---- detay modalı (fiyat bilgisi içermez) ---- */
   function detayAc(lokId){
@@ -294,24 +319,7 @@
   if (not2) not2.addEventListener('click', function(){ bilgiModal(bekleyen[0].id); });
 
   /* ---- filtre: sade arama + 3 durum çipi + marka/il çoklu ---- */
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['ad','musteriKod','il','ilce','markaAd'],
-    cipler: { alan:'portalGrup', secenekler:[
-      { k:'planlandi',  ad:'Kontrol planlandı',  ikon:'fa-calendar-days' },
-      { k:'tamamlandi', ad:'Kontrol tamamlandı', ikon:'fa-circle-check' },
-      { k:'bilgi',      ad:'Bilgi bekleniyor',   ikon:'fa-circle-question' }
-    ] },
-    alanlar: [
-      { k:'markaId', ad:'Marka', tur:'coklu',
-        secenekler: A.liste('markalar').filter(function(m){ return m.musteriId === musteriId; })
-          .map(function(m){ return { deger:m.id, ad:m.ad }; }) },
-      { k:'il', ad:'İl', tur:'coklu',
-        secenekler: Array.from(new Set(kaynak.map(function(l){ return l.il; }))).sort(function(a,b){
-          return String(a).localeCompare(String(b), 'tr'); }).map(function(i){ return { deger:i, ad:i }; }) }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 })();
 </script>
 </body>

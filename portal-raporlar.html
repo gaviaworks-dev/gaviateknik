@@ -119,6 +119,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -254,26 +257,10 @@
           + '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#prTablo', kolonlar:kolonlar,
-    bosDurum:{ ikon:'fa-file-lines', baslik:'Teslim edilmiş rapor yok',
-      metin:'Aramanıza uyan, size teslim edilmiş bir rapor bulunamadı.' } });
+  
 
-  var pager = gvPager({ hedef:'#prPager', boyut:12, degisti: function(){ ciz(son); } });
-  var son = raporlar;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('#prTablo [data-rapor]').forEach(function(b){
-      b.addEventListener('click', function(){ raporAc(b.getAttribute('data-rapor')); });
-    });
-    document.querySelectorAll('#prTablo [data-pdf]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var r = A.kayit('raporlar', b.getAttribute('data-pdf'));
-        gvToast((r ? r.no : 'Rapor') + '.pdf indirme bağlantısı e-posta adresinize gönderildi (demo).', { ton:'ok' });
-      });
-    });
-  }
-
-  gvFilter({
+  var liste = gvList({
+    kaynak: 'portal_raporlar',
     veri: function(){ return raporlar; },
     arama: ['no','lokasyonAd','musteriKod','kategoriAd'],
     cipler: { alan:'sonuc', secenekler:[
@@ -289,8 +276,29 @@
           .map(function(k){ var c = A.kayit('hizmetKategorileri', k); return { deger:k, ad: c ? c.ad : k }; }) },
       { k:'kontrolTarihi', ad:'Kontrol tarihi', tur:'tarih' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#prTablo',
+      kolonlar: kolonlar },
+    pager: { hedef: '#prPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-lines', baslik:'Teslim edilmiş rapor yok',
+      metin:'Aramanıza uyan, size teslim edilmiş bir rapor bulunamadı.' },
+    bosDurum: { ikon:'fa-file-lines', baslik:'Teknik Raporlar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('#prTablo [data-rapor]').forEach(function(b){
+      b.addEventListener('click', function(){ raporAc(b.getAttribute('data-rapor')); });
+    });
+    document.querySelectorAll('#prTablo [data-pdf]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var r = A.kayit('raporlar', b.getAttribute('data-pdf'));
+        gvToast((r ? r.no : 'Rapor') + '.pdf indirme bağlantısı e-posta adresinize gönderildi (demo).', { ton:'ok' });
+      });
+    });
+    }
   });
+  
+
+
+
+  
 
   /* ================= SEKME 2 — UYGUNSUZLUKLAR ================= */
   var bulgular = A.liste('uygunsuzluklar').filter(function(u){ return kapsamda(u.lokasyonId); })

@@ -96,6 +96,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi, BUGUN = A.bugun();
@@ -198,22 +201,37 @@
           + '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i></button></div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#pfTablo', kolonlar:kolonlar,
-    bosDurum:{ ikon:'fa-file-invoice-dollar', baslik:'Fatura bulunamadı',
-      metin:'Aramanıza veya seçtiğiniz filtreye uyan fatura yok.' },
-    altToplam: function(v){
+  
+
+  var liste = gvList({
+    kaynak: 'portal_faturalar',
+    veri: function(){ return kaynak; },
+    arama: ['no','aciklama'],
+    cipler: { alan:'odemeDurum', secenekler:[
+      { k:'odendi', ad:'Ödendi', ikon:'fa-circle-check' },
+      { k:'kismen', ad:'Kısmen ödendi', ikon:'fa-circle-half-stroke' },
+      { k:'bekleniyor', ad:'Ödeme bekleniyor', ikon:'fa-hourglass-half' },
+      { k:'vadesi-gecti', ad:'Vadesi geçti', ikon:'fa-triangle-exclamation' }
+    ] },
+    alanlar: [
+      { k:'tarih', ad:'Fatura tarihi', tur:'tarih' },
+      { k:'toplam', ad:'Tutar (₺)', tur:'aralik' }
+    ],
+    tablo: { hedef: '#pfTablo',
+      kolonlar: kolonlar,
+      altToplam: function(v){
       return '<tr><td data-lbl="" colspan="4">Görünen faturalar toplamı</td>'
         + '<td class="num" data-lbl="Tutar">' + GV.tl(v.reduce(function(t,f){ return t + f.toplam; }, 0)) + '</td>'
         + '<td class="num" data-lbl="Ödenen">' + GV.tl(v.reduce(function(t,f){ return t + f.tahsilEdilen; }, 0)) + '</td>'
         + '<td class="num" data-lbl="Kalan">' + GV.tl(v.reduce(function(t,f){ return t + f.kalan; }, 0)) + '</td>'
         + '<td data-lbl="" colspan="2"></td></tr>';
-    } });
-
-  var pager = gvPager({ hedef:'#pfPager', boyut:12, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){
-    son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v));
-    document.querySelectorAll('#pfTablo [data-fatura]').forEach(function(b){
+    } },
+    pager: { hedef: '#pfPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-invoice-dollar', baslik:'Fatura bulunamadı',
+      metin:'Aramanıza veya seçtiğiniz filtreye uyan fatura yok.' },
+    bosDurum: { ikon:'fa-file-invoice-dollar', baslik:'Faturalar listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' },
+    degisti: function(){
+      document.querySelectorAll('#pfTablo [data-fatura]').forEach(function(b){
       b.addEventListener('click', function(){ faturaAc(b.getAttribute('data-fatura')); });
     });
     document.querySelectorAll('#pfTablo [data-pdf]').forEach(function(b){
@@ -222,7 +240,11 @@
         gvToast((f ? f.no : 'Fatura') + '.pdf e-posta adresinize gönderildi (demo).', { ton:'ok' });
       });
     });
-  }
+    }
+  });
+  
+
+
 
   /* ---- fatura detay modalı (yalnız müşteri satış fiyatı) ---- */
   function faturaAc(fid){
@@ -338,21 +360,7 @@
     });
   }
 
-  gvFilter({
-    veri: function(){ return kaynak; },
-    arama: ['no','aciklama'],
-    cipler: { alan:'odemeDurum', secenekler:[
-      { k:'odendi', ad:'Ödendi', ikon:'fa-circle-check' },
-      { k:'kismen', ad:'Kısmen ödendi', ikon:'fa-circle-half-stroke' },
-      { k:'bekleniyor', ad:'Ödeme bekleniyor', ikon:'fa-hourglass-half' },
-      { k:'vadesi-gecti', ad:'Vadesi geçti', ikon:'fa-triangle-exclamation' }
-    ] },
-    alanlar: [
-      { k:'tarih', ad:'Fatura tarihi', tur:'tarih' },
-      { k:'toplam', ad:'Tutar (₺)', tur:'aralik' }
-    ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
-  });
+  
 
   /* ================= SEKME 2 — SÖZLEŞME VE TEKLİFLER ================= */
   /* Sözleşme bedeli ve teklif tutarı (müşteri satış tarafı) görünür;

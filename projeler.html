@@ -96,6 +96,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -164,9 +167,7 @@
           + '</div>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#prTablo', kolonlar:kolonlar, secim:true, satirId: function(p){ return p.id; },
-    bosDurum:{ ikon:'fa-diagram-project', baslik:'Proje bulunamadı', metin:'Filtrelerinize uyan kontrol projesi yok.' },
-    secimDegisti: function(s){ bulk.ciz(s); } });
+  
 
   var bulk = gvBulk({ hedef:'#prBulk', aksiyonlar:[
     { etiket:'Dışa aktar', ikon:'fa-file-export', tikla: function(s){ GV.disaAktar({ kayitSayisi:s.length, dosyaAdi:'projeler', modul:'Proje' }); } },
@@ -184,15 +185,11 @@
       } }
   ]});
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'projeler', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#prPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'projeler', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'projeler',
     veri: function(){ return kaynak; },
     arama: ['kod','ad','musteriAd','markaAd','yoneticiAd','aciklama'],
-    arsivAlani:'arsiv',
     cipler: { alan:'durum', secenekler:[
       { k:'aktif', ad:'Aktif', ikon:'fa-play' },
       { k:'planlama', ad:'Planlama', ikon:'fa-pen-ruler' },
@@ -203,11 +200,24 @@
       { k:'yoneticiId', ad:'Proje yöneticisi', tur:'secim', secenekler: A.liste('personeller').map(function(p){ return { deger:p.id, ad:p.ad }; }) },
       { k:'toplam', ad:'Lokasyon sayısı', tur:'aralik' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    arsivAlani: 'arsiv',
+    tablo: { hedef: '#prTablo',
+      kolonlar: kolonlar,
+      secim: true,
+      satirId: function(p){ return p.id; },
+      secimDegisti: function(s){ bulk.ciz(s); } },
+    pager: { hedef: '#prPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-diagram-project', baslik:'Proje bulunamadı', metin:'Filtrelerinize uyan kontrol projesi yok.' },
+    bosDurum: { ikon:'fa-diagram-project', baslik:'Projeler ve Kontrol Kampanyaları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('prDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'projeler', modul:'Proje' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'projeler', modul:'Proje' });
   });
 
   /* --- grafikler --- */

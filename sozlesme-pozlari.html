@@ -78,6 +78,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -147,20 +150,11 @@
         return '<span style="color:var(--warning)">' + GV.tl(x.maliyet) + '</span>'; } }
   ];
 
-  var tablo = gvTable({ hedef:'#spTablo', kolonlar:kolonlar, satirId: function(x){ return x.id; },
-    bosDurum:{ ikon:'fa-file-signature', baslik:'Sözleşme pozu bulunamadı', metin:'Filtrelerinize uyan sözleşme pozisyonu yok.' },
-    altToplam: function(v){
-      return '<tr><td data-lbl="" colspan="6">Toplam</td>'
-        + '<td class="num">' + GV.n(v.reduce(function(t,x){ return t + x.miktar; }, 0)) + '</td>'
-        + '<td></td><td class="num">' + GV.tl(v.reduce(function(t,x){ return t + x.tutar; }, 0)) + '</td></tr>';
-    } });
+  
 
-  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesme-pozlari', kolonlar:kolonlar, degisti: function(){ ciz(son); } });
-  var pager = gvPager({ hedef:'#spPager', boyut:20, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  gvCols({ tetik:'#gvColsBtn', anahtar:'sozlesme-pozlari', kolonlar:kolonlar, degisti: function(){ liste.yenile(); } });
+  var liste = gvList({
+    kaynak: 'sozlesme_pozlari',
     veri: function(){ return kaynak; },
     arama: ['poz','hizmetAd','sozlesmeNo','sozlesmeAd','musteriAd'],
     cipler: { alan:'musteriId', secenekler: A.liste('musteriler').map(function(m){ return { k:m.id, ad:m.kisaAd }; }) },
@@ -170,11 +164,26 @@
       { k:'birim', ad:'Fiyatlandırma birimi', tur:'coklu', secenekler: Object.keys(birimAd).map(function(b){ return { deger:b, ad:birimAd[b] }; }) },
       { k:'tutar', ad:'Tutar (₺)', tur:'aralik' }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#spTablo',
+      kolonlar: kolonlar,
+      satirId: function(x){ return x.id; },
+      altToplam: function(v){
+      return '<tr><td data-lbl="" colspan="6">Toplam</td>'
+        + '<td class="num">' + GV.n(v.reduce(function(t,x){ return t + x.miktar; }, 0)) + '</td>'
+        + '<td></td><td class="num">' + GV.tl(v.reduce(function(t,x){ return t + x.tutar; }, 0)) + '</td></tr>';
+    } },
+    pager: { hedef: '#spPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-file-signature', baslik:'Sözleşme pozu bulunamadı', metin:'Filtrelerinize uyan sözleşme pozisyonu yok.' },
+    bosDurum: { ikon:'fa-file-signature', baslik:'Sözleşme Pozları listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   document.getElementById('spDisa').addEventListener('click', function(){
-    GV.disaAktar({ kayitSayisi: son.length, dosyaAdi:'sozlesme-pozlari', modul:'Sözleşme Pozu' });
+    GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'sozlesme-pozlari', modul:'Sözleşme Pozu' });
   });
 
   /* --- benzer adlı pozisyonlar --- */

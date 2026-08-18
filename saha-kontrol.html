@@ -89,6 +89,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script>
 (function(){
   var A = window.demoApi;
@@ -142,14 +145,10 @@
           : GV.rozetOzel('info','fa-person-walking','Devam ediyor'); } }
   ];
 
-  var tablo = gvTable({ hedef:'#skTablo', kolonlar:kolonlar, satirId: function(s){ return s.id; },
-    bosDurum:{ ikon:'fa-mobile-screen', baslik:'Saha kontrol kaydı yok', metin:'Filtrelerinize uyan kayıt bulunmuyor.' } });
+  
 
-  var pager = gvPager({ hedef:'#skPager', boyut:15, degisti: function(){ ciz(son); } });
-  var son = kaynak;
-  function ciz(v){ son = v; pager.ayarla(v.length); tablo.ciz(pager.dilim(v)); }
-
-  gvFilter({
+  var liste = gvList({
+    kaynak: 'saha_kontrol',
     veri: function(){ return kaynak; },
     arama: ['id','isEmriId','lokasyonAd','musteriAd','personelAd'],
     cipler: { alan:'durum', secenekler:[
@@ -162,8 +161,18 @@
       { k:'cevrimdisi', ad:'Yalnız çevrimdışı çalışılanlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] },
       { k:'imza', ad:'Yalnız imzalananlar', tur:'toggle', secenekler:[{deger:'evet',ad:'Evet'},{deger:'hayir',ad:'Hayır'}] }
     ],
-    degisti: function(s){ pager.ayarla(s.length, true); ciz(s); }
+    tablo: { hedef: '#skTablo',
+      kolonlar: kolonlar,
+      satirId: function(s){ return s.id; } },
+    pager: { hedef: '#skPager', boyut: 20, boyutSecici: true },
+    filtreBosDurum: { ikon:'fa-mobile-screen', baslik:'Saha kontrol kaydı yok', metin:'Filtrelerinize uyan kayıt bulunmuyor.' },
+    bosDurum: { ikon:'fa-mobile-screen', baslik:'Saha Kontrolleri listesi boş', metin:'Bu modülde henüz kayıt oluşturulmamış.' }
   });
+  
+
+
+
+  
 
   /* --- senkronizasyon kuyruğu --- */
   function kuyrukCiz(){
