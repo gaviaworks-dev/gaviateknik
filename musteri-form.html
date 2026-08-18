@@ -55,6 +55,7 @@
                 <label for="fKod">Müşteri Kodu</label>
                 <input type="text" id="fKod" name="kod" placeholder="Otomatik üretilir">
                 <span class="gf-hint">Boş bırakılırsa sistem sıradaki kodu atar.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="fSektor">Sektör <span class="req" aria-hidden="true">*</span></label>
@@ -80,6 +81,7 @@
               <div class="gfield">
                 <label for="fVd">Vergi Dairesi</label>
                 <input type="text" id="fVd" name="vergiDairesi" placeholder="Vergi dairesi adı">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="fVno">Vergi Numarası</label>
@@ -90,6 +92,7 @@
               <div class="gfield full">
                 <label for="fAdres">Adres</label>
                 <textarea id="fAdres" name="adres" placeholder="Mahalle, cadde, no, ilçe / il"></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
             </div></div>
         </section>        <section class="gv-card">
@@ -110,6 +113,7 @@
               <div class="gfield">
                 <label for="fWeb">Web Sitesi</label>
                 <input type="text" id="fWeb" name="web" placeholder="ornek.test">
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="fTemsilci">Müşteri Temsilcisi <span class="req" aria-hidden="true">*</span></label>
@@ -167,7 +171,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span class="req" style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span class="req" style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         
@@ -182,6 +187,7 @@
 <script src="assets/js/navigation.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
+<script src="assets/js/form-controller.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -243,15 +249,49 @@
       + '<div class="info-row"><dt>Taşeron ödeme kuralı</dt><dd>' + (v.taseronTahsilatSarti ? 'Tahsilat sonrası' : 'Vade tarihinde') + '</dd></div>';
   }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'musteri-form' + (id ? '-' + id : ''), iptalHref:'musteriler.html',
-    ozelDogrula: function(kural, deger){
-      if (kural === 'vergino' && deger && !/^[0-9]{10,11}$/.test(deger)) return 'Vergi numarası 10 veya 11 haneli olmalıdır.';
-      return '';
+  /* --------------------------------------------------------------
+     Ortak form standardı (doküman §11) — şema tabanlı doğrulama,
+     ilk hataya odak, üstte hata özeti, submit kilidi, dirty state.
+     Komut ön koşulu doküman §8 CreateCustomer: müşteri kodu/unvanı benzersiz.
+     -------------------------------------------------------------- */
+  function benzersizMi(alan, deger){
+    if (!deger) return true;
+    var d = String(deger).toLocaleLowerCase('tr-TR').trim();
+    return !A.liste('musteriler').some(function(m){
+      return (!mevcut || m.id !== mevcut.id)
+        && String(m[alan] || '').toLocaleLowerCase('tr-TR').trim() === d;
+    });
+  }
+
+  var SEMA = {
+    unvan:  { etiket:'Ticari unvan', zorunlu:true, enAz:3, enCok:160,
+              ozel: function(v){ return benzersizMi('unvan', v) ? '' : 'Bu unvanla kayıtlı bir müşteri zaten var.'; } },
+    kisaAd: { etiket:'Kısa ad', zorunlu:true, enAz:2, enCok:60 },
+    kod:    { etiket:'Müşteri kodu', enCok:24,
+              ozel: function(v){ return benzersizMi('kod', v) ? '' : 'Bu müşteri kodu başka bir kayıtta kullanılıyor.'; } },
+    sektor: { etiket:'Sektör', zorunlu:true },
+    segment:{ etiket:'Segment' },
+    vergiDairesi: { etiket:'Vergi dairesi', enCok:60 },
+    vergiNo:{ etiket:'Vergi numarası', desen:/^[0-9]{10,11}$/,
+              mesaj:'Vergi numarası 10 veya 11 haneli olmalıdır.' },
+    adres:  { etiket:'Adres', enCok:400 },
+    telefon:{ etiket:'Telefon', tur:'telefon' },
+    eposta: { etiket:'E-posta', tur:'eposta', zorunlu:true },
+    web:    { etiket:'Web sitesi', enCok:120 },
+    musteriTemsilcisi: { etiket:'Müşteri temsilcisi', zorunlu:true },
+    odemeVadesi: { etiket:'Ödeme vadesi', tur:'sayi', zorunlu:true, enAz:0, enCok:180 }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateCustomer',
+    anahtar:'musteri-form' + (id ? '-' + id : ''), iptalHref:'musteriler.html',
+    sema: SEMA,
+    /* Şemayla ifade edilemeyen form-ötesi koşul üstteki özete düşer. */
+    gonderOncesi: function(){
+      return markalar.some(function(k){ return !k.ad.trim(); })
+        ? 'Marka adı boş bırakılamaz; boş satırları doldurun veya kaldırın.' : '';
     },
-    gonder: function(veri, aksiyon, yardim){
-      var eksikMarka = markalar.filter(function(k){ return !k.ad.trim(); });
-      if (eksikMarka.length) { gvToast('Marka adı boş bırakılamaz. Boş satırları doldurun veya kaldırın.', { ton:'danger' }); return; }
+    gonder: function(veri, yardim){
       var yeniMstKod = GV.yeniKod('MST-Y');
       var islem = mevcut
         ? A.guncelle('musteriler', mevcut.id, veri)
@@ -260,23 +300,23 @@
             kod: veri.kod || yeniMstKod,
             kayitTarihi: A.bugun(), cariBakiye: 0, cariDurum: 'temiz'
           }, veri));
-      islem.then(function(r){
+      return islem.then(function(r){
         yardim.taslakSil(); yardim.kirliSifirla();
         gvResult(true, {
           baslik: mevcut ? 'Müşteri güncellendi' : 'Müşteri oluşturuldu',
           metin: '<b>' + GV.esc(veri.unvan) + '</b> kaydı ' + (mevcut ? 'güncellendi' : 'oluşturuldu')
-            + '. Değişiklikler bu tarayıcıda saklanır.',
+            + '. Kayıt kodu: <b>' + GV.esc(mevcut ? mevcut.kod : (veri.kod || yeniMstKod)) + '</b>. '
+            + 'Değişiklikler bu tarayıcıda saklanır.',
           butonlar: [
             { etiket:'Listeye dön', sinif:'btn-ghost', tikla: function(){ location.href = GV.href('musteriler.html'); } },
             { etiket:'Kayda git', sinif:'btn-acc', ikon:'fa-arrow-right', tikla: function(){
                 location.href = GV.href('musteri-detay.html?id=' + (mevcut ? mevcut.id : r.kayit.id)); } }
           ]
         });
+        return r;
       });
     }
   });
-
-  document.getElementById('fVno').setAttribute('data-dogrula', 'vergino');
 
   if (mevcut) {
     document.getElementById('fmBaslik').textContent = mevcut.kisaAd + ' — Düzenle';

@@ -59,14 +59,17 @@
                 <label for="iTaseron">Taşeron</label>
                 <select id="iTaseron" name="taseronId"><option value="">GAVIA ekibi (taşeronsuz)</option></select>
                 <span class="gf-hint" id="iTaseronUyari">Taşeronun bölge ve hizmet kapsamı kontrol edilir.</span>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield">
                 <label for="iDurum">Operasyon Durumu</label>
                 <select id="iDurum" name="operasyonDurum"></select>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label for="iNot">Not</label>
                 <textarea id="iNot" name="not" placeholder="Saha giriş şartları, özel uyarılar, erişim kısıtları"></textarea>
+                <span class="gf-err" role="alert"></span>
               </div>
               <div class="gfield full">
                 <label class="gfield-inline"><input type="checkbox" id="iOnay" name="musteriTarihOnayi">
@@ -102,7 +105,8 @@
       </div>
 
       <div class="form-foot no-print">
-        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.</div>
+        <div class="foot-left" id="formDurum">Zorunlu alanlar <span style="color:var(--danger)">*</span> ile işaretlidir.
+          <span class="gf-hint" data-son-kayit aria-live="polite" style="display:block"></span></div>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="iptal">İptal</button>
         <button class="btn btn-ghost" type="button" data-form-aksiyon="taslak"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Taslak Kaydet</button>
         
@@ -117,6 +121,7 @@
 <script src="assets/js/navigation.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/durum-makinesi.js"></script>
+<script src="assets/js/form-controller.js"></script>
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
@@ -314,18 +319,47 @@
         + '<span>Bütün uygunluk koşulları sağlandı. İş emri kaydedilebilir.</span></div>';
   }
 
-  var form = gvForm({
-    form:'#gvFormu', anahtar:'is-emri-form' + (id ? '-' + id : ''), iptalHref:'is-emirleri.html',
-    gonder: function(veri, aksiyon, yardim){
-      if (!secilenEkip.length) {
-        gvToast('Ekip atanmadan iş emri kaydedilemez. En az bir personel seçin.', { ton:'danger' });
-        return;
+  /* --------------------------------------------------------------
+     Ortak form standardı (doküman §11) + doküman §8 CreateWorkOrder
+     ön koşulu: lokasyon, hizmet, ekip ve cihaz uygun.
+     Kurallar KOPYALANMAZ; demoApi.cihazAtanabilir / personelAtanabilir
+     çağrılır.
+     -------------------------------------------------------------- */
+  var SEMA = {
+    lokasyonId: { etiket:'Lokasyon', zorunlu:true,
+      ozel: function(v){
+        var l = v ? A.kayit('lokasyonlar', v) : null;
+        if (!l) return 'Lokasyon seçin.';
+        return l.projeId ? '' : 'Bu lokasyon bir projeye dâhil değil; önce projeye ekleyin.';
+      } },
+    tarih: { etiket:'Kontrol tarihi', tur:'tarih', zorunlu:true },
+    saat:  { etiket:'Başlangıç saati', zorunlu:true,
+      desen:/^([01][0-9]|2[0-3]):[0-5][0-9]$/, mesaj:'Saati SS:DD biçiminde girin.' },
+    taseronId: { etiket:'Taşeron' },
+    operasyonDurum: { etiket:'Operasyon durumu', zorunlu:true },
+    not: { etiket:'Not', enCok:600 }
+  };
+
+  var form = gvFormController({
+    form:'#gvFormu', ad:'CreateWorkOrder',
+    anahtar:'is-emri-form' + (id ? '-' + id : ''), iptalHref:'is-emirleri.html',
+    sema: SEMA,
+    /* Ekip ve cihaz alanları form alanı değil; koşulları üstteki özete düşer. */
+    gonderOncesi: function(){
+      if (!secilenEkip.length) return 'Ekip atanmadan iş emri kaydedilemez; en az bir personel seçin.';
+      var gecersiz = secilenCihaz.filter(function(c){ return !A.cihazAtanabilir(c).uygun; });
+      if (gecersiz.length) {
+        return 'Kalibrasyonu geçersiz cihaz atanamaz: '
+          + gecersiz.map(function(c){ return (A.kayit('olcumCihazlari', c) || {}).kod || c; }).join(', ') + '.';
       }
-      var gecersizCihaz = secilenCihaz.filter(function(c){ return !A.cihazAtanabilir(c).uygun; });
-      if (gecersizCihaz.length) {
-        gvToast('Kalibrasyonu geçersiz cihaz atanamaz. Seçimi düzeltin.', { ton:'danger' });
-        return;
+      var izinli = secilenEkip.filter(function(p){ return !A.personelAtanabilir(p).uygun; });
+      if (izinli.length) {
+        return 'Atanamayan personel var: '
+          + izinli.map(function(p){ return (A.kayit('personeller', p) || {}).ad || p; }).join(', ') + '.';
       }
+      return '';
+    },
+    gonder: function(veri, yardim){
       veri.ekipId = secilenEkip;
       veri.cihazlar = secilenCihaz;
       veri.musteriTarihOnayi = !!veri.musteriTarihOnayi;
@@ -338,7 +372,7 @@
         : A.ekle('isEmirleri', Object.assign({
             id:GV.yeniKod('IE-2026-Y') }, veri));
 
-      islem.then(function(r){
+      return islem.then(function(r){
         var iid = mevcut ? mevcut.id : r.kayit.id;
         /* Lokasyonun operasyon durumu iş emrinden sürülür; tarih geçişin
            zorunlu alanıdır ve aynı komutta yazılır. */

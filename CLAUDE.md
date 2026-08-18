@@ -20,7 +20,7 @@ Faz durumu: `PROGRESS.md`.
     ├── js/   app.js · navigation.js · components.js · filters.js
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
-    │         kimlik.js · durum-makinesi.js
+    │         kimlik.js · durum-makinesi.js · form-controller.js
     └── images/
 ```
 
@@ -33,7 +33,7 @@ kimlik üretimini ondan alır.
 
 Faz 12/13 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
-`durum-makinesi.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
+`durum-makinesi.js` → `form-controller.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
 
 ## 2. Dosya adlandırma
 
