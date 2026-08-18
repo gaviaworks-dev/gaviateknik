@@ -274,7 +274,7 @@
   /* ---- bilgi gönderme modalı ---- */
   function bilgiModal(onSecili){
     var secenekler = (bekleyen.length ? bekleyen : kaynak);
-    gvModal({
+    gvModalForm({
       baslik:'Lokasyon bilgisi gönder', ikon:'fa-paper-plane', genislik:'gv-modal-lg',
       metin:'Gönderdiğiniz bilgi doğrudan planlama ekibimize ulaşır ve lokasyonun kontrol takvimine alınmasını sağlar.',
       govde:'<div class="gform form-grid">'
@@ -290,31 +290,28 @@
         +   '<input type="tel" id="plbTel" placeholder="0 (___) ___ __ __"></div>'
         + '<div class="gfield full"><label for="plbEkipman">Ekipman listesi ve notlarınız <span class="req" aria-hidden="true">*</span></label>'
         +   '<textarea id="plbEkipman" rows="4" placeholder="Örn. 7 yangın dolabı, 1 akülü transpalet, 23 acil aydınlatma armatürü. Kontrol için uygun günler…"></textarea>'
-        +   '<div class="gf-hint">Kesin sayıyı bilmiyorsanız yaklaşık değer yazmanız da yeterli; saha ekibi yerinde teyit eder.</div>'
-        +   '<div class="gf-err" id="plbErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Ekipman listesi alanı zorunludur.</div></div>'
+        +   '<div class="gf-hint">Kesin sayıyı bilmiyorsanız yaklaşık değer yazmanız da yeterli; saha ekibi yerinde teyit eder.</div></div>'
         + '</div>',
-      butonlar:[
-        { etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
-            var metin = kap.querySelector('#plbEkipman').value.trim();
-            if (!metin) { kap.querySelector('#plbErr').hidden = false; return false; }
-            var lid = kap.querySelector('#plbLok').value;
-            var lok = A.kayit('lokasyonlar', lid);
-            var kisi = kap.querySelector('#plbKisi').value.trim();
-            var tel = kap.querySelector('#plbTel').value.trim();
-            A.ekle('iletisimGecmisi', {
-              id: GV.yeniKod('ILT-U'),
-              musteriId: musteriId, lokasyonId: lid, kisiId: null,
-              tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
-              konu: 'Müşteri portalı — lokasyon bilgi gönderimi (' + (lok ? lok.ad : lid) + ')',
-              ozet: metin + (kisi ? ' · Yetkili: ' + kisi : '') + (tel ? ' · Tel: ' + tel : '')
-            }).then(function(){
-              gvToast((lok ? lok.ad : 'Lokasyon') + ' için bilgileriniz planlama ekibine iletildi.', { ton:'ok' });
-            });
-            kapat(true);
-            return false;
-          } }
-      ]
+      sema: {
+        plbLok:     { etiket:'Lokasyon', zorunlu:true },
+        plbKisi:    { etiket:'Lokasyon yetkilisi', enCok:80 },
+        plbTel:     { etiket:'Yetkili telefonu', tur:'telefon' },
+        plbEkipman: { etiket:'Ekipman listesi ve notlar', zorunlu:true, enAz:10, enCok:1000 }
+      },
+      ad:'SubmitLocationInfo',
+      onayEtiket:'Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        var lok = A.kayit('lokasyonlar', v.plbLok);
+        return A.ekle('iletisimGecmisi', {
+          id: GV.yeniKod('ILT-U'),
+          musteriId: musteriId, lokasyonId: v.plbLok, kisiId: null,
+          tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+          konu: 'Müşteri portalı — lokasyon bilgi gönderimi (' + (lok ? lok.ad : v.plbLok) + ')',
+          ozet: v.plbEkipman + (v.plbKisi ? ' · Yetkili: ' + v.plbKisi : '') + (v.plbTel ? ' · Tel: ' + v.plbTel : '')
+        }).then(function(){
+          gvToast((lok ? lok.ad : 'Lokasyon') + ' için bilgileriniz planlama ekibine iletildi.', { ton:'ok' });
+        });
+      }
     });
   }
 

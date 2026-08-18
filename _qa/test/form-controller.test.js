@@ -325,7 +325,9 @@ test('şemadaki her alan formda gerçekten var (migrate edilen sayfalar)', () =>
    test kırılır. */
 const MODAL_SAYFALAR = [
   'denetimler.html', 'musteri-sikayetleri.html', 'iletisim-kisileri.html',
-  'kalite-dokumanlari.html', 'personel-detay.html', 'personeller.html'
+  'kalite-dokumanlari.html', 'personel-detay.html', 'personeller.html',
+  'portal-faturalar.html', 'portal-raporlar.html', 'portal-lokasyonlar.html',
+  'musteri-portali.html', 'rapor-detay.html', 'sozlesmeler.html'
 ];
 
 test('migrate edilen modal formlar gvModalForm kullanıyor', () => {

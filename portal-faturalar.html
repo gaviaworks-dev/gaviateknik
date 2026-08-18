@@ -321,7 +321,7 @@
     var f = A.kayit('faturalar', fid);
     var acikFaturalar = kaynak.filter(function(x){ return x.kalan > 0; });
     if (!acikFaturalar.length) { gvToast('Açık bakiyeli faturanız bulunmuyor.', { ton:'info' }); return; }
-    gvModal({
+    gvModalForm({
       baslik:'Ödeme dekontu bildir', ikon:'fa-receipt', genislik:'gv-modal-lg',
       metin:'Ödemenizi yaptıysanız fatura ve tarih bilgisini iletin; finans ekibimiz kaydı eşleştirip bakiyenizi günceller.',
       govde:'<div class="gform form-grid">'
@@ -336,31 +336,28 @@
         + '<div class="gfield"><label for="pfdTutar">Ödenen tutar (₺)</label>'
         +   '<input type="number" id="pfdTutar" min="0" step="0.01" value="' + (f && f.kalan ? f.kalan : '') + '"></div>'
         + '<div class="gfield full"><label for="pfdNot">Açıklama <span class="req" aria-hidden="true">*</span></label>'
-        +   '<textarea id="pfdNot" rows="3" placeholder="Örn. 15 Ağustos tarihinde havale ile ödendi, referans no 998877."></textarea>'
-        +   '<div class="gf-err" id="pfdErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+        +   '<textarea id="pfdNot" rows="3" placeholder="Örn. 15 Ağustos tarihinde havale ile ödendi, referans no 998877."></textarea></div>'
         + '</div>',
-      butonlar:[
-        { etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
-            var not = kap.querySelector('#pfdNot').value.trim();
-            if (!not) { kap.querySelector('#pfdErr').hidden = false; return false; }
-            var fid2 = kap.querySelector('#pfdFatura').value;
-            var fk = A.kayit('faturalar', fid2);
-            var tutar = Number(kap.querySelector('#pfdTutar').value) || 0;
-            var tarih = kap.querySelector('#pfdTarih').value || BUGUN;
-            A.ekle('iletisimGecmisi', {
-              id: GV.yeniKod('ILT-U'),
-              musteriId: musteriId, lokasyonId: null, kisiId: null,
-              tur: 'fatura-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
-              konu: 'Müşteri portalı — ödeme dekontu bildirimi (' + (fk ? fk.no : fid2) + ')',
-              ozet: GV.d(tarih) + ' tarihinde ' + GV.tl(tutar) + ' ödendiği bildirildi. ' + not
-            }).then(function(){
-              gvToast('Dekont bildiriminiz finans ekibine iletildi. Eşleştirme sonrası bakiyeniz güncellenir.', { ton:'ok' });
-            });
-            kapat(true);
-            return false;
-          } }
-      ]
+      sema: {
+        pfdFatura: { etiket:'Fatura', zorunlu:true },
+        pfdTarih:  { etiket:'Ödeme tarihi', tur:'tarih', zorunlu:true, enCok: BUGUN },
+        pfdTutar:  { etiket:'Ödenen tutar', tur:'sayi', zorunlu:true, enAz:1 },
+        pfdNot:    { etiket:'Açıklama', zorunlu:true, enAz:10, enCok:600 }
+      },
+      ad:'ReportPaymentReceipt',
+      onayEtiket:'Bildirimi Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        var fk = A.kayit('faturalar', v.pfdFatura);
+        return A.ekle('iletisimGecmisi', {
+          id: GV.yeniKod('ILT-U'),
+          musteriId: musteriId, lokasyonId: null, kisiId: null,
+          tur: 'fatura-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+          konu: 'Müşteri portalı — ödeme dekontu bildirimi (' + (fk ? fk.no : v.pfdFatura) + ')',
+          ozet: GV.d(v.pfdTarih) + ' tarihinde ' + GV.tl(Number(v.pfdTutar)) + ' ödendiği bildirildi. ' + v.pfdNot
+        }).then(function(){
+          gvToast('Dekont bildiriminiz finans ekibine iletildi. Eşleştirme sonrası bakiyeniz güncellenir.', { ton:'ok' });
+        });
+      }
     });
   }
 
@@ -420,7 +417,7 @@
     b.addEventListener('click', function(){
       var t = A.kayit('teklifler', b.getAttribute('data-teklif'));
       if (!t) return;
-      gvModal({
+      gvModalForm({
         baslik:'Teklif geri bildirimi', ikon:'fa-reply', genislik:'gv-modal-lg',
         metin:'<b>' + GV.esc(t.no) + '</b> — ' + GV.esc(t.konu) + ' · ' + GV.tl(t.toplamSatis)
           + ' · geçerlilik ' + GV.d(t.gecerlilik),
@@ -432,28 +429,25 @@
           +     '<option value="Ek bilgi istiyoruz">Ek bilgi istiyoruz</option>'
           +   '</select></div>'
           + '<div class="gfield full"><label for="pfTkNot">Açıklama <span class="req" aria-hidden="true">*</span></label>'
-          +   '<textarea id="pfTkNot" rows="3" placeholder="Talebinizi kısaca yazın."></textarea>'
-          +   '<div class="gf-err" id="pfTkErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+          +   '<textarea id="pfTkNot" rows="3" placeholder="Talebinizi kısaca yazın."></textarea></div>'
           + '</div>',
-        butonlar:[
-          { etiket:'Vazgeç', sinif:'btn-ghost' },
-          { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
-              var not = kap.querySelector('#pfTkNot').value.trim();
-              if (!not) { kap.querySelector('#pfTkErr').hidden = false; return false; }
-              var yanit = kap.querySelector('#pfTkYanit').value;
-              A.ekle('iletisimGecmisi', {
-                id: GV.yeniKod('ILT-U'),
-                musteriId: musteriId, lokasyonId: null, kisiId: null,
-                tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
-                konu: 'Müşteri portalı — teklif geri bildirimi (' + t.no + ')',
-                ozet: yanit + '. ' + not
-              }).then(function(){
-                gvToast('Geri bildiriminiz satış ekibimize iletildi.', { ton:'ok' });
-              });
-              kapat(true);
-              return false;
-            } }
-        ]
+        sema: {
+          pfTkYanit: { etiket:'Yanıtınız', zorunlu:true },
+          pfTkNot:   { etiket:'Açıklama', zorunlu:true, enAz:10, enCok:600 }
+        },
+        ad:'SendQuoteFeedback',
+        onayEtiket:'Gönder', onayIkon:'fa-paper-plane',
+        gonder: function(v){
+          return A.ekle('iletisimGecmisi', {
+            id: GV.yeniKod('ILT-U'),
+            musteriId: musteriId, lokasyonId: null, kisiId: null,
+            tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+            konu: 'Müşteri portalı — teklif geri bildirimi (' + t.no + ')',
+            ozet: v.pfTkYanit + '. ' + v.pfTkNot
+          }).then(function(){
+            gvToast('Geri bildiriminiz satış ekibimize iletildi.', { ton:'ok' });
+          });
+        }
       });
     });
   });

@@ -179,7 +179,7 @@
       document.querySelectorAll('[data-yenile]').forEach(function(b){
       b.addEventListener('click', function(){
         var s = A.kayit('sozlesmeler', b.getAttribute('data-yenile'));
-        gvModal({
+        gvModalForm({
           baslik:'Sözleşmeyi yenile', ikon:'fa-rotate',
           metin:'<b>' + GV.esc(s.no) + '</b> sözleşmesi yeni dönem için yenilenecek. '
             + 'Mevcut sözleşme sona erdi olarak işaretlenir, koşullar yeni kayda kopyalanır.',
@@ -189,30 +189,35 @@
             + '<div class="gfield"><label for="szYeniParti">Fatura partisi</label><input type="number" id="szYeniParti" min="1" value="' + s.partiBuyuklugu + '"></div>'
             + '<div class="gfield"><label for="szYeniVade">Ödeme vadesi (gün)</label><input type="number" id="szYeniVade" min="0" value="' + s.odemeVadesi + '"></div>'
             + '<div class="gfield full"><label for="szYeniBedel">Sözleşme bedeli (₺)</label><input type="number" id="szYeniBedel" min="0" value="' + s.bedel + '"></div></div>',
-          butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-            { etiket:'Yenile', sinif:'btn-acc', ikon:'fa-rotate', tikla: function(kap){
-                var bas = kap.querySelector('#szYeniBas').value, bit = kap.querySelector('#szYeniBit').value;
-                if (!bas || !bit || bit <= bas) { gvToast('Geçerli bir dönem girin.', { ton:'danger' }); return false; }
-                var yil = bas.substring(0,4);
-                GV.gecisUygula('sozlesme', 'sozlesmeler', s.id, 'sona-erdi', {
-                  not:'Sözleşme yenilendi.', ekYama: { yenileme:'yenilendi' }
-                }).then(function(g){
-                  if (!g.ok) return null;
-                  var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
-                  return A.ekle('sozlesmeler', Object.assign({}, s, {
-                    id: yeniSzlNo, no: yeniSzlNo,
-                    baslangic: bas, bitis: bit, durum:'yururlukte', yenileme:'otomatik-degil',
-                    partiBuyuklugu: Number(kap.querySelector('#szYeniParti').value),
-                    odemeVadesi: Number(kap.querySelector('#szYeniVade').value),
-                    bedel: Number(kap.querySelector('#szYeniBedel').value),
-                    notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
-                  }));
-                }).then(function(x){
-                  if (!x) return;
-                  gvToast('Sözleşme yenilendi.', { ton:'ok' });
-                  setTimeout(function(){ location.reload(); }, 800);
-                });
-              } }]
+          sema: {
+            szYeniBas:   { etiket:'Yeni başlangıç', tur:'tarih', zorunlu:true },
+            szYeniBit:   { etiket:'Yeni bitiş', tur:'tarih', zorunlu:true, sonra:'szYeniBas' },
+            szYeniParti: { etiket:'Fatura partisi', tur:'sayi', zorunlu:true, enAz:1, enCok:200 },
+            szYeniVade:  { etiket:'Ödeme vadesi', tur:'sayi', zorunlu:true, enAz:0, enCok:180 },
+            szYeniBedel: { etiket:'Sözleşme bedeli', tur:'sayi', zorunlu:true, enAz:0 }
+          },
+          ad:'RenewContract',
+          onayEtiket:'Yenile', onayIkon:'fa-rotate',
+          gonder: function(v){
+            var yil = v.szYeniBas.substring(0,4);
+            return GV.gecisUygula('sozlesme', 'sozlesmeler', s.id, 'sona-erdi', {
+              not:'Sözleşme yenilendi.', sessiz:true, ekYama: { yenileme:'yenilendi' }
+            }).then(function(g){
+              if (!g.ok) throw new Error(g.sebep);
+              var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
+              return A.ekle('sozlesmeler', Object.assign({}, s, {
+                id: yeniSzlNo, no: yeniSzlNo,
+                baslangic: v.szYeniBas, bitis: v.szYeniBit, durum:'yururlukte', yenileme:'otomatik-degil',
+                partiBuyuklugu: Number(v.szYeniParti),
+                odemeVadesi: Number(v.szYeniVade),
+                bedel: Number(v.szYeniBedel),
+                notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
+              }));
+            }).then(function(){
+              gvToast('Sözleşme yenilendi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
+          }
         });
       });
     });
@@ -228,7 +233,7 @@
     GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'sozlesmeler', modul:'Sözleşme' });
   });
   document.getElementById('szYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni sözleşme', ikon:'fa-plus', genislik:'gv-modal-lg',
       metin:'Toplu faturalama, ödeme vadesi ve taşeron ödeme kuralı sözleşme bazında tanımlanır.',
       govde:'<div class="gform">'
@@ -252,35 +257,44 @@
         + '<option value="taseron">Taşeron</option><option value="paylasimli">Paylaşımlı</option></select></div>'
         + '<div class="gfield full"><label for="syKapsam">Hizmet kapsamı *</label>'
         + '<textarea id="syKapsam" placeholder="Sözleşme kapsamındaki hizmet kategorileri"></textarea></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#syAd').value.trim();
-            var bas = kap.querySelector('#syBas').value, bit = kap.querySelector('#syBit').value;
-            var kapsam = kap.querySelector('#syKapsam').value.trim();
-            if (!ad || !bas || !bit || !kapsam) { gvToast('Ad, dönem ve kapsam zorunludur.', { ton:'danger' }); return false; }
-            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
-            var mid = kap.querySelector('#syMusteri').value;
-            var fl = A.liste('fiyatListeleri').filter(function(f){ return f.tur === 'satis' && f.musteriId === mid && f.durum === 'aktif'; })[0];
-            var yil = bas.substring(0,4);
-            var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
-            A.ekle('sozlesmeler', {
-              id: yeniSzlNo, no: yeniSzlNo,
-              musteriId: mid, teklifId: kap.querySelector('#syTeklif').value || null, ad: ad,
-              baslangic: bas, bitis: bit, kapsam: kapsam,
-              fiyatListesiId: fl ? fl.id : 'FL-2026-STD',
-              partiBuyuklugu: Number(kap.querySelector('#syParti').value),
-              odemeVadesi: Number(kap.querySelector('#syVade').value),
-              taseronOdemeKurali: kap.querySelector('#syOdeme').value,
-              masrafSahibi: kap.querySelector('#syMasraf').value,
-              raporSlaGun: Number(kap.querySelector('#sySla').value),
-              yenileme:'otomatik-degil', durum:'yururlukte',
-              bedel: Number(kap.querySelector('#syBedel').value || 0),
-              notlar:'Yeni oluşturulan sözleşme.'
-            }).then(function(){
-              gvToast('Sözleşme oluşturuldu.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        syAd:      { etiket:'Sözleşme adı', zorunlu:true, enAz:5, enCok:180 },
+        syMusteri: { etiket:'Müşteri', zorunlu:true },
+        syTeklif:  { etiket:'Kaynak teklif' },
+        syBas:     { etiket:'Başlangıç', tur:'tarih', zorunlu:true },
+        syBit:     { etiket:'Bitiş', tur:'tarih', zorunlu:true, sonra:'syBas' },
+        syParti:   { etiket:'Fatura parti büyüklüğü', tur:'sayi', zorunlu:true, enAz:1, enCok:200 },
+        syVade:    { etiket:'Ödeme vadesi', tur:'sayi', zorunlu:true, enAz:0, enCok:180 },
+        sySla:     { etiket:'Rapor teslim süresi', tur:'sayi', zorunlu:true, enAz:1, enCok:60 },
+        syBedel:   { etiket:'Sözleşme bedeli', tur:'sayi', zorunlu:true, enAz:0 },
+        syOdeme:   { etiket:'Taşeron ödeme kuralı', zorunlu:true },
+        syMasraf:  { etiket:'Masraf sorumluluğu', zorunlu:true },
+        syKapsam:  { etiket:'Hizmet kapsamı', zorunlu:true, enAz:10, enCok:600 }
+      },
+      ad:'CreateContract',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v){
+        var fl = A.liste('fiyatListeleri').filter(function(f){
+          return f.tur === 'satis' && f.musteriId === v.syMusteri && f.durum === 'aktif'; })[0];
+        var yeniSzlNo = GV.yeniKod('SZL-' + v.syBas.substring(0,4) + '-Y');
+        return A.ekle('sozlesmeler', {
+          id: yeniSzlNo, no: yeniSzlNo,
+          musteriId: v.syMusteri, teklifId: v.syTeklif || null, ad: v.syAd,
+          baslangic: v.syBas, bitis: v.syBit, kapsam: v.syKapsam,
+          fiyatListesiId: fl ? fl.id : 'FL-2026-STD',
+          partiBuyuklugu: Number(v.syParti),
+          odemeVadesi: Number(v.syVade),
+          taseronOdemeKurali: v.syOdeme,
+          masrafSahibi: v.syMasraf,
+          raporSlaGun: Number(v.sySla),
+          yenileme:'otomatik-degil', durum:'yururlukte',
+          bedel: Number(v.syBedel || 0),
+          notlar:'Yeni oluşturulan sözleşme.'
+        }).then(function(){
+          gvToast('Sözleşme oluşturuldu.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();

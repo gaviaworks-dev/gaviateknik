@@ -543,7 +543,7 @@
   ['rdDuzenle','rdDuzenle2'].forEach(function(bid){
     var b = document.getElementById(bid);
     if (b) b.addEventListener('click', function(){
-      gvModal({
+      gvModalForm({
         baslik:'Raporu düzenle', ikon:'fa-pen', genislik:'gv-modal-lg',
         metin:'Rapor <b>' + GV.esc(A.durum('rapor', r.durum).ad).toLocaleLowerCase('tr-TR')
           + '</b> durumunda olduğu için doğrudan düzenlenebilir.',
@@ -556,16 +556,23 @@
           + '<input type="date" id="rdTarihD" value="' + GV.esc(r.raporTarihi || '') + '"></div>'
           + '<div class="gfield full"><label for="rdNotD">Rapor notu</label>'
           + '<textarea id="rdNotD" placeholder="Rapora eklenecek genel değerlendirme"></textarea></div></div>',
-        butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-          { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-              A.guncelle('raporlar', r.id, {
-                sonuc: kap.querySelector('#rdSonucSec').value,
-                raporTarihi: kap.querySelector('#rdTarihD').value || r.raporTarihi
-              }).then(function(){
-                gvToast('Rapor güncellendi.', { ton:'ok' });
-                setTimeout(function(){ location.reload(); }, 800);
-              });
-            } }]
+        sema: {
+          rdSonucSec: { etiket:'Genel sonuç', zorunlu:true },
+          rdTarihD:   { etiket:'Rapor tarihi', tur:'tarih', zorunlu:true, enCok: A.bugun() },
+          rdNotD:     { etiket:'Rapor notu', enCok:800 }
+        },
+        ad:'UpdateReport',
+        onayEtiket:'Kaydet', onayIkon:'fa-check',
+        gonder: function(v){
+          return A.guncelle('raporlar', r.id, {
+            sonuc: v.rdSonucSec,
+            raporTarihi: v.rdTarihD || r.raporTarihi,
+            raporNotu: v.rdNotD || r.raporNotu || null
+          }).then(function(){
+            gvToast('Rapor güncellendi.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
+        }
       });
     });
   });
@@ -633,7 +640,7 @@
   if (gonder) gonder.addEventListener('click', function(){
     var kisiler = A.liste('iletisimKisileri').filter(function(k){
       return l && (k.lokasyonId === l.id || (k.musteriId === l.musteriId && k.iletisimRolu === 'Rapor Teslim Yetkilisi')); });
-    gvModal({
+    gvModalForm({
       baslik:'Raporu müşteriye gönder', ikon:'fa-paper-plane',
       metin:'<b>' + GV.esc(r.no) + '</b> müşteri portalı ve e-posta ile teslim edilecek.',
       govde:'<div class="gform">'
@@ -646,33 +653,36 @@
           + (uygunsuzluklar.length ? 'Raporda ' + uygunsuzluklar.length + ' uygunsuzluk tespit edilmiştir; '
             + 'terminler içinde düzeltilmesi gerekmektedir.\n\n' : '')
           + 'Bilgilerinize sunarız.') + '</textarea></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-            GV.gecisUygula('rapor', 'raporlar', r.id, 'teslim-edildi', {
-              not:'Rapor müşteriye teslim edildi.', ekYama: { teslimTarihi: A.bugun() }
-            }).then(function(g){
-              if (!g.ok) return null;
-              /* Lokasyon aynası aynı rapor akışını sürer, ayrı alan adıyla. */
-              return GV.gecisUygula('rapor', 'lokasyonlar', r.lokasyonId, 'teslim-edildi', {
-                alan:'raporDurum', sessiz:true, ekYama: { raporTeslimTarihi: A.bugun() }
-              });
-            }).then(function(g){
-              if (!g) return null;
-              return A.ekle('iletisimGecmisi', {
-                id:GV.yeniKod('ILT-R'),
-                musteriId: l ? l.musteriId : null, lokasyonId: r.lokasyonId,
-                kisiId: kap.querySelector('#rdAlici').value || null,
-                tur:'rapor-gonderimi', tarih: A.bugun() + 'T10:00:00',
-                kullaniciId: (GV.rolBilgi || {}).personelId,
-                konu: r.no + ' teknik rapor teslimi',
-                ozet:'Rapor müşteri portalı ve e-posta ile teslim edildi.'
-              });
-            }).then(function(x){
-              if (!x) return;
-              gvToast('Rapor müşteriye teslim edildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
-            });
-          } }]
+      sema: {
+        rdAlici: { etiket:'Rapor teslim yetkilisi', zorunlu:true },
+        rdMesaj: { etiket:'Mesaj', zorunlu:true, enAz:20, enCok:2000 }
+      },
+      ad:'DeliverReport',
+      onayEtiket:'Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        return GV.gecisUygula('rapor', 'raporlar', r.id, 'teslim-edildi', {
+          not:'Rapor müşteriye teslim edildi.', sessiz:true, ekYama: { teslimTarihi: A.bugun() }
+        }).then(function(g){
+          if (!g.ok) throw new Error(g.sebep);
+          /* Lokasyon aynası aynı rapor akışını sürer, ayrı alan adıyla. */
+          return GV.gecisUygula('rapor', 'lokasyonlar', r.lokasyonId, 'teslim-edildi', {
+            alan:'raporDurum', sessiz:true, ekYama: { raporTeslimTarihi: A.bugun() }
+          });
+        }).then(function(){
+          return A.ekle('iletisimGecmisi', {
+            id:GV.yeniKod('ILT-R'),
+            musteriId: l ? l.musteriId : null, lokasyonId: r.lokasyonId,
+            kisiId: v.rdAlici || null,
+            tur:'rapor-gonderimi', tarih: A.bugun() + 'T10:00:00',
+            kullaniciId: (GV.rolBilgi || {}).personelId,
+            konu: r.no + ' teknik rapor teslimi',
+            ozet:'Rapor müşteri portalı ve e-posta ile teslim edildi.'
+          });
+        }).then(function(){
+          gvToast('Rapor müşteriye teslim edildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 900);
+        });
+      }
     });
   });
 

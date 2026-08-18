@@ -401,7 +401,7 @@
     var u = A.kayit('uygunsuzluklar', uid);
     if (!u) { gvToast('Bulgu kaydı bulunamadı.', { ton:'danger' }); return; }
     var l = A.kayit('lokasyonlar', u.lokasyonId);
-    gvModal({
+    gvModalForm({
       baslik:'Düzeltme bildir', ikon:'fa-screwdriver-wrench', genislik:'gv-modal-lg',
       metin:'<b>' + GV.esc(u.baslik) + '</b> — ' + GV.esc(l ? l.ad : ''),
       govde:'<div class="gv-note" style="margin-bottom:16px"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>'
@@ -412,28 +412,25 @@
         +   '<input type="date" id="prDzTarih" max="' + BUGUN + '" value="' + BUGUN + '"></div>'
         + '<div class="gfield full"><label for="prDzAciklama">Yapılan işin açıklaması <span class="req" aria-hidden="true">*</span></label>'
         +   '<textarea id="prDzAciklama" rows="4" placeholder="Örn. Hortum komple değiştirildi, yeni hortumun basınç testi yapıldı. Fatura ve fotoğraflar hazır."></textarea>'
-        +   '<div class="gf-hint">Bildiriminiz teknik ekibimize iletilir; gerekiyorsa yeniden kontrol planlanır.</div>'
-        +   '<div class="gf-err" id="prDzErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+        +   '<div class="gf-hint">Bildiriminiz teknik ekibimize iletilir; gerekiyorsa yeniden kontrol planlanır.</div></div>'
         + '</div>',
-      butonlar:[
-        { etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Bildirimi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
-            var metin = kap.querySelector('#prDzAciklama').value.trim();
-            if (!metin) { kap.querySelector('#prDzErr').hidden = false; return false; }
-            var tarih = kap.querySelector('#prDzTarih').value || BUGUN;
-            A.ekle('iletisimGecmisi', {
-              id: GV.yeniKod('ILT-U'),
-              musteriId: musteriId, lokasyonId: u.lokasyonId, kisiId: null,
-              tur: 'uygunsuzluk-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
-              konu: 'Müşteri portalı — düzeltme bildirimi (' + u.id + ')',
-              ozet: GV.d(tarih) + ' tarihinde tamamlandı: ' + metin
-            }).then(function(){
-              gvToast('Düzeltme bildiriminiz teknik ekibe iletildi. Doğrulama sonrası bulgu kapatılacaktır.', { ton:'ok' });
-            });
-            kapat(true);
-            return false;
-          } }
-      ]
+      sema: {
+        prDzTarih:    { etiket:'Tamamlanma tarihi', tur:'tarih', zorunlu:true, enCok: BUGUN },
+        prDzAciklama: { etiket:'Yapılan işin açıklaması', zorunlu:true, enAz:10, enCok:800 }
+      },
+      ad:'ReportNonconformityFix',
+      onayEtiket:'Bildirimi Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        return A.ekle('iletisimGecmisi', {
+          id: GV.yeniKod('ILT-U'),
+          musteriId: musteriId, lokasyonId: u.lokasyonId, kisiId: null,
+          tur: 'uygunsuzluk-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
+          konu: 'Müşteri portalı — düzeltme bildirimi (' + u.id + ')',
+          ozet: GV.d(v.prDzTarih) + ' tarihinde tamamlandı: ' + v.prDzAciklama
+        }).then(function(){
+          gvToast('Düzeltme bildiriminiz teknik ekibe iletildi. Doğrulama sonrası bulgu kapatılacaktır.', { ton:'ok' });
+        });
+      }
     });
   }
 
@@ -484,7 +481,7 @@
 
   document.getElementById('prYeniTalep').addEventListener('click', function(){
     var acikBulgular = bulgular.filter(function(u){ return u.durum !== 'kapandi'; });
-    gvModal({
+    gvModalForm({
       baslik:'Yeniden kontrol talebi', ikon:'fa-rotate-right', genislik:'gv-modal-lg',
       metin:'Giderdiğiniz bir bulgunun yerinde doğrulanmasını talep edin. Ekibimiz uygun tarihi teyit ederek dönüş yapar.',
       govde:'<div class="gform form-grid">'
@@ -501,33 +498,31 @@
         + '<div class="gfield"><label for="prYkTarih">Tercih ettiğiniz tarih</label>'
         +   '<input type="date" id="prYkTarih" min="' + BUGUN + '"></div>'
         + '<div class="gfield full"><label for="prYkAciklama">Açıklama <span class="req" aria-hidden="true">*</span></label>'
-        +   '<textarea id="prYkAciklama" rows="3" placeholder="Örn. Yangın pompası onarıldı, otomatik devreye girme testi için ziyaret talep ediyoruz."></textarea>'
-        +   '<div class="gf-err" id="prYkErr" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Açıklama alanı zorunludur.</div></div>'
+        +   '<textarea id="prYkAciklama" rows="3" placeholder="Örn. Yangın pompası onarıldı, otomatik devreye girme testi için ziyaret talep ediyoruz."></textarea></div>'
         + '</div>'
         + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
         + '<span>Talep sözleşme kapsamındaysa ek ücret alınmaz. Kapsam dışı kalırsa önce yazılı fiyat bilgisi iletilir, onayınız olmadan ziyaret planlanmaz.</span></div>',
-      butonlar:[
-        { etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Talebi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap, kapat){
-            var aciklama = kap.querySelector('#prYkAciklama').value.trim();
-            if (!aciklama) { kap.querySelector('#prYkErr').hidden = false; return false; }
-            var lid = kap.querySelector('#prYkLok').value;
-            var uid = kap.querySelector('#prYkBulgu').value || null;
-            var tercih = kap.querySelector('#prYkTarih').value || null;
-            A.ekle('yenidenKontroller', {
-              id: GV.yeniKod('YKN-U'),
-              uygunsuzlukId: uid, lokasyonId: lid,
-              talepTarihi: BUGUN, talepEden: 'Müşteri',
-              planTarihi: tercih, durum: 'talep-edildi', ucretli: null,
-              aciklama: aciklama + (tercih ? ' (Müşterinin tercih ettiği tarih: ' + GV.d(tercih) + ')' : '')
-            }).then(function(){
-              gvToast('Yeniden kontrol talebiniz alındı. Planlama ekibi tarihi teyit edip dönüş yapacak.', { ton:'ok' });
-              ykCiz();
-            });
-            kapat(true);
-            return false;
-          } }
-      ]
+      sema: {
+        prYkLok:      { etiket:'Lokasyon', zorunlu:true },
+        prYkBulgu:    { etiket:'İlgili bulgu' },
+        prYkTarih:    { etiket:'Tercih edilen tarih', tur:'tarih', enAz: BUGUN },
+        prYkAciklama: { etiket:'Açıklama', zorunlu:true, enAz:10, enCok:800 }
+      },
+      ad:'RequestReinspection',
+      onayEtiket:'Talebi Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        return A.ekle('yenidenKontroller', {
+          id: GV.yeniKod('YKN-U'),
+          uygunsuzlukId: v.prYkBulgu || null, lokasyonId: v.prYkLok,
+          talepTarihi: BUGUN, talepEden: 'Müşteri',
+          planTarihi: v.prYkTarih || null, durum: 'talep-edildi', ucretli: null,
+          aciklama: v.prYkAciklama
+            + (v.prYkTarih ? ' (Müşterinin tercih ettiği tarih: ' + GV.d(v.prYkTarih) + ')' : '')
+        }).then(function(){
+          gvToast('Yeniden kontrol talebiniz alındı. Planlama ekibi tarihi teyit edip dönüş yapacak.', { ton:'ok' });
+          ykCiz();
+        });
+      }
     });
   });
 })();
