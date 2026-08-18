@@ -87,6 +87,20 @@
   .pg-num, .pg-gap { display: none }
   .pg-compact { display: inline-flex }
 
+  /* ---- filtre drawer (doküman §9) ----
+     ≤640: tam genişlik; başlık ve uygula/temizle görünür alanda SABİT,
+     yalnız gövde kayar. 100dvh, mobil tarayıcı çubuğu panelin altını
+     görünmez alana itmesin diye. */
+  .gv-fpanel-ov { height: 100dvh }
+  .gv-fpanel { width: 100%; max-width: none; height: 100dvh; max-height: 100dvh }
+  .gv-fpanel-head { position: sticky; top: 0; z-index: 2; background: var(--paper) }
+  .gv-fpanel-foot {
+    position: sticky; bottom: 0; z-index: 2; background: var(--paper);
+    box-shadow: 0 -6px 22px rgba(17, 21, 40, .10);
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .gv-fpanel-body { padding: 18px 16px; overscroll-behavior: contain }
+
   /* toplu işlem çubuğu ekranın altında sabit */
   .gv-bulk-bar.is-sticky {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
@@ -174,7 +188,9 @@
   .btn-ghost.btn-icon-sm i { font-size: 14px }
 
   .gfield input, .gfield select, .gfield textarea { width: 100% }
-  .gv-fpanel { width: 100% }
+  /* filtre butonunda ikon+sayı her koşulda görünür kalır */
+  .gv-fp-open .fp-count { display: inline-flex }
+  .gv-fpanel-body { padding: 16px 14px }
   .gv-modal { padding: 18px 16px }
   .gc-head { padding: 14px 16px; gap: 10px }
   .gc-body { padding: 16px }

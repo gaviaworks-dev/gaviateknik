@@ -259,7 +259,9 @@
     document.documentElement.classList.toggle('gv-scroll-locked', kilitSayaci > 0);
   };
 
-  /* Tab tuzağı */
+  /* Tab tuzağı — modal, drawer ve filtre çekmecesi AYNI tuzağı kullanır
+     (doküman §13 erişilebilirlik: "modal, drawer ve dropdown focus
+     trap/return uygular"). İkinci bir kopya yazılmaz. */
   function tabTuzak(e, kap) {
     if (e.key !== 'Tab') return;
     var odaklanabilir = kap.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])');
@@ -268,6 +270,34 @@
     if (e.shiftKey && document.activeElement === ilk) { e.preventDefault(); son.focus(); }
     else if (!e.shiftKey && document.activeElement === son) { e.preventDefault(); ilk.focus(); }
   }
+
+  GV.tabTuzak = tabTuzak;
+
+  /**
+   * Katman (modal/drawer) için ortak odak yönetimi: ilk odak, Tab tuzağı,
+   * Escape ve kapanışta odak iadesi. `kapat` çağıran tarafta kalır.
+   * @param {Element} kap odak tuzağının uygulanacağı kapsayıcı
+   * @param {Function} kapat Escape'te çağrılacak kapatıcı
+   * @returns {{coz:Function}} dinleyiciyi kaldırıp odağı iade eden nesne
+   */
+  GV.odakKatmani = function (kap, kapat) {
+    var oncekiOdak = document.activeElement;
+    function tus(e) {
+      if (e.key === 'Escape') { e.preventDefault(); kapat(); return; }
+      tabTuzak(e, kap);
+    }
+    document.addEventListener('keydown', tus);
+    requestAnimationFrame(function () {
+      var odak = kap.querySelector('input:not([type="hidden"]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])');
+      if (odak && odak.focus) odak.focus();
+    });
+    return {
+      coz: function () {
+        document.removeEventListener('keydown', tus);
+        if (oncekiOdak && oncekiOdak.focus) oncekiOdak.focus();
+      }
+    };
+  };
 
   /* ================= GENEL MODAL ================= */
   window.gvModal = function (secenek) {

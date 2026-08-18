@@ -101,10 +101,12 @@
       });
     }
 
-    function aktifSayi() {
+    /** Aktif gelişmiş filtre sayısı. Kaynak verilmezse yürürlükteki durum. */
+    function aktifSayi(kaynak) {
+      var g = kaynak || durum.gelismis;
       var n = 0;
       alanlar.forEach(function (a) {
-        var v = durum.gelismis[a.k];
+        var v = g[a.k];
         if (v == null || v === '') return;
         if (Array.isArray(v)) { if (v.length) n++; return; }
         if (typeof v === 'object') {
@@ -200,17 +202,35 @@
           + '</select></div>';
       }).join('');
 
+      /* Doküman §9: "Filtre: 640 px altında drawer; uygula/temizle sticky;
+         aktif filtre sayısı butonda görünür." Panel masaüstünde de sağdan
+         açılan bir çekmecedir — ≤640'ta tam genişliğe geçer (responsive.css),
+         uygula/temizle çubuğu görünür alanda sabit kalır. */
+      var mobil = GV.altinda ? GV.altinda('sm') : false;
+      var aktif = aktifSayi();
+
       var ov = document.createElement('div');
       ov.className = 'gv-fpanel-ov';
       ov.innerHTML = '<div class="gv-fpanel" role="dialog" aria-modal="true" aria-labelledby="gvFpBaslik">'
-        + '<div class="gv-fpanel-head"><h3 id="gvFpBaslik"><i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre</h3>'
+        + '<div class="gv-fpanel-head"><h3 id="gvFpBaslik"><i class="fa-solid fa-filter" aria-hidden="true"></i>Gelişmiş Filtre'
+        + '<span class="fp-count" id="gvFpPanelCount"' + (aktif ? '' : ' hidden') + '>' + aktif + '</span></h3>'
         + '<button class="gv-fpanel-close" type="button" aria-label="Filtre panelini kapat"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>'
         + '<div class="gv-fpanel-body">' + (alanHtml || '<p class="muted" style="font-size:13px">Bu liste için ek filtre tanımlı değil.</p>') + '</div>'
-        + '<div class="gv-fpanel-foot"><button class="btn btn-ghost" type="button" data-temizle>Temizle</button>'
-        + '<button class="btn btn-acc" type="button" data-uygula><i class="fa-solid fa-check" aria-hidden="true"></i>Uygula</button></div></div>';
+        + '<div class="gv-fpanel-foot"><button class="btn btn-ghost" type="button" data-temizle>'
+        + '<i class="fa-solid fa-eraser" aria-hidden="true"></i>Temizle</button>'
+        + '<button class="btn btn-acc" type="button" data-uygula><i class="fa-solid fa-check" aria-hidden="true"></i>Uygula'
+        + '<span class="fp-count fp-count-inv" data-secili' + (aktif ? '' : ' hidden') + '>' + aktif + '</span></button></div></div>';
       document.body.appendChild(ov);
       var panel = ov.querySelector('.gv-fpanel');
       var gecici = JSON.parse(JSON.stringify(durum.gelismis));
+
+      /* Panel açıkken seçim değiştikçe sayaç canlı güncellenir; kullanıcı
+         "Uygula"ya basmadan kaç filtre biriktirdiğini görür. */
+      function sayacGuncelle() {
+        var n = aktifSayi(gecici);
+        [panel.querySelector('#gvFpPanelCount'), panel.querySelector('[data-secili]')]
+          .forEach(function (el) { if (el) { el.textContent = n; el.hidden = !n; } });
+      }
 
       panel.querySelectorAll('[data-coklu] .chip').forEach(function (c) {
         c.addEventListener('click', function () {
@@ -222,12 +242,14 @@
           var acik = i === -1;
           c.classList.toggle('is-on', acik);
           c.setAttribute('aria-pressed', acik ? 'true' : 'false');
+          sayacGuncelle();
         });
       });
       panel.querySelectorAll('[data-secim]').forEach(function (s) {
         s.addEventListener('change', function () {
           var k = s.getAttribute('data-secim');
           if (s.value) gecici[k] = s.value; else delete gecici[k];
+          sayacGuncelle();
         });
       });
       panel.querySelectorAll('[data-aralik]').forEach(function (inp) {
@@ -236,6 +258,7 @@
           if (!gecici[k] || Array.isArray(gecici[k])) gecici[k] = { min: '', max: '' };
           gecici[k][uc] = inp.value;
           if (gecici[k].min === '' && gecici[k].max === '') delete gecici[k];
+          sayacGuncelle();
         });
       });
       panel.querySelectorAll('[data-tarih]').forEach(function (inp) {
@@ -244,16 +267,17 @@
           if (!gecici[k] || Array.isArray(gecici[k])) gecici[k] = { bas: '', son: '' };
           gecici[k][uc] = inp.value;
           if (!gecici[k].bas && !gecici[k].son) delete gecici[k];
+          sayacGuncelle();
         });
       });
 
+      var odak = null;
       function kapat() {
         ov.classList.remove('open');
         if (window.gvScrollLock) gvScrollLock(false);
         setTimeout(function () { ov.remove(); }, 260);
-        document.removeEventListener('keydown', tus);
+        if (odak) odak.coz();
       }
-      function tus(e) { if (e.key === 'Escape') kapat(); }
       ov.querySelector('.gv-fpanel-close').addEventListener('click', kapat);
       ov.addEventListener('click', function (e) { if (e.target === ov) kapat(); });
       ov.querySelector('[data-temizle]').addEventListener('click', function () {
@@ -262,9 +286,12 @@
       ov.querySelector('[data-uygula]').addEventListener('click', function () {
         durum.gelismis = gecici; kapat(); uygula();
       });
-      document.addEventListener('keydown', tus);
+      /* Escape + Tab tuzağı + odak iadesi ortak katmandan gelir
+         (app.js `GV.odakKatmani`); ikinci bir kopya yazılmaz. */
+      if (GV.odakKatmani) odak = GV.odakKatmani(panel, kapat);
       if (window.gvScrollLock) gvScrollLock(true);
       requestAnimationFrame(function () { ov.classList.add('open'); });
+      return mobil;
     }
 
     function temizle() {
@@ -295,8 +322,16 @@
       var sonuc = suz();
       aktifCipleriCiz();
       cipSayilariGuncelle();
+      /* Aktif filtre sayısı BUTONDA görünür (doküman §9) ve ekran
+         okuyucuya da butonun adı üzerinden geçer. */
+      var n = aktifSayi();
       var fc = document.querySelector('#gvFpCount');
-      if (fc) { var n = aktifSayi(); fc.textContent = n; fc.hidden = !n; }
+      if (fc) { fc.textContent = n; fc.hidden = !n; }
+      var fbtn = document.querySelector(secenek.cekmeceHedef || '#gvFilterBtn');
+      if (fbtn) {
+        fbtn.setAttribute('aria-label', 'Gelişmiş filtre' + (n ? ' — ' + n + ' aktif filtre' : ''));
+        fbtn.classList.toggle('is-on', n > 0);
+      }
       urlYaz();
       if (secenek.degisti) secenek.degisti(sonuc);
     }
