@@ -168,3 +168,41 @@ gerçek backend, gerçek auth, dosya yükleme, Playwright kurulumu.
 **Şartname (`_docs/REVIZYON.md`) bu fazla kapandı.**
 
 | 2026-08-19 | 8b (düzeltme) | _qa/tarama.js · _qa/test/panel-rol.test.js | **0 bulgu (13 rol × 73 sayfa)** / YAPISAL SORUN YOK · 462 test geçti | 84dbe4f | **Protokol ihlali ve düzeltmesi:** adım 5 ve 7 taramaları yalnız `sahip` rolüyle koşuldu; 13 rollük tarama kapanışta çalıştırılınca panelde 71 "boş alan" bulgusu çıktı. Sebep: rolün izin kapsamı dışında kalan widget kabı bilerek çizilmiyor ve `hidden` işaretleniyor; tarama bunu boş kart sanıyordu. `tarama.js` artık `[data-widget][hidden]` içini atlıyor, istisnanın yalnız gizli kaplara açıldığı ayrı bir testle kilitlendi. Bundan sonraki turlarda tarama **13 rolle** koşulmalı (`node _qa/durum.js` bunu zaten yapıyor). |
+
+---
+
+## MAIN'E ALIM — 2026-08-19
+
+`faz-15-kapanis` → `main` **fast-forward** (`git merge --ff-only`).
+Merge commit **üretilmedi**, squash **yapılmadı**: `e27e9cd..acff22e` arası
+76 commit'in tamamı adım adım korundu (merge commit sayısı: 0). LEDGER
+satırlarındaki commit hash'leri bu yüzden hâlâ geçerlidir.
+
+**Merge sonrası main üzerinde koşulan denetimler**
+
+| Denetim | Sonuç |
+|---|---|
+| Rol × sayfa taraması (13 rol × 73 sayfa = 949 kombinasyon) | **0 bulgu** — her rol tek tek koşuldu, hepsi 0 |
+| Yapı bütünlüğü ayrıştırıcısı | **73 sayfa — YAPISAL SORUN YOK** |
+| Birim test (`node --test`) | **462 geçti / 0 kaldı** (27 dosya) |
+| GitHub Pages derlemesi | `built` · commit `acff22e` |
+| Canlı site (`https://gaviaworks-dev.github.io/gaviateknik/`) | `/`, `panel.html`, `is-emirleri.html`, `musteri-detay.html`, `assets/js/{api-provider,dashboard,list-controller}.js` → **hepsi HTTP 200**; canlı `panel.html` 17 `data-widget` işareti taşıyor (Faz 15 sürümü yayında) |
+
+**Branch temizliği**
+`faz-12-revizyon`, `faz-13-algoritma`, `faz-14-responsive` yerelde ve uzakta
+silindi — tarihçeleri `main`'de duruyor. `faz-15-kapanis` bırakıldı.
+**Tag'ler silinmedi:** `faz12-adim-N-oncesi` … `faz15-adim-N-oncesi` geri
+dönüş noktası olarak durur.
+
+**Geri alma**
+Main'i merge öncesine döndürmek için (tek komut, geçmiş yeniden yazılır —
+uzakta zorla itmeden önce başka kimsenin çekmediğinden emin olun):
+
+```
+git checkout main
+git reset --hard e27e9cd     # merge öncesi main (fix(faz11): QA bulguları…)
+git push --force-with-lease origin main
+```
+
+Tek bir adıma dönmek için ilgili tag yeterlidir, örn.
+`git reset --hard faz15-adim-5-oncesi`.
