@@ -43,6 +43,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Gruptaki Lokasyonlar</h2>
             </div>
           <div class="gc-body flush" id="fdLokasyon"></div>
+          <div class="gv-pager" id="fdLokasyonPg" hidden></div>
         </section>
       </div>
       <div id="pn_kalem" role="tabpanel" aria-labelledby="tb_kalem" hidden>
@@ -50,6 +51,8 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-table-list" aria-hidden="true"></i>Faturalanabilir Miktarlar</h2>
             </div>
           <div class="gc-body flush" id="fdKalem"></div>
+          <div id="fdKalemNot" hidden><div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span><b>Mükerrer faturalama engeli:</b> her satırda <i>önceki faturalanan + bu fatura</i> toplamı <i>faturalanabilir</i> miktarı aşamaz. Kalan miktar sonraki faturaya devreder.</span></div></div>
+          <div class="gv-pager" id="fdKalemPg" hidden></div>
         </section>
       </div>
       <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
@@ -57,6 +60,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Bu Gruptan Kesilen Faturalar</h2>
             </div>
           <div class="gc-body flush" id="fdFatura"></div>
+          <div class="gv-pager" id="fdFaturaPg" hidden></div>
         </section>
       </div>
       <div id="pn_engel" role="tabpanel" aria-labelledby="tb_engel" hidden>
@@ -97,6 +101,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -140,34 +147,39 @@
   document.getElementById('cnt_lokasyon').textContent = GV.n(g.lokasyonlar.length);
   document.getElementById('cnt_fatura').textContent = GV.n(faturalar.length);
 
-  /* --- lokasyonlar --- */
-  document.getElementById('fdLokasyon').innerHTML = g.lokasyonlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Lokasyon</th><th scope="col">Rapor Durumu</th><th scope="col">Mutabakat</th>'
-      + '<th scope="col">Fatura Durumu</th><th scope="col" class="num">Faturalanabilir Tutar</th>'
-      + '<th scope="col">Uygunluk</th></tr></thead><tbody>'
-      + g.lokasyonlar.map(function(lid){
-          var l = A.lokasyon(lid);
-          if (!l) return '';
-          var k = A.lokasyonFaturalanabilirMi(lid);
-          var mtb = A.mutabakatSatirlari(lid);
+  /* --- lokasyonlar ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'fatura-grubu-detay:lokasyon', onek:'lok_', filtresiz:true,
+    veri:function(){ return g.lokasyonlar.map(function(lid){ return A.lokasyon(lid); }).filter(Boolean); },
+    tablo:{ hedef:'#fdLokasyon', ad:'Gruptaki lokasyonlar', kolonlar:[
+      { k:'ad', ad:'Lokasyon', ciz:function(l){
+          return '<a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.bolge) + '</span>'; } },
+      { k:'raporDurum', ad:'Rapor Durumu', ciz:function(l){ return GV.rozet('rapor', l.raporDurum); } },
+      { k:'mutabakat', ad:'Mutabakat', ciz:function(l){
+          var mtb = A.mutabakatSatirlari(l.id);
           var onayli = mtb.filter(function(x){ return x.durum === 'onayli'; }).length;
-          return '<tr><td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(l.kod + ' · ' + l.bolge) + '</span></td>'
-            + '<td data-lbl="Rapor Durumu">' + GV.rozet('rapor', l.raporDurum) + '</td>'
-            + '<td data-lbl="Mutabakat">' + (mtb.length
-                ? (onayli === mtb.length ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
-                   : GV.rozetOzel('warn','fa-hourglass-half', onayli + '/' + mtb.length + ' onaylı'))
-                : '<span class="muted">Kayıt yok</span>') + '</td>'
-            + '<td data-lbl="Fatura Durumu">' + GV.rozet('fatura', l.faturaDurum) + '</td>'
-            + '<td data-lbl="Faturalanabilir Tutar" class="num">' + GV.tl(A.lokasyonFaturaTutari(lid, g.projeId)) + '</td>'
-            + '<td data-lbl="Uygunluk">' + (k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun')
-                : GV.rozetOzel('danger','fa-ban', k.sebep)) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="4">Toplam faturalanabilir</td>'
-      + '<td data-lbl="Faturalanabilir Tutar" class="num">' + GV.tl(d.toplamTutar) + '</td><td data-lbl="Uygunluk"></td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-location-dot', baslik:'Grupta lokasyon yok',
-        metin:'Bu fatura grubuna henüz lokasyon eklenmedi.' });
+          return mtb.length
+            ? (onayli === mtb.length ? GV.rozetOzel('ok','fa-circle-check','Tamamlandı')
+               : GV.rozetOzel('warn','fa-hourglass-half', onayli + '/' + mtb.length + ' onaylı'))
+            : '<span class="muted">Kayıt yok</span>'; } },
+      { k:'faturaDurum', ad:'Fatura Durumu', ciz:function(l){ return GV.rozet('fatura', l.faturaDurum); } },
+      { k:'tutar', ad:'Faturalanabilir Tutar', sinif:'num', ciz:function(l){
+          return GV.tl(A.lokasyonFaturaTutari(l.id, g.projeId)); } },
+      { k:'uygunluk', ad:'Uygunluk', ciz:function(l){
+          var k = A.lokasyonFaturalanabilirMi(l.id);
+          return k.uygun ? GV.rozetOzel('ok','fa-check','Faturaya uygun') : GV.rozetOzel('danger','fa-ban', k.sebep); } }
+    ], altToplam:function(){
+      /* Toplam grubun TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="4">Toplam faturalanabilir</td>'
+        + '<td data-lbl="Faturalanabilir Tutar" class="num">' + GV.tl(d.toplamTutar) + '</td>'
+        + '<td data-lbl="Uygunluk"></td></tr>'; } },
+    pager:{ hedef:'#fdLokasyonPg', boyut:10 },
+    bosDurum:{ ikon:'fa-location-dot', baslik:'Grupta lokasyon yok',
+      metin:'Bu fatura grubuna henüz lokasyon eklenmedi.' }
+  });
 
   /* --- kalemler --- */
   var kalemler = [];
@@ -180,54 +192,57 @@
   });
   document.getElementById('cnt_kalem').textContent = GV.n(kalemler.length);
 
-  document.getElementById('fdKalem').innerHTML = kalemler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Lokasyon</th><th scope="col">Poz</th><th scope="col">Hizmet</th>'
-      + '<th scope="col" class="num">Faturalanabilir</th><th scope="col" class="num">Önceki Faturalanan</th>'
-      + '<th scope="col" class="num">Kalan</th><th scope="col" class="num">Birim Fiyat</th>'
-      + '<th scope="col" class="num">Kalan Tutar</th></tr></thead><tbody>'
-      + kalemler.map(function(k){
-          return '<tr><td data-lbl="Lokasyon">' + GV.esc(k.lokasyonAd) + '</td>'
-            + '<td data-lbl="Poz"><b class="t-strong">' + GV.esc(k.mtb.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet">' + GV.esc(k.mtb.hizmetAd) + '</td>'
-            + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(k.mtb.faturalanabilir) + '</td>'
-            + '<td data-lbl="Önceki Faturalanan" class="num">' + (k.mtb.faturalanan
-                ? '<span class="diff done"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>' + GV.n(k.mtb.faturalanan) + '</span>'
-                : GV.n(0)) + '</td>'
-            + '<td data-lbl="Kalan" class="num">' + (k.mtb.kalan
-                ? '<b class="t-strong">' + GV.n(k.mtb.kalan) + '</b>' : '<span class="muted">0</span>') + '</td>'
-            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(k.birimFiyat) + '</td>'
-            + '<td data-lbl="Kalan Tutar" class="num">' + GV.tl(k.birimFiyat * k.mtb.kalan) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="3">Toplam</td>'
-      + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanabilir; }, 0)) + '</td>'
-      + '<td data-lbl="Önceki Faturalanan" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.faturalanan; }, 0)) + '</td>'
-      + '<td data-lbl="Kalan" class="num">' + GV.n(kalemler.reduce(function(t,k){ return t + k.mtb.kalan; }, 0)) + '</td>'
-      + '<td data-lbl="Birim Fiyat"></td><td data-lbl="Kalan Tutar" class="num">' + GV.tl(kalemler.reduce(function(t,k){ return t + k.birimFiyat * k.mtb.kalan; }, 0)) + '</td></tr></tfoot></table></div>'
-      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>'
-      + '<span><b>Mükerrer faturalama engeli:</b> her satırda <i>önceki faturalanan + bu fatura</i> toplamı '
-      + '<i>faturalanabilir</i> miktarı aşamaz. Kalan miktar sonraki faturaya devreder.</span></div>'
-    : gvEmpty({ ikon:'fa-table-list', baslik:'Kalem yok',
-        metin:'Gruptaki lokasyonlarda mutabakat kaydı bulunmadığı için faturalanabilir kalem oluşmadı.' });
+  function kalemToplam(fn){ return kalemler.reduce(function(t,k){ return t + fn(k); }, 0); }
+  gvList({
+    kaynak:'fatura-grubu-detay:kalem', onek:'klm_', filtresiz:true,
+    veri:function(){ return kalemler; },
+    tablo:{ hedef:'#fdKalem', ad:'Faturalanabilir kalemler', kolonlar:[
+      { k:'lokasyonAd', ad:'Lokasyon' },
+      { k:'poz', ad:'Poz', ciz:function(k){ return '<b class="t-strong">' + GV.esc(k.mtb.poz) + '</b>'; } },
+      { k:'hizmet', ad:'Hizmet', ciz:function(k){ return GV.esc(k.mtb.hizmetAd); } },
+      { k:'faturalanabilir', ad:'Faturalanabilir', sinif:'num', ciz:function(k){ return GV.n(k.mtb.faturalanabilir); } },
+      { k:'faturalanan', ad:'Önceki Faturalanan', sinif:'num', ciz:function(k){
+          return k.mtb.faturalanan
+            ? '<span class="diff done"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>' + GV.n(k.mtb.faturalanan) + '</span>'
+            : GV.n(0); } },
+      { k:'kalan', ad:'Kalan', sinif:'num', ciz:function(k){
+          return k.mtb.kalan ? '<b class="t-strong">' + GV.n(k.mtb.kalan) + '</b>' : '<span class="muted">0</span>'; } },
+      { k:'birimFiyat', ad:'Birim Fiyat', sinif:'num', ciz:function(k){ return GV.tl(k.birimFiyat); } },
+      { k:'kalanTutar', ad:'Kalan Tutar', sinif:'num', ciz:function(k){ return GV.tl(k.birimFiyat * k.mtb.kalan); } }
+    ], altToplam:function(){
+      /* Toplam grubun TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="3">Toplam</td>'
+        + '<td data-lbl="Faturalanabilir" class="num">' + GV.n(kalemToplam(function(k){ return k.mtb.faturalanabilir; })) + '</td>'
+        + '<td data-lbl="Önceki Faturalanan" class="num">' + GV.n(kalemToplam(function(k){ return k.mtb.faturalanan; })) + '</td>'
+        + '<td data-lbl="Kalan" class="num">' + GV.n(kalemToplam(function(k){ return k.mtb.kalan; })) + '</td>'
+        + '<td data-lbl="Birim Fiyat"></td><td data-lbl="Kalan Tutar" class="num">'
+        + GV.tl(kalemToplam(function(k){ return k.birimFiyat * k.mtb.kalan; })) + '</td></tr>'; } },
+    pager:{ hedef:'#fdKalemPg', boyut:10 },
+    /* Mükerrer fatura uyarısı tabloya bağlıdır; liste boşken gösterilmez. */
+    degisti:function(sonuc){ document.getElementById('fdKalemNot').hidden = !sonuc.pagination.totalRecords; },
+    bosDurum:{ ikon:'fa-table-list', baslik:'Kalem yok',
+      metin:'Gruptaki lokasyonlarda mutabakat kaydı bulunmadığı için faturalanabilir kalem oluşmadı.' }
+  });
 
   /* --- faturalar --- */
-  document.getElementById('fdFatura').innerHTML = faturalar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Fatura No</th><th scope="col">Tarih</th><th scope="col">Vade</th>'
-      + '<th scope="col" class="num">Ara Toplam</th><th scope="col" class="num">KDV</th>'
-      + '<th scope="col" class="num">Genel Toplam</th><th scope="col">Tahsilat</th></tr></thead><tbody>'
-      + faturalar.map(function(f){
-          return '<tr><td data-lbl="Fatura No"><a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(f.aciklama) + '</span></td>'
-            + '<td data-lbl="Tarih">' + GV.d(f.tarih) + '</td>'
-            + '<td data-lbl="Vade">' + GV.d(f.vade) + '</td>'
-            + '<td data-lbl="Ara Toplam" class="num">' + GV.tl(f.araToplam) + '</td>'
-            + '<td data-lbl="KDV" class="num">' + GV.tl(f.kdv) + '</td>'
-            + '<td data-lbl="Genel Toplam" class="num"><b class="t-strong">' + GV.tl(f.toplam) + '</b></td>'
-            + '<td data-lbl="Tahsilat">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura kesilmedi',
-        metin:'Bu gruptan henüz fatura kesilmedi. Faturaya uygun lokasyon oluştuğunda kesebilirsiniz.' });
+  gvList({
+    kaynak:'fatura-grubu-detay:fatura', onek:'ftr_', filtresiz:true,
+    veri:function(){ return faturalar; },
+    tablo:{ hedef:'#fdFatura', ad:'Gruptan kesilen faturalar', kolonlar:[
+      { k:'no', ad:'Fatura No', ciz:function(f){
+          return '<a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(f.aciklama) + '</span>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(f){ return GV.d(f.tarih); } },
+      { k:'vade', ad:'Vade', ciz:function(f){ return GV.d(f.vade); } },
+      { k:'araToplam', ad:'Ara Toplam', sinif:'num', ciz:function(f){ return GV.tl(f.araToplam); } },
+      { k:'kdv', ad:'KDV', sinif:'num', ciz:function(f){ return GV.tl(f.kdv); } },
+      { k:'toplam', ad:'Genel Toplam', sinif:'num', ciz:function(f){ return '<b class="t-strong">' + GV.tl(f.toplam) + '</b>'; } },
+      { k:'tahsilatDurum', ad:'Tahsilat', ciz:function(f){ return GV.rozet('tahsilat', f.tahsilatDurum); } }
+    ]},
+    pager:{ hedef:'#fdFaturaPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-invoice-dollar', baslik:'Fatura kesilmedi',
+      metin:'Bu gruptan henüz fatura kesilmedi. Faturaya uygun lokasyon oluştuğunda kesebilirsiniz.' }
+  });
 
   /* --- engeller --- */
   var engeller = g.lokasyonlar.map(function(lid){

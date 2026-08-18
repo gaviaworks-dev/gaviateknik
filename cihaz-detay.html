@@ -60,6 +60,7 @@
             <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-vials" aria-hidden="true"></i>Kalibrasyon Geçmişi</h2>
               <a class="gc-link" href="kalibrasyonlar.html">Tüm kalibrasyon kayıtları</a></div>
             <div class="gc-body flush" id="cdKlb"></div>
+            <div class="gv-pager" id="cdKlbPg" hidden></div>
           </section>
         </div>
 
@@ -67,6 +68,7 @@
           <section class="gv-card">
             <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Bu Cihazın Kullanıldığı İş Emirleri</h2></div>
             <div class="gc-body flush" id="cdIe"></div>
+            <div class="gv-pager" id="cdIePg" hidden></div>
           </section>
         </div>
 
@@ -74,6 +76,7 @@
           <section class="gv-card">
             <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Bu Cihazla Üretilen Raporlar</h2></div>
             <div class="gc-body flush" id="cdRapor"></div>
+            <div class="gv-pager" id="cdRaporPg" hidden></div>
           </section>
         </div>
       </div>
@@ -107,6 +110,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -248,59 +254,68 @@
     + '<span>Geçerlilik bitişi <b>' + GV.d(c.kalibrasyonBitis) + '</b> tarihi, son kalibrasyon tarihine ('
     + GV.d(c.kalibrasyonTarihi) + ') kuruluşun verdiği geçerlilik süresi eklenerek belirlenir; sabit 365 gün kabul edilmez.</span></div>';
 
-  /* ================= KALİBRASYON GEÇMİŞİ ================= */
-  document.getElementById('cdKlb').innerHTML = klbler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Sertifika No</th><th scope="col">Kuruluş</th><th scope="col">Kalibrasyon Tarihi</th>'
-      + '<th scope="col">Geçerlilik</th><th scope="col">Sonuç</th><th scope="col" class="num">Maliyet</th>'
-      + '<th scope="col">Açıklama</th></tr></thead><tbody>'
-      + klbler.map(function(k){
-          var g = guncelKlb && k.id === guncelKlb.id;
-          return '<tr>'
-            + '<td data-lbl="Sertifika No"><b class="t-strong">' + (k.sertifikaNo ? GV.esc(k.sertifikaNo) : 'Sertifika bekleniyor') + '</b>'
-            + (g ? ' <span class="gtag mint"><i class="fa-solid fa-star" aria-hidden="true"></i>Güncel sürüm</span>' : '') + '</td>'
-            + '<td data-lbl="Kuruluş">' + GV.esc(k.kurulus) + '</td>'
-            + '<td data-lbl="Kalibrasyon Tarihi">' + GV.d(k.tarih) + '</td>'
-            + '<td data-lbl="Geçerlilik">' + GV.d(k.bitis) + '</td>'
-            + '<td data-lbl="Sonuç">' + sonucRozet(k.sonuc) + '</td>'
-            + '<td data-lbl="Maliyet" class="num">' + GV.tl(k.maliyet) + '</td>'
-            + '<td data-lbl="Açıklama">' + GV.esc(k.aciklama || GV.bos) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-vials', baslik:'Kalibrasyon kaydı yok',
-        metin:'Bu cihaz için kayıtlı kalibrasyon sertifikası bulunmuyor. Cihazı kalibrasyona göndererek ilk kaydı oluşturabilirsiniz.' });
+  /* ================= KALİBRASYON GEÇMİŞİ =================
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'cihaz-detay:kalibrasyon', onek:'klb_', filtresiz:true,
+    veri:function(){ return klbler; },
+    tablo:{ hedef:'#cdKlb', ad:'Kalibrasyon geçmişi', kolonlar:[
+      { k:'sertifikaNo', ad:'Sertifika No', ciz:function(k){
+          return '<b class="t-strong">' + (k.sertifikaNo ? GV.esc(k.sertifikaNo) : 'Sertifika bekleniyor') + '</b>'
+            + (guncelKlb && k.id === guncelKlb.id
+              ? ' <span class="gtag mint"><i class="fa-solid fa-star" aria-hidden="true"></i>Güncel sürüm</span>' : ''); } },
+      { k:'kurulus', ad:'Kuruluş' },
+      { k:'tarih', ad:'Kalibrasyon Tarihi', ciz:function(k){ return GV.d(k.tarih); } },
+      { k:'bitis', ad:'Geçerlilik', ciz:function(k){ return GV.d(k.bitis); } },
+      { k:'sonuc', ad:'Sonuç', ciz:function(k){ return sonucRozet(k.sonuc); } },
+      { k:'maliyet', ad:'Maliyet', sinif:'num', ciz:function(k){ return GV.tl(k.maliyet); } },
+      { k:'aciklama', ad:'Açıklama', ciz:function(k){ return GV.esc(k.aciklama || GV.bos); } }
+    ]},
+    pager:{ hedef:'#cdKlbPg', boyut:10 },
+    bosDurum:{ ikon:'fa-vials', baslik:'Kalibrasyon kaydı yok',
+      metin:'Bu cihaz için kayıtlı kalibrasyon sertifikası bulunmuyor. Cihazı kalibrasyona göndererek ilk kaydı oluşturabilirsiniz.' }
+  });
 
   /* ================= KULLANILDIĞI İŞ EMİRLERİ ================= */
-  document.getElementById('cdIe').innerHTML = isEmirleri.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">İş Emri</th><th scope="col">Lokasyon</th><th scope="col">Tarih</th>'
-      + '<th scope="col">Ekip</th><th scope="col">Operasyon Durumu</th></tr></thead><tbody>'
-      + isEmirleri.map(function(ie){
-          return '<tr><td data-lbl="İş Emri"><a href="is-emri-detay.html?id=' + ie.id + '"><b class="t-strong">' + GV.esc(ie.id) + '</b></a></td>'
-            + '<td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + ie.lokasyonId + '">' + GV.esc(ie.lokasyonAd) + '</a></td>'
-            + '<td data-lbl="Tarih">' + GV.d(ie.tarih) + '</td>'
-            + '<td data-lbl="Ekip">' + GV.esc((ie.ekipAdlari || []).join(', ') || GV.bos) + '</td>'
-            + '<td data-lbl="Operasyon Durumu">' + GV.rozet('operasyon', ie.operasyonDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-clipboard-list', baslik:'İş emri kaydı yok',
-        metin:'Bu cihaz henüz hiçbir iş emrinin cihaz listesine eklenmemiş.' });
+  gvList({
+    kaynak:'cihaz-detay:isemri', onek:'ise_', filtresiz:true,
+    veri:function(){ return isEmirleri; },
+    tablo:{ hedef:'#cdIe', ad:'Cihazın kullanıldığı iş emirleri', kolonlar:[
+      { k:'id', ad:'İş Emri', ciz:function(ie){
+          return '<a href="is-emri-detay.html?id=' + ie.id + '"><b class="t-strong">' + GV.esc(ie.id) + '</b></a>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon', ciz:function(ie){
+          return '<a href="lokasyon-detay.html?id=' + ie.lokasyonId + '">' + GV.esc(ie.lokasyonAd) + '</a>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(ie){ return GV.d(ie.tarih); } },
+      { k:'ekip', ad:'Ekip', ciz:function(ie){ return GV.esc((ie.ekipAdlari || []).join(', ') || GV.bos); } },
+      { k:'operasyonDurum', ad:'Operasyon Durumu', ciz:function(ie){ return GV.rozet('operasyon', ie.operasyonDurum); } }
+    ]},
+    pager:{ hedef:'#cdIePg', boyut:10 },
+    bosDurum:{ ikon:'fa-clipboard-list', baslik:'İş emri kaydı yok',
+      metin:'Bu cihaz henüz hiçbir iş emrinin cihaz listesine eklenmemiş.' }
+  });
 
   /* ================= KULLANILDIĞI RAPORLAR ================= */
-  document.getElementById('cdRapor').innerHTML = raporlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor</th><th scope="col">İş Emri</th><th scope="col">Kontrol Tarihi</th>'
-      + '<th scope="col">Personel</th><th scope="col">Sonuç</th><th scope="col">Rapor Durumu</th></tr></thead><tbody>'
-      + raporlar.map(function(r){
-          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
-            + '<td data-lbl="İş Emri"><a href="is-emri-detay.html?id=' + r.isEmriId + '">' + GV.esc(r.isEmriId) + '</a></td>'
-            + '<td data-lbl="Kontrol Tarihi">' + GV.d(r.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Personel">' + GV.esc(r.personelAd) + '</td>'
-            + '<td data-lbl="Sonuç">' + (r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
-                : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
-                : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')) + '</td>'
-            + '<td data-lbl="Rapor Durumu">' + GV.rozet('rapor', r.durum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok',
-        metin:'Bu cihazın kullanıldığı iş emirlerine bağlı teknik rapor bulunmuyor.' });
+  gvList({
+    kaynak:'cihaz-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return raporlar; },
+    tablo:{ hedef:'#cdRapor', ad:'Cihazın kullanıldığı raporlar', kolonlar:[
+      { k:'no', ad:'Rapor', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'isEmriId', ad:'İş Emri', ciz:function(r){
+          return '<a href="is-emri-detay.html?id=' + r.isEmriId + '">' + GV.esc(r.isEmriId) + '</a>'; } },
+      { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz:function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'personelAd', ad:'Personel' },
+      { k:'sonuc', ad:'Sonuç', ciz:function(r){
+          return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+            : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+            : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+      { k:'durum', ad:'Rapor Durumu', ciz:function(r){ return GV.rozet('rapor', r.durum); } }
+    ]},
+    pager:{ hedef:'#cdRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor yok',
+      metin:'Bu cihazın kullanıldığı iş emirlerine bağlı teknik rapor bulunmuyor.' }
+  });
 
   /* ================= SAĞ KOLON — KALİBRASYON DURUMU ================= */
   var oran = (toplamGun && kalan != null) ? Math.max(0, Math.min(1, kalan / toplamGun)) : 0;

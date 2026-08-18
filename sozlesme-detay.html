@@ -56,6 +56,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Sözleşmeye Bağlı Projeler</h2>
             </div>
           <div class="gc-body flush" id="sdProje"></div>
+          <div class="gv-pager" id="sdProjePg" hidden></div>
         </section>
       </div>
       <div id="pn_poz" role="tabpanel" aria-labelledby="tb_poz" hidden>
@@ -63,6 +64,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kapsamdaki Pozisyonlar</h2>
             </div>
           <div class="gc-body flush" id="sdPoz"></div>
+          <div class="gv-pager" id="sdPozPg" hidden></div>
         </section>
       </div>
       <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
@@ -74,6 +76,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Kesilen Faturalar</h2>
             </div>
           <div class="gc-body flush" id="sdFatura"></div>
+          <div class="gv-pager" id="sdFaturaPg" hidden></div>
         </section>
       </div>
       <div id="pn_taseron" role="tabpanel" aria-labelledby="tb_taseron" hidden>
@@ -114,6 +117,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -188,24 +194,28 @@
           + '<span style="display:block;font-size:12px;color:var(--muted);line-height:1.6">' + GV.esc(c[3]) + '</span></div>';
       }).join('') + '</div>';
 
-  /* --- projeler --- */
-  document.getElementById('sdProje').innerHTML = projeler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Proje</th><th scope="col" class="num">Lokasyon</th><th scope="col" class="num">Tamamlanan</th>'
-      + '<th scope="col">İlerleme</th><th scope="col" class="num">Gelir</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + projeler.map(function(p){
-          var o = A.projeOzet(p.id);
-          return '<tr><td data-lbl="Proje"><a href="proje-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.kod) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(p.ad) + '</span></td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(o.toplam) + '</td>'
-            + '<td data-lbl="Tamamlanan" class="num">' + GV.n(o.tamamlanan) + '</td>'
-            + '<td data-lbl="İlerleme">' + GV.bar(o.ilerleme) + '</td>'
-            + '<td data-lbl="Gelir" class="num">' + GV.tl(o.gelir) + '</td>'
-            + '<td data-lbl="Durum">' + (p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
-                : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
-                : GV.rozetOzel('warn','fa-pen-ruler','Planlama')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-diagram-project', baslik:'Proje yok', metin:'Bu sözleşmeye bağlı proje açılmadı.' });
+  /* --- projeler ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'sozlesme-detay:proje', onek:'prj_', filtresiz:true,
+    veri:function(){ return projeler; },
+    tablo:{ hedef:'#sdProje', ad:'Sözleşmeye bağlı projeler', kolonlar:[
+      { k:'kod', ad:'Proje', ciz:function(p){
+          return '<a href="proje-detay.html?id=' + p.id + '"><b class="t-strong">' + GV.esc(p.kod) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(p.ad) + '</span>'; } },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(p){ return GV.n(A.projeOzet(p.id).toplam); } },
+      { k:'tamamlanan', ad:'Tamamlanan', sinif:'num', ciz:function(p){ return GV.n(A.projeOzet(p.id).tamamlanan); } },
+      { k:'ilerleme', ad:'İlerleme', ciz:function(p){ return GV.bar(A.projeOzet(p.id).ilerleme); } },
+      { k:'gelir', ad:'Gelir', sinif:'num', ciz:function(p){ return GV.tl(A.projeOzet(p.id).gelir); } },
+      { k:'durum', ad:'Durum', ciz:function(p){
+          return p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
+            : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
+            : GV.rozetOzel('warn','fa-pen-ruler','Planlama'); } }
+    ]},
+    pager:{ hedef:'#sdProjePg', boyut:10 },
+    bosDurum:{ ikon:'fa-diagram-project', baslik:'Proje yok', metin:'Bu sözleşmeye bağlı proje açılmadı.' }
+  });
 
   /* --- pozisyonlar --- */
   var pozlar = {};
@@ -224,23 +234,25 @@
   document.getElementById('cnt_poz').textContent = GV.n(pozListe.length);
 
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
-  document.getElementById('sdPoz').innerHTML = pozListe.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col" class="num">Miktar</th><th scope="col">Birim</th>'
-      + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
-      + pozListe.map(function(x){
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.h.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + x.hid + '">' + GV.esc(x.h.ad) + '</a></td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(x.lokasyon) + '</td>'
-            + '<td data-lbl="Miktar" class="num">' + GV.n(x.miktar) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(birimAd[x.h.birim] || x.h.birim) + '</td>'
-            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(x.fiyat) + '</td>'
-            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(x.fiyat * x.miktar) + '</b></td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
-      + GV.tl(pozListe.reduce(function(t,x){ return t + x.fiyat * x.miktar; }, 0)) + '</td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-list-check', baslik:'Pozisyon yok', metin:'Bu sözleşme kapsamında hizmet pozisyonu tanımlanmadı.' });
+  gvList({
+    kaynak:'sozlesme-detay:poz', onek:'poz_', filtresiz:true,
+    veri:function(){ return pozListe; },
+    tablo:{ hedef:'#sdPoz', ad:'Sözleşme pozisyonları', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(x){ return '<b class="t-strong">' + GV.esc(x.h.poz) + '</b>'; } },
+      { k:'hizmet', ad:'Hizmet', ciz:function(x){
+          return '<a href="hizmet-detay.html?id=' + x.hid + '">' + GV.esc(x.h.ad) + '</a>'; } },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(x){ return GV.n(x.lokasyon); } },
+      { k:'miktar', ad:'Miktar', sinif:'num', ciz:function(x){ return GV.n(x.miktar); } },
+      { k:'birim', ad:'Birim', ciz:function(x){ return GV.esc(birimAd[x.h.birim] || x.h.birim); } },
+      { k:'fiyat', ad:'Birim Fiyat', sinif:'num', ciz:function(x){ return GV.tl(x.fiyat); } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz:function(x){ return '<b class="t-strong">' + GV.tl(x.fiyat * x.miktar) + '</b>'; } }
+    ], altToplam:function(){
+      /* Toplam sözleşmenin TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
+        + GV.tl(pozListe.reduce(function(t,x){ return t + x.fiyat * x.miktar; }, 0)) + '</td></tr>'; } },
+    pager:{ hedef:'#sdPozPg', boyut:10 },
+    bosDurum:{ ikon:'fa-list-check', baslik:'Pozisyon yok', metin:'Bu sözleşme kapsamında hizmet pozisyonu tanımlanmadı.' }
+  });
 
   /* --- faturalama --- */
   document.getElementById('sdFaturaKural').innerHTML =
@@ -260,19 +272,21 @@
         }).join('') + '</div>'
       : '<p class="muted" style="font-size:13px;margin-top:16px">Bu sözleşme için henüz fatura grubu açılmadı.</p>');
 
-  document.getElementById('sdFatura').innerHTML = faturalar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Fatura</th><th scope="col">Tarih</th><th scope="col">Vade</th>'
-      + '<th scope="col" class="num">Tutar</th><th scope="col" class="num">Tahsil</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + faturalar.map(function(f){
-          return '<tr><td data-lbl="Fatura"><a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a></td>'
-            + '<td data-lbl="Tarih">' + GV.d(f.tarih) + '</td>'
-            + '<td data-lbl="Vade">' + GV.d(f.vade) + '</td>'
-            + '<td data-lbl="Tutar" class="num">' + GV.tl(f.toplam) + '</td>'
-            + '<td data-lbl="Tahsil" class="num">' + GV.tl(f.tahsilEdilen) + '</td>'
-            + '<td data-lbl="Durum">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu sözleşme kapsamında henüz fatura kesilmedi.' });
+  gvList({
+    kaynak:'sozlesme-detay:fatura', onek:'ftr_', filtresiz:true,
+    veri:function(){ return faturalar; },
+    tablo:{ hedef:'#sdFatura', ad:'Sözleşme faturaları', kolonlar:[
+      { k:'no', ad:'Fatura', ciz:function(f){
+          return '<a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(f){ return GV.d(f.tarih); } },
+      { k:'vade', ad:'Vade', ciz:function(f){ return GV.d(f.vade); } },
+      { k:'toplam', ad:'Tutar', sinif:'num', ciz:function(f){ return GV.tl(f.toplam); } },
+      { k:'tahsilEdilen', ad:'Tahsil', sinif:'num', ciz:function(f){ return GV.tl(f.tahsilEdilen); } },
+      { k:'tahsilatDurum', ad:'Durum', ciz:function(f){ return GV.rozet('tahsilat', f.tahsilatDurum); } }
+    ]},
+    pager:{ hedef:'#sdFaturaPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu sözleşme kapsamında henüz fatura kesilmedi.' }
+  });
 
   /* --- taşeron koşulları --- */
   var tahsilatBagli = s.taseronOdemeKurali === 'musteri-tahsilati-sonrasi';

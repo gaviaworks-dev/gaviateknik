@@ -62,6 +62,8 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-users" aria-hidden="true"></i>Taşeron Personelleri</h2>
             </div>
           <div class="gc-body flush" id="tdPersonel"></div>
+          <div id="tdPersonelNot" hidden><div class="gv-note warn" style="margin:16px 22px 22px"><i class="fa-solid fa-certificate" aria-hidden="true"></i><span>Belgesi 60 gün içinde dolacak veya dolmuş personel var. <b>Belgesi geçersiz personel kontrole atanamaz</b>; yenileme süreci başlatılmalıdır.</span></div></div>
+          <div class="gv-pager" id="tdPersonelPg" hidden></div>
         </section>
       </div>
       <div id="pn_cihaz" role="tabpanel" aria-labelledby="tb_cihaz" hidden>
@@ -75,7 +77,9 @@
         <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-tags" aria-hidden="true"></i>Taşeron Maliyet Listesi</h2>
             </div>
-          <div class="gc-body flush" id="tdFiyat"></div>
+          <div class="gc-body flush gv-cap gv-cap-lg" id="tdFiyat"></div>
+          <div id="tdFiyatNot" hidden><div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i><span><b>Taşeron alış fiyatı ile müşteri satış fiyatı tamamen ayrıdır.</b> Bu tablo yalnız iç kullanım içindir; taşerona yalnız maliyet kolonu, müşteriye yalnız satış kolonu görünür.</span></div></div>
+          <div class="gv-pager" id="tdFiyatPg" hidden></div>
         </section>
       </div>
       <div id="pn_lokasyon" role="tabpanel" aria-labelledby="tb_lokasyon" hidden>
@@ -83,6 +87,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Atanan Lokasyonlar</h2>
             </div>
           <div class="gc-body flush" id="tdLokasyon"></div>
+          <div class="gv-pager" id="tdLokasyonPg" hidden></div>
         </section>
       </div>
       <div id="pn_sla" role="tabpanel" aria-labelledby="tb_sla" hidden>
@@ -97,13 +102,14 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>Hakedişler ve Ödemeler</h2>
             </div>
           <div class="gc-body flush" id="tdHakedis"></div>
+          <div class="gv-pager" id="tdHakedisPg" hidden></div>
         </section>
       </div>
       <div id="pn_belge" role="tabpanel" aria-labelledby="tb_belge" hidden>
         <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Belgeler</h2>
             </div>
-          <div class="gc-body"><div id="tdBelge"></div><div style="margin-top:16px" id="tdYukle"></div></div>
+          <div class="gc-body"><div id="tdBelge"></div><div class="gv-pager" id="tdBelgePg" hidden style="padding-left:0;padding-right:0"></div><div style="margin-top:16px" id="tdYukle"></div></div>
         </section>
       </div>
       </div>
@@ -137,6 +143,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -206,29 +215,35 @@
     + '<div class="gv-note" style="margin-top:18px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
     + '<span>Bölge ve kapsam dışına yapılan atamalarda ulaşım maliyeti artar ve sistem planlama sırasında uyarı verir.</span></div>';
 
-  /* --- personeller --- */
-  document.getElementById('tdPersonel').innerHTML = personeller.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Personel</th><th scope="col">Görev</th><th scope="col">Yetkinlikler</th>'
-      + '<th scope="col">Belge Geçerliliği</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + personeller.map(function(p){
+  /* --- personeller ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'taseron-detay:personel', onek:'prs_', filtresiz:true,
+    veri:function(){ return personeller; },
+    tablo:{ hedef:'#tdPersonel', ad:'Taşeron personeli', kolonlar:[
+      { k:'ad', ad:'Personel', ciz:function(p){ return '<b class="t-strong">' + GV.esc(p.ad) + '</b>'; } },
+      { k:'gorev', ad:'Görev' },
+      { k:'yetkinlikler', ad:'Yetkinlikler', ciz:function(p){
+          return p.yetkinlikler.map(function(y){
+            var yy = A.kayit('yetkinlikler', y);
+            return '<span class="gtag">' + GV.esc(yy ? yy.ad : y) + '</span>'; }).join(' '); } },
+      { k:'belgeBitis', ad:'Belge Geçerliliği', ciz:function(p){ return GV.d(p.belgeBitis); } },
+      { k:'durum', ad:'Durum', ciz:function(p){
           var kalan = GV.gun(BUGUN, p.belgeBitis);
-          return '<tr><td data-lbl="Personel"><b class="t-strong">' + GV.esc(p.ad) + '</b></td>'
-            + '<td data-lbl="Görev">' + GV.esc(p.gorev) + '</td>'
-            + '<td data-lbl="Yetkinlikler">' + p.yetkinlikler.map(function(y){
-                var yy = A.kayit('yetkinlikler', y);
-                return '<span class="gtag">' + GV.esc(yy ? yy.ad : y) + '</span>'; }).join(' ') + '</td>'
-            + '<td data-lbl="Belge Geçerliliği">' + GV.d(p.belgeBitis) + '</td>'
-            + '<td data-lbl="Durum">' + (kalan < 0 ? GV.rozetOzel('danger','fa-ban','Belgesi geçersiz')
-                : kalan <= 60 ? GV.rozetOzel('warn','fa-clock', kalan + ' gün kaldı')
-                : GV.rozetOzel('ok','fa-check','Geçerli')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-      + (personeller.some(function(p){ return GV.gun(BUGUN, p.belgeBitis) <= 60; })
-        ? '<div class="gv-note warn" style="margin:16px 22px 22px"><i class="fa-solid fa-certificate" aria-hidden="true"></i>'
-          + '<span>Belgesi 60 gün içinde dolacak veya dolmuş personel var. '
-          + '<b>Belgesi geçersiz personel kontrole atanamaz</b>; yenileme süreci başlatılmalıdır.</span></div>' : '')
-    : gvEmpty({ ikon:'fa-users', baslik:'Personel kaydı yok',
-        metin:'Bu taşeronun personel bilgileri henüz sisteme girilmedi.' });
+          return kalan < 0 ? GV.rozetOzel('danger','fa-ban','Belgesi geçersiz')
+            : kalan <= 60 ? GV.rozetOzel('warn','fa-clock', kalan + ' gün kaldı')
+            : GV.rozetOzel('ok','fa-check','Geçerli'); } }
+    ]},
+    pager:{ hedef:'#tdPersonelPg', boyut:10 },
+    /* Uyarı kümenin TAMAMINA bakar; sayfa değiştirince kaybolmaz. */
+    degisti:function(){
+      document.getElementById('tdPersonelNot').hidden = !personeller.some(function(p){
+        return GV.gun(BUGUN, p.belgeBitis) <= 60; });
+    },
+    bosDurum:{ ikon:'fa-users', baslik:'Personel kaydı yok',
+      metin:'Bu taşeronun personel bilgileri henüz sisteme girilmedi.' }
+  });
 
   /* --- cihazlar --- */
   document.getElementById('tdCihaz').innerHTML =
@@ -249,40 +264,45 @@
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
   var kapsamHizmetleri = A.liste('hizmetler').filter(function(h){
     return h.durum === 'aktif' && t.kapsam.indexOf(h.kat) !== -1; });
-  document.getElementById('tdFiyat').innerHTML = kapsamHizmetleri.length
-    ? '<div class="gv-tscroll gv-cap gv-cap-lg"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col">Birim</th>'
-      + '<th scope="col" class="num">Taşeron Maliyeti</th><th scope="col" class="num">Müşteri Satış Fiyatı</th>'
-      + '<th scope="col" class="num">GAVIA Marjı</th></tr></thead><tbody>'
-      + kapsamHizmetleri.map(function(h){
+  gvList({
+    kaynak:'taseron-detay:fiyat', onek:'fyt_', filtresiz:true,
+    veri:function(){ return kapsamHizmetleri; },
+    tablo:{ hedef:'#tdFiyat', ad:'Taşeron fiyat listesi', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(h){ return '<b class="t-strong">' + GV.esc(h.poz) + '</b>'; } },
+      { k:'ad', ad:'Hizmet' },
+      { k:'birim', ad:'Birim', ciz:function(h){ return GV.esc(birimAd[h.birim] || h.birim); } },
+      /* Taşeron maliyeti ile müşteri satış fiyatı AYRI alanlardır (CLAUDE.md §8). */
+      { k:'maliyet', ad:'Taşeron Maliyeti', sinif:'num', ciz:function(h){
+          return '<b style="color:var(--warning)">' + GV.tl(A.birimMaliyet(h.id)) + '</b>'; } },
+      { k:'satis', ad:'Müşteri Satış Fiyatı', sinif:'num', ciz:function(h){
+          return GV.tl(A.birimSatisFiyati(h.id, 'FL-2026-STD')); } },
+      { k:'marj', ad:'GAVIA Marjı', sinif:'num', ciz:function(h){
           var mal = A.birimMaliyet(h.id), satis = A.birimSatisFiyati(h.id, 'FL-2026-STD');
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(h.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet">' + GV.esc(h.ad) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-            + '<td data-lbl="Taşeron Maliyeti" class="num"><b style="color:var(--warning)">' + GV.tl(mal) + '</b></td>'
-            + '<td data-lbl="Satış Fiyatı" class="num">' + GV.tl(satis) + '</td>'
-            + '<td data-lbl="Marj" class="num">' + GV.pct(satis ? (satis - mal) / satis : 0) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-      + '<div class="gv-note" style="margin:16px 22px 22px"><i class="fa-solid fa-lock" aria-hidden="true"></i>'
-      + '<span><b>Taşeron alış fiyatı ile müşteri satış fiyatı tamamen ayrıdır.</b> '
-      + 'Bu tablo yalnız iç kullanım içindir; taşerona yalnız maliyet kolonu, müşteriye yalnız satış kolonu görünür.</span></div>'
-    : gvEmpty({ ikon:'fa-tags', baslik:'Fiyat listesi yok', metin:'Bu taşeronun kapsamında aktif hizmet bulunmuyor.' });
+          return GV.pct(satis ? (satis - mal) / satis : 0); } }
+    ]},
+    pager:{ hedef:'#tdFiyatPg', boyut:10 },
+    degisti:function(sonuc){ document.getElementById('tdFiyatNot').hidden = !sonuc.pagination.totalRecords; },
+    bosDurum:{ ikon:'fa-tags', baslik:'Fiyat listesi yok', metin:'Bu taşeronun kapsamında aktif hizmet bulunmuyor.' }
+  });
 
   /* --- lokasyonlar --- */
-  document.getElementById('tdLokasyon').innerHTML = loklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Lokasyon</th><th scope="col">Müşteri</th><th scope="col">Bölge</th>'
-      + '<th scope="col">Kontrol Tarihi</th><th scope="col">Operasyon</th><th scope="col">Rapor</th></tr></thead><tbody>'
-      + loklar.map(function(l){
-          var bolgeDisi = t.bolgeler.indexOf(l.bolge) === -1;
-          return '<tr><td data-lbl="Lokasyon"><a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a></td>'
-            + '<td data-lbl="Müşteri">' + GV.esc(l.musteriAd) + '</td>'
-            + '<td data-lbl="Bölge">' + GV.esc(l.bolge) + (bolgeDisi ? ' ' + GV.rozetOzel('warn','fa-route','Bölge dışı') : '') + '</td>'
-            + '<td data-lbl="Kontrol Tarihi">' + GV.d(l.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', l.operasyonDurum) + '</td>'
-            + '<td data-lbl="Rapor">' + GV.rozet('rapor', l.raporDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-location-dot', baslik:'Lokasyon atanmadı', metin:'Bu taşerona henüz lokasyon atanmadı.' });
+  gvList({
+    kaynak:'taseron-detay:lokasyon', onek:'lok_', filtresiz:true,
+    veri:function(){ return loklar; },
+    tablo:{ hedef:'#tdLokasyon', ad:'Atanan lokasyonlar', kolonlar:[
+      { k:'ad', ad:'Lokasyon', ciz:function(l){
+          return '<a href="lokasyon-detay.html?id=' + l.id + '"><b class="t-strong">' + GV.esc(l.ad) + '</b></a>'; } },
+      { k:'musteriAd', ad:'Müşteri' },
+      { k:'bolge', ad:'Bölge', ciz:function(l){
+          return GV.esc(l.bolge) + (t.bolgeler.indexOf(l.bolge) === -1
+            ? ' ' + GV.rozetOzel('warn','fa-route','Bölge dışı') : ''); } },
+      { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz:function(l){ return GV.d(l.kontrolTarihi); } },
+      { k:'operasyonDurum', ad:'Operasyon', ciz:function(l){ return GV.rozet('operasyon', l.operasyonDurum); } },
+      { k:'raporDurum', ad:'Rapor', ciz:function(l){ return GV.rozet('rapor', l.raporDurum); } }
+    ]},
+    pager:{ hedef:'#tdLokasyonPg', boyut:10 },
+    bosDurum:{ ikon:'fa-location-dot', baslik:'Lokasyon atanmadı', metin:'Bu taşerona henüz lokasyon atanmadı.' }
+  });
 
   /* --- SLA performansı --- */
   var slaSay = { uygun:0, yaklasti:0, asildi:0 };
@@ -323,41 +343,55 @@
   ].filter(function(d){ return d.deger; }), { merkez: raporlar.length, merkezEtiket:'rapor' });
 
   /* --- hakedişler --- */
-  document.getElementById('tdHakedis').innerHTML = hakedisler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Hakediş</th><th scope="col">Dönem</th><th scope="col">Proje</th>'
-      + '<th scope="col" class="num">Tutar</th><th scope="col">Ödeme Durumu</th>'
-      + '<th scope="col">Ödeme Engeli</th><th scope="col">Ödeme Tarihi</th></tr></thead><tbody>'
-      + hakedisler.map(function(h){
+  gvList({
+    kaynak:'taseron-detay:hakedis', onek:'hkd_', filtresiz:true,
+    veri:function(){ return hakedisler; },
+    tablo:{ hedef:'#tdHakedis', ad:'Hakedişler ve ödemeler', kolonlar:[
+      { k:'no', ad:'Hakediş', ciz:function(h){
+          return '<a href="taseron-hakedisleri.html?id=' + h.id + '"><b class="t-strong">' + GV.esc(h.no) + '</b></a>'; } },
+      { k:'donem', ad:'Dönem' },
+      { k:'projeId', ad:'Proje', ciz:function(h){
           var p = A.kayit('projeler', h.projeId);
+          return p ? '<a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.kod) + '</a>' : GV.bos; } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz:function(h){ return '<b class="t-strong">' + GV.tl(h.tutar) + '</b>'; } },
+      { k:'durum', ad:'Ödeme Durumu', ciz:function(h){ return GV.rozet('taseronOdeme', h.durum); } },
+      { k:'engel', ad:'Ödeme Engeli', ciz:function(h){
           var kural = A.taseronOdenebilirMi(h.id);
-          return '<tr><td data-lbl="Hakediş"><a href="taseron-hakedisleri.html?id=' + h.id + '"><b class="t-strong">' + GV.esc(h.no) + '</b></a></td>'
-            + '<td data-lbl="Dönem">' + GV.esc(h.donem) + '</td>'
-            + '<td data-lbl="Proje">' + (p ? '<a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.kod) + '</a>' : '—') + '</td>'
-            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(h.tutar) + '</b></td>'
-            + '<td data-lbl="Ödeme Durumu">' + GV.rozet('taseronOdeme', h.durum) + '</td>'
-            + '<td data-lbl="Ödeme Engeli">' + (kural.uygun
-                ? (kural.kismi ? GV.rozetOzel('warn','fa-circle-half-stroke', GV.pct(kural.oran) + ' ödenebilir')
-                   : GV.rozetOzel('ok','fa-check','Engel yok'))
-                : GV.rozetOzel('danger','fa-ban', kural.sebep)) + '</td>'
-            + '<td data-lbl="Ödeme Tarihi">' + GV.d(h.odemeTarihi) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="3">Toplam</td>'
-      + '<td data-lbl="Tutar" class="num">' + GV.tl(hakedisler.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
-      + '<td data-lbl="" colspan="3"></td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-hand-holding-dollar', baslik:'Hakediş yok', metin:'Bu taşeron için hakediş oluşmadı.' });
+          return kural.uygun
+            ? (kural.kismi ? GV.rozetOzel('warn','fa-circle-half-stroke', GV.pct(kural.oran) + ' ödenebilir')
+               : GV.rozetOzel('ok','fa-check','Engel yok'))
+            : GV.rozetOzel('danger','fa-ban', kural.sebep); } },
+      { k:'odemeTarihi', ad:'Ödeme Tarihi', ciz:function(h){ return GV.d(h.odemeTarihi); } }
+    ], altToplam:function(){
+      /* Toplam taşeronun TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="3">Toplam</td>'
+        + '<td data-lbl="Tutar" class="num">' + GV.tl(hakedisler.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
+        + '<td data-lbl="" colspan="3"></td></tr>'; } },
+    pager:{ hedef:'#tdHakedisPg', boyut:10 },
+    bosDurum:{ ikon:'fa-hand-holding-dollar', baslik:'Hakediş yok', metin:'Bu taşeron için hakediş oluşmadı.' }
+  });
 
-  /* --- belgeler --- */
-  document.getElementById('tdBelge').innerHTML = belgeler.length
-    ? '<div class="gv-filelist">' + belgeler.map(function(b){
+  /* --- belgeler ---
+     Dosya listesi tablo değildir; ListController'ın özel çizim yolunu kullanır. */
+  gvList({
+    kaynak:'taseron-detay:belge', onek:'blg_', filtresiz:true,
+    veri:function(){ return belgeler; },
+    hedef:'#tdBelge',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('tdBelge');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      kap.innerHTML = '<div class="gv-filelist">' + sonuc.data.map(function(b){
         var p = A.kayit('personeller', b.yukleyen);
         return '<div class="gv-fileitem"><span class="fi-ico"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>'
           + '<span class="fi-info"><b>' + GV.esc(b.ad) + '</b><span>' + GV.n(b.boyutKb) + ' KB · '
-          + GV.d(b.tarih) + ' · ' + GV.esc(p ? p.ad : '—') + '</span></span>'
+          + GV.d(b.tarih) + ' · ' + GV.esc(p ? p.ad : GV.bos) + '</span></span>'
           + '<button class="ia-btn" type="button" data-demo="Belge indirme demo arayüzünde etkin değildir." aria-label="' + GV.esc(b.ad) + ' indir">'
           + '<i class="fa-solid fa-download" aria-hidden="true"></i></button></div>';
-      }).join('') + '</div>'
-    : gvEmpty({ ikon:'fa-paperclip', baslik:'Belge yok', metin:'Bu taşerona ait yüklenmiş belge bulunmuyor.' });
+      }).join('') + '</div>';
+    },
+    pager:{ hedef:'#tdBelgePg', boyut:10 },
+    bosDurum:{ ikon:'fa-paperclip', baslik:'Belge yok', metin:'Bu taşerona ait yüklenmiş belge bulunmuyor.' }
+  });
   gvDrop('#tdYukle', { baslik:'Belge yükleyin', metin:'Sözleşme, yetkinlik belgesi, kalibrasyon sertifikası · PDF' });
 
   /* --- sağ kolon --- */

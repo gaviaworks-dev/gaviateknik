@@ -24,7 +24,12 @@ const KAYITLAR = {
   'is-emri-detay.html': 'IE-2026-0011',
   'rapor-detay.html': 'RPR-2026-0001',
   'uygunsuzluk-detay.html': 'UYG-2026-001',
-  'teklif-detay.html': 'TKL-2026-001'
+  'teklif-detay.html': 'TKL-2026-001',
+  'sozlesme-detay.html': 'SZL-2026-001',
+  'fatura-grubu-detay.html': 'FGR-2026-001',
+  'taseron-detay.html': 'TSR-001',
+  'personel-detay.html': 'PRS-007',
+  'cihaz-detay.html': 'CHZ-001'
 };
 
 /** Sayfayı jsdom'da çalıştırır; yakalanan hataları ve pencereyi döndürür. */
@@ -121,7 +126,7 @@ for (const [dosya, id] of Object.entries(KAYITLAR)) {
       assert.ok(kap, pg.id + ' için liste kabı yok');
       const dolu = kap.querySelector('table') || kap.querySelector('.gv-empty')
         || kap.querySelector('.act-list') || kap.querySelector('.gv-chain')
-        || kap.querySelector('.rd-versiyon');
+        || kap.querySelector('.rd-versiyon') || kap.querySelector('.gv-filelist');
       assert.ok(dolu, pg.id + ' listesi hiç çizilmedi');
     }
   });
