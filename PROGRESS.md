@@ -255,3 +255,51 @@ pager ikinci satırı, gerçek yatay taşma. Bunlar tarayıcıda 320/375/390/480
   `ApiDataProvider` iskeleti — sonraki faz
 - Playwright görsel regresyon (VRT) — kurulum gerektiriyor, faz dışı
 - Başlıksız halka grafiklerine sayfa çağrısından başlık geçirilmesi
+
+---
+
+## Faz 15 — Kapanış: alt koleksiyonlar, rol bazlı panel, sağlayıcı iskeleti
+
+Kapsam: `_docs/REVIZYON.md` §6 (detay ekranı alt listeleri) · §12 iş paketi 9
+ve 10 · §13 kabul kontrol listesi. Branch: `faz-15-kapanis`.
+**Bu, şartnamenin son fazıdır.**
+
+| # | Adım | Sonuç |
+|---|---|---|
+| 1 | ListController çoklu liste | `onek` (URL anahtar öneki) + `filtresiz` seçenekleri; aynı sayfadaki listeler birbirinin sayfa durumunu ezmiyor. Öneksiz 41 liste sayfası bit düzeyinde aynı |
+| 2 | Alt koleksiyon grup A | `musteri-detay` · `proje-detay` · `lokasyon-detay` · `ekipman-detay` — 22 alt liste |
+| 3 | Alt koleksiyon grup B | `is-emri-detay` · `rapor-detay` · `uygunsuzluk-detay` · `teklif-detay` — 15 alt liste |
+| 4 | Alt koleksiyon grup C | `sozlesme-detay` · `fatura-grubu-detay` · `taseron-detay` · `personel-detay` · `cihaz-detay` — 20 alt liste. **13/13 detay ekranı tamam** |
+| 5 | Rol bazlı panel | `assets/js/dashboard.js` — 17 widget kayıt defteri; görünürlük `ROL_YETKI`'den türüyor (`GV.ekranIzni`). KPI kartı ve hızlı bağlantı da kapsam süzgecinden geçiyor. 13 rol anlık görüntü testi |
+| 6 | ApiDataProvider iskeleti | `assets/js/api-provider.js` — DataProvider sözleşmesinin ikinci uygulaması. **Gerçek ağ çağrısı yok**; taşıyıcı değiştirilecek tek yer. Sağlayıcı seçimi `?provider=api` / `GV.saglayiciKur` ile tek yerden |
+| 7 | Kabul kontrol listesi | `_qa/KABUL.md` — 23 madde tek tek geçildi, kanıt sütunuyla |
+
+**Kapanış ölçümleri**
+- Detay alt koleksiyonu: **13/13 ekran**, 57 alt liste ListController yolunda
+- Liste yolu: **41/41** matris sayfası + **13/13** detay ekranı
+- Ortak katman: `types` · `data-provider` · `api-provider` · `list-controller`
+  **54 sayfa**; `kimlik` · `para-zaman` · `durum-makinesi` · `form-controller` ·
+  `kpi` **73/73 sayfa**; `dashboard.js` yalnız `panel.html` (tek panel ekranı)
+- Birim test: **461 geçti / 0 kaldı** (26 dosya; Faz 15'te +116 test, 5 yeni dosya)
+- Rol × sayfa taraması: **0 bulgu** (13 rol × 73 sayfa = 949 kombinasyon)
+- Yapı bütünlüğü ayrıştırıcısı: **73 sayfa, yapısal sorun yok**
+- Kabul kontrol listesi: **17 geçti · 0 kaldı · 6 doğrulanamadı**
+
+**Doğrulama sınırı (önemli)**
+Kabul listesinin 6 maddesi gerçek tarayıcı yerleşimi ya da renk ölçümü ister
+(11 genişlikte test, gerçek yatay taşma, viewport içinde kalma, 44×44 piksel
+ölçüsü, kontrast oranı, ipucu konumu). Bunlar kural düzeyinde kilitli ama
+**ölçülmedi**; `_qa/KABUL.md` §6'da nasıl kapanacaklarıyla birlikte listeli.
+Playwright bu şartnamenin dışında bırakıldı.
+
+**Bilinen kusur — `ApiDataProvider.ozet`**
+İskelet `kume` isteğiyle süzülmüş kümenin tamamını taşıyıcıdan alıp hesabı
+yerelde uyguluyor. Gerçek backend'de bu ayrı bir toplama uç noktası olmalı ve
+kümeyi değil hesabın sonucunu döndürmeli. Kodda ve `_qa/LEDGER.md`'de işaretli.
+
+**Bu fazın dışında kalanlar (bilinçli)**
+- Gerçek backend, gerçek auth, dosya yükleme, Playwright kurulumu
+- `roller-yetkiler` rol matrisinin kart moduna alınması (bugün `gv-tscroll`
+  içinde kayıyor — Faz 14'ten devir)
+- Başlıksız halka grafiklerine sayfa çağrısından başlık geçirilmesi
+  (Faz 14'ten devir)

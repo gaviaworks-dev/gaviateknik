@@ -21,7 +21,7 @@ Faz durumu: `PROGRESS.md`.
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
     │         kimlik.js · para-zaman.js · durum-makinesi.js · form-controller.js
-    │         kpi.js
+    │         kpi.js · api-provider.js · dashboard.js
     └── images/
 ```
 
@@ -35,7 +35,13 @@ onlardan alır.
 
 Faz 12/13 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
-`durum-makinesi.js` → `form-controller.js` → `kpi.js` → `types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
+`durum-makinesi.js` → `form-controller.js` → `kpi.js` → `types.js` →
+`data-provider.js` → `api-provider.js` → `list-controller.js` → `tooltip.js`
+
+`api-provider.js` **`data-provider.js`'den hemen sonra** gelir: etkin veri
+sağlayıcısını o seçer (`window.dataProvider`), `list-controller.js` de onu
+okur. `dashboard.js` yalnız `panel.html` yükler (tek panel ekranı var) ve
+`kpi.js`'den sonra gelir.
 
 ## 2. Dosya adlandırma
 
@@ -126,6 +132,24 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 5. **Bağlantılar** — listeden detaya `?id=` ile git; detay `demoApi.get*(id)` bulamazsa `gvNotFound()` çağır.
 6. **QA** — `node _qa/link-check.js` (kırık link), 1100/980/640/480 kontrolü, konsol temiz olmalı.
 
+### Aynı sayfada birden çok liste (detay ekranı alt koleksiyonları)
+
+Detay sayfalarındaki alt listeler de `gvList` yolundan geçer. İki kural:
+
+- **Her liste kendi `onek`ini taşır** (`prj_`, `lok_`, `ftr_` …). Önek
+  `page`, `pageSize`, `sort` ve `fr_*` anahtarlarının başına yazılır; iki
+  liste birbirinin sayfa durumunu ezmez. Önek verilmeyen liste eski
+  anahtarlarda kalır — 41 liste sayfası değişmez.
+- **Alt listede filtre arayüzü yoktur:** `filtresiz: true` verilir, `gvFilter`
+  hiç kurulmaz. `kaynak` adı modül önekli olur (`musteri-detay:proje`).
+- Pager kabının id'si liste kabının id'si + `Pg`'dir; `_qa/test/detay-render.test.js`
+  bu sözleşmeyi ve önek benzersizliğini kilitler.
+- **Alt toplam satırı sayfa dilimini değil kümenin TAMAMINI toplar**
+  (`altToplam` kapanışta ham diziyi okur). Sayfa değişince toplam kaymaz.
+- Tabloya bağlı uyarı notları (mükerrer fatura engeli, belge geçerliliği vb.)
+  tablonun içine değil **ayrı statik kaba** basılır ve `degisti` geri
+  çağrısıyla açılıp kapanır; sayfa değişince kaybolmazlar.
+
 ## 7. Veri katmanı sözleşmesi
 
 - `demo-data.js` → saf veri (`window.DEMO`). İş kuralı YOK.
@@ -152,6 +176,39 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
   (`GV.komut`): her deneme bir `requestId` taşır, aynı komut ikinci kez
   çağrılırsa yeni kayıt açılmaz, önceki sonuç döner. Kayıtlar `rowVersion`
   alanı taşır (ileride If-Match).
+
+### Veri sağlayıcısı (Faz 15)
+
+- **Sayfa kodu yalnız `window.dataProvider`'ı bilir.** Hangi sağlayıcının
+  bağlı olduğu tek yerden belirlenir: `GV.saglayiciKur('mock'|'api')`
+  (`api-provider.js`). Seçim `?provider=` ile yapılır, `gv_tk_saglayici`
+  anahtarında kalıcıdır. Varsayılan `mock`.
+- İki sağlayıcı **aynı sözleşmeyi** uygular: `list · get · ozet · command`
+  (+ `tanimla · tanim · komut · onbellekDusur`). `_qa/test/saglayici-sozlesmesi.test.js`
+  aynı test kümesini ikisine de koşar; ayrıca gerçek sayfalar iki sağlayıcıyla
+  birebir aynı ekranı basar. Sözleşmeyi genişleten değişiklik **iki tarafta
+  birden** yapılır, yoksa test kırılır.
+- `ApiDataProvider` **ağa çıkmaz.** `fetch`, `XMLHttpRequest`, WebSocket,
+  uydurma uç nokta adresi, HTTP yöntemi ya da kimlik doğrulama şeması
+  içermez — backend sözleşmesi yazılmadan bunlara karar verilmez. Değişecek
+  tek yer `secenek.tasiyici`'dir.
+
+### Panel widget kayıt defteri (Faz 15)
+
+- Ana panelin içeriği sabit yazılmaz: her kart `assets/js/dashboard.js`
+  içindeki **kayıt defterinde** bir satırdır (`{k, ad, ekran, bolum}`) ve
+  ekranda `data-widget="<k>"` taşıyan bir kabı vardır.
+- **Görünürlük tek kaynaktan gelir:** `GV.ekranIzni(ekran)` → `navigation.js`
+  `ROL_YETKI`. Rol matrisi dashboard tarafında ikinci kez tanımlanmaz.
+- Çizim işlevi sayfada kalır, `GV.panelWidget(anahtar, ciz)` ile bağlanır.
+  `ciz` `false` dönerse kart gizlenir — kapsam süzgecinden sonra gösterilecek
+  kalemi kalmayan kart boş durmaz. İçi tamamen boşalan `.gv-botsec` öbeği de
+  başlığıyla birlikte gizlenir.
+- KPI kartları ve hızlı özet bağlantıları `GV.panelKapsam(liste)`'den geçer:
+  hedef ekranı kapalı olan kalem panelde gösterilmez.
+- Yeni kart eklemek = defterde yeni satır + sayfada `data-widget` kabı +
+  `GV.panelWidget` bağı. `_qa/test/panel-rol.test.js` 13 rolün anlık
+  görüntüsünü kilitler; defter değişince o dosya da güncellenir.
 
 ## 8. Zorunlu iş kuralları (ihlal edilemez)
 
@@ -211,6 +268,10 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - Her sayfada **"İçeriğe atla"** bağlantısı vardır — `navigation.js` kabuğu enjekte ederken
   gövdenin ilk odaklanabilir öğesi olarak basar (`.gv-skip`), sayfaya elle yazılmaz.
 - Canlı güncellenen sayaçlar `aria-live="polite"` taşır (bildirim zili).
+- **Boş / yükleniyor / hata durumları canlı bölgedir:** `gvEmpty` →
+  `role="status" aria-live="polite"`, `gvError` → `role="alert"`, pager kayıt
+  aralığı → `role="status"`. Liste yüklenirken kabı `aria-busy="true"` taşır
+  (ilk yükleme ve kısmi güncelleme).
 - `gvTable` her tabloya görsel olarak gizli `<caption>` basar; elle yazılan tablolarda
   `<caption class="gv-sr">` veya `aria-label` gerekir.
 - `role="tab"` düğmesi `aria-controls` ile panelini gösterir; panel `role="tabpanel"` +
@@ -232,9 +293,10 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 
 ---
 
-## 12. Faz 12 otonom protokolü
+## 12. Otonom faz protokolü (Faz 12–15)
 
-Faz 12 (`_docs/REVIZYON.md` kapsamı) otonom koşuyla yürütülür. Üç kural ihlal edilemez:
+Faz 12–15 (`_docs/REVIZYON.md` kapsamı) otonom koşuyla yürütüldü.
+Üç kural ihlal edilemez:
 
 1. **Her tur başında `node _qa/durum.js` çalıştır ve çıktısına göre devam et.**
    İlerleme hafızadan raporlanmaz. Hangi sayfanın `ListController`'a geçtiği, hangi
@@ -242,9 +304,9 @@ Faz 12 (`_docs/REVIZYON.md` kapsamı) otonom koşuyla yürütülür. Üç kural 
    okunur. `durum.js` ile `_qa/LEDGER.md` çelişirse **`durum.js` esastır** — defter elle
    yazılır, script diskten okur.
 
-2. **Her adımdan önce git tag at: `faz12-adim-N-oncesi`.**
-   Adım bozulursa `git reset --hard faz12-adim-N-oncesi` ile tek komutta dönülür.
-   Tag atılmadan adıma başlanmaz.
+2. **Her adımdan önce git tag at: `faz<NN>-adim-N-oncesi`.**
+   Adım bozulursa `git reset --hard faz<NN>-adim-N-oncesi` ile tek komutta
+   dönülür. Tag atılmadan adıma başlanmaz.
 
 3. **Her adım sonrası sırayla: tarama → ayrıştırıcı → commit → LEDGER satırı.**
    `node _qa/durum.js` temiz değilse commit atılmaz; önce bulgu kapatılır.
@@ -252,5 +314,11 @@ Faz 12 (`_docs/REVIZYON.md` kapsamı) otonom koşuyla yürütülür. Üç kural 
    tarama sonucu, commit hash, varsa bilinen kusur). Commit'siz satır yazılmaz;
    commit sütunu boş satır **yarım adım** demektir ve bir sonraki tur onu kapatır.
 
-**Faz 12 kapsam sınırı:** yeni ekran eklenmez, görsel kimlik değişmez, backend/API
-yazılmaz, sahte endpoint üretilmez. Değişiklik ortak bileşen ve davranış düzeyindedir.
+**Kapsam sınırı:** yeni ekran eklenmez, görsel kimlik değişmez, backend/API
+yazılmaz, sahte endpoint üretilmez. Değişiklik ortak bileşen ve davranış
+düzeyindedir.
+
+**Faz 15 ile şartname kapandı.** Kabul kontrol listesinin madde madde sonucu
+`_qa/KABUL.md`'dedir: 17 geçti · 0 kaldı · 6 doğrulanamadı. Doğrulanamayanlar
+gerçek tarayıcı yerleşimi / renk ölçümü isteyen maddelerdir ve orada nasıl
+kapanacaklarıyla birlikte yazılıdır — bunlara "geçti" yazılmaz.
