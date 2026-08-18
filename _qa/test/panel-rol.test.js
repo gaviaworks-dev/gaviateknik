@@ -201,3 +201,25 @@ test('içi tamamen boşalan alt öbek başlığıyla birlikte gizlenir', async (
     }
   } finally { kapat(); }
 });
+
+test('gizlenen widget kabı gerçekten boş kalır — ekranda boş kart görünmez', async () => {
+  /* Rol taraması "boş kart" bulgusunu `[data-widget][hidden]` içinde
+     aramaz (bkz. _qa/tarama.js). Bu testin işi o istisnanın gerçekten
+     yalnız GİZLİ kaplar için geçerli olduğunu doğrulamak: görünür kalan
+     hiçbir widget kabı boş olamaz. */
+  for (const rol of ['sistem', 'saha', 'satis', 'kalite', 'taseron']) {
+    const { doc, kapat } = await panel(rol);
+    try {
+      for (const kap of doc.querySelectorAll('[data-widget]')) {
+        if (kap.hidden) {
+          /* gizli kap boş OLABİLİR; ama gizli olmalı, yalnız görsel olarak değil */
+          assert.strictEqual(kap.hasAttribute('hidden'), true);
+          continue;
+        }
+        const dolu = kap.textContent.trim().length > 0
+          || kap.querySelector('svg,canvas,img,input,textarea,select');
+        assert.ok(dolu, rol + ' → görünür widget boş: ' + kap.getAttribute('data-widget'));
+      }
+    } finally { kapat(); }
+  }
+});

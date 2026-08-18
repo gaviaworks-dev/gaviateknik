@@ -88,8 +88,13 @@ async function kontrol(dosya, rol) {
     if (!doc.querySelector('.gv-crumbs')) bulgular.push({ tur: 'kabuk', mesaj: 'breadcrumb çizilmedi' });
   }
 
-  /* --- boş kart / boş bölge --- */
+  /* --- boş kart / boş bölge ---
+     Rolün izin kapsamı dışında kalan panel widget'ı bilerek çizilmez ve kabı
+     `hidden` işaretlenir (assets/js/dashboard.js). Gizli widget kullanıcıya
+     "boş kart" olarak görünmez; denetim onu boş alan saymaz. Sekme panelleri
+     bu istisnaya girmez — onlar tıklanınca açılır ve dolu olmak zorundadır. */
   doc.querySelectorAll('.gc-body, .kpi-grid').forEach(el => {
+    if (el.closest('[data-widget][hidden]')) return;
     const bos = !el.textContent.trim() && !el.querySelector('svg,canvas,img,input,textarea,select');
     if (bos) bulgular.push({ tur: 'bos-alan', mesaj: (el.className || '') + ' #' + (el.id || '—') + ' boş' });
   });
