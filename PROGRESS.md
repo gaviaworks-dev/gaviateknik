@@ -214,3 +214,44 @@ Kapsam: `_docs/REVIZYON.md` §8 (backend öncesi algoritma düzeltmeleri) ve
   `ApiDataProvider` iskeleti — sonraki fazlar
 - Demo verisinin TL alanları kuruşa **göç ettirilmedi**; kuruş hesap
   sırasında kullanılır, veri modeli TL kalır
+
+---
+
+## Faz 14 — Responsive denetim ve revizyon şartları
+
+Kapsam: `_docs/REVIZYON.md` §9 (responsive denetim) + §8 uygunsuzluk akışı
+düzeltmesi. Branch: `faz-14-responsive`.
+
+| # | Adım | Sonuç |
+|---|---|---|
+| 1 | Uygunsuzluk akışı | Doküman §8'in **altı aşaması** tamamlandı: `acik → aksiyon-planlandi → uygulandi → kanit-yuklendi → dogrulandi → kapandi`; demo veri altı aşamaya yayıldı |
+| 2 | Kırılım tokenları | `--bp-xl/lg/md/sm/xs` (1280/1100/980/640/480) tek yerde; CSS bildirimleri **bit düzeyinde aynı** |
+| 3 | Filtre drawer | ≤640 tam genişlik, uygula/temizle sabit, aktif filtre sayısı butonda, Escape/Tab tuzağı/odak iadesi |
+| 4 | Modal | ≤480 tam ekran; başlık ve kapat sabit, yalnız içerik kayar, arka plan `gvScrollLock` ile kilitli |
+| 5 | Dokunma hedefleri | ≤980'de 44×44 (görünmez katman), kritik butonlar arası ≥8 px (fiilen 14 px) |
+| 6 | Üst bar · arama · KPI · pager | Mobilde ikonla açılan tam genişlik arama katmanı; KPI ≤640 tek kolon; pager kayıt aralığı canlı bölge ve ikinci satır |
+| 7 | Takvim · grafik | Gün ayrıntı katmanı (nokta modunda erişim), `+N daha` buton oldu; üç SVG grafiğe veri tablosu + metinsel özet alternatifi |
+
+**Kapanış ölçümleri**
+- Birim test: **345 geçti / 0 kaldı** (22 dosya; Faz 14'te +107 test, 6 yeni dosya)
+- Rol × sayfa taraması: **0 bulgu** (13 rol × 73 sayfa = 949 kombinasyon)
+- Yapı bütünlüğü ayrıştırıcısı: **73 sayfa, yapısal sorun yok**
+- Kırılım eşiği kaçağı: **0** (CSS, JS ve 73 sayfanın sayfa içi stilleri denetlendi)
+- `body { overflow-x: clip }` — yatay kaydırma yalnız tanımlı kapsayıcılarda
+- Masaüstü kilidi: `responsive.css` ve `gavia-ui.css` bildirimleri yorum
+  soyutlandığında Faz 13 ile **birebir aynı**; modal sarmalayıcıları
+  `display:contents` taşıyor
+
+**Doğrulama sınırı (önemli)**
+jsdom **layout hesaplamaz**. Faz 14'te davranış (drawer açma/kapama, odak
+tuzağı, aşama geçişleri, gün katmanı modalı, grafik veri tablosu üretimi)
+gerçekten çalıştırıldı; **yerleşim maddeleri yalnız CSS kuralı düzeyinde**
+doğrulandı: tam genişlik, sticky başlık/aksiyon, 44×44 ölçüsü, tek kolon KPI,
+pager ikinci satırı, gerçek yatay taşma. Bunlar tarayıcıda 320/375/390/480/
+640/768/980 px'te gözle doğrulanmalıdır.
+
+**Bu fazın dışında kalanlar (bilinçli)**
+- Detay ekranlarının alt koleksiyonları (13 ekran), rol bazlı dashboard,
+  `ApiDataProvider` iskeleti — sonraki faz
+- Playwright görsel regresyon (VRT) — kurulum gerektiriyor, faz dışı
+- Başlıksız halka grafiklerine sayfa çağrısından başlık geçirilmesi
