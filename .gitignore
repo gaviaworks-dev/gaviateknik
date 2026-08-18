@@ -15,3 +15,7 @@ _docs/
 # Geçici
 tmp/
 *.log
+
+# QA koşum takımı bağımlılıkları (script'ler repoda, node_modules değil)
+_qa/node_modules/
+_qa/package-lock.json

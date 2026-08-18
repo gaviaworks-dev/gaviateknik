@@ -180,3 +180,28 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
 - Görsel ölçülerinde CSS render genişliği esas alınır (2x retina çarpımı yapılmaz).
 - Gerçek kişi adı, telefon, e-posta, firma unvanı kullanılmaz — hepsi kurgusaldır.
 - Tek dev HTML dosyası üretilmez.
+
+---
+
+## 12. Faz 12 otonom protokolü
+
+Faz 12 (`_docs/REVIZYON.md` kapsamı) otonom koşuyla yürütülür. Üç kural ihlal edilemez:
+
+1. **Her tur başında `node _qa/durum.js` çalıştır ve çıktısına göre devam et.**
+   İlerleme hafızadan raporlanmaz. Hangi sayfanın `ListController`'a geçtiği, hangi
+   ortak dosyanın var olduğu, testlerin ve taramaların son sonucu yalnız bu script'ten
+   okunur. `durum.js` ile `_qa/LEDGER.md` çelişirse **`durum.js` esastır** — defter elle
+   yazılır, script diskten okur.
+
+2. **Her adımdan önce git tag at: `faz12-adim-N-oncesi`.**
+   Adım bozulursa `git reset --hard faz12-adim-N-oncesi` ile tek komutta dönülür.
+   Tag atılmadan adıma başlanmaz.
+
+3. **Her adım sonrası sırayla: tarama → ayrıştırıcı → commit → LEDGER satırı.**
+   `node _qa/durum.js` temiz değilse commit atılmaz; önce bulgu kapatılır.
+   Commit'ten sonra `_qa/LEDGER.md`'ye tek satır eklenir (tarih, adım no, dosyalar,
+   tarama sonucu, commit hash, varsa bilinen kusur). Commit'siz satır yazılmaz;
+   commit sütunu boş satır **yarım adım** demektir ve bir sonraki tur onu kapatır.
+
+**Faz 12 kapsam sınırı:** yeni ekran eklenmez, görsel kimlik değişmez, backend/API
+yazılmaz, sahte endpoint üretilmez. Değişiklik ortak bileşen ve davranış düzeyindedir.
