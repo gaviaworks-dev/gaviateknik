@@ -11,6 +11,13 @@
      fr_<alan> → aralık/tarih filtreleri (gvFilter bunları URL'ye yazmaz)
    Filtre, arama, sıralama ya da pageSize değişince page daima 1 olur.
 
+   ÇOKLU LİSTE (doküman §6 — detay ekranı alt koleksiyonları):
+   Bir sayfada birden çok liste varsa her biri `onek` alır ve URL anahtarlarını
+   o önekle yazar (`prj_page`, `prj_sort`, …). Önek verilmeyen liste eski
+   anahtarları kullanır; 41 liste sayfası bit düzeyinde aynı kalır.
+   Alt koleksiyonlarda filtre arayüzü yoktur → `filtresiz:true` gvFilter'ı
+   hiç kurmaz, sorgu durumu denetleyicinin kendi içindedir.
+
    Global API: gvList
    ===================================================================== */
 (function () {
@@ -42,6 +49,8 @@
   /**
    * @param {Object} secenek
    * @param {string} secenek.kaynak       dataProvider kaynak adı
+   * @param {string} [secenek.onek]       URL anahtar öneki (çoklu liste)
+   * @param {boolean} [secenek.filtresiz] gvFilter kurulmasın (alt koleksiyon)
    * @param {()=>Array<Object>} secenek.veri  ham kayıtları döndürür
    * @param {string[]} [secenek.arama]
    * @param {Object} [secenek.cipler]
@@ -82,11 +91,18 @@
       onbellek: secenek.onbellek !== false
     });
 
+    /* ---- URL anahtar öneki ----
+       Aynı sayfadaki iki liste birbirinin sayfa durumunu ezmesin diye her
+       liste kendi önekini taşır. Önek yoksa anahtarlar eski hâliyle kalır. */
+    var onek = secenek.onek ? String(secenek.onek) : '';
+    function pAd(ad) { return onek + ad; }
+    var filtresiz = !!secenek.filtresiz;
+
     /* ---- durum ---- */
     var u0 = new URLSearchParams(location.search);
-    var sayfa = GV.kelepce(u0.get('page') || 1, 1, 1e6);
-    var boyut = GV.sorguNormalize({ pageSize: u0.get('pageSize') || pagerSecenek.boyut }).pageSize;
-    var sira = GV.siraCoz(u0.get('sort'));
+    var sayfa = GV.kelepce(u0.get(pAd('page')) || 1, 1, 1e6);
+    var boyut = GV.sorguNormalize({ pageSize: u0.get(pAd('pageSize')) || pagerSecenek.boyut }).pageSize;
+    var sira = GV.siraCoz(u0.get(pAd('sort')));
     var ilkYukleme = true;
     var sonSonuc = null;
     var filtre = null, hazir = false;
@@ -96,7 +112,7 @@
     var urlAralik = {};
     alanlar.forEach(function (a) {
       if (a.tur !== 'aralik' && a.tur !== 'tarih') return;
-      var ham = u0.get('fr_' + a.k);
+      var ham = u0.get(pAd('fr_' + a.k));
       if (!ham) return;
       var v = nesneCoz(ham);
       if (v) urlAralik[a.k] = v;
@@ -123,18 +139,24 @@
       });
     }
 
+    /* Önekli listenin varsayılan boyutu kendi pager ayarıdır; o boyutta URL'ye
+       pageSize yazılmaz (temiz adres). Öneksiz liste eski sözleşmede kalır. */
+    function varsayilanBoyut() {
+      if (!onek) return GV.SAYFA_BOYUTU_VARSAYILAN;
+      return GV.sorguNormalize({ pageSize: pagerSecenek.boyut }).pageSize;
+    }
+
     /* ---- URL yazımı ---- */
     function urlYaz(sorgu, push) {
-      var yama = {
-        page: sorgu.page > 1 ? sorgu.page : null,
-        pageSize: sorgu.pageSize !== GV.SAYFA_BOYUTU_VARSAYILAN ? sorgu.pageSize : null,
-        sort: GV.siraYaz(sorgu.sort)
-      };
+      var yama = {};
+      yama[pAd('page')] = sorgu.page > 1 ? sorgu.page : null;
+      yama[pAd('pageSize')] = sorgu.pageSize !== varsayilanBoyut() ? sorgu.pageSize : null;
+      yama[pAd('sort')] = GV.siraYaz(sorgu.sort);
       /* aralık/tarih filtreleri — gvFilter'ın yazmadıkları */
       alanlar.forEach(function (a) {
         if (a.tur !== 'aralik' && a.tur !== 'tarih') return;
         var v = sorgu.filters[a.k];
-        yama['fr_' + a.k] = v && typeof v === 'object' && !Array.isArray(v) ? nesneKodla(v) : null;
+        yama[pAd('fr_' + a.k)] = v && typeof v === 'object' && !Array.isArray(v) ? nesneKodla(v) : null;
       });
       GV.qCok(yama, { push: !!push });
     }
@@ -260,7 +282,7 @@
        ondan DEĞİL, dataProvider'dan gelir. Denetleyici gvFilter'ı yalnız
        durum kaynağı ve arayüz (çipler, çekmece, aktif filtre satırı) olarak
        kullanır — filters.js'e dokunulmaz. */
-    filtre = gvFilter(Object.assign({}, secenek.filtre || {}, {
+    if (!filtresiz) filtre = gvFilter(Object.assign({}, secenek.filtre || {}, {
       veri: secenek.veri,
       arama: secenek.arama,
       cipler: secenek.cipler,
@@ -274,7 +296,7 @@
     }));
 
     /* URL'den gelen aralık/tarih filtrelerini gvFilter durumuna enjekte et */
-    if (Object.keys(urlAralik).length) {
+    if (filtre && Object.keys(urlAralik).length) {
       Object.keys(urlAralik).forEach(function (k) { filtre.durum.gelismis[k] = urlAralik[k]; });
     }
 
@@ -284,6 +306,7 @@
        gvFilter.temizle() çip düğmelerinin görsel durumunu sıfırlamıyor;
        filters.js'e dokunmadan burada eşitlenir. */
     function filtreleriTemizle() {
+      if (!filtre) return;
       filtre.temizle();
       var cipKap = document.querySelector((secenek.filtre && secenek.filtre.cipHedef) || '#gvChips');
       if (cipKap) {
@@ -294,7 +317,7 @@
         });
       }
       alanlar.forEach(function (a) {
-        if (a.tur === 'aralik' || a.tur === 'tarih') GV.qYaz('fr_' + a.k, null);
+        if (a.tur === 'aralik' || a.tur === 'tarih') GV.qYaz(pAd('fr_' + a.k), null);
       });
     }
     /* Aksiyon boş ekranın içindedir; dinleyici sayfa geneline değil o kabın
@@ -312,8 +335,8 @@
     var sonImza = null;
     function imza() {
       var u = new URLSearchParams(location.search);
-      return [u.get('page') || '1', u.get('pageSize') || '', u.get('sort') || '',
-              u.get('q') || '', u.get('durum') || ''].join('~');
+      return [u.get(pAd('page')) || '1', u.get(pAd('pageSize')) || '', u.get(pAd('sort')) || '',
+              filtresiz ? '' : (u.get('q') || ''), filtresiz ? '' : (u.get('durum') || '')].join('~');
     }
     window.addEventListener('popstate', function () {
       var yeni = imza();
