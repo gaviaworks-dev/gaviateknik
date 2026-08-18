@@ -21,3 +21,4 @@
 | 2026-08-18 | 6 | assets/js/navigation.js · _qa/test/navigation.test.js | 0 bulgu / YAPISAL SORUN YOK · 87 test geçti | fb30d13 | — |
 | 2026-08-18 | 7 | assets/js/tooltip.js · assets/css/gavia-ui.css · assets/js/navigation.js · 72 sayfa (script etiketi) · _qa/test/tooltip.test.js | 0 bulgu / YAPISAL SORUN YOK · 100 test geçti | 5207cff | — |
 | 2026-08-18 | 8 | assets/js/app.js · 14 detay sayfası · _qa/test/route-id.test.js | 0 bulgu / YAPISAL SORUN YOK · 121 test geçti | 789869e | — |
+| 2026-08-18 | 9 | 21 sayfa (117 data-lbl) · _qa/test/data-lbl.test.js | 0 bulgu / YAPISAL SORUN YOK · 125 test geçti | 9176426 | rapor-detay `rd-kriter` ve faturalar/rapor-detay `pr-tablo` tabloları kapsam dışı bırakıldı (kart moduna girmiyorlar); düz `gtable` tabloları `gtable-cards`'a alınmadı — yerleşim kararı |

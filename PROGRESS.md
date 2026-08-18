@@ -144,3 +144,36 @@ ana ajan tarafından düzeltildi.
 - [x] BRIEF'in 73 sayfasının tamamı üretildi, eksik yok
 
 **Son durum:** 13 rol × 73 sayfa = 949 kombinasyon, **0 bulgu**.
+
+---
+
+## FAZ 12 — FRONTEND REVİZYONU ✅ 9/9 ADIM TAMAMLANDI
+
+Kaynak: `_docs/REVIZYON.md` (bağlayıcı kapsam) · plan: `_docs/FAZ12-PLAN.md`
+Adım defteri: `_qa/LEDGER.md` · ilerleme kaynağı: `node _qa/durum.js`
+Branch: `faz-12-revizyon` (GitHub Pages `main` yayınlıyor, canlı etkilenmedi).
+
+| # | Adım | Sonuç |
+|---|---|---|
+| 1 | `types.js` + `data-provider.js` | Tip sözleşmesi (JSDoc) ve MockDataProvider |
+| 2 | `app.js` `qYaz` seçeneği + `list-controller.js` | URL sözleşmesi ve tek liste akışı |
+| 3 | `components.js` `gvPager` seçenekleri | `url` · `boyutSecici` · `sikisik` · `sayfaya` — hepsi varsayılan kapalı |
+| 4 | Pilot: `hizmet-katalogu` + `ekipmanlar` | 59 ve 310 kayıtlı iki uç senaryo |
+| 5 | Yayılım (5 grup × ~8 sayfa) | Doküman matrisi **41/41** |
+| 6 | `navigation.js` | `routeRegistry` + çekmece focus trap / kilit / Escape / odak iadesi |
+| 7 | `tooltip.js` | Rail ipucu gerçek DOM düğümüne geçti, klavyeyle erişilebilir |
+| 8 | Route id doğrulama | 14 detay sayfasında sabit kayda düşme kaldırıldı |
+| 9 | `data-lbl` tamamlama | 21 sayfada 117 hücre etiketlendi |
+
+**Kapanış ölçümleri**
+- Doküman matrisi: **41/41** sayfa `ListController` yolunda, eski yolda **0**
+- Ortak katman: `types.js` · `data-provider.js` · `list-controller.js` (41 sayfa) · `tooltip.js` (72 sayfa)
+- Birim test: **125 geçti / 0 kaldı** (`node --test "_qa/test/*.test.js"`)
+- Rol × sayfa taraması: **0 bulgu** (13 rol × 73 sayfa = 949 kombinasyon)
+- Yapı bütünlüğü ayrıştırıcısı: **73 sayfa, yapısal sorun yok**
+
+**Bu fazın dışında kalanlar (bilinçli)**
+- Detay ekranlarının alt koleksiyonlarının sayfalanması (13 ekran) — koşu kapsamında değildi
+- Durum makineleri (tek `transition` fonksiyonu) ve `crypto.randomUUID` kimlik üretimi
+- Breakpoint tokenları ve düz `gtable` tablolarının kart moduna alınması (yerleşim kararı)
+- `pr-tablo` / `rd-kriter` yazdırma ve ölçüm tabloları — kart moduna girmiyorlar
