@@ -182,7 +182,7 @@
       return;
     }
     var liste = secili ? [secili] : aday;
-    gvModal({
+    gvModalForm({
       baslik: secili ? 'Kalibrasyona gönder — ' + secili.kod : 'Kalibrasyona gönder',
       ikon:'fa-vials', genislik:'gv-modal-lg',
       metin: secili
@@ -208,37 +208,44 @@
         + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
         + '<span>Geçerlilik bitiş tarihi ve sertifika numarası, kuruluş sertifikayı düzenlediğinde girilir. '
         + 'Sertifika gelmeden <b>sahte tarih üretilmez</b>; kayıt “sertifika bekleniyor” durumunda açılır.</span></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kalibrasyona gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-            var cid = secili ? secili.id : kap.querySelector('#klCihaz').value;
-            var kurulus = kap.querySelector('#klKurulus').value;
-            var tarih = kap.querySelector('#klTarih').value || null;
-            var maliyet = Number(kap.querySelector('#klMaliyet').value) || 0;
-            var aciklama = kap.querySelector('#klAciklama').value.trim();
-            var c = cihazBul(cid);
-            var kayit = {
-              id: yeniKlbId(), cihazId: cid, tarih: tarih, bitis: null,
-              kurulus: kurulus, sertifikaNo: null, sonuc: 'bekliyor', maliyet: maliyet,
-              aciklama: aciklama || 'Kalibrasyona gönderildi; sertifika bekleniyor.'
-            };
-            A.ekle('kalibrasyonlar', kayit)
-              .then(function(){
-                return GV.gecisUygula('cihaz', 'olcumCihazlari', cid, 'serviste', {
-                  not:'Kalibrasyona gönderildi · ' + kurulus, ekYama: { kurulus: kurulus } });
-              })
-              .then(function(g){
-                if (!g.ok) return;
-                gvResult(true, {
-                  baslik:'Cihaz kalibrasyona gönderildi',
-                  metin: '<b>' + GV.esc(c ? c.kod : cid) + '</b> için <b>' + GV.esc(kayit.id) + '</b> numaralı kalibrasyon kaydı açıldı. '
-                    + 'Kuruluş: ' + GV.esc(kurulus) + ' · Planlanan tarih: ' + GV.d(tarih) + ' · Tahmini maliyet: ' + GV.tl(maliyet) + '. '
-                    + 'Cihaz serviste olduğu için iş emrine atanamaz.',
-                  butonlar:[{ etiket:'Kapat', sinif:'btn-ghost', tikla: function(){ setTimeout(function(){ location.reload(); }, 200); } },
-                    { etiket:'Cihaz kartını aç', sinif:'btn-acc', ikon:'fa-ruler-combined',
-                      tikla: function(){ location.href = GV.href('cihaz-detay.html?id=' + cid); } }]
-                });
-              });
-          } }]
+      sema: {
+        klCihaz:    { etiket:'Cihaz', zorunlu:true },
+        klKurulus:  { etiket:'Kalibrasyon kuruluşu', zorunlu:true },
+        klTarih:    { etiket:'Planlanan tarih', tur:'tarih', zorunlu:true },
+        klMaliyet:  { etiket:'Tahmini maliyet', tur:'sayi', zorunlu:true, enAz:0 },
+        klAciklama: { etiket:'Açıklama', enCok:400 }
+      },
+      ad:'SendDeviceToCalibration',
+      onayEtiket:'Kalibrasyona gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        var cid = secili ? secili.id : v.klCihaz;
+        var c = cihazBul(cid);
+        var kayit = {
+          id: yeniKlbId(), cihazId: cid, tarih: v.klTarih, bitis: null,
+          kurulus: v.klKurulus, sertifikaNo: null, sonuc: 'bekliyor',
+          maliyet: Number(v.klMaliyet),
+          aciklama: v.klAciklama || 'Kalibrasyona gönderildi; sertifika bekleniyor.'
+        };
+        return A.ekle('kalibrasyonlar', kayit)
+          .then(function(){
+            return GV.gecisUygula('cihaz', 'olcumCihazlari', cid, 'serviste', {
+              not:'Kalibrasyona gönderildi · ' + v.klKurulus, sessiz: true,
+              ekYama: { kurulus: v.klKurulus } });
+          })
+          .then(function(g){
+            if (!g.ok) throw new Error(g.sebep);
+            gvResult(true, {
+              baslik:'Cihaz kalibrasyona gönderildi',
+              metin: '<b>' + GV.esc(c ? c.kod : cid) + '</b> için <b>' + GV.esc(kayit.id) + '</b> numaralı kalibrasyon kaydı açıldı. '
+                + 'Kuruluş: ' + GV.esc(v.klKurulus) + ' · Planlanan tarih: ' + GV.d(v.klTarih)
+                + ' · Tahmini maliyet: ' + GV.tl(Number(v.klMaliyet)) + '. '
+                + 'Cihaz serviste olduğu için iş emrine atanamaz.',
+              butonlar:[{ etiket:'Kapat', sinif:'btn-ghost', tikla: function(){ setTimeout(function(){ location.reload(); }, 200); } },
+                { etiket:'Cihaz kartını aç', sinif:'btn-acc', ikon:'fa-ruler-combined',
+                  tikla: function(){ location.href = GV.href('cihaz-detay.html?id=' + cid); } }]
+            });
+          });
+      }
     });
   }
   document.getElementById('klYeni').addEventListener('click', function(){ klbModal(null); });

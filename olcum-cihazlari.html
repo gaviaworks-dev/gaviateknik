@@ -192,7 +192,7 @@
   /* Kalibrasyona gönder — durum 'serviste' olur */
   function kalibrasyonModal(idler){
     var adlar = idler.map(function(i){ var c = A.kayit('olcumCihazlari', i); return c ? c.kod + ' · ' + c.ad : i; });
-    gvModal({
+    gvModalForm({
       baslik: idler.length > 1 ? idler.length + ' cihaz kalibrasyona gönderilsin' : 'Cihaz kalibrasyona gönderilsin',
       ikon:'fa-vials', genislik:'gv-modal-lg',
       metin:'Seçilen cihaz kalibrasyon sürecine alınır ve <b>serviste</b> durumuna geçer. Serviste olan cihaz iş emrine atanamaz.',
@@ -209,22 +209,26 @@
         + '</div>'
         + '<div class="gv-note" style="margin-top:14px"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>'
         + '<span>Kapsam: ' + GV.esc(adlar.join(' · ')) + '</span></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kalibrasyona gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-            var kurulus = kap.querySelector('#ocKlbKurulus').value;
-            var tarih = kap.querySelector('#ocKlbTarih').value || null;
-            var maliyet = Number(kap.querySelector('#ocKlbMaliyet').value) || 0;
-            var not = kap.querySelector('#ocKlbNot').value.trim();
-            GV.gecisTopluUygula('cihaz', 'olcumCihazlari', idler, 'serviste', {
-              not:'Kalibrasyona gönderildi · ' + kurulus + ' · tahmini ' + maliyet + ' ₺' + (not ? ' · ' + not : ''),
-              ekYama: { kurulus: kurulus }
-            }).then(function(r){
-              var oldu = GV.gecisTopluBildir(r, {
-                basarisizBaslik:'Cihaz kalibrasyona gönderilemedi',
-                metin: function(n){ return n + ' cihaz kalibrasyona gönderildi.'; } });
-              if (oldu) setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        ocKlbKurulus: { etiket:'Kalibrasyon kuruluşu', zorunlu:true },
+        ocKlbTarih:   { etiket:'Planlanan gönderim tarihi', tur:'tarih', zorunlu:true },
+        ocKlbMaliyet: { etiket:'Tahmini maliyet', tur:'sayi', zorunlu:true, enAz:0 },
+        ocKlbNot:     { etiket:'Açıklama', enCok:400 }
+      },
+      ad:'SendDevicesToCalibration',
+      onayEtiket:'Kalibrasyona gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        return GV.gecisTopluUygula('cihaz', 'olcumCihazlari', idler, 'serviste', {
+          not:'Kalibrasyona gönderildi · ' + v.ocKlbKurulus + ' · tahmini ' + v.ocKlbMaliyet + ' ₺'
+            + (v.ocKlbNot ? ' · ' + v.ocKlbNot : ''),
+          ekYama: { kurulus: v.ocKlbKurulus }
+        }).then(function(r){
+          var oldu = GV.gecisTopluBildir(r, {
+            basarisizBaslik:'Cihaz kalibrasyona gönderilemedi',
+            metin: function(n){ return n + ' cihaz kalibrasyona gönderildi.'; } });
+          if (oldu) setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   }
 

@@ -262,7 +262,7 @@
   });
 
   document.getElementById('flYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni fiyat listesi', ikon:'fa-plus',
       govde:'<div class="gform">'
         + '<div class="gfield full"><label for="fyAd">Liste adı *</label><input type="text" id="fyAd" placeholder="2027 Standart Satış Fiyat Listesi"></div>'
@@ -273,23 +273,28 @@
         + '<div class="gfield"><label for="fyBit">Geçerlilik bitişi *</label><input type="date" id="fyBit"></div>'
         + '<div class="gfield full"><label for="fyAciklama">Açıklama</label><textarea id="fyAciklama" placeholder="Listenin hangi sözleşme veya müşteri için kullanılacağı"></textarea></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#fyAd').value.trim();
-            var bas = kap.querySelector('#fyBas').value, bit = kap.querySelector('#fyBit').value;
-            if (!ad || !bas || !bit) { gvToast('Liste adı ve geçerlilik tarihleri zorunludur.', { ton:'danger' }); return false; }
-            if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
-            var yeniId = GV.yeniKod('FL-Y');
-            A.harita('listeKatsayilari')[yeniId] = Number(kap.querySelector('#fyKat').value || 1);
-            A.ekle('fiyatListeleri', {
-              id: yeniId, ad: ad, tur: kap.querySelector('#fyTur').value, versiyon:'v1',
-              gecerli: bas, bitis: bit, paraBirimi:'TRY', durum:'aktif',
-              aciklama: kap.querySelector('#fyAciklama').value.trim() || 'Yeni oluşturulan fiyat listesi.'
-            }).then(function(){
-              gvToast('Fiyat listesi oluşturuldu.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        fyAd:       { etiket:'Liste adı', zorunlu:true, enAz:5, enCok:120 },
+        fyTur:      { etiket:'Liste türü', zorunlu:true },
+        fyKat:      { etiket:'Katsayı', tur:'sayi', zorunlu:true, enAz:0.3, enCok:2 },
+        fyBas:      { etiket:'Geçerlilik başlangıcı', tur:'tarih', zorunlu:true },
+        fyBit:      { etiket:'Geçerlilik bitişi', tur:'tarih', zorunlu:true, sonra:'fyBas' },
+        fyAciklama: { etiket:'Açıklama', enCok:400 }
+      },
+      ad:'CreatePriceList',
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v){
+        var yeniId = GV.yeniKod('FL-Y');
+        A.harita('listeKatsayilari')[yeniId] = Number(v.fyKat || 1);
+        return A.ekle('fiyatListeleri', {
+          id: yeniId, ad: v.fyAd, tur: v.fyTur, versiyon:'v1',
+          gecerli: v.fyBas, bitis: v.fyBit, paraBirimi:'TRY', durum:'aktif',
+          aciklama: v.fyAciklama || 'Yeni oluşturulan fiyat listesi.'
+        }).then(function(){
+          gvToast('Fiyat listesi oluşturuldu.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();

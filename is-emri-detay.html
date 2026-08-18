@@ -416,7 +416,7 @@
 
   document.getElementById('idHazirlikGonder').addEventListener('click', function(){
     var maddeler = A.liste('hazirlikMaddeleri');
-    gvModal({
+    gvModalForm({
       baslik:'Saha öncesi hazırlık bildirimi', ikon:'fa-paper-plane', genislik:'gv-modal-lg',
       metin:'Müşteri yetkilisine kontrol tarihi, kontrol edilecek ekipmanlar ve hazırlık gereklilikleri gönderilecek.',
       govde:'<div class="gform">'
@@ -429,18 +429,23 @@
           + ' hizmet kalemi, yaklaşık ' + hizmetler.reduce(function(t,h){ return t + h.planlananMiktar; }, 0) + ' ekipman/birim.\n\n'
           + 'Hazırlık gereklilikleri:\n' + maddeler.map(function(m,i){ return (i+1) + '. ' + m.ad; }).join('\n')
           + '\n\nBilgilerinize sunar, iyi çalışmalar dileriz.') + '</textarea></div></div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-            A.ekle('iletisimGecmisi', {
-              id:GV.yeniKod('ILT-H'),
-              musteriId: l ? l.musteriId : null, lokasyonId: ie.lokasyonId,
-              kisiId: kap.querySelector('#idAlici').value || null,
-              tur:'hatirlatma', tarih: BUGUN + 'T09:00:00',
-              kullaniciId: (GV.rolBilgi || {}).personelId,
-              konu:'Saha öncesi hazırlık bildirimi — ' + ie.id,
-              ozet: maddeler.length + ' maddelik hazırlık listesi ve kontrol kapsamı iletildi.'
-            }).then(function(){ gvToast('Hazırlık bildirimi gönderildi (demo).', { ton:'ok' }); });
-          } }]
+      sema: {
+        idAlici: { etiket:'Alıcı', zorunlu:true },
+        idMesaj: { etiket:'Mesaj', zorunlu:true, enAz:20, enCok:2000 }
+      },
+      ad:'SendPreVisitNotice',
+      onayEtiket:'Gönder', onayIkon:'fa-paper-plane',
+      gonder: function(v){
+        return A.ekle('iletisimGecmisi', {
+          id:GV.yeniKod('ILT-H'),
+          musteriId: l ? l.musteriId : null, lokasyonId: ie.lokasyonId,
+          kisiId: v.idAlici || null,
+          tur:'hatirlatma', tarih: BUGUN + 'T09:00:00',
+          kullaniciId: (GV.rolBilgi || {}).personelId,
+          konu:'Saha öncesi hazırlık bildirimi — ' + ie.id,
+          ozet: maddeler.length + ' maddelik hazırlık listesi ve kontrol kapsamı iletildi.'
+        }).then(function(){ gvToast('Hazırlık bildirimi gönderildi (demo).', { ton:'ok' }); });
+      }
     });
   });
 

@@ -233,7 +233,7 @@
   });
 
   document.getElementById('hkYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni hizmet pozisyonu', ikon:'fa-plus', genislik:'gv-modal-lg',
       metin:'Aynı isimli fakat farklı teknik içeriğe sahip hizmetler <b>benzersiz pozisyon kodu</b> ile ayrılır (örneğin dizel ve akülü forklift).',
       govde:'<div class="gform">'
@@ -252,30 +252,38 @@
         + A.liste('raporSablonlari').map(function(s){ return '<option value="' + s.id + '">' + GV.esc(s.ad) + '</option>'; }).join('') + '</select></div>'
         + '<div class="gfield"><label for="hySure">Tahmini süre (dk)</label><input type="number" id="hySure" min="0" value="30"></div>'
         + '</div>',
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Kaydet', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var ad = kap.querySelector('#hyAd').value.trim();
-            var poz = kap.querySelector('#hyPoz').value.trim();
-            var satis = Number(kap.querySelector('#hySatis').value || 0);
-            if (!ad || !poz || !satis) { gvToast('Hizmet adı, pozisyon kodu ve satış fiyatı zorunludur.', { ton:'danger' }); return false; }
-            if (A.liste('hizmetler').some(function(h){ return h.poz === poz; })) {
-              gvToast('Bu pozisyon kodu zaten kullanılıyor. Benzersiz bir kod girin.', { ton:'danger' }); return false;
-            }
-            var kat = kap.querySelector('#hyKat').value;
-            var yeniId = GV.yeniKod('HZM-Y');
-            A.harita('hizmetFiyatlari')[yeniId] = { satis: satis, maliyet: Number(kap.querySelector('#hyMaliyet').value || 0) };
-            A.ekle('hizmetler', {
-              id: yeniId, poz: poz, ad: ad, kat: kat,
-              birim: kap.querySelector('#hyBirim').value,
-              periyotAy: Number(kap.querySelector('#hyPeriyot').value || 0),
-              formId: null, sablonId: kap.querySelector('#hySablon').value || null,
-              yetkinlik: kap.querySelector('#hyYetkinlik').value || null,
-              sure: Number(kap.querySelector('#hySure').value || 30), durum:'aktif'
-            }).then(function(){
-              gvToast('Hizmet pozisyonu eklendi: ' + poz, { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        hyAd:      { etiket:'Hizmet adı', zorunlu:true, enAz:5, enCok:160 },
+        hyKat:     { etiket:'Kategori', zorunlu:true },
+        hyPoz:     { etiket:'Pozisyon kodu', zorunlu:true, enAz:3, enCok:24,
+                     ozel: function(v){
+                       return A.liste('hizmetler').some(function(h){ return h.poz === v; })
+                         ? 'Bu pozisyon kodu zaten kullanılıyor; benzersiz bir kod girin.' : ''; } },
+        hyBirim:   { etiket:'Fiyatlandırma birimi', zorunlu:true },
+        hyPeriyot: { etiket:'Kontrol periyodu (ay)', tur:'sayi', zorunlu:true, enAz:0, enCok:120 },
+        hySatis:   { etiket:'Satış fiyatı', tur:'sayi', zorunlu:true, enAz:1 },
+        hyMaliyet: { etiket:'Taşeron maliyeti', tur:'sayi', enAz:0 },
+        hySure:    { etiket:'Tahmini süre (dk)', tur:'sayi', enAz:0, enCok:2000 }
+      },
+      ad:'CreateService',
+      onayEtiket:'Kaydet', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var yeniId = GV.yeniKod('HZM-Y');
+        /* Müşteri satış fiyatı ile taşeron maliyeti AYRI alanlardır. */
+        A.harita('hizmetFiyatlari')[yeniId] = {
+          satis: Number(v.hySatis), maliyet: Number(v.hyMaliyet || 0) };
+        return A.ekle('hizmetler', {
+          id: yeniId, poz: v.hyPoz, ad: v.hyAd, kat: v.hyKat,
+          birim: v.hyBirim,
+          periyotAy: Number(v.hyPeriyot || 0),
+          formId: null, sablonId: yardim.kap.querySelector('#hySablon').value || null,
+          yetkinlik: yardim.kap.querySelector('#hyYetkinlik').value || null,
+          sure: Number(v.hySure || 30), durum:'aktif'
+        }).then(function(){
+          gvToast('Hizmet pozisyonu eklendi: ' + v.hyPoz, { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();

@@ -181,7 +181,7 @@
     GV.disaAktar({ kayitSayisi: liste.sonuc().pagination.totalRecords, dosyaAdi:'hakedisler', modul:'Hakediş' });
   });
   document.getElementById('hkYeni').addEventListener('click', function(){
-    gvModal({
+    gvModalForm({
       baslik:'Yeni hakediş', ikon:'fa-plus',
       metin:'Hakediş, seçilen dönemde tamamlanan ve mutabakatı onaylanan lokasyonlardan oluşturulur.',
       govde:'<div class="gform">'
@@ -208,25 +208,36 @@
         kap.querySelector('#hyProje').addEventListener('change', onizle);
         onizle();
       },
-      butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
-        { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
-            var pid = kap.querySelector('#hyProje').value;
-            var uygun = A.lokasyonlar().filter(function(l){
-              return l.projeId === pid && A.lokasyonFaturalanabilirMi(l.id).uygun; });
-            if (!uygun.length) { gvToast('Hakedişe alınabilecek lokasyon yok.', { ton:'danger' }); return false; }
-            var o = kap.querySelector('#hyProje').selectedOptions[0];
-            var no = GV.yeniKod('HKD-2026-Y');
-            A.ekle('hakedisler', {
-              id: no, no: no, projeId: pid, musteriId: o.getAttribute('data-musteri'),
-              donem: kap.querySelector('#hyDonem').value, lokasyonSayisi: uygun.length,
-              hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-012', onaylayanId: null,
-              tarih: kap.querySelector('#hyTarih').value || BUGUN, durum:'onay-bekliyor', faturaId: null,
-              not: kap.querySelector('#hyNot').value.trim() || uygun.length + ' lokasyon hakedişe alındı.'
-            }).then(function(){
-              gvToast('Hakediş oluşturuldu, onaya gönderildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
-          } }]
+      sema: {
+        /* Mutabakat onaylanmadan hakedişe alınamaz — kural demoApi'de. */
+        hyProje: { etiket:'Proje', zorunlu:true,
+                   ozel: function(v){
+                     var uygun = A.lokasyonlar().filter(function(l){
+                       return l.projeId === v && A.lokasyonFaturalanabilirMi(l.id).uygun; });
+                     return uygun.length ? '' : 'Bu projede hakedişe alınabilecek lokasyon yok (mutabakat ve rapor teslimi tamamlanmalı).'; } },
+        hyDonem: { etiket:'Dönem', zorunlu:true,
+                   desen:/^\d{4}-(0[1-9]|1[0-2])$/, mesaj:'Dönemi YYYY-AA biçiminde seçin.' },
+        hyTarih: { etiket:'Hakediş tarihi', tur:'tarih', zorunlu:true },
+        hyNot:   { etiket:'Not', enCok:400 }
+      },
+      ad:'CreateProgressPayment',
+      onayEtiket:'Oluştur', onayIkon:'fa-check',
+      gonder: function(v, yardim){
+        var uygun = A.lokasyonlar().filter(function(l){
+          return l.projeId === v.hyProje && A.lokasyonFaturalanabilirMi(l.id).uygun; });
+        var o = yardim.kap.querySelector('#hyProje').selectedOptions[0];
+        var no = GV.yeniKod('HKD-2026-Y');
+        return A.ekle('hakedisler', {
+          id: no, no: no, projeId: v.hyProje, musteriId: o.getAttribute('data-musteri'),
+          donem: v.hyDonem, lokasyonSayisi: uygun.length,
+          hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-012', onaylayanId: null,
+          tarih: v.hyTarih || BUGUN, durum:'onay-bekliyor', faturaId: null,
+          not: v.hyNot || (uygun.length + ' lokasyon hakedişe alındı.')
+        }).then(function(){
+          gvToast('Hakediş oluşturuldu, onaya gönderildi.', { ton:'ok' });
+          setTimeout(function(){ location.reload(); }, 800);
+        });
+      }
     });
   });
 })();
