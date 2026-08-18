@@ -280,10 +280,17 @@ ve 10 · §13 kabul kontrol listesi. Branch: `faz-15-kapanis`.
 - Ortak katman: `types` · `data-provider` · `api-provider` · `list-controller`
   **54 sayfa**; `kimlik` · `para-zaman` · `durum-makinesi` · `form-controller` ·
   `kpi` **73/73 sayfa**; `dashboard.js` yalnız `panel.html` (tek panel ekranı)
-- Birim test: **461 geçti / 0 kaldı** (26 dosya; Faz 15'te +116 test, 5 yeni dosya)
+- Birim test: **462 geçti / 0 kaldı** (27 dosya; Faz 15'te +117 test, 5 yeni dosya)
 - Rol × sayfa taraması: **0 bulgu** (13 rol × 73 sayfa = 949 kombinasyon)
 - Yapı bütünlüğü ayrıştırıcısı: **73 sayfa, yapısal sorun yok**
 - Kabul kontrol listesi: **17 geçti · 0 kaldı · 6 doğrulanamadı**
+
+**Faz içinde yakalanan protokol hatası**
+Adım 5 ve 7 taramaları yalnız `sahip` rolüyle koşulmuştu; 13 rollük tarama
+kapanışta çalışınca panelde 71 "boş alan" bulgusu çıktı (rolün göremediği
+widget kabı bilerek gizleniyor, tarama bunu boş kart sanıyordu). `tarama.js`
+düzeltildi, istisna ayrı testle kilitlendi. **Tarama bundan sonra 13 rolle
+koşulur** — `node _qa/durum.js` bunu zaten yapıyor.
 
 **Doğrulama sınırı (önemli)**
 Kabul listesinin 6 maddesi gerçek tarayıcı yerleşimi ya da renk ölçümü ister
