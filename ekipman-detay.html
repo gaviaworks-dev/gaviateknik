@@ -63,6 +63,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Bu Ekipmanın Yer Aldığı Raporlar</h2>
             </div>
           <div class="gc-body flush" id="edRapor"></div>
+          <div class="gv-pager" id="edRaporPg" hidden></div>
         </section>
       </div>
       <div id="pn_uygunsuzluk" role="tabpanel" aria-labelledby="tb_uygunsuzluk" hidden>
@@ -70,6 +71,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Uygunsuzluk Geçmişi</h2>
             </div>
           <div class="gc-body flush" id="edUygunsuzluk"></div>
+          <div class="gv-pager" id="edUygunsuzlukPg" hidden></div>
         </section>
       </div>
       <div id="pn_foto" role="tabpanel" aria-labelledby="tb_foto" hidden>
@@ -84,6 +86,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Kontrol Geçmişi</h2>
             </div>
           <div class="gc-body flush" id="edGecmis"></div>
+          <div class="gv-pager" id="edGecmisPg" hidden></div>
         </section>
       </div>
       </div>
@@ -117,6 +120,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -189,40 +195,47 @@
         + '<span>Bu ekipman için <b>son kontrol tarihi girilmemiş</b>, bu nedenle sonraki kontrol tarihi de boş bırakıldı. '
         + 'Sahte tarih üretilmez; ilk kontrol tamamlandığında otomatik hesaplanır.</span></div>');
 
-  /* --- raporlar --- */
-  document.getElementById('edRapor').innerHTML = raporlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor</th><th scope="col">Kontrol Tarihi</th><th scope="col">Personel</th>'
-      + '<th scope="col">Sonuç</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + raporlar.map(function(r){
-          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
-            + '<td data-lbl="Kontrol Tarihi">' + GV.d(r.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Personel">' + GV.esc(r.personelAd) + '</td>'
-            + '<td data-lbl="Sonuç">' + (r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
-                : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
-                : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')) + '</td>'
-            + '<td data-lbl="Durum">' + (r.durum === 'arsiv' ? GV.rozetOzel('off','fa-box-archive','Arşiv') : GV.rozet('rapor', r.durum)) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok',
-        metin:'Bu ekipmanın yer aldığı bir teknik rapor bulunmuyor. Lokasyonun ilk kontrolü henüz tamamlanmamış olabilir.' });
+  /* --- raporlar ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'ekipman-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return raporlar; },
+    tablo:{ hedef:'#edRapor', ad:'Ekipmanın geçtiği raporlar', kolonlar:[
+      { k:'no', ad:'Rapor', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz:function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'personelAd', ad:'Personel' },
+      { k:'sonuc', ad:'Sonuç', ciz:function(r){
+          return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+            : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+            : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+      { k:'durum', ad:'Durum', ciz:function(r){
+          return r.durum === 'arsiv' ? GV.rozetOzel('off','fa-box-archive','Arşiv') : GV.rozet('rapor', r.durum); } }
+    ]},
+    pager:{ hedef:'#edRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor yok',
+      metin:'Bu ekipmanın yer aldığı bir teknik rapor bulunmuyor. Lokasyonun ilk kontrolü henüz tamamlanmamış olabilir.' }
+  });
 
   /* --- uygunsuzluklar --- */
   var onemAd = { kritik:['danger','fa-fire','Kritik'], yuksek:['danger','fa-triangle-exclamation','Yüksek'],
     orta:['warn','fa-circle-exclamation','Orta'], dusuk:['info','fa-circle-info','Düşük'] };
-  document.getElementById('edUygunsuzluk').innerHTML = uygunsuzluklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Uygunsuzluk</th><th scope="col">Önem</th><th scope="col">Tespit</th>'
-      + '<th scope="col">Termin</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + uygunsuzluklar.map(function(u){
-          var o = onemAd[u.onem] || onemAd.orta;
-          return '<tr><td data-lbl="Uygunsuzluk"><a href="uygunsuzluk-detay.html?id=' + u.id + '">' + GV.esc(u.baslik) + '</a></td>'
-            + '<td data-lbl="Önem">' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
-            + '<td data-lbl="Tespit">' + GV.d(u.tespit) + '</td>'
-            + '<td data-lbl="Termin">' + GV.d(u.termin) + '</td>'
-            + '<td data-lbl="Durum">' + GV.akisRozet('uygunsuzluk', u.durum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk geçmişi temiz',
-        metin:'Bu ekipmanda kayda alınmış uygunsuzluk bulunmuyor.' });
+  gvList({
+    kaynak:'ekipman-detay:uygunsuzluk', onek:'uyg_', filtresiz:true,
+    veri:function(){ return uygunsuzluklar; },
+    tablo:{ hedef:'#edUygunsuzluk', ad:'Ekipman uygunsuzlukları', kolonlar:[
+      { k:'baslik', ad:'Uygunsuzluk', ciz:function(u){
+          return '<a href="uygunsuzluk-detay.html?id=' + u.id + '">' + GV.esc(u.baslik) + '</a>'; } },
+      { k:'onem', ad:'Önem', ciz:function(u){ var o = onemAd[u.onem] || onemAd.orta; return GV.rozetOzel(o[0], o[1], o[2]); } },
+      { k:'tespit', ad:'Tespit', ciz:function(u){ return GV.d(u.tespit); } },
+      { k:'termin', ad:'Termin', ciz:function(u){ return GV.d(u.termin); } },
+      { k:'durum', ad:'Durum', ciz:function(u){ return GV.akisRozet('uygunsuzluk', u.durum); } }
+    ]},
+    pager:{ hedef:'#edUygunsuzlukPg', boyut:10 },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Uygunsuzluk geçmişi temiz',
+      metin:'Bu ekipmanda kayda alınmış uygunsuzluk bulunmuyor.' }
+  });
 
   /* --- fotoğraflar (kare görsel: div + background-image) --- */
   var fotoAciklama = ['Genel görünüm','Etiket ve kapasite plakası','Kumanda paneli','Emniyet donanımı','Aşınma noktası','Seri numarası'];
@@ -248,14 +261,25 @@
     t: l && l.kontrolTarihi ? l.kontrolTarihi : null });
   gecmis = gecmis.filter(function(g){ return g.t; }).sort(function(a,b){ return String(b.t).localeCompare(String(a.t)); });
 
-  document.getElementById('edGecmis').innerHTML = gecmis.length
-    ? '<div class="act-list">' + gecmis.map(function(g){
+  /* Kontrol geçmişi tablo değil akış listesidir; ListController'ın özel
+     çizim yolunu kullanır — sayfalama ve boş ekran yine denetleyicidedir. */
+  gvList({
+    kaynak:'ekipman-detay:gecmis', onek:'gcm_', filtresiz:true,
+    veri:function(){ return gecmis; },
+    hedef:'#edGecmis',
+    ciz:function(sonuc, bos){
+      var kap = document.getElementById('edGecmis');
+      if (!sonuc.data.length) { kap.innerHTML = gvEmpty(bos); return; }
+      kap.innerHTML = '<div class="act-list">' + sonuc.data.map(function(g){
         return '<div class="act-row"><span class="act-ico ' + g.ton + '"><i class="fa-solid ' + g.ikon + '" aria-hidden="true"></i></span>'
           + '<span class="act-info"><b>' + GV.esc(g.b) + '</b><span>' + GV.esc(g.s) + '</span></span>'
           + '<span class="act-time">' + GV.d(g.t) + '</span></div>';
-      }).join('') + '</div>'
-    : gvEmpty({ ikon:'fa-clock-rotate-left', baslik:'Kontrol geçmişi yok',
-        metin:'Bu ekipman için tamamlanmış kontrol kaydı bulunmuyor.' });
+      }).join('') + '</div>';
+    },
+    pager:{ hedef:'#edGecmisPg', boyut:10 },
+    bosDurum:{ ikon:'fa-clock-rotate-left', baslik:'Kontrol geçmişi yok',
+      metin:'Bu ekipman için tamamlanmış kontrol kaydı bulunmuyor.' }
+  });
 
   /* --- sağ kolon --- */
   document.getElementById('edQr').innerHTML =

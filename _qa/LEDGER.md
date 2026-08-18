@@ -130,3 +130,16 @@ Kapsam: `_docs/REVIZYON.md` §9 (responsive denetim ve revizyon şartları)
   başlık/aksiyon çubuğu, tam ekran modal, 44×44 dokunma ölçüsü, tek kolon KPI,
   pager ikinci satırı, gerçek yatay taşma, takvim nokta modu
 
+
+
+---
+
+# GAVIA · Faz 15 — ADIM DEFTERİ
+
+Kapsam: `_docs/REVIZYON.md` §6 (detay alt koleksiyonları) · §12 paket 9 ve 10
+(rol bazlı dashboard, ApiDataProvider iskeleti) · §13 kabul kontrol listesi.
+Branch: `faz-15-kapanis`.
+
+| Tarih | Adım | Dosyalar | Tarama | Commit | Bilinen kusur |
+|---|---|---|---|---|---|
+| 2026-08-19 | 1 | assets/js/list-controller.js (`onek` + `filtresiz`) · _qa/test/alt-koleksiyon.test.js (yeni) | 0 bulgu / YAPISAL SORUN YOK · 353 test geçti | 36a1445 | Önek yalnız `page`/`pageSize`/`sort`/`fr_*` anahtarlarını kapsar; `q` ve `durum` gvFilter'ın kendi anahtarlarıdır ve önekli listede `filtresiz:true` ile hiç doğmazlar. Aynı sayfada önekli + filtreli iki liste birlikte kullanılırsa `q`/`durum` paylaşılır — bu turda böyle bir kullanım yok. |

@@ -76,6 +76,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Kapsamdaki Lokasyonlar</h2>
             <div class="gc-head-acts no-print"><button class="btn btn-sm btn-ghost" type="button" id="pdLokEkle"><i class="fa-solid fa-plus" aria-hidden="true"></i>Lokasyon Ekle</button></div></div>
           <div class="gc-body flush" id="pdLokasyon"></div>
+          <div class="gv-pager" id="pdLokasyonPg" hidden></div>
         </section>
       </div>
       <div id="pn_poz" role="tabpanel" aria-labelledby="tb_poz" hidden>
@@ -83,6 +84,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>Kapsamdaki Hizmet Pozisyonları</h2>
             </div>
           <div class="gc-body flush" id="pdPoz"></div>
+          <div class="gv-pager" id="pdPozPg" hidden></div>
         </section>
       </div>
       <div id="pn_miktar" role="tabpanel" aria-labelledby="tb_miktar" hidden>
@@ -90,6 +92,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Planlanan ve Gerçekleşen Miktarlar</h2>
             <div class="gc-head-acts no-print"><a class="btn btn-sm btn-ghost" href="envanter-mutabakati.html"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Mutabakat</a></div></div>
           <div class="gc-body flush" id="pdMiktar"></div>
+          <div class="gv-pager" id="pdMiktarPg" hidden></div>
         </section>
       </div>
       <div id="pn_finans" role="tabpanel" aria-labelledby="tb_finans" hidden>
@@ -108,6 +111,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Rapor Durumu</h2>
             </div>
           <div class="gc-body flush" id="pdRapor"></div>
+          <div class="gv-pager" id="pdRaporPg" hidden></div>
         </section>
       </div>
       <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
@@ -122,6 +126,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-people-carry-box" aria-hidden="true"></i>Görevli Taşeronlar</h2>
             </div>
           <div class="gc-body flush" id="pdTaseron"></div>
+          <div class="gv-pager" id="pdTaseronPg" hidden></div>
         </section>
       </div>
       <div id="pn_gecmis" role="tabpanel" aria-labelledby="tb_gecmis" hidden>
@@ -162,6 +167,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -273,25 +281,28 @@
     return { etiket:a, deger:aylik[i], ton: i === 7 ? 'acc' : i < 7 ? 'ok' : 'info' }; }),
     { baslik:'Aylık lokasyon planı', birim:'lokasyon', yukseklik:200 });
 
-  /* --- lokasyonlar --- */
-  document.getElementById('pdLokasyon').innerHTML = loklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Lokasyon</th><th scope="col">Bölge</th><th scope="col">Kontrol Tarihi</th>'
-      + '<th scope="col">Operasyon</th><th scope="col">Rapor</th><th scope="col">Fatura</th>'
-      + '<th scope="col">Sonraki Kontrol</th></tr></thead><tbody>'
-      + loklar.map(function(l){
-          return '<tr><td data-lbl="Lokasyon"><div class="gcell-info"><div class="gcell-name">'
+  /* --- lokasyonlar ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'proje-detay:lokasyon', onek:'lok_', filtresiz:true,
+    veri:function(){ return loklar; },
+    tablo:{ hedef:'#pdLokasyon', ad:'Kapsamdaki lokasyonlar', kolonlar:[
+      { k:'ad', ad:'Lokasyon', ciz:function(l){
+          return '<div class="gcell-info"><div class="gcell-name">'
             + '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</div></div></td>'
-            + '<td data-lbl="Bölge">' + GV.esc(l.bolge + ' · ' + l.il) + '</td>'
-            + '<td data-lbl="Kontrol Tarihi">' + GV.d(l.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', l.operasyonDurum) + '</td>'
-            + '<td data-lbl="Rapor">' + GV.rozet('rapor', l.raporDurum) + '</td>'
-            + '<td data-lbl="Fatura">' + GV.rozet('fatura', l.faturaDurum) + '</td>'
-            + '<td data-lbl="Sonraki Kontrol">' + GV.d(l.sonrakiKontrol) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-location-dot', baslik:'Kapsamda lokasyon yok',
-        metin:'Bu projeye henüz lokasyon dâhil edilmedi. Ana lokasyon rehberinden seçerek ekleyin.' });
+            + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriKod) + '</div></div>'; } },
+      { k:'bolge', ad:'Bölge', ciz:function(l){ return GV.esc(l.bolge + ' · ' + l.il); } },
+      { k:'kontrolTarihi', ad:'Kontrol Tarihi', ciz:function(l){ return GV.d(l.kontrolTarihi); } },
+      { k:'operasyonDurum', ad:'Operasyon', ciz:function(l){ return GV.rozet('operasyon', l.operasyonDurum); } },
+      { k:'raporDurum', ad:'Rapor', ciz:function(l){ return GV.rozet('rapor', l.raporDurum); } },
+      { k:'faturaDurum', ad:'Fatura', ciz:function(l){ return GV.rozet('fatura', l.faturaDurum); } },
+      { k:'sonrakiKontrol', ad:'Sonraki Kontrol', ciz:function(l){ return GV.d(l.sonrakiKontrol); } }
+    ]},
+    pager:{ hedef:'#pdLokasyonPg', boyut:10 },
+    bosDurum:{ ikon:'fa-location-dot', baslik:'Kapsamda lokasyon yok',
+      metin:'Bu projeye henüz lokasyon dâhil edilmedi. Ana lokasyon rehberinden seçerek ekleyin.' }
+  });
 
   document.getElementById('pdLokEkle').addEventListener('click', function(){
     var disarida = A.lokasyonlar().filter(function(l){ return l.musteriId === p.musteriId && !l.projeId; });
@@ -345,23 +356,26 @@
   document.getElementById('cnt_poz').textContent = GV.n(pozListe.length);
 
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
-  document.getElementById('pdPoz').innerHTML = pozListe.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col" class="num">Planlanan</th><th scope="col">Birim</th>'
-      + '<th scope="col" class="num">Birim Fiyat</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
-      + pozListe.map(function(x){
-          var bf = A.birimSatisFiyati(x.hizmet.hizmetId, p.fiyatListesiId);
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.hizmet.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + x.hizmet.hizmetId + '">' + GV.esc(x.hizmet.hizmetAd) + '</a></td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(x.lokasyon) + '</td>'
-            + '<td data-lbl="Planlanan" class="num">' + GV.n(x.miktar) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(birimAd[x.hizmet.birim] || x.hizmet.birim) + '</td>'
-            + '<td data-lbl="Birim Fiyat" class="num">' + GV.tl(bf) + '</td>'
-            + '<td data-lbl="Tutar" class="num"><b class="t-strong">' + GV.tl(bf * x.miktar) + '</b></td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">' + GV.tl(o.gelir) + '</td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-file-signature', baslik:'Poz tanımlı değil', metin:'Bu projede henüz hizmet pozisyonu kapsama alınmadı.' });
+  gvList({
+    kaynak:'proje-detay:poz', onek:'poz_', filtresiz:true,
+    veri:function(){ return pozListe; },
+    tablo:{ hedef:'#pdPoz', ad:'Hizmet pozisyonları', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(x){ return '<b class="t-strong">' + GV.esc(x.hizmet.poz) + '</b>'; } },
+      { k:'hizmet', ad:'Hizmet', ciz:function(x){
+          return '<a href="hizmet-detay.html?id=' + x.hizmet.hizmetId + '">' + GV.esc(x.hizmet.hizmetAd) + '</a>'; } },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(x){ return GV.n(x.lokasyon); } },
+      { k:'miktar', ad:'Planlanan', sinif:'num', ciz:function(x){ return GV.n(x.miktar); } },
+      { k:'birim', ad:'Birim', ciz:function(x){ return GV.esc(birimAd[x.hizmet.birim] || x.hizmet.birim); } },
+      { k:'birimFiyat', ad:'Birim Fiyat', sinif:'num', ciz:function(x){
+          return GV.tl(A.birimSatisFiyati(x.hizmet.hizmetId, p.fiyatListesiId)); } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz:function(x){
+          return '<b class="t-strong">' + GV.tl(A.birimSatisFiyati(x.hizmet.hizmetId, p.fiyatListesiId) * x.miktar) + '</b>'; } }
+    ], altToplam:function(){
+      /* Toplam projenin TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">' + GV.tl(o.gelir) + '</td></tr>'; } },
+    pager:{ hedef:'#pdPozPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-signature', baslik:'Poz tanımlı değil', metin:'Bu projede henüz hizmet pozisyonu kapsama alınmadı.' }
+  });
 
   /* --- planlanan / gerçekleşen miktarlar --- */
   var mtb = {};
@@ -376,26 +390,26 @@
     });
   });
   var mtbListe = Object.keys(mtb).map(function(k){ return mtb[k]; }).sort(function(a,b){ return a.poz.localeCompare(b.poz); });
-  document.getElementById('pdMiktar').innerHTML = mtbListe.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Planlanan</th>'
-      + '<th scope="col" class="num">Sahada Bulunan</th><th scope="col" class="num">Kontrol Edilen</th>'
-      + '<th scope="col" class="num">Fark</th><th scope="col" class="num">Müşteri Onaylı</th></tr></thead><tbody>'
-      + mtbListe.map(function(x){
+  gvList({
+    kaynak:'proje-detay:miktar', onek:'mtb_', filtresiz:true,
+    veri:function(){ return mtbListe; },
+    tablo:{ hedef:'#pdMiktar', ad:'Planlanan ve gerçekleşen miktarlar', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(x){ return '<b class="t-strong">' + GV.esc(x.poz) + '</b>'; } },
+      { k:'ad', ad:'Hizmet' },
+      { k:'planlanan', ad:'Planlanan', sinif:'num', ciz:function(x){ return GV.n(x.planlanan); } },
+      { k:'sahada', ad:'Sahada Bulunan', sinif:'num', ciz:function(x){ return GV.n(x.sahada); } },
+      { k:'kontrol', ad:'Kontrol Edilen', sinif:'num', ciz:function(x){ return GV.n(x.kontrol); } },
+      { k:'fark', ad:'Fark', sinif:'num', ciz:function(x){
           var fark = x.sahada - x.planlanan;
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(x.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet">' + GV.esc(x.ad) + '</td>'
-            + '<td data-lbl="Planlanan" class="num">' + GV.n(x.planlanan) + '</td>'
-            + '<td data-lbl="Sahada Bulunan" class="num">' + GV.n(x.sahada) + '</td>'
-            + '<td data-lbl="Kontrol Edilen" class="num">' + GV.n(x.kontrol) + '</td>'
-            + '<td data-lbl="Fark" class="num">' + (fark === 0
-                ? '<span class="diff zero">0</span>'
-                : '<span class="diff ' + (fark > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-' + (fark > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>'
-                  + GV.n(Math.abs(fark)) + '</span>') + '</td>'
-            + '<td data-lbl="Müşteri Onaylı" class="num">' + GV.n(x.onayli) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Gerçekleşen miktar yok',
-        metin:'Bu projede henüz saha kontrolü tamamlanmadığı için gerçekleşen miktar oluşmadı.' });
+          return fark === 0 ? '<span class="diff zero">0</span>'
+            : '<span class="diff ' + (fark > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-' + (fark > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>'
+              + GV.n(Math.abs(fark)) + '</span>'; } },
+      { k:'onayli', ad:'Müşteri Onaylı', sinif:'num', ciz:function(x){ return GV.n(x.onayli); } }
+    ]},
+    pager:{ hedef:'#pdMiktarPg', boyut:10 },
+    bosDurum:{ ikon:'fa-scale-balanced', baslik:'Gerçekleşen miktar yok',
+      metin:'Bu projede henüz saha kontrolü tamamlanmadığı için gerçekleşen miktar oluşmadı.' }
+  });
 
   /* --- kârlılık --- */
   var ekGider = Math.round(o.gelir * 0.045);
@@ -421,23 +435,25 @@
     .map(function(k){ return { etiket:k.ad, deger:katGelir[k.id], gosterim: GV.tl(katGelir[k.id]) }; }));
 
   /* --- raporlar --- */
-  document.getElementById('pdRapor').innerHTML = raporlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor</th><th scope="col">Lokasyon</th><th scope="col">Kontrol</th>'
-      + '<th scope="col">Personel</th><th scope="col">Durum</th><th scope="col">SLA</th></tr></thead><tbody>'
-      + raporlar.map(function(r){
-          var slaR = r.slaDurum === 'asildi' ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(r.sla.kalanGun) + ' gün gecikme')
+  gvList({
+    kaynak:'proje-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return raporlar; },
+    tablo:{ hedef:'#pdRapor', ad:'Teknik raporlar', kolonlar:[
+      { k:'no', ad:'Rapor', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon' },
+      { k:'kontrolTarihi', ad:'Kontrol', ciz:function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'personelAd', ad:'Personel' },
+      { k:'durum', ad:'Durum', ciz:function(r){ return GV.rozet('rapor', r.durum); } },
+      { k:'slaDurum', ad:'SLA', ciz:function(r){
+          return r.slaDurum === 'asildi' ? GV.rozetOzel('danger','fa-hourglass-end', Math.abs(r.sla.kalanGun) + ' gün gecikme')
             : r.slaDurum === 'yaklasti' ? GV.rozetOzel('warn','fa-clock', r.sla.kalanGun + ' gün kaldı')
             : r.teslimTarihi ? GV.rozetOzel('ok','fa-check','Süresinde teslim')
-            : GV.rozetOzel('ok','fa-check','Süre içinde');
-          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
-            + '<td data-lbl="Lokasyon">' + GV.esc(r.lokasyonAd) + '</td>'
-            + '<td data-lbl="Kontrol">' + GV.d(r.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Personel">' + GV.esc(r.personelAd) + '</td>'
-            + '<td data-lbl="Durum">' + GV.rozet('rapor', r.durum) + '</td>'
-            + '<td data-lbl="SLA">' + slaR + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu projede henüz teknik rapor düzenlenmedi.' });
+            : GV.rozetOzel('ok','fa-check','Süre içinde'); } }
+    ]},
+    pager:{ hedef:'#pdRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu projede henüz teknik rapor düzenlenmedi.' }
+  });
 
   /* --- fatura grupları --- */
   document.getElementById('pdGrup').innerHTML = gruplar.length
@@ -457,22 +473,32 @@
   loklar.forEach(function(l){ if (l.taseronId) tsrSayac[l.taseronId] = (tsrSayac[l.taseronId] || 0) + 1; });
   var tsrListe = Object.keys(tsrSayac);
   document.getElementById('cnt_taseron').textContent = GV.n(tsrListe.length);
-  document.getElementById('pdTaseron').innerHTML = tsrListe.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Taşeron</th><th scope="col">Bölge</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col" class="num">Hakediş</th><th scope="col">Ödeme Kuralı</th><th scope="col" class="num">Performans</th></tr></thead><tbody>'
-      + tsrListe.map(function(tid){
-          var t = A.kayit('taseronlar', tid);
-          var hak = A.liste('taseronHakedisleri').filter(function(h){ return h.taseronId === tid && h.projeId === p.id; });
-          return '<tr><td data-lbl="Taşeron"><a href="taseron-detay.html?id=' + tid + '"><b class="t-strong">' + GV.esc(t ? t.kisaAd : tid) + '</b></a></td>'
-            + '<td data-lbl="Bölge">' + GV.esc(t ? t.bolgeler.join(', ') : '—') + '</td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(tsrSayac[tid]) + '</td>'
-            + '<td data-lbl="Hakediş" class="num">' + GV.tl(hak.reduce(function(x,h){ return x + h.tutar; }, 0)) + '</td>'
-            + '<td data-lbl="Ödeme Kuralı">' + (t && t.odemeKurali === 'musteri-tahsilati-sonrasi'
-                ? '<span class="gtag warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>Tahsilat sonrası</span>' : '<span class="gtag">Vade tarihinde</span>') + '</td>'
-            + '<td data-lbl="Performans" class="num">' + GV.bar((t ? t.performans : 0) / 100, { etiket: GV.pct((t ? t.performans : 0) / 100, true, 0) }) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-people-carry-box', baslik:'Taşeron atanmadı', metin:'Bu projenin lokasyonlarına henüz taşeron atanmadı.' });
+  gvList({
+    kaynak:'proje-detay:taseron', onek:'tsr_', filtresiz:true,
+    veri:function(){ return tsrListe.map(function(tid){ return { id:tid }; }); },
+    tablo:{ hedef:'#pdTaseron', ad:'Projedeki taşeronlar', kolonlar:[
+      { k:'taseron', ad:'Taşeron', ciz:function(x){
+          var t = A.kayit('taseronlar', x.id);
+          return '<a href="taseron-detay.html?id=' + x.id + '"><b class="t-strong">' + GV.esc(t ? t.kisaAd : x.id) + '</b></a>'; } },
+      { k:'bolge', ad:'Bölge', ciz:function(x){
+          var t = A.kayit('taseronlar', x.id);
+          return GV.esc(t ? t.bolgeler.join(', ') : '—'); } },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(x){ return GV.n(tsrSayac[x.id]); } },
+      { k:'hakedis', ad:'Hakediş', sinif:'num', ciz:function(x){
+          return GV.tl(A.liste('taseronHakedisleri').filter(function(h){ return h.taseronId === x.id && h.projeId === p.id; })
+            .reduce(function(t,h){ return t + h.tutar; }, 0)); } },
+      { k:'odemeKurali', ad:'Ödeme Kuralı', ciz:function(x){
+          var t = A.kayit('taseronlar', x.id);
+          return t && t.odemeKurali === 'musteri-tahsilati-sonrasi'
+            ? '<span class="gtag warn"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>Tahsilat sonrası</span>'
+            : '<span class="gtag">Vade tarihinde</span>'; } },
+      { k:'performans', ad:'Performans', sinif:'num', ciz:function(x){
+          var t = A.kayit('taseronlar', x.id);
+          return GV.bar((t ? t.performans : 0) / 100, { etiket: GV.pct((t ? t.performans : 0) / 100, true, 0) }); } }
+    ]},
+    pager:{ hedef:'#pdTaseronPg', boyut:10 },
+    bosDurum:{ ikon:'fa-people-carry-box', baslik:'Taşeron atanmadı', metin:'Bu projenin lokasyonlarına henüz taşeron atanmadı.' }
+  });
 
   /* --- sağ kolon --- */
   document.getElementById('pdOzet').innerHTML =

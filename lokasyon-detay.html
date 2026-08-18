@@ -82,6 +82,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-address-book" aria-hidden="true"></i>Lokasyon Yetkilileri</h2>
             </div>
           <div class="gc-body flush" id="ldKisi"></div>
+          <div class="gv-pager" id="ldKisiPg" hidden></div>
         </section>
       </div>
       <div id="pn_kapsam" role="tabpanel" aria-labelledby="tb_kapsam" hidden>
@@ -89,6 +90,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Kapsamdaki Hizmet Pozisyonları</h2>
             </div>
           <div class="gc-body flush" id="ldKapsam"></div>
+          <div class="gv-pager" id="ldKapsamPg" hidden></div>
         </section>
       </div>
       <div id="pn_envanter" role="tabpanel" aria-labelledby="tb_envanter" hidden>
@@ -96,10 +98,12 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Ön Envanter ve Gerçekleşen</h2>
             <div class="gc-head-acts no-print"><a class="btn btn-sm btn-ghost" href="envanter-mutabakati.html?lokasyon=" id="ldMtbLink"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Mutabakat</a></div></div>
           <div class="gc-body flush" id="ldEnvanter"></div>
+          <div class="gv-pager" id="ldEnvanterPg" hidden></div>
         </section>        <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-gears" aria-hidden="true"></i>Tekil Ekipman Kartları</h2>
             </div>
           <div class="gc-body flush" id="ldEkipman"></div>
+          <div class="gv-pager" id="ldEkipmanPg" hidden></div>
         </section>
       </div>
       <div id="pn_isemri" role="tabpanel" aria-labelledby="tb_isemri" hidden>
@@ -107,6 +111,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>İş Emirleri</h2>
             </div>
           <div class="gc-body flush" id="ldIsEmri"></div>
+          <div class="gv-pager" id="ldIsEmriPg" hidden></div>
         </section>
       </div>
       <div id="pn_rapor" role="tabpanel" aria-labelledby="tb_rapor" hidden>
@@ -114,6 +119,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Teknik Raporlar</h2>
             </div>
           <div class="gc-body flush" id="ldRapor"></div>
+          <div class="gv-pager" id="ldRaporPg" hidden></div>
         </section>
       </div>
       <div id="pn_uygunsuzluk" role="tabpanel" aria-labelledby="tb_uygunsuzluk" hidden>
@@ -121,6 +127,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>Uygunsuzluklar</h2>
             </div>
           <div class="gc-body flush" id="ldUygunsuzluk"></div>
+          <div class="gv-pager" id="ldUygunsuzlukPg" hidden></div>
         </section>
       </div>
       <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
@@ -168,6 +175,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -255,153 +265,173 @@
     bilgi('Açık Adres', GV.esc(l.adres)) + bilgi('İl / İlçe', GV.esc(l.il + ' / ' + l.ilce))
     + bilgi('Bölge', GV.esc(l.bolge));
 
-  /* --- kişiler --- */
-  document.getElementById('ldKisi').innerHTML = kisiler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Kişi</th><th scope="col">İletişim Rolü</th><th scope="col">Kapsam</th>'
-      + '<th scope="col">Telefon</th><th scope="col">E-posta</th></tr></thead><tbody>'
-      + kisiler.map(function(k){
-          return '<tr><td data-lbl="Kişi"><b class="t-strong">' + GV.esc(k.ad) + '</b>'
+  /* --- kişiler ---
+     Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'lokasyon-detay:kisi', onek:'ksi_', filtresiz:true,
+    veri:function(){ return kisiler; },
+    tablo:{ hedef:'#ldKisi', ad:'Yetkili kişiler', kolonlar:[
+      { k:'ad', ad:'Kişi', ciz:function(k){
+          return '<b class="t-strong">' + GV.esc(k.ad) + '</b>'
             + (k.birincil ? ' <span class="gtag mint">Birincil</span>' : '')
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(k.unvan) + '</span></td>'
-            + '<td data-lbl="İletişim Rolü"><span class="gtag">' + GV.esc(k.iletisimRolu) + '</span></td>'
-            + '<td data-lbl="Kapsam">' + (k.lokasyonId ? 'Bu lokasyon' : '<span class="muted">Müşteri merkezi</span>') + '</td>'
-            + '<td data-lbl="Telefon">' + GV.esc(k.telefon) + '</td>'
-            + '<td data-lbl="E-posta"><a href="mailto:' + GV.esc(k.eposta) + '">' + GV.esc(k.eposta) + '</a></td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-address-book', baslik:'Yetkili tanımsız',
-        metin:'Bu lokasyon için iletişim kişisi tanımlanmadı. Kontrol tarihi onayı ve rapor teslimi için en az bir yetkili gereklidir.',
-        aksiyonlar:'<a class="btn btn-acc" href="iletisim-kisileri.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Kişi Ekle</a>' });
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(k.unvan) + '</span>'; } },
+      { k:'iletisimRolu', ad:'İletişim Rolü', ciz:function(k){ return '<span class="gtag">' + GV.esc(k.iletisimRolu) + '</span>'; } },
+      { k:'lokasyonId', ad:'Kapsam', ciz:function(k){
+          return k.lokasyonId ? 'Bu lokasyon' : '<span class="muted">Müşteri merkezi</span>'; } },
+      { k:'telefon', ad:'Telefon' },
+      { k:'eposta', ad:'E-posta', ciz:function(k){ return '<a href="mailto:' + GV.esc(k.eposta) + '">' + GV.esc(k.eposta) + '</a>'; } }
+    ]},
+    pager:{ hedef:'#ldKisiPg', boyut:10 },
+    bosDurum:{ ikon:'fa-address-book', baslik:'Yetkili tanımsız',
+      metin:'Bu lokasyon için iletişim kişisi tanımlanmadı. Kontrol tarihi onayı ve rapor teslimi için en az bir yetkili gereklidir.',
+      aksiyonlar:'<a class="btn btn-acc" href="iletisim-kisileri.html"><i class="fa-solid fa-plus" aria-hidden="true"></i>Kişi Ekle</a>' }
+  });
 
   /* --- hizmet kapsamı --- */
   var birimAd = { adet:'adet', lokasyon:'lokasyon', sistem:'sistem', metrekare:'m²', gun:'gün', 'olcum-seti':'ölçüm seti', dokuman:'doküman' };
   var kaynakAd = { sablon:'Şablondan uygulandı', musteri:'Müşteri bildirimi', kesif:'Saha keşfi' };
-  document.getElementById('ldKapsam').innerHTML = hizmetler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Miktar</th>'
-      + '<th scope="col">Birim</th><th scope="col" class="num">Periyot</th>'
-      + '<th scope="col">Kaynak</th><th scope="col" class="num">Tutar</th></tr></thead><tbody>'
-      + hizmetler.map(function(h){
-          var bf = A.birimSatisFiyati(h.hizmetId, proje ? proje.fiyatListesiId : null);
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(h.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet"><a href="hizmet-detay.html?id=' + h.hizmetId + '">' + GV.esc(h.hizmetAd) + '</a></td>'
-            + '<td data-lbl="Miktar" class="num">' + GV.n(h.planlananMiktar) + '</td>'
-            + '<td data-lbl="Birim">' + GV.esc(birimAd[h.birim] || h.birim) + '</td>'
-            + '<td data-lbl="Periyot" class="num">' + (h.periyotAy ? h.periyotAy + ' ay' : '—') + '</td>'
-            + '<td data-lbl="Kaynak"><span class="gtag' + (h.kaynak === 'sablon' ? ' warn' : h.kaynak === 'kesif' ? ' ok' : '') + '">'
-            + GV.esc(kaynakAd[h.kaynak] || h.kaynak) + '</span></td>'
-            + '<td data-lbl="Tutar" class="num">' + GV.tl(bf * h.planlananMiktar) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
-      + GV.tl(hizmetler.reduce(function(t,h){ return t + A.birimSatisFiyati(h.hizmetId, proje ? proje.fiyatListesiId : null) * h.planlananMiktar; }, 0))
-      + '</td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-list-check', baslik:'Hizmet kapsamı tanımsız',
-        metin:'Bu lokasyon için hizmet pozisyonu ve miktar bilgisi girilmedi. Ön envanter şablonu uygulayabilirsiniz.',
-        aksiyonlar:'<a class="btn btn-acc" href="on-envanter.html?lokasyon=' + l.id + '"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Ön Envanter</a>' });
+  gvList({
+    kaynak:'lokasyon-detay:kapsam', onek:'hzm_', filtresiz:true,
+    veri:function(){ return hizmetler; },
+    tablo:{ hedef:'#ldKapsam', ad:'Hizmet kapsamı', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(h){ return '<b class="t-strong">' + GV.esc(h.poz) + '</b>'; } },
+      { k:'hizmetAd', ad:'Hizmet', ciz:function(h){
+          return '<a href="hizmet-detay.html?id=' + h.hizmetId + '">' + GV.esc(h.hizmetAd) + '</a>'; } },
+      { k:'planlananMiktar', ad:'Miktar', sinif:'num', ciz:function(h){ return GV.n(h.planlananMiktar); } },
+      { k:'birim', ad:'Birim', ciz:function(h){ return GV.esc(birimAd[h.birim] || h.birim); } },
+      { k:'periyotAy', ad:'Periyot', sinif:'num', ciz:function(h){ return h.periyotAy ? h.periyotAy + ' ay' : GV.bos; } },
+      { k:'kaynak', ad:'Kaynak', ciz:function(h){
+          return '<span class="gtag' + (h.kaynak === 'sablon' ? ' warn' : h.kaynak === 'kesif' ? ' ok' : '') + '">'
+            + GV.esc(kaynakAd[h.kaynak] || h.kaynak) + '</span>'; } },
+      { k:'tutar', ad:'Tutar', sinif:'num', ciz:function(h){
+          return GV.tl(A.birimSatisFiyati(h.hizmetId, proje ? proje.fiyatListesiId : null) * h.planlananMiktar); } }
+    ], altToplam:function(){
+      /* Toplam kapsamın TAMAMI üzerinden; sayfa değişince kaymaz. */
+      return '<tr><td data-lbl="" colspan="6">Toplam</td><td data-lbl="Tutar" class="num">'
+        + GV.tl(hizmetler.reduce(function(t,h){ return t + A.birimSatisFiyati(h.hizmetId, proje ? proje.fiyatListesiId : null) * h.planlananMiktar; }, 0))
+        + '</td></tr>'; } },
+    pager:{ hedef:'#ldKapsamPg', boyut:10 },
+    bosDurum:{ ikon:'fa-list-check', baslik:'Hizmet kapsamı tanımsız',
+      metin:'Bu lokasyon için hizmet pozisyonu ve miktar bilgisi girilmedi. Ön envanter şablonu uygulayabilirsiniz.',
+      aksiyonlar:'<a class="btn btn-acc" href="on-envanter.html?lokasyon=' + l.id + '"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>Ön Envanter</a>' }
+  });
 
   /* --- envanter ve mutabakat özeti --- */
   document.getElementById('ldMtbLink').href = GV.href('envanter-mutabakati.html?lokasyon=' + l.id);
-  document.getElementById('ldEnvanter').innerHTML = mutabakat.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Poz</th><th scope="col">Hizmet</th><th scope="col" class="num">Planlanan</th>'
-      + '<th scope="col" class="num">Sahada</th><th scope="col" class="num">Kontrol Edilen</th>'
-      + '<th scope="col" class="num">Fark</th><th scope="col">Mutabakat</th></tr></thead><tbody>'
-      + mutabakat.map(function(m){
+  gvList({
+    kaynak:'lokasyon-detay:mutabakat', onek:'mtb_', filtresiz:true,
+    veri:function(){ return mutabakat; },
+    tablo:{ hedef:'#ldEnvanter', ad:'Envanter mutabakatı', kolonlar:[
+      { k:'poz', ad:'Poz', ciz:function(m){ return '<b class="t-strong">' + GV.esc(m.poz) + '</b>'; } },
+      { k:'hizmetAd', ad:'Hizmet' },
+      { k:'planlanan', ad:'Planlanan', sinif:'num', ciz:function(m){ return GV.n(m.planlanan); } },
+      { k:'sahadaBulunan', ad:'Sahada', sinif:'num', ciz:function(m){ return GV.n(m.sahadaBulunan); } },
+      { k:'kontrolEdilen', ad:'Kontrol Edilen', sinif:'num', ciz:function(m){ return GV.n(m.kontrolEdilen); } },
+      { k:'fark', ad:'Fark', sinif:'num', ciz:function(m){
           var fark = m.sahadaBulunan - m.planlanan;
-          return '<tr><td data-lbl="Poz"><b class="t-strong">' + GV.esc(m.poz) + '</b></td>'
-            + '<td data-lbl="Hizmet">' + GV.esc(m.hizmetAd) + '</td>'
-            + '<td data-lbl="Planlanan" class="num">' + GV.n(m.planlanan) + '</td>'
-            + '<td data-lbl="Sahada" class="num">' + GV.n(m.sahadaBulunan) + '</td>'
-            + '<td data-lbl="Kontrol Edilen" class="num">' + GV.n(m.kontrolEdilen) + '</td>'
-            + '<td data-lbl="Fark" class="num">' + (fark === 0 ? '<span class="diff zero">0</span>'
-                : '<span class="diff ' + (fark > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-'
-                  + (fark > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>' + GV.n(Math.abs(fark)) + '</span>') + '</td>'
-            + '<td data-lbl="Mutabakat">' + (m.durum === 'onayli' ? GV.rozetOzel('ok','fa-circle-check','Onaylı')
-                : m.durum === 'itirazli' ? GV.rozetOzel('danger','fa-scale-unbalanced','İtirazlı')
-                : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-scale-balanced', baslik:'Gerçekleşen envanter yok',
-        metin:'Saha kontrolü tamamlanmadığı için gerçekleşen miktar ve mutabakat kaydı oluşmadı. Ön envanter “Hizmet Kapsamı” sekmesinde görüntülenir.' });
+          return fark === 0 ? '<span class="diff zero">0</span>'
+            : '<span class="diff ' + (fark > 0 ? 'plus' : 'minus') + '"><i class="fa-solid fa-'
+              + (fark > 0 ? 'plus' : 'minus') + '" aria-hidden="true"></i>' + GV.n(Math.abs(fark)) + '</span>'; } },
+      { k:'durum', ad:'Mutabakat', ciz:function(m){
+          return m.durum === 'onayli' ? GV.rozetOzel('ok','fa-circle-check','Onaylı')
+            : m.durum === 'itirazli' ? GV.rozetOzel('danger','fa-scale-unbalanced','İtirazlı')
+            : GV.rozetOzel('warn','fa-hourglass-half','Bekliyor'); } }
+    ]},
+    pager:{ hedef:'#ldEnvanterPg', boyut:10 },
+    bosDurum:{ ikon:'fa-scale-balanced', baslik:'Gerçekleşen envanter yok',
+      metin:'Saha kontrolü tamamlanmadığı için gerçekleşen miktar ve mutabakat kaydı oluşmadı. Ön envanter “Hizmet Kapsamı” sekmesinde görüntülenir.' }
+  });
 
-  document.getElementById('ldEkipman').innerHTML = ekipmanlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Ekipman</th><th scope="col">QR / Barkod</th><th scope="col">Marka / Model</th>'
-      + '<th scope="col">Seri No</th><th scope="col" class="num">Üretim</th>'
-      + '<th scope="col">Son Kontrol</th><th scope="col">Sonraki</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + ekipmanlar.slice(0,30).map(function(e){
-          return '<tr><td data-lbl="Ekipman"><a href="ekipman-detay.html?id=' + e.id + '"><b class="t-strong">' + GV.esc(e.ad) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(e.kod) + '</span></td>'
-            + '<td data-lbl="QR / Barkod"><code style="font-size:11.5px">' + GV.esc(e.qr) + '</code></td>'
-            + '<td data-lbl="Marka / Model">' + GV.esc(e.marka + ' ' + e.model) + '</td>'
-            + '<td data-lbl="Seri No">' + GV.esc(e.seri) + '</td>'
-            + '<td data-lbl="Üretim" class="num">' + e.uretimYili + '</td>'
-            + '<td data-lbl="Son Kontrol">' + GV.d(e.sonKontrol) + '</td>'
-            + '<td data-lbl="Sonraki">' + GV.d(e.sonrakiKontrol) + '</td>'
-            + '<td data-lbl="Durum">' + (e.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif')
-                : e.durum === 'bakimda' ? GV.rozetOzel('warn','fa-screwdriver-wrench','Bakımda')
-                : GV.rozetOzel('off','fa-ban','Kullanım dışı')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-      + (ekipmanlar.length > 30 ? '<div class="gc-foot"><span>' + GV.n(ekipmanlar.length) + ' ekipmandan ilk 30 tanesi gösteriliyor.</span>'
-          + '<a class="gc-link" href="ekipmanlar.html?lokasyon=' + l.id + '">Tümünü gör <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>' : '')
-    : gvEmpty({ ikon:'fa-gears', baslik:'Tekil ekipman kartı yok',
-        metin:'Bu lokasyonda takip kartı açılmış tekil ekipman bulunmuyor. Miktar bazlı hizmetler “Hizmet Kapsamı” sekmesinde izlenir.' });
+  /* Sayfalama geldiği için "ilk 30" kesmesi kaldırıldı; liste tamamı gezilebilir. */
+  gvList({
+    kaynak:'lokasyon-detay:ekipman', onek:'ekp_', filtresiz:true,
+    veri:function(){ return ekipmanlar; },
+    tablo:{ hedef:'#ldEkipman', ad:'Lokasyondaki ekipmanlar', kolonlar:[
+      { k:'ad', ad:'Ekipman', ciz:function(e){
+          return '<a href="ekipman-detay.html?id=' + e.id + '"><b class="t-strong">' + GV.esc(e.ad) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(e.kod) + '</span>'; } },
+      { k:'qr', ad:'QR / Barkod', ciz:function(e){ return '<code style="font-size:11.5px">' + GV.esc(e.qr) + '</code>'; } },
+      { k:'marka', ad:'Marka / Model', ciz:function(e){ return GV.esc(e.marka + ' ' + e.model); } },
+      { k:'seri', ad:'Seri No' },
+      { k:'uretimYili', ad:'Üretim', sinif:'num' },
+      { k:'sonKontrol', ad:'Son Kontrol', ciz:function(e){ return GV.d(e.sonKontrol); } },
+      { k:'sonrakiKontrol', ad:'Sonraki', ciz:function(e){ return GV.d(e.sonrakiKontrol); } },
+      { k:'durum', ad:'Durum', ciz:function(e){
+          return e.durum === 'aktif' ? GV.rozetOzel('ok','fa-circle-check','Aktif')
+            : e.durum === 'bakimda' ? GV.rozetOzel('warn','fa-screwdriver-wrench','Bakımda')
+            : GV.rozetOzel('off','fa-ban','Kullanım dışı'); } }
+    ]},
+    pager:{ hedef:'#ldEkipmanPg', boyut:10 },
+    bosDurum:{ ikon:'fa-gears', baslik:'Tekil ekipman kartı yok',
+      metin:'Bu lokasyonda takip kartı açılmış tekil ekipman bulunmuyor. Miktar bazlı hizmetler “Hizmet Kapsamı” sekmesinde izlenir.' }
+  });
 
   /* --- iş emirleri --- */
-  document.getElementById('ldIsEmri').innerHTML = isEmirleri.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">İş Emri</th><th scope="col">Tarih</th><th scope="col">Ekip</th>'
-      + '<th scope="col">Taşeron</th><th scope="col">Operasyon</th><th scope="col">Rapor</th></tr></thead><tbody>'
-      + isEmirleri.map(function(i){
-          return '<tr><td data-lbl="İş Emri"><a href="is-emri-detay.html?id=' + i.id + '"><b class="t-strong">' + GV.esc(i.id) + '</b></a></td>'
-            + '<td data-lbl="Tarih">' + GV.d(i.tarih) + ' · ' + i.saat + '</td>'
-            + '<td data-lbl="Ekip">' + GV.esc(i.ekipAdlari.join(', ') || '—') + '</td>'
-            + '<td data-lbl="Taşeron">' + GV.esc(i.taseronAd || '—') + '</td>'
-            + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', i.operasyonDurum) + '</td>'
-            + '<td data-lbl="Rapor">' + GV.rozet('rapor', i.raporDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-clipboard-check', baslik:'İş emri yok', metin:'Bu lokasyon için henüz iş emri açılmadı.',
-        aksiyonlar:'<a class="btn btn-acc" href="is-emri-form.html?lokasyon=' + l.id + '"><i class="fa-solid fa-plus" aria-hidden="true"></i>İş Emri Aç</a>' });
+  gvList({
+    kaynak:'lokasyon-detay:isemri', onek:'ise_', filtresiz:true,
+    veri:function(){ return isEmirleri; },
+    tablo:{ hedef:'#ldIsEmri', ad:'İş emirleri', kolonlar:[
+      { k:'id', ad:'İş Emri', ciz:function(i){
+          return '<a href="is-emri-detay.html?id=' + i.id + '"><b class="t-strong">' + GV.esc(i.id) + '</b></a>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(i){ return GV.d(i.tarih) + ' · ' + i.saat; } },
+      { k:'ekip', ad:'Ekip', ciz:function(i){ return GV.esc(i.ekipAdlari.join(', ') || GV.bos); } },
+      { k:'taseronAd', ad:'Taşeron', ciz:function(i){ return GV.esc(i.taseronAd || GV.bos); } },
+      { k:'operasyonDurum', ad:'Operasyon', ciz:function(i){ return GV.rozet('operasyon', i.operasyonDurum); } },
+      { k:'raporDurum', ad:'Rapor', ciz:function(i){ return GV.rozet('rapor', i.raporDurum); } }
+    ]},
+    pager:{ hedef:'#ldIsEmriPg', boyut:10 },
+    bosDurum:{ ikon:'fa-clipboard-check', baslik:'İş emri yok', metin:'Bu lokasyon için henüz iş emri açılmadı.',
+      aksiyonlar:'<a class="btn btn-acc" href="is-emri-form.html?lokasyon=' + l.id + '"><i class="fa-solid fa-plus" aria-hidden="true"></i>İş Emri Aç</a>' }
+  });
 
   /* --- raporlar --- */
-  document.getElementById('ldRapor').innerHTML = raporlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor</th><th scope="col">Kontrol</th><th scope="col">Rapor Tarihi</th>'
-      + '<th scope="col">Teslim</th><th scope="col">Sonuç</th><th scope="col">Durum</th>'
-      + '<th scope="col" class="num">Sürüm</th></tr></thead><tbody>'
-      + raporlar.map(function(r){
-          return '<tr><td data-lbl="Rapor"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
-            + '<td data-lbl="Kontrol">' + GV.d(r.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Rapor Tarihi">' + GV.d(r.raporTarihi) + '</td>'
-            + '<td data-lbl="Teslim">' + GV.d(r.teslimTarihi) + '</td>'
-            + '<td data-lbl="Sonuç">' + (r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
-                : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
-                : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')) + '</td>'
-            + '<td data-lbl="Durum">' + (r.durum === 'arsiv' ? GV.rozetOzel('off','fa-box-archive','Arşiv') : GV.rozet('rapor', r.durum)) + '</td>'
-            + '<td data-lbl="Sürüm" class="num">v' + r.versiyon + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu lokasyon için teknik rapor düzenlenmedi.' });
+  gvList({
+    kaynak:'lokasyon-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return raporlar; },
+    tablo:{ hedef:'#ldRapor', ad:'Teknik raporlar', kolonlar:[
+      { k:'no', ad:'Rapor', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'kontrolTarihi', ad:'Kontrol', ciz:function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'raporTarihi', ad:'Rapor Tarihi', ciz:function(r){ return GV.d(r.raporTarihi); } },
+      { k:'teslimTarihi', ad:'Teslim', ciz:function(r){ return GV.d(r.teslimTarihi); } },
+      { k:'sonuc', ad:'Sonuç', ciz:function(r){
+          return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+            : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+            : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+      { k:'durum', ad:'Durum', ciz:function(r){
+          return r.durum === 'arsiv' ? GV.rozetOzel('off','fa-box-archive','Arşiv') : GV.rozet('rapor', r.durum); } },
+      { k:'versiyon', ad:'Sürüm', sinif:'num', ciz:function(r){ return 'v' + r.versiyon; } }
+    ]},
+    pager:{ hedef:'#ldRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu lokasyon için teknik rapor düzenlenmedi.' }
+  });
 
   /* --- uygunsuzluklar --- */
   var onemAd = { kritik:['danger','fa-fire','Kritik'], yuksek:['danger','fa-triangle-exclamation','Yüksek'],
     orta:['warn','fa-circle-exclamation','Orta'], dusuk:['info','fa-circle-info','Düşük'] };
-  document.getElementById('ldUygunsuzluk').innerHTML = uygunsuzluklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Kayıt</th><th scope="col">Önem</th><th scope="col">Tespit</th>'
-      + '<th scope="col">Termin</th><th scope="col">Yeniden Kontrol</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + uygunsuzluklar.map(function(u){
+  gvList({
+    kaynak:'lokasyon-detay:uygunsuzluk', onek:'uyg_', filtresiz:true,
+    veri:function(){ return uygunsuzluklar; },
+    tablo:{ hedef:'#ldUygunsuzluk', ad:'Uygunsuzluklar', kolonlar:[
+      { k:'baslik', ad:'Kayıt', ciz:function(u){
+          return '<a href="uygunsuzluk-detay.html?id=' + u.id + '"><b class="t-strong">' + GV.esc(u.baslik) + '</b></a>'
+            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.id) + '</span>'; } },
+      { k:'onem', ad:'Önem', ciz:function(u){
           var o = onemAd[u.onem] || onemAd.orta;
-          return '<tr><td data-lbl="Kayıt"><a href="uygunsuzluk-detay.html?id=' + u.id + '"><b class="t-strong">' + GV.esc(u.baslik) + '</b></a>'
-            + '<br><span class="muted" style="font-size:11.5px">' + GV.esc(u.id) + '</span></td>'
-            + '<td data-lbl="Önem">' + GV.rozetOzel(o[0], o[1], o[2]) + '</td>'
-            + '<td data-lbl="Tespit">' + GV.d(u.tespit) + '</td>'
-            + '<td data-lbl="Termin">' + GV.d(u.termin) + '</td>'
-            + '<td data-lbl="Yeniden Kontrol">' + (u.yenidenKontrol === 'gerekli' ? GV.rozetOzel('danger','fa-rotate-right','Gerekli')
-                : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
-                : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
-                : '<span class="muted">Gerekmiyor</span>') + '</td>'
-            + '<td data-lbl="Durum">' + GV.akisRozet('uygunsuzluk', u.durum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Bu lokasyonda tespit edilmiş uygunsuzluk bulunmuyor.' });
+          return GV.rozetOzel(o[0], o[1], o[2]); } },
+      { k:'tespit', ad:'Tespit', ciz:function(u){ return GV.d(u.tespit); } },
+      { k:'termin', ad:'Termin', ciz:function(u){ return GV.d(u.termin); } },
+      { k:'yenidenKontrol', ad:'Yeniden Kontrol', ciz:function(u){
+          return u.yenidenKontrol === 'gerekli' ? GV.rozetOzel('danger','fa-rotate-right','Gerekli')
+            : u.yenidenKontrol === 'planlandi' ? GV.rozetOzel('warn','fa-calendar-check','Planlandı')
+            : u.yenidenKontrol === 'tamamlandi' ? GV.rozetOzel('ok','fa-check','Tamamlandı')
+            : '<span class="muted">Gerekmiyor</span>'; } },
+      { k:'durum', ad:'Durum', ciz:function(u){ return GV.akisRozet('uygunsuzluk', u.durum); } }
+    ]},
+    pager:{ hedef:'#ldUygunsuzlukPg', boyut:10 },
+    bosDurum:{ ikon:'fa-circle-check', baslik:'Uygunsuzluk yok', metin:'Bu lokasyonda tespit edilmiş uygunsuzluk bulunmuyor.' }
+  });
 
   /* --- fatura --- */
   var faturalar = A.liste('faturalar').filter(function(f){ return (f.lokasyonlar || []).indexOf(l.id) !== -1; });

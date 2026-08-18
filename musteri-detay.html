@@ -66,6 +66,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-tags" aria-hidden="true"></i>Marka Ağı</h2>
             </div>
           <div class="gc-body flush" id="mdMarka"></div>
+          <div class="gv-pager" id="mdMarkaPg" hidden></div>
         </section>
       </div>
       <div id="pn_kisi" role="tabpanel" aria-labelledby="tb_kisi" hidden>
@@ -73,6 +74,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-address-book" aria-hidden="true"></i>İletişim Kişileri</h2>
             <div class="gc-head-acts no-print"><a class="btn btn-sm btn-ghost" href="iletisim-kisileri.html"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Tümü</a></div></div>
           <div class="gc-body flush" id="mdKisi"></div>
+          <div class="gv-pager" id="mdKisiPg" hidden></div>
         </section>
       </div>
       <div id="pn_proje" role="tabpanel" aria-labelledby="tb_proje" hidden>
@@ -80,6 +82,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Kontrol Projeleri</h2>
             </div>
           <div class="gc-body flush" id="mdProje"></div>
+          <div class="gv-pager" id="mdProjePg" hidden></div>
         </section>
       </div>
       <div id="pn_lokasyon" role="tabpanel" aria-labelledby="tb_lokasyon" hidden>
@@ -87,6 +90,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Lokasyon Ağı</h2>
             </div>
           <div class="gc-body flush" id="mdLokasyon"></div>
+          <div class="gv-pager" id="mdLokasyonPg" hidden></div>
         </section>
       </div>
       <div id="pn_sozlesme" role="tabpanel" aria-labelledby="tb_sozlesme" hidden>
@@ -94,10 +98,12 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i>Sözleşmeler</h2>
             </div>
           <div class="gc-body flush" id="mdSozlesme"></div>
+          <div class="gv-pager" id="mdSozlesmePg" hidden></div>
         </section>        <section class="gv-card">
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-contract" aria-hidden="true"></i>Teklifler</h2>
             </div>
           <div class="gc-body flush" id="mdTeklif"></div>
+          <div class="gv-pager" id="mdTeklifPg" hidden></div>
         </section>
       </div>
       <div id="pn_rapor" role="tabpanel" aria-labelledby="tb_rapor" hidden>
@@ -105,6 +111,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-lines" aria-hidden="true"></i>Teknik Raporlar</h2>
             </div>
           <div class="gc-body flush" id="mdRapor"></div>
+          <div class="gv-pager" id="mdRaporPg" hidden></div>
         </section>
       </div>
       <div id="pn_fatura" role="tabpanel" aria-labelledby="tb_fatura" hidden>
@@ -112,6 +119,7 @@
           <div class="gc-head"><h2 class="gc-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>Faturalar ve Tahsilat</h2>
             </div>
           <div class="gc-body flush" id="mdFatura"></div>
+          <div class="gv-pager" id="mdFaturaPg" hidden></div>
         </section>
       </div>
       <div id="pn_iletisim" role="tabpanel" aria-labelledby="tb_iletisim" hidden>
@@ -159,6 +167,9 @@
 <script src="assets/js/components.js"></script>
 <script src="assets/js/filters.js"></script>
 <script src="assets/js/forms.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/data-provider.js"></script>
+<script src="assets/js/list-controller.js"></script>
 <script src="assets/js/tooltip.js"></script>
 <script>
 (function(){
@@ -228,153 +239,181 @@
     + bilgi('Cari Bakiye', m.cariBakiye ? '<b>' + GV.tl(m.cariBakiye) + '</b>' : 'Bakiye yok');
 
   /* --- markalar --- */
-  document.getElementById('mdMarka').innerHTML = markalar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Marka</th><th scope="col">Tür</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col" class="num">Tamamlanan</th><th scope="col">İlerleme</th></tr></thead><tbody>'
-      + markalar.map(function(k){
+  /* Alt koleksiyonlar ListController yolundan geçer; her biri kendi URL
+     önekini taşır (doküman §6). `await` sayfa scriptine sızmaz. */
+  gvList({
+    kaynak:'musteri-detay:marka', onek:'mrk_', filtresiz:true,
+    veri:function(){ return markalar; },
+    tablo:{ hedef:'#mdMarka', ad:'Marka ağı', kolonlar:[
+      { k:'ad', ad:'Marka', ciz:function(k){
+          return '<div class="gcell"><div class="gcell-mark" style="background:' + k.renk + '22;color:' + k.renk + '">'
+            + GV.esc(k.ad.substring(0,2).toLocaleUpperCase('tr-TR')) + '</div><div class="gcell-info">'
+            + '<div class="gcell-name">' + GV.esc(k.ad) + '</div><div class="gcell-sub">' + GV.esc(k.id) + '</div></div></div>'; } },
+      { k:'tur', ad:'Tür' },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(k){
+          return '<a href="lokasyonlar.html?marka=' + k.id + '">' + GV.n(loklar.filter(function(l){ return l.markaId === k.id; }).length) + '</a>'; } },
+      { k:'tamamlanan', ad:'Tamamlanan', sinif:'num', ciz:function(k){
+          return GV.n(loklar.filter(function(l){ return l.markaId === k.id && l.operasyonDurum === 'kontrol-tamamlandi'; }).length); } },
+      { k:'ilerleme', ad:'İlerleme', ciz:function(k){
           var ml = loklar.filter(function(l){ return l.markaId === k.id; });
           var tam = ml.filter(function(l){ return l.operasyonDurum === 'kontrol-tamamlandi'; }).length;
           var kapsamli = ml.filter(function(l){ return ['kapsam-disi','iptal'].indexOf(l.operasyonDurum) === -1; }).length;
-          return '<tr><td data-lbl="Marka"><div class="gcell"><div class="gcell-mark" style="background:' + k.renk + '22;color:' + k.renk + '">'
-            + GV.esc(k.ad.substring(0,2).toLocaleUpperCase('tr-TR')) + '</div><div class="gcell-info">'
-            + '<div class="gcell-name">' + GV.esc(k.ad) + '</div><div class="gcell-sub">' + GV.esc(k.id) + '</div></div></div></td>'
-            + '<td data-lbl="Tür">' + GV.esc(k.tur) + '</td>'
-            + '<td data-lbl="Lokasyon" class="num"><a href="lokasyonlar.html?marka=' + k.id + '">' + GV.n(ml.length) + '</a></td>'
-            + '<td data-lbl="Tamamlanan" class="num">' + GV.n(tam) + '</td>'
-            + '<td data-lbl="İlerleme">' + GV.bar(kapsamli ? tam / kapsamli : 0) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-tags', baslik:'Marka tanımlı değil', metin:'Bu müşteri için henüz marka kaydı oluşturulmadı.',
-        aksiyonlar:'<a class="btn btn-acc" href="musteri-form.html?id=' + m.id + '#marka"><i class="fa-solid fa-plus" aria-hidden="true"></i>Marka Ekle</a>' });
+          return GV.bar(kapsamli ? tam / kapsamli : 0); } }
+    ]},
+    pager:{ hedef:'#mdMarkaPg', boyut:10 },
+    bosDurum:{ ikon:'fa-tags', baslik:'Marka tanımlı değil', metin:'Bu müşteri için henüz marka kaydı oluşturulmadı.',
+      aksiyonlar:'<a class="btn btn-acc" href="musteri-form.html?id=' + m.id + '#marka"><i class="fa-solid fa-plus" aria-hidden="true"></i>Marka Ekle</a>' }
+  });
 
   /* --- kişiler --- */
-  document.getElementById('mdKisi').innerHTML = kisiler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Kişi</th><th scope="col">İletişim Rolü</th><th scope="col">Lokasyon</th>'
-      + '<th scope="col">Telefon</th><th scope="col">E-posta</th></tr></thead><tbody>'
-      + kisiler.map(function(k){
-          var l = k.lokasyonId ? A.lokasyon(k.lokasyonId) : null;
-          return '<tr><td data-lbl="Kişi"><div class="gcell"><div class="gcell-mark">'
+  gvList({
+    kaynak:'musteri-detay:kisi', onek:'ksi_', filtresiz:true,
+    veri:function(){ return kisiler; },
+    tablo:{ hedef:'#mdKisi', ad:'İletişim kişileri', kolonlar:[
+      { k:'ad', ad:'Kişi', ciz:function(k){
+          return '<div class="gcell"><div class="gcell-mark">'
             + GV.esc(k.ad.split(' ').map(function(x){return x[0];}).join('').substring(0,2)) + '</div>'
             + '<div class="gcell-info"><div class="gcell-name">' + GV.esc(k.ad) + (k.birincil ? ' <span class="gtag mint">Birincil</span>' : '') + '</div>'
-            + '<div class="gcell-sub">' + GV.esc(k.unvan) + '</div></div></div></td>'
-            + '<td data-lbl="İletişim Rolü"><span class="gtag">' + GV.esc(k.iletisimRolu) + '</span></td>'
-            + '<td data-lbl="Lokasyon">' + (l ? '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a>' : '<span class="muted">Merkez</span>') + '</td>'
-            + '<td data-lbl="Telefon">' + GV.esc(k.telefon) + '</td>'
-            + '<td data-lbl="E-posta"><a href="mailto:' + GV.esc(k.eposta) + '">' + GV.esc(k.eposta) + '</a></td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-address-book', baslik:'Yetkili kişi yok', metin:'Bu müşteri için iletişim kişisi tanımlanmadı.' });
+            + '<div class="gcell-sub">' + GV.esc(k.unvan) + '</div></div></div>'; } },
+      { k:'iletisimRolu', ad:'İletişim Rolü', ciz:function(k){ return '<span class="gtag">' + GV.esc(k.iletisimRolu) + '</span>'; } },
+      { k:'lokasyonId', ad:'Lokasyon', ciz:function(k){
+          var l = k.lokasyonId ? A.lokasyon(k.lokasyonId) : null;
+          return l ? '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a>' : '<span class="muted">Merkez</span>'; } },
+      { k:'telefon', ad:'Telefon' },
+      { k:'eposta', ad:'E-posta', ciz:function(k){ return '<a href="mailto:' + GV.esc(k.eposta) + '">' + GV.esc(k.eposta) + '</a>'; } }
+    ]},
+    pager:{ hedef:'#mdKisiPg', boyut:10 },
+    bosDurum:{ ikon:'fa-address-book', baslik:'Yetkili kişi yok', metin:'Bu müşteri için iletişim kişisi tanımlanmadı.' }
+  });
 
   /* --- projeler --- */
-  document.getElementById('mdProje').innerHTML = projeler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Proje</th><th scope="col" class="num">Yıl</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col">İlerleme</th><th scope="col" class="num">Gelir</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + projeler.map(function(p){
-          var o = A.projeOzet(p.id);
-          return '<tr><td data-lbl="Proje"><div class="gcell-info"><div class="gcell-name">'
+  gvList({
+    kaynak:'musteri-detay:proje', onek:'prj_', filtresiz:true,
+    veri:function(){ return projeler; },
+    tablo:{ hedef:'#mdProje', ad:'Kontrol projeleri', kolonlar:[
+      { k:'ad', ad:'Proje', ciz:function(p){
+          return '<div class="gcell-info"><div class="gcell-name">'
             + '<a href="proje-detay.html?id=' + p.id + '">' + GV.esc(p.ad) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(p.kod) + '</div></div></td>'
-            + '<td data-lbl="Yıl" class="num">' + p.yil + '</td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(o.toplam) + '</td>'
-            + '<td data-lbl="İlerleme">' + GV.bar(o.ilerleme) + '</td>'
-            + '<td data-lbl="Gelir" class="num">' + GV.tl(o.gelir) + '</td>'
-            + '<td data-lbl="Durum">' + (p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
-                : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
-                : GV.rozetOzel('warn','fa-pen-ruler','Planlama')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-diagram-project', baslik:'Proje yok', metin:'Bu müşteri için kontrol projesi açılmadı.',
-        aksiyonlar:'<a class="btn btn-acc" href="proje-form.html?musteri=' + m.id + '"><i class="fa-solid fa-plus" aria-hidden="true"></i>Proje Aç</a>' });
+            + '<div class="gcell-sub">' + GV.esc(p.kod) + '</div></div>'; } },
+      { k:'yil', ad:'Yıl', sinif:'num' },
+      { k:'lokasyon', ad:'Lokasyon', sinif:'num', ciz:function(p){ return GV.n(A.projeOzet(p.id).toplam); } },
+      { k:'ilerleme', ad:'İlerleme', ciz:function(p){ return GV.bar(A.projeOzet(p.id).ilerleme); } },
+      { k:'gelir', ad:'Gelir', sinif:'num', ciz:function(p){ return GV.tl(A.projeOzet(p.id).gelir); } },
+      { k:'durum', ad:'Durum', ciz:function(p){
+          return p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
+            : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
+            : GV.rozetOzel('warn','fa-pen-ruler','Planlama'); } }
+    ]},
+    pager:{ hedef:'#mdProjePg', boyut:10 },
+    bosDurum:{ ikon:'fa-diagram-project', baslik:'Proje yok', metin:'Bu müşteri için kontrol projesi açılmadı.',
+      aksiyonlar:'<a class="btn btn-acc" href="proje-form.html?musteri=' + m.id + '"><i class="fa-solid fa-plus" aria-hidden="true"></i>Proje Aç</a>' }
+  });
 
   /* --- lokasyonlar --- */
-  document.getElementById('mdLokasyon').innerHTML = loklar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Lokasyon</th><th scope="col">Marka</th><th scope="col">Bölge</th>'
-      + '<th scope="col">Operasyon</th><th scope="col">Rapor</th><th scope="col">Fatura</th></tr></thead><tbody>'
-      + loklar.map(function(l){
-          return '<tr><td data-lbl="Lokasyon"><div class="gcell-info"><div class="gcell-name">'
+  gvList({
+    kaynak:'musteri-detay:lokasyon', onek:'lok_', filtresiz:true,
+    veri:function(){ return loklar; },
+    tablo:{ hedef:'#mdLokasyon', ad:'Lokasyon ağı', kolonlar:[
+      { k:'ad', ad:'Lokasyon', ciz:function(l){
+          return '<div class="gcell-info"><div class="gcell-name">'
             + '<a href="lokasyon-detay.html?id=' + l.id + '">' + GV.esc(l.ad) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriKod + ' · ' + l.il) + '</div></div></td>'
-            + '<td data-lbl="Marka">' + GV.esc(l.markaAd) + '</td>'
-            + '<td data-lbl="Bölge">' + GV.esc(l.bolge) + '</td>'
-            + '<td data-lbl="Operasyon">' + GV.rozet('operasyon', l.operasyonDurum) + '</td>'
-            + '<td data-lbl="Rapor">' + GV.rozet('rapor', l.raporDurum) + '</td>'
-            + '<td data-lbl="Fatura">' + GV.rozet('fatura', l.faturaDurum) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-location-dot', baslik:'Lokasyon yok', metin:'Bu müşteri için lokasyon kaydı bulunmuyor.' });
+            + '<div class="gcell-sub">' + GV.esc(l.kod + ' · ' + l.musteriKod + ' · ' + l.il) + '</div></div>'; } },
+      { k:'markaAd', ad:'Marka' },
+      { k:'bolge', ad:'Bölge' },
+      { k:'operasyonDurum', ad:'Operasyon', ciz:function(l){ return GV.rozet('operasyon', l.operasyonDurum); } },
+      { k:'raporDurum', ad:'Rapor', ciz:function(l){ return GV.rozet('rapor', l.raporDurum); } },
+      { k:'faturaDurum', ad:'Fatura', ciz:function(l){ return GV.rozet('fatura', l.faturaDurum); } }
+    ]},
+    pager:{ hedef:'#mdLokasyonPg', boyut:10 },
+    bosDurum:{ ikon:'fa-location-dot', baslik:'Lokasyon yok', metin:'Bu müşteri için lokasyon kaydı bulunmuyor.' }
+  });
 
   /* --- sözleşme ve teklif --- */
-  document.getElementById('mdSozlesme').innerHTML = sozlesmeler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Sözleşme</th><th scope="col">Dönem</th><th scope="col" class="num">Parti</th>'
-      + '<th scope="col" class="num">Vade</th><th scope="col" class="num">Bedel</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + sozlesmeler.map(function(s){
-          return '<tr><td data-lbl="Sözleşme"><div class="gcell-info"><div class="gcell-name">'
-            + '<a href="sozlesme-detay.html?id=' + s.id + '">' + GV.esc(s.ad) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(s.no) + '</div></div></td>'
-            + '<td data-lbl="Dönem">' + GV.d(s.baslangic) + ' – ' + GV.d(s.bitis) + '</td>'
-            + '<td data-lbl="Parti" class="num">' + GV.n(s.partiBuyuklugu) + ' lokasyon</td>'
-            + '<td data-lbl="Vade" class="num">' + GV.n(s.odemeVadesi) + ' gün</td>'
-            + '<td data-lbl="Bedel" class="num">' + GV.tl(s.bedel) + '</td>'
-            + '<td data-lbl="Durum">' + (s.durum === 'yururlukte' ? GV.rozetOzel('ok','fa-file-signature','Yürürlükte')
-                : GV.rozetOzel('off','fa-clock-rotate-left','Sona erdi')) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-signature', baslik:'Sözleşme yok', metin:'Bu müşteriyle imzalanmış sözleşme bulunmuyor.' });
+  gvList({
+    kaynak:'musteri-detay:sozlesme', onek:'szl_', filtresiz:true,
+    veri:function(){ return sozlesmeler; },
+    tablo:{ hedef:'#mdSozlesme', ad:'Sözleşmeler', kolonlar:[
+      { k:'ad', ad:'Sözleşme', ciz:function(x){
+          return '<div class="gcell-info"><div class="gcell-name">'
+            + '<a href="sozlesme-detay.html?id=' + x.id + '">' + GV.esc(x.ad) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.esc(x.no) + '</div></div>'; } },
+      { k:'baslangic', ad:'Dönem', ciz:function(x){ return GV.d(x.baslangic) + ' – ' + GV.d(x.bitis); } },
+      { k:'partiBuyuklugu', ad:'Parti', sinif:'num', ciz:function(x){ return GV.n(x.partiBuyuklugu) + ' lokasyon'; } },
+      { k:'odemeVadesi', ad:'Vade', sinif:'num', ciz:function(x){ return GV.n(x.odemeVadesi) + ' gün'; } },
+      { k:'bedel', ad:'Bedel', sinif:'num', ciz:function(x){ return GV.tl(x.bedel); } },
+      { k:'durum', ad:'Durum', ciz:function(x){
+          return x.durum === 'yururlukte' ? GV.rozetOzel('ok','fa-file-signature','Yürürlükte')
+            : GV.rozetOzel('off','fa-clock-rotate-left','Sona erdi'); } }
+    ]},
+    pager:{ hedef:'#mdSozlesmePg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-signature', baslik:'Sözleşme yok', metin:'Bu müşteriyle imzalanmış sözleşme bulunmuyor.' }
+  });
 
-  document.getElementById('mdTeklif').innerHTML = teklifler.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Teklif</th><th scope="col">Tarih</th><th scope="col" class="num">Lokasyon</th>'
-      + '<th scope="col" class="num">Tutar</th><th scope="col">Durum</th></tr></thead><tbody>'
-      + teklifler.map(function(t){
+  gvList({
+    kaynak:'musteri-detay:teklif', onek:'tkl_', filtresiz:true,
+    veri:function(){ return teklifler; },
+    tablo:{ hedef:'#mdTeklif', ad:'Teklifler', kolonlar:[
+      { k:'konu', ad:'Teklif', ciz:function(t){
+          return '<div class="gcell-info"><div class="gcell-name">'
+            + '<a href="teklif-detay.html?id=' + t.id + '">' + GV.esc(t.konu) + '</a></div>'
+            + '<div class="gcell-sub">' + GV.esc(t.no) + '</div></div>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(t){ return GV.d(t.tarih); } },
+      { k:'lokasyonSayisi', ad:'Lokasyon', sinif:'num', ciz:function(t){ return GV.n(t.lokasyonSayisi); } },
+      { k:'toplamSatis', ad:'Tutar', sinif:'num', ciz:function(t){ return GV.tl(t.toplamSatis); } },
+      { k:'durum', ad:'Durum', ciz:function(t){
           var d = { kazanildi:['ok','fa-trophy','Kazanıldı'], gonderildi:['info','fa-paper-plane','Gönderildi'],
                     hazirlaniyor:['warn','fa-pen-ruler','Hazırlanıyor'], kaybedildi:['danger','fa-xmark','Kaybedildi'] }[t.durum];
-          return '<tr><td data-lbl="Teklif"><div class="gcell-info"><div class="gcell-name">'
-            + '<a href="teklif-detay.html?id=' + t.id + '">' + GV.esc(t.konu) + '</a></div>'
-            + '<div class="gcell-sub">' + GV.esc(t.no) + '</div></div></td>'
-            + '<td data-lbl="Tarih">' + GV.d(t.tarih) + '</td>'
-            + '<td data-lbl="Lokasyon" class="num">' + GV.n(t.lokasyonSayisi) + '</td>'
-            + '<td data-lbl="Tutar" class="num">' + GV.tl(t.toplamSatis) + '</td>'
-            + '<td data-lbl="Durum">' + GV.rozetOzel(d[0], d[1], d[2]) + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-contract', baslik:'Teklif yok', metin:'Bu müşteriye verilmiş teklif bulunmuyor.' });
+          return GV.rozetOzel(d[0], d[1], d[2]); } }
+    ]},
+    pager:{ hedef:'#mdTeklifPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-contract', baslik:'Teklif yok', metin:'Bu müşteriye verilmiş teklif bulunmuyor.' }
+  });
 
   /* --- raporlar --- */
-  document.getElementById('mdRapor').innerHTML = raporlar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Rapor No</th><th scope="col">Lokasyon</th><th scope="col">Kontrol</th>'
-      + '<th scope="col">Sonuç</th><th scope="col">Durum</th><th scope="col" class="num">Sürüm</th></tr></thead><tbody>'
-      + raporlar.map(function(r){
-          return '<tr><td data-lbl="Rapor No"><a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a></td>'
-            + '<td data-lbl="Lokasyon">' + GV.esc(r.lokasyonAd) + '</td>'
-            + '<td data-lbl="Kontrol">' + GV.d(r.kontrolTarihi) + '</td>'
-            + '<td data-lbl="Sonuç">' + (r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
-                : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
-                : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil')) + '</td>'
-            + '<td data-lbl="Durum">' + GV.rozet('rapor', r.durum) + '</td>'
-            + '<td data-lbl="Sürüm" class="num">v' + r.versiyon + '</td></tr>';
-        }).join('') + '</tbody></table></div>'
-    : gvEmpty({ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu müşteri için düzenlenmiş teknik rapor bulunmuyor.' });
+  gvList({
+    kaynak:'musteri-detay:rapor', onek:'rpr_', filtresiz:true,
+    veri:function(){ return raporlar; },
+    tablo:{ hedef:'#mdRapor', ad:'Teknik raporlar', kolonlar:[
+      { k:'no', ad:'Rapor No', ciz:function(r){
+          return '<a href="rapor-detay.html?id=' + r.id + '"><b class="t-strong">' + GV.esc(r.no) + '</b></a>'; } },
+      { k:'lokasyonAd', ad:'Lokasyon' },
+      { k:'kontrolTarihi', ad:'Kontrol', ciz:function(r){ return GV.d(r.kontrolTarihi); } },
+      { k:'sonuc', ad:'Sonuç', ciz:function(r){
+          return r.sonuc === 'uygun' ? GV.rozetOzel('ok','fa-circle-check','Uygun')
+            : r.sonuc === 'sartli-uygun' ? GV.rozetOzel('warn','fa-circle-half-stroke','Şartlı uygun')
+            : GV.rozetOzel('danger','fa-circle-xmark','Uygun değil'); } },
+      { k:'durum', ad:'Durum', ciz:function(r){ return GV.rozet('rapor', r.durum); } },
+      { k:'versiyon', ad:'Sürüm', sinif:'num', ciz:function(r){ return 'v' + r.versiyon; } }
+    ]},
+    pager:{ hedef:'#mdRaporPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-lines', baslik:'Rapor yok', metin:'Bu müşteri için düzenlenmiş teknik rapor bulunmuyor.' }
+  });
 
-  /* --- faturalar --- */
-  document.getElementById('mdFatura').innerHTML = faturalar.length
-    ? '<div class="gv-tscroll"><table class="gtable gtable-cards"><thead><tr>'
-      + '<th scope="col">Fatura No</th><th scope="col">Tarih</th><th scope="col">Vade</th>'
-      + '<th scope="col" class="num">Toplam</th><th scope="col" class="num">Tahsil</th>'
-      + '<th scope="col" class="num">Kalan</th><th scope="col">Tahsilat</th></tr></thead><tbody>'
-      + faturalar.map(function(f){
-          return '<tr><td data-lbl="Fatura No"><a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a></td>'
-            + '<td data-lbl="Tarih">' + GV.d(f.tarih) + '</td>'
-            + '<td data-lbl="Vade">' + GV.d(f.vade) + '</td>'
-            + '<td data-lbl="Toplam" class="num">' + GV.tl(f.toplam) + '</td>'
-            + '<td data-lbl="Tahsil" class="num">' + GV.tl(f.tahsilEdilen) + '</td>'
-            + '<td data-lbl="Kalan" class="num">' + (f.kalan ? '<b class="t-strong">' + GV.tl(f.kalan) + '</b>' : GV.tl(0)) + '</td>'
-            + '<td data-lbl="Tahsilat">' + GV.rozet('tahsilat', f.tahsilatDurum) + '</td></tr>';
-        }).join('')
-      + '</tbody><tfoot><tr><td data-lbl="Toplam" colspan="3">Toplam</td>'
-      + '<td data-lbl="Toplam" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.toplam;},0)) + '</td>'
-      + '<td data-lbl="Tahsil" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.tahsilEdilen;},0)) + '</td>'
-      + '<td data-lbl="Kalan" class="num">' + GV.tl(faturalar.reduce(function(t,f){return t+f.kalan;},0)) + '</td><td data-lbl="Tahsilat"></td></tr></tfoot></table></div>'
-    : gvEmpty({ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu müşteriye kesilmiş fatura bulunmuyor.' });
+  /* --- faturalar ---
+     Alt toplam sayfa dilimini DEĞİL, müşterinin bütün faturalarını toplar;
+     sayfa değiştirince toplam kaymaz. */
+  function faturaToplam(alan){ return faturalar.reduce(function(t,f){ return t + f[alan]; }, 0); }
+  gvList({
+    kaynak:'musteri-detay:fatura', onek:'ftr_', filtresiz:true,
+    veri:function(){ return faturalar; },
+    tablo:{ hedef:'#mdFatura', ad:'Faturalar ve tahsilat', kolonlar:[
+      { k:'no', ad:'Fatura No', ciz:function(f){
+          return '<a href="faturalar.html?id=' + f.id + '"><b class="t-strong">' + GV.esc(f.no) + '</b></a>'; } },
+      { k:'tarih', ad:'Tarih', ciz:function(f){ return GV.d(f.tarih); } },
+      { k:'vade', ad:'Vade', ciz:function(f){ return GV.d(f.vade); } },
+      { k:'toplam', ad:'Toplam', sinif:'num', ciz:function(f){ return GV.tl(f.toplam); } },
+      { k:'tahsilEdilen', ad:'Tahsil', sinif:'num', ciz:function(f){ return GV.tl(f.tahsilEdilen); } },
+      { k:'kalan', ad:'Kalan', sinif:'num', ciz:function(f){
+          return f.kalan ? '<b class="t-strong">' + GV.tl(f.kalan) + '</b>' : GV.tl(0); } },
+      { k:'tahsilatDurum', ad:'Tahsilat', ciz:function(f){ return GV.rozet('tahsilat', f.tahsilatDurum); } }
+    ], altToplam:function(){
+      return '<tr><td data-lbl="Toplam" colspan="3">Toplam</td>'
+        + '<td data-lbl="Toplam" class="num">' + GV.tl(faturaToplam('toplam')) + '</td>'
+        + '<td data-lbl="Tahsil" class="num">' + GV.tl(faturaToplam('tahsilEdilen')) + '</td>'
+        + '<td data-lbl="Kalan" class="num">' + GV.tl(faturaToplam('kalan')) + '</td><td data-lbl="Tahsilat"></td></tr>'; } },
+    pager:{ hedef:'#mdFaturaPg', boyut:10 },
+    bosDurum:{ ikon:'fa-file-invoice-dollar', baslik:'Fatura yok', metin:'Bu müşteriye kesilmiş fatura bulunmuyor.' }
+  });
 
   /* --- iletişim geçmişi --- */
   var iletisimIkon = { telefon:'fa-phone', eposta:'fa-envelope', toplanti:'fa-users', 'tarih-onayi':'fa-calendar-check',
