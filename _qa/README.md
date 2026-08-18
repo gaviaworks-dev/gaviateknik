@@ -39,5 +39,5 @@ cd _qa && npm init -y && npm i --no-save jsdom
 
 ## Birim testler
 
-`_qa/test/*.test.js` → `node --test _qa/test` ile çalışır, npm bağımlılığı yoktur.
+`_qa/test/*.test.js` → `node --test "_qa/test/*.test.js"` ile çalışır, npm bağımlılığı yoktur.
 `durum.js` geçen/kalan sayısını buradan okur.

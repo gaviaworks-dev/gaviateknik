@@ -107,7 +107,8 @@ function birimTestleri() {
   const dosyalar = fs.readdirSync(testDizin).filter(f => f.endsWith('.test.js'));
   if (!dosyalar.length) return { durum: 'yok', mesaj: '_qa/test/ boş' };
   try {
-    const r = cp.execSync(`node --test "${testDizin}" 2>&1`, { encoding: 'utf8', cwd: KOK });
+    /* Node 22+ dizin argümanını modül yolu sayıyor; test dosyaları glob ile verilir. */
+    const r = cp.execSync(`node --test --test-reporter=tap "${path.join(testDizin, '*.test.js')}" 2>&1`, { encoding: 'utf8', cwd: KOK });
     const gec = (r.match(/^# pass (\d+)/m) || [])[1];
     const kal = (r.match(/^# fail (\d+)/m) || [])[1];
     return { durum: 'ok', gecti: +(gec || 0), kaldi: +(kal || 0), dosya: dosyalar.length };

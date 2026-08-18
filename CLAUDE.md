@@ -19,12 +19,17 @@ Faz durumu: `PROGRESS.md`.
     ├── css/  gavia-ui.css · components.css · responsive.css · print.css
     ├── js/   app.js · navigation.js · components.js · filters.js
     │         forms.js · demo-api.js · demo-data.js
+    │         types.js · data-provider.js · list-controller.js · tooltip.js
     └── images/
 ```
 
 **Yükleme sırası (değiştirme):**
 CSS → `gavia-ui.css` → `components.css` → `responsive.css` → `print.css`
 JS  → `demo-data.js` → `demo-api.js` → `navigation.js` → `components.js` → `filters.js` → `forms.js` → `app.js`
+
+Faz 12 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
+yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
+`types.js` → `data-provider.js` → `list-controller.js` → `tooltip.js`
 
 ## 2. Dosya adlandırma
 
