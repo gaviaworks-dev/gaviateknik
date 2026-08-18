@@ -244,6 +244,23 @@
   });
   window.GV.routeRegistry = routeRegistry;
 
+  /* Bir ekran anahtarının bu role AÇIK olup olmadığını söyler.
+     Rol matrisi ikinci kez tanımlanmaz: bölüm izni + ekran kısıtı aynı
+     `ROL_YETKI` kaydından okunur. Registry'de karşılığı olmayan ekran
+     KAPALI kabul edilir — tanımsız ekranı açık saymak sessiz sızıntıdır. */
+  window.GV.ekranIzni = function (ekranAnahtari) {
+    if (!ekranAnahtari) return false;
+    for (var i = 0; i < routeRegistry.length; i++) {
+      var r = routeRegistry[i];
+      for (var j = 0; j < r.screens.length; j++) {
+        if (r.screens[j].screen !== ekranAnahtari) continue;
+        if (yetki.bolumler.indexOf(r.key) === -1) return false;
+        return ekranGorunur(r.key, r.screens[j]);
+      }
+    }
+    return false;
+  };
+
   /* Bir sayfa adından (href) route kaydını bulur. Tanımsız route null döner —
      çağıran ilk kaydı açmak yerine kontrollü ekran gösterir. */
   window.GV.route = function (href) {

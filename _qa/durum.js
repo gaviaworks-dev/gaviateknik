@@ -14,7 +14,8 @@ const QA = __dirname;
 const HIZLI = process.argv.includes('--hizli');
 
 const ORTAK = ['types.js', 'data-provider.js', 'list-controller.js', 'tooltip.js',
-               'kimlik.js', 'para-zaman.js', 'durum-makinesi.js', 'form-controller.js', 'kpi.js'];
+               'kimlik.js', 'para-zaman.js', 'durum-makinesi.js', 'form-controller.js', 'kpi.js',
+               'dashboard.js', 'api-provider.js'];
 
 /* _docs/REVIZYON.md §6 sayfalandırma matrisi — 41 route.
    Doküman 'hizmet-kataloğu.html' yazıyor (Türkçe ğ); diskteki doğru ad
