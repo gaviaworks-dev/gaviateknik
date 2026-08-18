@@ -52,6 +52,17 @@
   .tl-row { grid-template-columns: 130px minmax(0, 1fr) }
   .pr-sign { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
 
+  /* ---- grafik (doküman §9) ----
+     Yatay taşma yok (SVG viewBox ile ölçeklenir); veri tablosu alternatifi
+     bu kırılımdan itibaren GÖRÜNÜR olur. */
+  .gv-chart-data {
+    position: static; width: auto; height: auto; margin: 14px 0 0; padding: 12px 0 0;
+    overflow: visible; clip-path: none; white-space: normal;
+    border-top: 1px solid var(--line);
+  }
+  .gv-chart-ozet { margin: 0 0 10px; font-size: 12.5px; color: var(--ink-2); line-height: 1.6 }
+  .gv-chart-table { font-size: 12.5px }
+
   /* ============ DOKUNMA HEDEFLERİ ============
      Doküman §9: "Touch: etkileşim alanları en az 44 x 44 px; iki kritik
      buton arasında en az 8 px boşluk."
@@ -313,9 +324,18 @@
   .rec-id h1 { font-size: 18px }
   .fw-choice { grid-template-columns: minmax(0, 1fr); gap: 7px }
   .fw-choice button { min-height: 46px; flex-direction: row; gap: 9px }
+  /* ---- takvim (doküman §9) ----
+     Aylık görünüm noktaya iner; AYRINTI GÜN KATMANINDA açılır. Gün numarası
+     ve nokta metni 10 px altına inmez. */
   .cal-day { min-height: 60px }
-  .cal-ev { font-size: 0; padding: 3px; border-left-width: 6px }
+  .cal-ev { font-size: 0; padding: 3px; border-left-width: 6px; pointer-events: none }
   .cal-ev::after { content: "•"; font-size: 11px }
+  .cal-daynum { font-size: 12px }
+  .cal-more { pointer-events: none }
+  .cal-dayopen {
+    display: block; position: absolute; inset: 0; z-index: 2;
+    width: 100%; height: 100%; min-width: 44px; min-height: 44px;
+  }
 }
 
 /* ============ HAREKET TERCİHİ ============ */

@@ -374,6 +374,47 @@
     });
   }
 
+  /**
+   * Grafiğin METİN ALTERNATİFİ (doküman §9: "Grafik: yatay taşma yapmaz;
+   * veri tablosu veya metinsel özet alternatif olarak bulunur").
+   *
+   * Tablo HER ZAMAN basılır: masaüstünde görsel olarak gizlidir (ekran
+   * okuyucu okur, görünüm bit düzeyinde değişmez), ≤980'de görünür hale
+   * gelir (responsive.css). Odaklanabilir öğe içermez — masaüstünde
+   * hayalet sekme durağı oluşmaz.
+   *
+   * @param {Array<{etiket:string, deger:number, ton?:string, gosterim?:string}>} veri
+   * @param {{baslik?:string, birim?:string, tabloId?:string}} secenek
+   * @returns {string} HTML
+   */
+  function grafikVeriTablosu(veri, secenek) {
+    secenek = secenek || {};
+    var id = secenek.tabloId || (GV.yeniKod ? GV.yeniKod('gvcd') : 'gvcd');
+    var toplam = veri.reduce(function (t, d) { return t + (Number(d.deger) || 0); }, 0);
+    var enBuyuk = veri.reduce(function (a, d) { return (Number(d.deger) || 0) > (Number(a.deger) || 0) ? d : a; }, veri[0]);
+    var birim = secenek.birim ? ' ' + secenek.birim : '';
+    function gosterim(d) {
+      if (d.gosterim) return d.gosterim;
+      return secenek.birim === '%' ? GV.pct((Number(d.deger) || 0) / 100, true, 1)
+        : GV.n(d.deger) + birim;
+    }
+    var ozet = veri.length + ' kalem · en yüksek: ' + esc(enBuyuk.etiket) + ' (' + gosterim(enBuyuk) + ')'
+      + (secenek.birim === '%' ? '' : ' · toplam: ' + GV.n(toplam) + birim);
+    var h = '<div class="gv-chart-data" id="' + id + '">'
+      + '<p class="gv-chart-ozet">' + esc(secenek.baslik || 'Grafik') + ' — ' + ozet + '</p>'
+      + '<div class="gv-tscroll"><table class="gtable gv-chart-table">'
+      + '<caption class="gv-sr">' + esc(secenek.baslik || 'Grafik') + ' veri tablosu</caption>'
+      + '<thead><tr><th scope="col">Kalem</th><th scope="col">Değer</th>'
+      + (secenek.birim === '%' ? '' : '<th scope="col">Pay</th>') + '</tr></thead><tbody>';
+    veri.forEach(function (d) {
+      h += '<tr><th scope="row">' + esc(d.etiket) + '</th><td>' + gosterim(d) + '</td>'
+        + (secenek.birim === '%' ? ''
+           : '<td>' + (toplam ? GV.pct((Number(d.deger) || 0) / toplam) : GV.bos) + '</td>') + '</tr>';
+    });
+    return h + '</tbody></table></div></div>';
+  }
+  GV.grafikVeriTablosu = grafikVeriTablosu;
+
   window.gvBar = function (hedef, veri, secenek) {
     var kap = typeof hedef === 'string' ? document.querySelector(hedef) : hedef;
     if (!kap) return;
@@ -383,7 +424,9 @@
     var enBuyuk = Math.max.apply(null, veri.map(function (d) { return d.deger; })) || 1;
     var cizimG = G - solPay - 12, cizimY = Y - altPay - ustPay;
     var adim = cizimG / veri.length, kalinlik = Math.min(46, adim * 0.62);
-    var h = '<svg viewBox="0 0 ' + G + ' ' + Y + '" role="img" aria-label="' + svgEsc(secenek.baslik || 'Sütun grafiği') + '">';
+    var tabloId = GV.yeniKod ? GV.yeniKod('gvcd') : 'gvcd';
+    var h = '<svg class="gv-chart-svg" viewBox="0 0 ' + G + ' ' + Y + '" role="img" aria-label="'
+          + svgEsc(secenek.baslik || 'Sütun grafiği') + '" aria-describedby="' + tabloId + '">';
     for (var i = 0; i <= 4; i++) {
       var y = ustPay + cizimY * (i / 4);
       var v = Math.round(enBuyuk * (1 - i / 4));
@@ -401,7 +444,8 @@
         + '<text x="' + (x + kalinlik / 2) + '" y="' + (y2 - 5) + '" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111528">' + GV.n(d.deger) + '</text>'
         + '<text x="' + (x + kalinlik / 2) + '" y="' + (Y - 10) + '" text-anchor="middle" font-size="10.5" fill="#69708A">' + svgEsc(d.etiket) + '</text>';
     });
-    kap.innerHTML = h + '</svg>';
+    kap.innerHTML = h + '</svg>'
+      + grafikVeriTablosu(veri, { baslik: secenek.baslik || 'Sütun grafiği', birim: secenek.birim, tabloId: tabloId });
   };
 
   /* Halka grafiği */
@@ -412,7 +456,10 @@
     if (!veri || !veri.length) { grafikBos(kap, secenek); return; }
     var toplam = veri.reduce(function (t, d) { return t + d.deger; }, 0) || 1;
     var B = 200, m = B / 2, r = 74, kalinlik = 26, cevre = 2 * Math.PI * r, ofset = 0;
-    var h = '<svg viewBox="0 0 ' + B + ' ' + B + '" role="img" aria-label="' + svgEsc(secenek.baslik || 'Halka grafiği') + '" style="max-width:220px;margin:0 auto">';
+    var tabloId = GV.yeniKod ? GV.yeniKod('gvcd') : 'gvcd';
+    var h = '<svg class="gv-chart-svg" viewBox="0 0 ' + B + ' ' + B + '" role="img" aria-label="'
+          + svgEsc(secenek.baslik || 'Halka grafiği') + '" aria-describedby="' + tabloId + '"'
+          + ' style="max-width:220px;margin:0 auto">';
     h += '<circle cx="' + m + '" cy="' + m + '" r="' + r + '" fill="none" stroke="#EEF0F5" stroke-width="' + kalinlik + '"/>';
     veri.forEach(function (d) {
       var pay = (d.deger / toplam) * cevre;
@@ -431,7 +478,9 @@
       });
       h += '</div>';
     }
-    kap.innerHTML = h;
+    kap.innerHTML = h
+      + grafikVeriTablosu(veri, {
+          baslik: secenek.baslik || secenek.merkezEtiket || 'Halka grafiği', tabloId: tabloId });
   };
 
   /* Çizgi / alan grafiği */
@@ -450,7 +499,9 @@
     var cizgi = noktalar.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
     var alan = cizgi + ' L' + noktalar[noktalar.length - 1][0].toFixed(1) + ' ' + (ustPay + cizimY) + ' L' + solPay + ' ' + (ustPay + cizimY) + ' Z';
     var renk = TON[secenek.ton] || TON.acc;
-    var h = '<svg viewBox="0 0 ' + G + ' ' + Y + '" role="img" aria-label="' + svgEsc(secenek.baslik || 'Çizgi grafiği') + '">';
+    var tabloId = GV.yeniKod ? GV.yeniKod('gvcd') : 'gvcd';
+    var h = '<svg class="gv-chart-svg" viewBox="0 0 ' + G + ' ' + Y + '" role="img" aria-label="'
+          + svgEsc(secenek.baslik || 'Çizgi grafiği') + '" aria-describedby="' + tabloId + '">';
     for (var i = 0; i <= 3; i++) {
       var y = ustPay + cizimY * (i / 3);
       h += '<line x1="' + solPay + '" y1="' + y + '" x2="' + G + '" y2="' + y + '" stroke="#E4E7EE" stroke-width="1"/>'
@@ -463,10 +514,12 @@
         + '<title>' + svgEsc(d.etiket) + ': ' + GV.n(d.deger) + '</title></circle>'
         + '<text x="' + noktalar[i2][0].toFixed(1) + '" y="' + (Y - 8) + '" text-anchor="middle" font-size="10.5" fill="#69708A">' + svgEsc(d.etiket) + '</text>';
     });
-    kap.innerHTML = h + '</svg>';
+    kap.innerHTML = h + '</svg>'
+      + grafikVeriTablosu(veri, { baslik: secenek.baslik || 'Çizgi grafiği', birim: secenek.birim, tabloId: tabloId });
   };
 
-  /* Yatay çubuk listesi (kategori dağılımı) */
+  /* Yatay çubuk listesi (kategori dağılımı) — etiket ve değeri metin olarak
+     zaten yazar; ayrı veri tablosu alternatifine ihtiyacı yoktur. */
   window.gvBarList = function (hedef, veri) {
     var kap = typeof hedef === 'string' ? document.querySelector(hedef) : hedef;
     if (!kap) return;
@@ -576,7 +629,18 @@
         olaylar.slice(0, 3).forEach(function (o) {
           h += '<a class="cal-ev ' + (o.ton || 'info') + '" href="' + (o.link || '#') + '" title="' + esc(o.baslik) + '">' + esc(o.baslik) + '</a>';
         });
-        if (olaylar.length > 3) h += '<span class="cal-more" data-daha="' + tarihIso + '">+' + (olaylar.length - 3) + ' daha</span>';
+        /* `+N daha` klavyeyle de açılabilsin diye BUTON (görsel dil aynı). */
+        if (olaylar.length > 3) {
+          h += '<button class="cal-more" type="button" data-daha="' + tarihIso + '"'
+             + ' aria-label="' + GV.dUzun(tarihIso) + ' — ' + olaylar.length + ' kaydın tamamını gör">+'
+             + (olaylar.length - 3) + ' daha</button>';
+        }
+        /* Dar ekranda olaylar noktaya iner; ayrıntı GÜN KATMANINDA açılır
+           (doküman §9). Katman masaüstünde display:none — görünüm değişmez. */
+        if (olaylar.length) {
+          h += '<button class="cal-dayopen" type="button" data-daha="' + tarihIso + '"'
+             + ' aria-label="' + GV.dUzun(tarihIso) + ' — ' + olaylar.length + ' kayıt"></button>';
+        }
         h += '</div>';
         hucre++;
       }
@@ -585,12 +649,18 @@
       kap.querySelectorAll('[data-daha]').forEach(function (el) {
         el.addEventListener('click', function () {
           var t = el.getAttribute('data-daha');
-          var liste = (secenek.olaylar[t] || []).map(function (o) {
+          var gunun = secenek.olaylar[t] || [];
+          var liste = gunun.map(function (o) {
             return '<a class="act-row" href="' + (o.link || '#') + '" style="padding:11px 0">'
               + '<span class="act-ico ' + (o.ton || 'info') + '"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span>'
               + '<span class="act-info"><b>' + esc(o.baslik) + '</b><span>' + esc(o.detay || '') + '</span></span></a>';
           }).join('');
-          gvModal({ baslik: GV.dUzun(t), govde: '<div class="act-list">' + liste + '</div>', butonlar: [{ etiket: 'Kapat', sinif: 'btn-ghost' }] });
+          gvModal({
+            baslik: GV.dUzun(t), ikon: 'fa-calendar-day',
+            metin: gunun.length + ' kayıt',
+            govde: '<div class="act-list">' + liste + '</div>',
+            butonlar: [{ etiket: 'Kapat', sinif: 'btn-ghost' }]
+          });
         });
       });
       if (secenek.basligaYaz) {

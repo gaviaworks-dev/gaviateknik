@@ -716,7 +716,7 @@
 /* ============ TAKVİM ============ */
 .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden }
 .cal-dow { background: var(--bg); padding: 9px 8px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--muted) }
-.cal-day { background: var(--paper); min-height: 118px; padding: 8px; display: flex; flex-direction: column; gap: 5px }
+.cal-day { position: relative; background: var(--paper); min-height: 118px; padding: 8px; display: flex; flex-direction: column; gap: 5px }
 .cal-day.is-out { background: #FAFBFC }
 .cal-day.is-today { background: rgba(var(--mint-rgb), .06) }
 .cal-daynum { font-size: 12px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums }
@@ -733,7 +733,14 @@
 .cal-ev.warn { background: var(--warning-tint); border-left-color: var(--warning) }
 .cal-ev.danger { background: var(--danger-tint); border-left-color: var(--danger) }
 .cal-ev.off { background: var(--bg); border-left-color: var(--line-2); color: var(--muted) }
-.cal-more { font-size: 10.5px; font-weight: 700; color: var(--gv-action); cursor: pointer }
+/* Buton olduğu için varsayılan düğme görünümü sıfırlanır — masaüstünde
+   eski `span` ile birebir aynı görünür, ama klavyeyle de açılabilir. */
+.cal-more {
+  font-family: inherit; font-size: 10.5px; font-weight: 700; color: var(--gv-action);
+  background: none; border: 0; padding: 0; margin: 0; text-align: left; cursor: pointer;
+}
+/* Gün ayrıntı katmanı — yalnız dar ekranda devreye girer (responsive.css) */
+.cal-dayopen { display: none; background: none; border: 0; padding: 0; cursor: pointer }
 
 /* zaman çizelgesi (gün/hafta planlama) */
 .tl-row { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: center }
@@ -836,6 +843,22 @@
 /* ============ GRAFİK ============ */
 .chart-box { width: 100%; max-width: var(--chart-w, 100%) }
 .chart-box svg { display: block; width: 100%; height: auto; max-height: var(--chart-h, 300px) }
+/* Grafik SVG'si kabını AŞMAZ; viewBox ile ölçeklenir (doküman §9). */
+.gv-chart-svg { display: block; width: 100%; max-width: 100%; height: auto }
+
+/* Grafiğin veri tablosu alternatifi — masaüstünde görsel olarak gizli
+   (ekran okuyucu okur, görünüm değişmez), ≤980'de görünür (responsive.css).
+   Odaklanabilir öğe içermez: hayalet sekme durağı oluşmaz. */
+.gv-chart-data {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+/* Grafik veri tablosu üç kolonluk — listelerin 760px asgari genişliğine
+   ihtiyacı yok, dar ekranda yatay kaydırma gerektirmez. */
+.gv-chart-table { min-width: 0 }
+.gv-chart-table th, .gv-chart-table td { padding: 9px 10px }
+.gv-chart-table th:first-child, .gv-chart-table td:first-child { padding-left: 0 }
+.gv-chart-table th:last-child, .gv-chart-table td:last-child { padding-right: 0 }
 .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 12px; color: var(--ink-2) }
 .chart-legend span { display: inline-flex; align-items: center; gap: 6px }
 .chart-legend i { width: 9px; height: 9px; border-radius: 3px; flex: none }
