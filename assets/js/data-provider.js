@@ -340,14 +340,22 @@
    * @param {*} payload
    * @returns {Promise<*>}
    */
+  /* Aynı requestId ile ikinci kez gelen komut yeni kayıt AÇMAZ; ilk denemenin
+     sonucu döner. ApiDataProvider da aynı kuralı uygular — sözleşme tek. */
+  var komutIzi = {};
+
   function command(name, payload) {
     var fn = komutlar[name];
     if (!fn) return Promise.reject(new Error('Tanımsız komut: ' + name));
+    var verilenId = payload && payload.requestId;
+    if (verilenId && komutIzi[verilenId]) return komutIzi[verilenId];
     payload = Object.assign({ requestId: istekKimligi() }, payload || {});
-    return Promise.resolve(fn(payload)).then(function (r) {
+    var soz = Promise.resolve(fn(payload)).then(function (r) {
       onbellekDusur();
       return r;
     });
+    if (verilenId) komutIzi[verilenId] = soz;
+    return soz;
   }
 
   var saglayici = {
