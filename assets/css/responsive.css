@@ -191,7 +191,33 @@
   /* filtre butonunda ikon+sayı her koşulda görünür kalır */
   .gv-fp-open .fp-count { display: inline-flex }
   .gv-fpanel-body { padding: 16px 14px }
-  .gv-modal { padding: 18px 16px }
+  /* ---- modal → tam ekran (doküman §9) ----
+     Başlık ve kapat sabit, yalnız içerik kayar, arka plan kaymaz
+     (gvScrollLock `html.gv-scroll-locked` ile zaten kilitli). */
+  .gv-modal-ov { padding: 0; place-items: stretch; height: 100dvh }
+  .gv-modal {
+    width: 100%; max-width: none; height: 100dvh; max-height: 100dvh;
+    padding: 0; border-radius: 0; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .gv-modal-head {
+    display: flex; align-items: center; gap: 12px; flex: none;
+    padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--paper);
+  }
+  .gv-modal-head h3 { flex: 1; min-width: 0; margin-bottom: 0; font-size: 16.5px }
+  .gv-modal-head .gv-modal-ico { width: 34px; height: 34px; margin-bottom: 0; font-size: 14px }
+  .gv-modal-close { display: inline-flex }
+  .gv-modal-scroll {
+    display: block; flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; padding: 16px;
+  }
+  .gv-modal-scroll > p { margin-bottom: 16px }
+  .gv-modal-scroll > .gv-modal-body:last-child { margin-bottom: 0 }
+  .gv-modal-acts {
+    flex: none; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line); background: var(--paper);
+  }
   .gc-head { padding: 14px 16px; gap: 10px }
   .gc-body { padding: 16px }
   .gc-title { font-size: 14px }

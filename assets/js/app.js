@@ -304,12 +304,23 @@
     secenek = secenek || {};
     var ov = document.createElement('div');
     ov.className = 'gv-modal-ov';
+    /* Yapı: BAŞLIK · KAYAN İÇERİK · AKSİYONLAR.
+       Masaüstünde `.gv-modal-head` ve `.gv-modal-scroll` `display:contents`
+       taşır — kutuları yoktur, görünüm bit düzeyinde eskisiyle aynıdır.
+       ≤480'de gerçek kutuya dönüşür: başlık ve kapat sabit kalır, yalnız
+       içerik kayar (doküman §9). */
     ov.innerHTML =
       '<div class="gv-modal ' + (secenek.ton || '') + ' ' + (secenek.genislik || '') + '" role="dialog" aria-modal="true" aria-labelledby="gvmBaslik">'
+      + '<div class="gv-modal-head">'
       + (secenek.ikon ? '<div class="gv-modal-ico"><i class="fa-solid ' + secenek.ikon + '" aria-hidden="true"></i></div>' : '')
       + '<h3 id="gvmBaslik">' + GV.esc(secenek.baslik || 'Bilgi') + '</h3>'
+      + '<button class="gv-modal-close" type="button" aria-label="Pencereyi kapat">'
+      + '<i class="fa-solid fa-xmark" aria-hidden="true"></i></button>'
+      + '</div>'
+      + '<div class="gv-modal-scroll">'
       + (secenek.metin ? '<p>' + secenek.metin + '</p>' : '')
       + (secenek.govde ? '<div class="gv-modal-body">' + secenek.govde + '</div>' : '')
+      + '</div>'
       + '<div class="gv-modal-acts"></div></div>';
     document.body.appendChild(ov);
     var kap = ov.querySelector('.gv-modal');
@@ -342,11 +353,15 @@
     });
 
     ov.addEventListener('click', function (e) { if (e.target === ov && secenek.disKapat !== false) kapat(null); });
+    /* Kapat düğmesi Escape ile AYNI yolu kullanır (≤480'de görünür olur). */
+    kap.querySelector('.gv-modal-close').addEventListener('click', function () { kapat(null); });
     document.addEventListener('keydown', tus);
     gvScrollLock(true);
     requestAnimationFrame(function () {
       ov.classList.add('open');
-      var odak = kap.querySelector('input,textarea,select,button');
+      /* İlk odak içerikten başlar; kapat düğmesi son seçenek. */
+      var odak = kap.querySelector('.gv-modal-scroll input,.gv-modal-scroll textarea,.gv-modal-scroll select,.gv-modal-acts button')
+        || kap.querySelector('input,textarea,select,button');
       if (odak) odak.focus();
     });
     if (secenek.acildi) secenek.acildi(kap, kapat);

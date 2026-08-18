@@ -489,8 +489,18 @@
 .gv-modal.danger .gv-modal-ico { background: var(--danger-tint); color: var(--danger) }
 .gv-modal.warn .gv-modal-ico { background: var(--warning-tint); color: var(--warning) }
 .gv-modal.info .gv-modal-ico { background: var(--info-tint); color: var(--info) }
+/* Başlık ve kayan içerik sarmalayıcıları masaüstünde KUTU DEĞİLDİR
+   (display:contents) — akış eskisiyle birebir aynı kalır. ≤480'de gerçek
+   kutuya dönüşür (responsive.css). */
+.gv-modal-head, .gv-modal-scroll { display: contents }
+.gv-modal-close {
+  display: none; width: 36px; height: 36px; flex: none; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--paper); color: var(--muted);
+  font-size: 14px; cursor: pointer; align-items: center; justify-content: center;
+}
+.gv-modal-close:hover { border-color: var(--gv-action); color: var(--gv-action) }
 .gv-modal h3 { font-size: 18px; margin-bottom: 7px; letter-spacing: -.01em }
-.gv-modal > p { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 20px }
+.gv-modal > p, .gv-modal-scroll > p { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 20px }
 .gv-modal-body { margin-bottom: 20px }
 .gv-modal-acts { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap }
 .gv-modal textarea, .gv-modal input, .gv-modal select {
