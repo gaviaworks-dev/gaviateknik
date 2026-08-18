@@ -21,7 +21,8 @@
 
   /* ---- BÖLÜMLER — rail sırası bu sırayla çizilir ---- */
   var BOLUMLER = {
-    panel: { ikon: 'fa-gauge-high', ustBaslik: 'Genel Bakış', baslik: 'Ana Panel', menu: [
+    panel: { ikon: 'fa-gauge-high', ustBaslik: 'Genel Bakış', baslik: 'Ana Panel',
+      aciklama: 'Günlük özet, aksiyonlar, onaylar ve bildirimler', izin: 'dashboard.view', menu: [
       { ikon: 'fa-gauge-high',        etiket: 'Ana Panel',        href: 'panel.html',            screen: 'panel' },
       { bolum: 'Gündem' },
       { ikon: 'fa-sun',               etiket: 'Günlük Özet',      href: 'gunluk-ozet.html',      screen: 'gunluk-ozet' },
@@ -31,14 +32,16 @@
       { ikon: 'fa-bell',              etiket: 'Bildirimler',      href: 'bildirimler.html',      screen: 'bildirimler', sayac: '5' }
     ] },
 
-    musteri: { ikon: 'fa-building', ustBaslik: 'Ticari Ağ', baslik: 'Müşteri ve Projeler', menu: [
+    musteri: { ikon: 'fa-building', ustBaslik: 'Ticari Ağ', baslik: 'Müşteri ve Projeler',
+      aciklama: 'Müşteri, proje, lokasyon ve iletişim kişileri', izin: 'customers.view', menu: [
       { ikon: 'fa-building',          etiket: 'Müşteriler',       href: 'musteriler.html',       screen: 'musteriler' },
       { ikon: 'fa-diagram-project',   etiket: 'Projeler',         href: 'projeler.html',         screen: 'projeler' },
       { ikon: 'fa-location-dot',      etiket: 'Lokasyonlar',      href: 'lokasyonlar.html',      screen: 'lokasyonlar' },
       { ikon: 'fa-address-book',      etiket: 'İletişim Kişileri', href: 'iletisim-kisileri.html', screen: 'iletisim-kisileri' }
     ] },
 
-    hizmet: { ikon: 'fa-list-check', ustBaslik: 'Kapsam', baslik: 'Hizmet ve Envanter', menu: [
+    hizmet: { ikon: 'fa-list-check', ustBaslik: 'Kapsam', baslik: 'Hizmet ve Envanter',
+      aciklama: 'Hizmet kataloğu, poz, fiyat, ekipman ve mutabakat', izin: 'catalog.view', menu: [
       { ikon: 'fa-list-check',        etiket: 'Hizmet Kataloğu',  href: 'hizmet-katalogu.html',  screen: 'hizmet-katalogu' },
       { ikon: 'fa-file-signature',    etiket: 'Sözleşme Pozları', href: 'sozlesme-pozlari.html', screen: 'sozlesme-pozlari' },
       { ikon: 'fa-tags',              etiket: 'Fiyat Listeleri',  href: 'fiyat-listeleri.html',  screen: 'fiyat-listeleri' },
@@ -48,7 +51,8 @@
       { ikon: 'fa-scale-balanced',    etiket: 'Envanter Mutabakatı', href: 'envanter-mutabakati.html', screen: 'envanter-mutabakati', sayac: '4' }
     ] },
 
-    operasyon: { ikon: 'fa-helmet-safety', ustBaslik: 'Saha', baslik: 'Operasyon Yönetimi', menu: [
+    operasyon: { ikon: 'fa-helmet-safety', ustBaslik: 'Saha', baslik: 'Operasyon Yönetimi',
+      aciklama: 'Planlama, operasyon takvimi, iş emri ve saha kontrolü', izin: 'operations.view', menu: [
       { ikon: 'fa-calendar-days',     etiket: 'Planlama',         href: 'planlama.html',         screen: 'planlama' },
       { ikon: 'fa-calendar-week',     etiket: 'Operasyon Takvimi', href: 'operasyon-takvimi.html', screen: 'operasyon-takvimi' },
       { ikon: 'fa-clipboard-check',   etiket: 'İş Emirleri',      href: 'is-emirleri.html',      screen: 'is-emirleri' },
@@ -59,7 +63,8 @@
       { ikon: 'fa-rotate-right',      etiket: 'Yeniden Kontroller', href: 'yeniden-kontroller.html', screen: 'yeniden-kontroller' }
     ] },
 
-    teknik: { ikon: 'fa-file-lines', ustBaslik: 'Teknik', baslik: 'Rapor ve Uygunsuzluk', menu: [
+    teknik: { ikon: 'fa-file-lines', ustBaslik: 'Teknik', baslik: 'Rapor ve Uygunsuzluk',
+      aciklama: 'Teknik rapor, onay, uygunsuzluk ve yeniden kontrol', izin: 'reports.view', menu: [
       { ikon: 'fa-file-lines',        etiket: 'Teknik Raporlar',  href: 'teknik-raporlar.html',  screen: 'teknik-raporlar' },
       { ikon: 'fa-stamp',             etiket: 'Rapor Onayları',   href: 'rapor-onaylari.html',   screen: 'rapor-onaylari', sayac: '2' },
       { ikon: 'fa-file-code',         etiket: 'Rapor Şablonları', href: 'rapor-sablonlari.html', screen: 'rapor-sablonlari' },
@@ -67,7 +72,8 @@
       { ikon: 'fa-circle-exclamation', etiket: 'Uygunsuzluklar',  href: 'uygunsuzluklar.html',   screen: 'uygunsuzluklar', sayac: '7' }
     ] },
 
-    ticari: { ikon: 'fa-file-invoice-dollar', ustBaslik: 'Finans', baslik: 'Ticari Süreçler', menu: [
+    ticari: { ikon: 'fa-file-invoice-dollar', ustBaslik: 'Finans', baslik: 'Ticari Süreçler',
+      aciklama: 'Teklif, sözleşme, hakediş, fatura ve tahsilat', izin: 'commerce.view', menu: [
       { ikon: 'fa-file-contract',     etiket: 'Teklifler',        href: 'teklifler.html',        screen: 'teklifler' },
       { ikon: 'fa-file-signature',    etiket: 'Sözleşmeler',      href: 'sozlesmeler.html',      screen: 'sozlesmeler' },
       { bolum: 'Hakediş ve Fatura' },
@@ -77,7 +83,8 @@
       { ikon: 'fa-money-bill-transfer', etiket: 'Tahsilatlar',    href: 'tahsilatlar.html',      screen: 'tahsilatlar', sayac: '2' }
     ] },
 
-    kaynak: { ikon: 'fa-users-gear', ustBaslik: 'Kaynak', baslik: 'Personel ve Taşeron', menu: [
+    kaynak: { ikon: 'fa-users-gear', ustBaslik: 'Kaynak', baslik: 'Personel ve Taşeron',
+      aciklama: 'Personel, yetkinlik, taşeron ve taşeron hakedişleri', izin: 'workforce.view', menu: [
       { ikon: 'fa-people-carry-box',  etiket: 'Taşeronlar',       href: 'taseronlar.html',       screen: 'taseronlar' },
       { ikon: 'fa-hand-holding-dollar', etiket: 'Taşeron Hakedişleri', href: 'taseron-hakedisleri.html', screen: 'taseron-hakedisleri' },
       { bolum: 'Personel' },
@@ -88,25 +95,29 @@
       { ikon: 'fa-vials',             etiket: 'Kalibrasyonlar',   href: 'kalibrasyonlar.html',   screen: 'kalibrasyonlar', sayac: '2' }
     ] },
 
-    kalite: { ikon: 'fa-award', ustBaslik: 'Uyum', baslik: 'Kalite Yönetimi', menu: [
+    kalite: { ikon: 'fa-award', ustBaslik: 'Uyum', baslik: 'Kalite Yönetimi',
+      aciklama: 'Kalite dokümanı, denetim, DÖF ve müşteri şikâyeti', izin: 'quality.view', menu: [
       { ikon: 'fa-folder-open',       etiket: 'Kalite Dokümanları', href: 'kalite-dokumanlari.html', screen: 'kalite-dokumanlari' },
       { ikon: 'fa-clipboard-user',    etiket: 'Denetimler',       href: 'denetimler.html',       screen: 'denetimler' },
       { ikon: 'fa-screwdriver-wrench', etiket: 'Düzeltici Faaliyetler', href: 'duzeltici-faaliyetler.html', screen: 'duzeltici-faaliyetler', sayac: '3' },
       { ikon: 'fa-comment-dots',      etiket: 'Müşteri Şikâyetleri', href: 'musteri-sikayetleri.html', screen: 'musteri-sikayetleri', sayac: '2' }
     ] },
 
-    raporlama: { ikon: 'fa-chart-column', ustBaslik: 'Analiz', baslik: 'Raporlar', menu: [
+    raporlama: { ikon: 'fa-chart-column', ustBaslik: 'Analiz', baslik: 'Raporlar',
+      aciklama: 'Operasyonel, teknik, ticari ve kalite analizleri', izin: 'analytics.view', menu: [
       { ikon: 'fa-chart-column',      etiket: 'Rapor Merkezi',    href: 'raporlar.html',         screen: 'raporlar' }
     ] },
 
-    portal: { ikon: 'fa-building-user', ustBaslik: 'Müşteri', baslik: 'Müşteri Portalı', menu: [
+    portal: { ikon: 'fa-building-user', ustBaslik: 'Müşteri', baslik: 'Müşteri Portalı',
+      aciklama: 'Müşterinin kendi lokasyon, rapor ve faturalarını gördüğü alan', izin: 'portal.view', menu: [
       { ikon: 'fa-house',             etiket: 'Genel Bakış',      href: 'musteri-portali.html',  screen: 'musteri-portali' },
       { ikon: 'fa-location-dot',      etiket: 'Lokasyonlarım',    href: 'portal-lokasyonlar.html', screen: 'portal-lokasyonlar' },
       { ikon: 'fa-file-lines',        etiket: 'Teknik Raporlar',  href: 'portal-raporlar.html',  screen: 'portal-raporlar' },
       { ikon: 'fa-file-invoice-dollar', etiket: 'Faturalar',      href: 'portal-faturalar.html', screen: 'portal-faturalar' }
     ] },
 
-    sistem: { ikon: 'fa-sliders', ustBaslik: 'Yönetim', baslik: 'Sistem Ayarları', menu: [
+    sistem: { ikon: 'fa-sliders', ustBaslik: 'Yönetim', baslik: 'Sistem Ayarları',
+      aciklama: 'Firma, roller, veri aktarımı ve işlem kayıtları', izin: 'system.view', menu: [
       { ikon: 'fa-sliders',           etiket: 'Ayarlar',          href: 'ayarlar.html',          screen: 'ayarlar' },
       { ikon: 'fa-user-shield',       etiket: 'Roller ve Yetkiler', href: 'roller-yetkiler.html', screen: 'roller-yetkiler' },
       { ikon: 'fa-file-import',       etiket: 'Veri Aktarımı',    href: 'veri-aktarimi.html',    screen: 'veri-aktarimi' },
@@ -207,6 +218,44 @@
   }
   window.GV.ekranGorunur = ekranGorunur;
   window.GV.bolumGorunur = function (b) { return yetki.bolumler.indexOf(b) !== -1; };
+
+  /* ---- ROUTE KAYIT DEFTERİ ----
+     Doküman §4: "Başlık, açıklama, ikon, route ve izin anahtarı routeRegistry
+     içinde tanımlanır." Registry BOLUMLER'in YERİNE geçmez, ÜSTÜNE biner:
+     BOLUMLER zaten etiket, ikon, href ve screen taşıyor; açıklama ve izin
+     oraya eklendi, registry ondan türetiliyor. Rol matrisi ikinci kez
+     tanımlanmaz — çelişme riski böylece ortadan kalkar.
+
+     Her route tam olarak BİR ana modüle ve BİR alt menü kaydına bağlıdır. */
+  var routeRegistry = RAIL_SIRASI.map(function (anahtar) {
+    var B = BOLUMLER[anahtar];
+    var kalemler = B.menu.filter(function (m) { return m.href; });
+    return {
+      key: anahtar,
+      label: B.baslik,
+      description: B.aciklama,
+      icon: B.ikon,
+      href: kalemler.length ? kalemler[0].href : null,
+      permission: B.izin,
+      screens: kalemler.map(function (m) {
+        return { screen: m.screen, label: m.etiket, href: m.href, icon: m.ikon };
+      })
+    };
+  });
+  window.GV.routeRegistry = routeRegistry;
+
+  /* Bir sayfa adından (href) route kaydını bulur. Tanımsız route null döner —
+     çağıran ilk kaydı açmak yerine kontrollü ekran gösterir. */
+  window.GV.route = function (href) {
+    var ad = String(href || '').split('?')[0].split('/').pop();
+    for (var i = 0; i < routeRegistry.length; i++) {
+      var r = routeRegistry[i];
+      for (var j = 0; j < r.screens.length; j++) {
+        if (r.screens[j].href === ad) return { modul: r, ekran: r.screens[j] };
+      }
+    }
+    return null;
+  };
 
   /* giriş sayfası kabuğu çizmez; yalnız rol motorunu kullanır */
   if (document.body.getAttribute('data-shell') === 'off') return;
@@ -372,12 +421,65 @@
   /* ================= 5) ETKİLEŞİMLER ================= */
   /* mobil çekmece */
   var burger = document.getElementById('gvBurger'), ortu = document.getElementById('gvOverlay');
+  var cekmeceKap = document.getElementById('gvMenu');
+  var oncekiOdak = null;
+
+  function odaklanabilirler() {
+    if (!cekmeceKap) return [];
+    var hepsi = Array.prototype.slice.call(cekmeceKap.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    ));
+    var gorunen = hepsi.filter(function (e) { return e.offsetParent !== null || e.getClientRects().length; });
+    /* Düzen bilgisi olmayan ortamlarda (jsdom) görünürlük ölçülemez;
+       o durumda tuzak boşa düşmesin diye tam listeye geri dönülür. */
+    return gorunen.length ? gorunen : hepsi;
+  }
+
+  /* Tab tuzağı — çekmece açıkken odak dışarı çıkmaz (doküman §4). */
+  function tuzak(e) {
+    if (e.key === 'Escape') { e.preventDefault(); cekmece(false); return; }
+    if (e.key !== 'Tab') return;
+    var o = odaklanabilirler();
+    if (!o.length) return;
+    var ilk = o[0], son = o[o.length - 1];
+    if (e.shiftKey && (document.activeElement === ilk || !cekmeceKap.contains(document.activeElement))) {
+      e.preventDefault(); son.focus();
+    } else if (!e.shiftKey && document.activeElement === son) {
+      e.preventDefault(); ilk.focus();
+    }
+  }
+
   function cekmece(ac) {
+    var acikti = document.body.classList.contains('nav-open');
+    if (ac === acikti) return;
     document.body.classList.toggle('nav-open', ac);
     if (burger) burger.setAttribute('aria-expanded', ac ? 'true' : 'false');
+    /* aria-hidden BİLİNÇLİ olarak konmuyor: aynı #gvMenu masaüstünde normal,
+       görünür bir yan menü. Çekmece yalnız 980px altında bir moddur. */
+
+    if (ac) {
+      oncekiOdak = document.activeElement;
+      if (window.gvScrollLock) gvScrollLock(true);
+      document.addEventListener('keydown', tuzak, true);
+      var o = odaklanabilirler();
+      if (o.length) o[0].focus();
+    } else {
+      if (window.gvScrollLock) gvScrollLock(false);
+      document.removeEventListener('keydown', tuzak, true);
+      /* Menü kapandığında odak, drawer açma butonuna geri döner. */
+      var geri = oncekiOdak && oncekiOdak !== document.body && document.contains(oncekiOdak)
+        ? oncekiOdak : burger;
+      if (geri && geri.focus) geri.focus();
+      oncekiOdak = null;
+    }
   }
+
   if (burger) burger.addEventListener('click', function () { cekmece(!document.body.classList.contains('nav-open')); });
   if (ortu) ortu.addEventListener('click', function () { cekmece(false); });
+  /* Çekmece içinden bir bağlantıya gidilince kilit açık kalmasın. */
+  if (cekmeceKap) cekmeceKap.addEventListener('click', function (e) {
+    if (e.target.closest('a[href]') && document.body.classList.contains('nav-open')) cekmece(false);
+  });
 
   /* menü katlama — tercih localStorage'da kalıcı */
   var ayrac = document.getElementById('gvDivider');
