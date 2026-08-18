@@ -85,6 +85,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -126,9 +127,10 @@
     return { ad: b || '—', link:null, taseron:false, unvan:null };
   }
 
-  function yeniKod(kol, onek, uzunluk){
-    var n = A.liste(kol).length + 1, id;
-    do { id = onek + String(n).padStart(uzunluk, '0'); n++; } while (A.kayit(kol, id));
+  /* Kimlik kimlik.js'den (crypto.randomUUID) gelir; liste uzunluğu kimlik kaynağı değildir. */
+  function yeniKod(kol, onek){
+    var id;
+    do { id = GV.yeniKod(onek); } while (A.kayit(kol, id));
     return id;
   }
 

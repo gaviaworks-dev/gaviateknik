@@ -91,6 +91,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -209,7 +210,7 @@
         var f = A.kayit('faturalar', b.getAttribute('data-hatirlat'));
         var m = A.kayit('musteriler', f.musteriId);
         A.ekle('iletisimGecmisi', {
-          id:'ILT-TH' + Date.now().toString().slice(-5),
+          id:GV.yeniKod('ILT-TH'),
           musteriId: f.musteriId, lokasyonId: null, kisiId: null,
           tur:'fatura-bildirimi', tarih: BUGUN + 'T10:00:00',
           kullaniciId: (GV.rolBilgi || {}).personelId,
@@ -278,7 +279,7 @@
             var yeniDurum = yeniKalan <= 0 ? 'tam-tahsil'
               : (GV.gun(BUGUN, f.vade) < 0 ? 'vadesi-gecti' : 'kismen-tahsil');
             A.ekle('tahsilatlar', {
-              id:'THS-Y' + String(A.liste('tahsilatlar').length + 1).padStart(3,'0'),
+              id:GV.yeniKod('THS-Y'),
               faturaId: fid, musteriId: f.musteriId,
               tarih: kap.querySelector('#thTarih').value || BUGUN, tutar: t,
               yontem: kap.querySelector('#thYontem').value,

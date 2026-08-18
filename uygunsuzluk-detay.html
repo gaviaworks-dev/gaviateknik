@@ -102,6 +102,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -337,7 +338,7 @@
   function bildir(){
     A.guncelle('uygunsuzluklar', u.id, { musteriBildirimi: BUGUN }).then(function(){
       return A.ekle('iletisimGecmisi', {
-        id:'ILT-U' + Date.now().toString().slice(-5),
+        id:GV.yeniKod('ILT-U'),
         musteriId: l ? l.musteriId : null, lokasyonId: u.lokasyonId, kisiId: u.sorumluKisi,
         tur:'uygunsuzluk-bildirimi', tarih: BUGUN + 'T10:00:00',
         kullaniciId: (GV.rolBilgi || {}).personelId,
@@ -353,7 +354,7 @@
 
   function yenidenAc(){
     A.ekle('yenidenKontroller', {
-      id:'YKN-D' + Date.now().toString().slice(-5),
+      id:GV.yeniKod('YKN-D'),
       uygunsuzlukId: u.id, lokasyonId: u.lokasyonId, talepTarihi: BUGUN,
       talepEden:'GAVIA Teknik', planTarihi: null, durum:'talep-edildi', ucretli: false,
       aciklama:'Uygunsuzluk düzeltme doğrulaması: ' + u.baslik
@@ -383,7 +384,7 @@
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
         { etiket:'DÖF Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
             A.ekle('duzelticiFaaliyetler', {
-              id:'DOF-Y' + String(A.liste('duzelticiFaaliyetler').length + 1).padStart(3,'0'),
+              id:GV.yeniKod('DOF-Y'),
               kaynak:'Uygunsuzluk', kaynakId: u.id,
               baslik: kap.querySelector('#dfBaslik').value.trim(),
               aciklama: u.aciklama, kokNeden: kap.querySelector('#dfKok').value.trim() || 'Kök neden analizi yapılacak.',

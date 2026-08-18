@@ -73,6 +73,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -217,7 +218,7 @@
             if (!unvan || !kisa || !bolgeler.length || !kapsam.length) {
               gvToast('Unvan, kısa ad, bölge ve kapsam zorunludur.', { ton:'danger' }); return false;
             }
-            var kod = 'TSR-' + String(A.liste('taseronlar').length + 1).padStart(3,'0');
+            var kod = GV.yeniKod('TSR-');
             A.ekle('taseronlar', {
               id: kod, kod: kod, unvan: unvan, kisaAd: kisa, bolgeler: bolgeler, kapsam: kapsam,
               yetkili: kap.querySelector('#tyYetkili').value.trim(),

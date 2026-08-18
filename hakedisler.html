@@ -59,6 +59,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -212,7 +213,7 @@
               return l.projeId === pid && A.lokasyonFaturalanabilirMi(l.id).uygun; });
             if (!uygun.length) { gvToast('Hakedişe alınabilecek lokasyon yok.', { ton:'danger' }); return false; }
             var o = kap.querySelector('#hyProje').selectedOptions[0];
-            var no = 'HKD-2026-Y' + String(A.liste('hakedisler').length + 1).padStart(2,'0');
+            var no = GV.yeniKod('HKD-2026-Y');
             A.ekle('hakedisler', {
               id: no, no: no, projeId: pid, musteriId: o.getAttribute('data-musteri'),
               donem: kap.querySelector('#hyDonem').value, lokasyonSayisi: uygun.length,

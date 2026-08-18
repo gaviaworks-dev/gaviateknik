@@ -61,6 +61,7 @@
     <div id="ftDetayKap"></div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -151,7 +152,7 @@
             Promise.all(acik.map(function(fid){
               var f = A.kayit('faturalar', fid);
               return A.ekle('iletisimGecmisi', {
-                id:'ILT-FT' + Date.now().toString().slice(-5) + fid.slice(-2),
+                id:GV.yeniKod('ILT-FT'),
                 musteriId: f.musteriId, lokasyonId: null, kisiId: null,
                 tur:'fatura-bildirimi', tarih: BUGUN + 'T10:00:00',
                 kullaniciId: (GV.rolBilgi || {}).personelId,

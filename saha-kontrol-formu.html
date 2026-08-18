@@ -116,6 +116,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -588,7 +589,7 @@
                 var oneri = kap.querySelector('#uyOneri').value.trim();
                 if (!acik || !oneri) { gvToast('Teknik açıklama ve önerilen faaliyet zorunludur.', { ton:'danger' }); return false; }
                 A.ekle('uygunsuzluklar', {
-                  id:'UYG-S' + Date.now().toString().slice(-5), raporId: ie.raporId, lokasyonId: ie.lokasyonId,
+                  id:GV.yeniKod('UYG-S'), raporId: ie.raporId, lokasyonId: ie.lokasyonId,
                   ekipmanId: birim.tur === 'ekipman' ? birim.id : null, hizmetId: birim.hizmetId,
                   onem: kap.querySelector('#uyOnem').value, tespit: BUGUN,
                   baslik: madde.ad + ' — ' + birim.ad, aciklama: acik, oneri: oneri,
@@ -767,7 +768,7 @@
             });
           }).then(function(){
             return A.ekle('sahaKontroller', {
-              id:'SKT-S' + Date.now().toString().slice(-5), isEmriId: ie.id, lokasyonId: ie.lokasyonId,
+              id:GV.yeniKod('SKT-S'), isEmriId: ie.id, lokasyonId: ie.lokasyonId,
               personelId: (GV.rolBilgi || {}).personelId || 'PRS-007',
               baslangic: BUGUN + 'T09:00:00', bitis: BUGUN + 'T17:00:00',
               durum: eksikMadde ? 'eksik-tamamlandi' : 'tamamlandi',

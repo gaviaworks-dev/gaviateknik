@@ -363,49 +363,77 @@ window.demoApi = (function () {
   }
 
   /* ---------- YAZMA İŞLEMLERİ (Promise) ---------- */
+  /* Kimlik üretimi kimlik.js'ye (crypto.randomUUID) devredildi.
+     Koleksiyon uzunluğu ya da saat kimliğin kaynağı DEĞİLDİR: iki sekme
+     aynı anda kayıt açtığında length + 1 aynı id'yi iki kez üretiyordu. */
   function yeniId(ad, onek) {
-    var l = koleksiyon(ad);
-    var n = l.length + 1;
     var id;
-    do { id = onek + String(n).padStart(4, '0'); n++; } while (bul(ad, id));
+    do { id = window.GV.yeniKod(onek); } while (bul(ad, id));
     return id;
   }
 
+  /* Tekrar koruması (doküman §8): her yazma denemesi bir requestId taşır,
+     aynı komut ikinci kez çağrılırsa YENİ KAYIT AÇILMAZ; önceki sonuç döner.
+     Anahtar `ekle` için kaydın id'sini DIŞLAR — id her denemede yeniden
+     üretildiği için tekrar ancak içerikten anlaşılır. */
+  function idsiz(kayit) {
+    var o = {};
+    Object.keys(kayit || {}).forEach(function (k) { if (k !== 'id') o[k] = kayit[k]; });
+    return o;
+  }
+
   function ekle(ad, kayit) {
-    if (!ortu.ekle[ad]) ortu.ekle[ad] = [];
-    if (!kayit.id) kayit.id = yeniId(ad, 'YENI-');
-    ortu.ekle[ad].push(kayit);
-    ortuKaydet();
-    kayitAt('olusturma', ad, kayit.id, null, kayit.ad || kayit.baslik || kayit.id);
-    return gecikme({ ok: true, kayit: kayit });
+    return window.GV.komut('Ekle:' + ad, idsiz(kayit), function (istekId) {
+      if (!ortu.ekle[ad]) ortu.ekle[ad] = [];
+      if (!kayit.id) kayit.id = yeniId(ad, 'YENI');
+      if (kayit.rowVersion == null) kayit.rowVersion = 1;   /* If-Match hazırlığı */
+      kayit.sonIstekId = istekId;
+      ortu.ekle[ad].push(kayit);
+      ortuKaydet();
+      kayitAt('olusturma', ad, kayit.id, null, kayit.ad || kayit.baslik || kayit.id);
+      return gecikme({ ok: true, kayit: kayit, istekId: istekId });
+    });
   }
 
   function guncelle(ad, id, yama) {
-    if (!ortu.guncelle[ad]) ortu.guncelle[ad] = {};
-    var onceki = bul(ad, id) || {};
-    ortu.guncelle[ad][id] = Object.assign({}, ortu.guncelle[ad][id] || {}, yama);
-    ortuKaydet();
-    var alan = Object.keys(yama)[0];
-    kayitAt('guncelleme', ad, id, onceki[alan], yama[alan]);
-    return gecikme({ ok: true, kayit: bul(ad, id) });
+    return window.GV.komut('Guncelle:' + ad + ':' + id, yama, function (istekId) {
+      if (!ortu.guncelle[ad]) ortu.guncelle[ad] = {};
+      var onceki = bul(ad, id) || {};
+      var tam = Object.assign({}, ortu.guncelle[ad][id] || {}, yama);
+      tam.rowVersion = (onceki.rowVersion || 1) + 1;
+      tam.sonIstekId = istekId;
+      ortu.guncelle[ad][id] = tam;
+      ortuKaydet();
+      var alan = Object.keys(yama)[0];
+      kayitAt('guncelleme', ad, id, onceki[alan], yama[alan]);
+      return gecikme({ ok: true, kayit: bul(ad, id), istekId: istekId });
+    });
   }
 
   function sil(ad, id) {
-    if (!ortu.sil[ad]) ortu.sil[ad] = [];
-    if (ortu.sil[ad].indexOf(id) === -1) ortu.sil[ad].push(id);
-    ortuKaydet();
-    kayitAt('silme', ad, id, id, null);
-    return gecikme({ ok: true });
+    return window.GV.komut('Sil:' + ad + ':' + id, null, function (istekId) {
+      if (!ortu.sil[ad]) ortu.sil[ad] = [];
+      if (ortu.sil[ad].indexOf(id) === -1) ortu.sil[ad].push(id);
+      ortuKaydet();
+      kayitAt('silme', ad, id, id, null);
+      return gecikme({ ok: true, istekId: istekId });
+    });
   }
 
   function durumDegistir(ad, id, alan, yeniDurum, aciklama) {
-    var onceki = (bul(ad, id) || {})[alan];
-    var yama = {}; yama[alan] = yeniDurum;
-    if (!ortu.guncelle[ad]) ortu.guncelle[ad] = {};
-    ortu.guncelle[ad][id] = Object.assign({}, ortu.guncelle[ad][id] || {}, yama);
-    ortuKaydet();
-    kayitAt('durum-degisikligi', ad, id, onceki, yeniDurum, aciklama);
-    return gecikme({ ok: true, onceki: onceki, yeni: yeniDurum });
+    return window.GV.komut('Durum:' + ad + ':' + id + ':' + alan, yeniDurum, function (istekId) {
+      var onceki = (bul(ad, id) || {})[alan];
+      var mevcut = bul(ad, id) || {};
+      var yama = {}; yama[alan] = yeniDurum;
+      if (!ortu.guncelle[ad]) ortu.guncelle[ad] = {};
+      var tam = Object.assign({}, ortu.guncelle[ad][id] || {}, yama);
+      tam.rowVersion = (mevcut.rowVersion || 1) + 1;
+      tam.sonIstekId = istekId;
+      ortu.guncelle[ad][id] = tam;
+      ortuKaydet();
+      kayitAt('durum-degisikligi', ad, id, onceki, yeniDurum, aciklama);
+      return gecikme({ ok: true, onceki: onceki, yeni: yeniDurum, istekId: istekId });
+    });
   }
 
   /* işlem kaydı (denetim izi) — kullanıcı işlemleri de loglanır */
@@ -440,7 +468,7 @@ window.demoApi = (function () {
     var rolAd = null;
     D.roller.forEach(function (r) { if (r.id === aktif) rolAd = r; });
     ortu.ekle.islemKayitlari.push({
-      id: 'LOG-U' + String(ortu.ekle.islemKayitlari.length + 1).padStart(5, '0'),
+      id: window.GV.yeniKod('LOG-U'),
       zaman: new Date().toISOString().substring(0, 19),
       kullaniciId: rolAd ? rolAd.personelId : null,
       rol: aktif, modul: MODUL_ADI[modul] || modul, kayit: kayitId, islem: islem,
@@ -454,6 +482,7 @@ window.demoApi = (function () {
 
   function sifirla() {
     ortu = { ekle: {}, guncelle: {}, sil: {} };
+    if (window.GV && window.GV.komutSifirla) window.GV.komutSifirla();
     try { localStorage.removeItem(ANAHTAR); } catch (e) {}
     return gecikme({ ok: true }, 120);
   }

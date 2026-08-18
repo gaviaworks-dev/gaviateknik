@@ -150,6 +150,7 @@
     <div id="prYazdirilabilir" class="print-only"></div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -622,7 +623,7 @@
               return A.guncelle('lokasyonlar', r.lokasyonId, { raporDurum:'teslim-edildi', raporTeslimTarihi: A.bugun() });
             }).then(function(){
               return A.ekle('iletisimGecmisi', {
-                id:'ILT-R' + Date.now().toString().slice(-5),
+                id:GV.yeniKod('ILT-R'),
                 musteriId: l ? l.musteriId : null, lokasyonId: r.lokasyonId,
                 kisiId: kap.querySelector('#rdAlici').value || null,
                 tur:'rapor-gonderimi', tarih: A.bugun() + 'T10:00:00',

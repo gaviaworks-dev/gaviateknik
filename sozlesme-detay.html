@@ -102,6 +102,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -341,9 +342,9 @@
         var bit = A.tariheCevir(bas); bit.setFullYear(bit.getFullYear() + 1);
         var yil = bas.substring(0,4);
         A.guncelle('sozlesmeler', s.id, { durum:'sona-erdi', yenileme:'yenilendi' }).then(function(){
+          var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
           return A.ekle('sozlesmeler', Object.assign({}, s, {
-            id:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
-            no:'SZL-' + yil + '-Y' + String(A.liste('sozlesmeler').length + 1).padStart(2,'0'),
+            id: yeniSzlNo, no: yeniSzlNo,
             baslangic: bas, bitis: A.isoYaz(bit), durum:'yururlukte', yenileme:'otomatik-degil',
             notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
           }));

@@ -124,6 +124,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -580,7 +581,7 @@
             } else {
               var yId = sec.substring(2);
               sonra = A.ekle('personelBelgeleri', {
-                id: 'PBG-U' + String(A.liste('personelBelgeleri').length + 1).padStart(3,'0'),
+                id: GV.yeniKod('PBG-U'),
                 personelId: p.id, yetkinlikId: yId, belgeNo: no, baslangic: bas, bitis: bit });
             }
             sonra.then(function(){

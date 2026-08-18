@@ -89,6 +89,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -346,7 +347,7 @@
             var tutar = Number(kap.querySelector('#pfdTutar').value) || 0;
             var tarih = kap.querySelector('#pfdTarih').value || BUGUN;
             A.ekle('iletisimGecmisi', {
-              id: 'ILT-U' + String(Date.now()).slice(-5),
+              id: GV.yeniKod('ILT-U'),
               musteriId: musteriId, lokasyonId: null, kisiId: null,
               tur: 'fatura-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
               konu: 'Müşteri portalı — ödeme dekontu bildirimi (' + (fk ? fk.no : fid2) + ')',
@@ -439,7 +440,7 @@
               if (!not) { kap.querySelector('#pfTkErr').hidden = false; return false; }
               var yanit = kap.querySelector('#pfTkYanit').value;
               A.ekle('iletisimGecmisi', {
-                id: 'ILT-U' + String(Date.now()).slice(-5),
+                id: GV.yeniKod('ILT-U'),
                 musteriId: musteriId, lokasyonId: null, kisiId: null,
                 tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
                 konu: 'Müşteri portalı — teklif geri bildirimi (' + t.no + ')',

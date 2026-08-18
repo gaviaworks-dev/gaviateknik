@@ -67,6 +67,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -333,7 +334,7 @@
         { etiket:'Oluştur', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
             var tutar = Number(kap.querySelector('#hyTutar').value || 0);
             if (!tutar) { gvToast('Hakediş tutarı zorunludur.', { ton:'danger' }); return false; }
-            var no = 'TH-2026-Y' + String(A.liste('taseronHakedisleri').length + 1).padStart(2,'0');
+            var no = GV.yeniKod('TH-2026-Y');
             A.ekle('taseronHakedisleri', {
               id: no, no: no, taseronId: kap.querySelector('#hyTaseron').value,
               projeId: kap.querySelector('#hyProje').value, donem: kap.querySelector('#hyDonem').value,

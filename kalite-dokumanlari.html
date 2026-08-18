@@ -91,6 +91,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -412,7 +413,7 @@
             var tur = kap.querySelector('#dyTur').value;
             var modul = Array.prototype.slice.call(kap.querySelectorAll('#dyModul option:checked')).map(function(o){ return o.value; });
             A.ekle('kaliteDokumanlari', {
-              id:'KLT-Y' + String(A.liste('kaliteDokumanlari').length + 1).padStart(3,'0'),
+              id:GV.yeniKod('KLT-Y'),
               kod: kod, ad: ad, tur: tur, versiyon:'v1', yayin: null,
               hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-005',
               onaylayanId: kap.querySelector('#dyOnay').value,

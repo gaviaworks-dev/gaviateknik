@@ -176,6 +176,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -250,11 +251,12 @@
     gonder: function(veri, aksiyon, yardim){
       var eksikMarka = markalar.filter(function(k){ return !k.ad.trim(); });
       if (eksikMarka.length) { gvToast('Marka adı boş bırakılamaz. Boş satırları doldurun veya kaldırın.', { ton:'danger' }); return; }
+      var yeniMstKod = GV.yeniKod('MST-Y');
       var islem = mevcut
         ? A.guncelle('musteriler', mevcut.id, veri)
         : A.ekle('musteriler', Object.assign({
-            id: 'MST-Y' + String(A.liste('musteriler').length + 1).padStart(3,'0'),
-            kod: veri.kod || 'MST-Y' + String(A.liste('musteriler').length + 1).padStart(3,'0'),
+            id: yeniMstKod,
+            kod: veri.kod || yeniMstKod,
             kayitTarihi: A.bugun(), cariBakiye: 0, cariDurum: 'temiz'
           }, veri));
       islem.then(function(r){

@@ -59,6 +59,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -208,7 +209,7 @@
             var ad = kap.querySelector('#rsAd').value.trim();
             if (!ad) { gvToast('Şablon adı zorunludur.', { ton:'danger' }); return false; }
             A.ekle('raporSablonlari', {
-              id:'SBL-Y' + String(A.liste('raporSablonlari').length + 1).padStart(2,'0'),
+              id:GV.yeniKod('SBL-Y'),
               ad: ad, kategoriId: kap.querySelector('#rsKat').value, versiyon:'v1', yayin: null,
               hazirlayanId: (GV.rolBilgi || {}).personelId || 'PRS-004',
               onaylayanId: kap.querySelector('#rsOnay').value,

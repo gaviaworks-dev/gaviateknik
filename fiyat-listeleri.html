@@ -76,6 +76,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -276,7 +277,7 @@
             var bas = kap.querySelector('#fyBas').value, bit = kap.querySelector('#fyBit').value;
             if (!ad || !bas || !bit) { gvToast('Liste adı ve geçerlilik tarihleri zorunludur.', { ton:'danger' }); return false; }
             if (bit <= bas) { gvToast('Bitiş tarihi başlangıçtan sonra olmalıdır.', { ton:'danger' }); return false; }
-            var yeniId = 'FL-Y' + String(A.liste('fiyatListeleri').length + 1).padStart(2,'0');
+            var yeniId = GV.yeniKod('FL-Y');
             A.harita('listeKatsayilari')[yeniId] = Number(kap.querySelector('#fyKat').value || 1);
             A.ekle('fiyatListeleri', {
               id: yeniId, ad: ad, tur: kap.querySelector('#fyTur').value, versiyon:'v1',

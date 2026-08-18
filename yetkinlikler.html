@@ -106,6 +106,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -437,7 +438,7 @@
             var varOlan = A.liste('yetkinlikler').some(function(y){
               return y.ad.toLocaleLowerCase('tr-TR') === ad.toLocaleLowerCase('tr-TR'); });
             if (varOlan) { gvToast('Aynı adda bir yetkinlik zaten tanımlı.', { ton:'danger' }); return false; }
-            var yid = 'YTK-' + String(A.liste('yetkinlikler').length + 1).padStart(2,'0');
+            var yid = GV.yeniKod('YTK-');
             A.ekle('yetkinlikler', {
               id: yid, ad: ad, kategori: kap.querySelector('#yyKat').value,
               belgeTuru: belgeTuru, gecerlilikAy: Number(kap.querySelector('#yySure').value)

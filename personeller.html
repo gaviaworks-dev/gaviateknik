@@ -102,6 +102,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -357,7 +358,7 @@
             var yetkinlikler = Array.prototype.slice.call(kap.querySelectorAll('#pyYetkinlik option:checked'))
               .map(function(o){ return o.value; });
             var ini = ad.split(' ').map(function(x){ return x[0]; }).join('').substring(0,2).toLocaleUpperCase('tr-TR');
-            var pid = 'PRS-Y' + String(A.liste('personeller').length + 1).padStart(3,'0');
+            var pid = GV.yeniKod('PRS-Y');
             A.ekle('personeller', {
               id: pid, ad: ad, gorev: kap.querySelector('#pyGorev').value,
               birim: kap.querySelector('#pyBirim').value, ini: ini, durum:'aktif',

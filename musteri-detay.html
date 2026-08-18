@@ -147,6 +147,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -454,7 +455,7 @@
       onayEtiket:'Kopyala', onayIkon:'fa-copy' }).then(function(s){
         if (!s.onay) return;
         A.ekle('musteriler', Object.assign({}, m, {
-          id:'MST-K' + Date.now().toString().slice(-4), kod:'MST-KOPYA',
+          id:GV.yeniKod('MST-K'), kod:'MST-KOPYA',
           unvan: m.unvan + ' (kopya)', durum:'aday', cariBakiye:0, cariDurum:'temiz'
         })).then(function(r){
           gvToast('Müşteri kopyalandı: ' + r.kayit.unvan, { ton:'ok' });

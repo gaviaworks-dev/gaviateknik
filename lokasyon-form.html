@@ -175,6 +175,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -344,11 +345,12 @@
       veri.projeId = veri.projeId || null;
       veri.taseronId = veri.taseronId || null;
 
+      var yeniLokKod = GV.yeniKod('LOK-Y');
       var islem = mevcut
         ? A.guncelle('lokasyonlar', mevcut.id, veri)
         : A.ekle('lokasyonlar', Object.assign({
-            id:'LOK-Y' + String(A.liste('lokasyonlar').length + 1).padStart(4,'0'),
-            kod: veri.kod || 'LOK-Y' + String(A.liste('lokasyonlar').length + 1).padStart(4,'0'),
+            id: yeniLokKod,
+            kod: veri.kod || yeniLokKod,
             raporDurum:'baslatilmadi', faturaDurum:'faturaya-uygun-degil',
             raporTarihi:null, raporTeslimTarihi:null, yetkiliId:null, ekipId:[]
           }, veri));

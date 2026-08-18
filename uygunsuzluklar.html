@@ -89,6 +89,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -207,7 +208,7 @@
             Promise.all(s.map(function(uid){
               var u = A.kayit('uygunsuzluklar', uid);
               return A.ekle('yenidenKontroller', {
-                id:'YKN-U' + Date.now().toString().slice(-5) + uid.slice(-2),
+                id:GV.yeniKod('YKN-U'),
                 uygunsuzlukId: uid, lokasyonId: u.lokasyonId, talepTarihi: BUGUN,
                 talepEden:'GAVIA Teknik', planTarihi: null, durum:'talep-edildi', ucretli: false,
                 aciklama:'Uygunsuzluk düzeltme doğrulaması: ' + u.baslik

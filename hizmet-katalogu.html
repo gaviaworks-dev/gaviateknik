@@ -75,6 +75,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -254,7 +255,7 @@
               gvToast('Bu pozisyon kodu zaten kullanılıyor. Benzersiz bir kod girin.', { ton:'danger' }); return false;
             }
             var kat = kap.querySelector('#hyKat').value;
-            var yeniId = 'HZM-Y' + String(A.liste('hizmetler').length + 1).padStart(3,'0');
+            var yeniId = GV.yeniKod('HZM-Y');
             A.harita('hizmetFiyatlari')[yeniId] = { satis: satis, maliyet: Number(kap.querySelector('#hyMaliyet').value || 0) };
             A.ekle('hizmetler', {
               id: yeniId, poz: poz, ad: ad, kat: kat,

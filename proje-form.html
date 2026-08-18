@@ -144,6 +144,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -289,11 +290,11 @@
     veri.yil = Number(veri.yil);
     veri.partiBuyuklugu = Number(veri.partiBuyuklugu);
     veri.raporSlaGun = Number(veri.raporSlaGun);
+    var yeniPrjKod = GV.yeniKod('PRJ-' + veri.yil + '-Y');
     var islem = mevcut
       ? A.guncelle('projeler', mevcut.id, veri)
       : A.ekle('projeler', Object.assign({
-          id: 'PRJ-' + veri.yil + '-Y' + String(A.liste('projeler').length + 1).padStart(2,'0'),
-          kod: 'PRJ-' + veri.yil + '-Y' + String(A.liste('projeler').length + 1).padStart(2,'0')
+          id: yeniPrjKod, kod: yeniPrjKod
         }, veri));
     islem.then(function(r){
       var pid = mevcut ? mevcut.id : r.kayit.id;

@@ -82,6 +82,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -179,7 +180,7 @@
             Promise.all(s.map(function(eid){
               var e = A.kayit('eksikEkipmanlar', eid);
               return A.ekle('yenidenKontroller', {
-                id:'YKN-E' + Date.now().toString().slice(-5) + eid.slice(-2),
+                id:GV.yeniKod('YKN-E'),
                 uygunsuzlukId: null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
                 talepEden:'GAVIA Teknik', planTarihi: null, durum:'talep-edildi', ucretli: e.tur === 'gosterilmeyen',
                 aciklama:'Eksik/gösterilmeyen ekipman kontrolü — ' + e.aciklama
@@ -237,7 +238,7 @@
           butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
             { etiket:'Talep Aç', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
                 A.ekle('yenidenKontroller', {
-                  id:'YKN-E' + Date.now().toString().slice(-5),
+                  id:GV.yeniKod('YKN-E'),
                   uygunsuzlukId:null, lokasyonId: e.lokasyonId, talepTarihi: A.bugun(),
                   talepEden:'GAVIA Teknik', planTarihi: kap.querySelector('#eeTarih').value || null,
                   durum: kap.querySelector('#eeTarih').value ? 'planlandi' : 'talep-edildi',
@@ -281,7 +282,7 @@
             Promise.all(lokasyonlar.map(function(lid){
               var l = A.lokasyon(lid);
               return A.ekle('iletisimGecmisi', {
-                id:'ILT-F' + Date.now().toString().slice(-5) + lid.slice(-2),
+                id:GV.yeniKod('ILT-F'),
                 musteriId: l ? l.musteriId : null, lokasyonId: lid, kisiId: l ? l.yetkiliId : null,
                 tur:'uygunsuzluk-bildirimi', tarih: A.bugun() + 'T10:00:00',
                 kullaniciId: (GV.rolBilgi || {}).personelId,

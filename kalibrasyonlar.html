@@ -91,6 +91,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -167,8 +168,8 @@
 
   /* ================= KALİBRASYONA GÖNDERME (ortak) ================= */
   function yeniKlbId(){
-    var n = A.liste('kalibrasyonlar').length + 1, kod;
-    do { kod = 'KLB-' + String(n).padStart(3, '0'); n++; } while (A.kayit('kalibrasyonlar', kod));
+    var kod;
+    do { kod = GV.yeniKod('KLB'); } while (A.kayit('kalibrasyonlar', kod));
     return kod;
   }
   function klbModal(cihazId){

@@ -167,6 +167,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -437,7 +438,7 @@
             var bitis = kap.querySelector('#prtEBitis').value;
             if (!ad || !bitis) { kap.querySelector('#prtEErr').hidden = false; return false; }
             A.ekle('portalErisimleri', {
-              id: 'PRT-U' + String(Date.now()).slice(-5),
+              id: GV.yeniKod('PRT-U'),
               musteriId: musteriId, kisiId: null,
               kapsamMarka: [kap.querySelector('#prtEMarka').value],
               kapsamBolge: 'tümü',
@@ -497,7 +498,7 @@
     var konu = document.getElementById('prtKonu').value;
     var lokId = document.getElementById('prtLok').value || null;
     A.ekle('musteriSikayetleri', {
-      id: 'SKY-U' + String(Date.now()).slice(-5),
+      id: GV.yeniKod('SKY-U'),
       musteriId: musteriId, lokasyonId: lokId,
       tarih: BUGUN, kanal: 'Müşteri Portalı',
       konu: konu, aciklama: mesaj.value.trim(),

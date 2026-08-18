@@ -67,6 +67,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -300,7 +301,7 @@
             var kisi = kap.querySelector('#plbKisi').value.trim();
             var tel = kap.querySelector('#plbTel').value.trim();
             A.ekle('iletisimGecmisi', {
-              id: 'ILT-U' + String(Date.now()).slice(-5),
+              id: GV.yeniKod('ILT-U'),
               musteriId: musteriId, lokasyonId: lid, kisiId: null,
               tur: 'eposta', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
               konu: 'Müşteri portalı — lokasyon bilgi gönderimi (' + (lok ? lok.ad : lid) + ')',

@@ -111,6 +111,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -334,7 +335,7 @@
       var islem = mevcut
         ? A.guncelle('isEmirleri', mevcut.id, veri)
         : A.ekle('isEmirleri', Object.assign({
-            id:'IE-2026-Y' + String(A.liste('isEmirleri').length + 1).padStart(3,'0') }, veri));
+            id:GV.yeniKod('IE-2026-Y') }, veri));
 
       islem.then(function(r){
         var iid = mevcut ? mevcut.id : r.kayit.id;

@@ -149,6 +149,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -229,11 +230,12 @@
       var l = A.kayit('lokasyonlar', veri.lokasyonId);
       veri.musteriId = l ? l.musteriId : null;
 
+      var yeniEkpKod = GV.yeniKod('EKP-Y');
       var islem = mevcut
         ? A.guncelle('ekipmanlar', mevcut.id, veri)
         : A.ekle('ekipmanlar', Object.assign({
-            id:'EKP-Y' + String(A.liste('ekipmanlar').length + 1).padStart(4,'0'),
-            kod: veri.kod || 'EKP-Y' + String(A.liste('ekipmanlar').length + 1).padStart(4,'0')
+            id: yeniEkpKod,
+            kod: veri.kod || yeniEkpKod
           }, veri));
 
       islem.then(function(r){

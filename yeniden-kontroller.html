@@ -59,6 +59,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -239,7 +240,7 @@
             if (!acik) { gvToast('Gerekçe zorunludur.', { ton:'danger' }); return false; }
             var t = kap.querySelector('#ynTarih').value;
             A.ekle('yenidenKontroller', {
-              id:'YKN-Y' + String(A.liste('yenidenKontroller').length + 1).padStart(3,'0'),
+              id:GV.yeniKod('YKN-Y'),
               uygunsuzlukId:null, lokasyonId: kap.querySelector('#ynLokasyon').value,
               talepTarihi: BUGUN, talepEden: kap.querySelector('#ynTalepEden').value,
               planTarihi: t || null, durum: t ? 'planlandi' : 'talep-edildi',

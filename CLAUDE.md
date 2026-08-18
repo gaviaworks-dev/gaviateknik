@@ -20,12 +20,16 @@ Faz durumu: `PROGRESS.md`.
     ├── js/   app.js · navigation.js · components.js · filters.js
     │         forms.js · demo-api.js · demo-data.js
     │         types.js · data-provider.js · list-controller.js · tooltip.js
+    │         kimlik.js
     └── images/
 ```
 
 **Yükleme sırası (değiştirme):**
 CSS → `gavia-ui.css` → `components.css` → `responsive.css` → `print.css`
-JS  → `demo-data.js` → `demo-api.js` → `navigation.js` → `components.js` → `filters.js` → `forms.js` → `app.js`
+JS  → `kimlik.js` → `demo-data.js` → `demo-api.js` → `navigation.js` → `components.js` → `filters.js` → `forms.js` → `app.js`
+
+`kimlik.js` **en başta** yüklenir: hiçbir şeye bağlı değildir ve `demo-api.js`
+kimlik üretimini ondan alır.
 
 Faz 12 ortak katmanı **app.js'den sonra** yüklenir (bu dosyalar yükleme anında
 yalnız tanım yapar, hiçbir şeye dokunmaz), şu sırayla:
@@ -132,6 +136,13 @@ Her modül sayfası aynı gövdeyle başlar; **rail/menü/topbar HTML'i sayfaya 
   personel belgesi `GV.ayar('belgeEsik')`, sözleşme yenileme `GV.ayar('sozlesmeEsik')`.
 - Denetim izi `demoApi.kayitAt(...)` ile yazılır; modül adı orada tek biçime çevrilir
   (koleksiyon anahtarı verilse de ekran adı kaydedilir).
+- **Kimlik üretimi `GV.yeniKod(onek)`'tir** (`kimlik.js` · `crypto.randomUUID`).
+  `liste.length + 1` ya da `Date.now()` son hanesiyle kalıcı id üretilmez —
+  iki sekme aynı anda kayıt açtığında çakışır.
+- `demoApi.ekle/guncelle/sil/durumDegistir` **komut katmanından** geçer
+  (`GV.komut`): her deneme bir `requestId` taşır, aynı komut ikinci kez
+  çağrılırsa yeni kayıt açılmaz, önceki sonuç döner. Kayıtlar `rowVersion`
+  alanı taşır (ileride If-Match).
 
 ## 8. Zorunlu iş kuralları (ihlal edilemez)
 

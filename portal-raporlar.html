@@ -112,6 +112,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -419,7 +420,7 @@
             if (!metin) { kap.querySelector('#prDzErr').hidden = false; return false; }
             var tarih = kap.querySelector('#prDzTarih').value || BUGUN;
             A.ekle('iletisimGecmisi', {
-              id: 'ILT-U' + String(Date.now()).slice(-5),
+              id: GV.yeniKod('ILT-U'),
               musteriId: musteriId, lokasyonId: u.lokasyonId, kisiId: null,
               tur: 'uygunsuzluk-bildirimi', tarih: BUGUN + 'T09:00:00', kullaniciId: null,
               konu: 'Müşteri portalı — düzeltme bildirimi (' + u.id + ')',
@@ -512,7 +513,7 @@
             var uid = kap.querySelector('#prYkBulgu').value || null;
             var tercih = kap.querySelector('#prYkTarih').value || null;
             A.ekle('yenidenKontroller', {
-              id: 'YKN-U' + String(Date.now()).slice(-5),
+              id: GV.yeniKod('YKN-U'),
               uygunsuzlukId: uid, lokasyonId: lid,
               talepTarihi: BUGUN, talepEden: 'Müşteri',
               planTarihi: tercih, durum: 'talep-edildi', ucretli: null,

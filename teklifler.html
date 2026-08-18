@@ -74,6 +74,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -205,7 +206,7 @@
             + 'Yeni teklif hazırlanıyor durumunda açılır.',
           onayEtiket:'Kopyala', onayIkon:'fa-copy' }).then(function(s){
             if (!s.onay) return;
-            var yeniNo = 'TKL-2026-' + String(A.liste('teklifler').length + 1).padStart(3,'0');
+            var yeniNo = GV.yeniKod('TKL-2026-');
             A.ekle('teklifler', Object.assign({}, t, {
               id: yeniNo, no: yeniNo, tarih: BUGUN, durum:'hazirlaniyor', revizyon: 0,
               gecerlilik: A.isoYaz(new Date(A.tariheCevir(BUGUN).getTime() + 30 * 86400000)),

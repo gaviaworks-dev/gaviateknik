@@ -75,6 +75,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -336,8 +337,8 @@
             }
             if (!h.ara) { gvToast('Faturalanacak miktar girin.', { ton:'danger' }); return false; }
 
-            var no = 'GVT-A-2026-' + String(900000 + A.liste('faturalar').length + 1).slice(-6);
-            var fid = 'FTR-2026-Y' + String(A.liste('faturalar').length + 1).padStart(3,'0');
+            var no = GV.yeniKod('GVT-A-2026');
+            var fid = GV.yeniKod('FTR-2026-Y');
             var vade = A.tariheCevir(BUGUN);
             var sozlesme = proje ? A.kayit('sozlesmeler', proje.sozlesmeId) : null;
             vade.setDate(vade.getDate() + (sozlesme ? sozlesme.odemeVadesi : 30));
@@ -349,7 +350,7 @@
               islemler.push(A.guncelle('mutabakat', x.mtb.id, {
                 faturalanan: x.mtb.faturalanan + m, kalan: x.mtb.kalan - m }));
               islemler.push(A.ekle('faturaSatirlari', {
-                id:'FST-Y' + Date.now().toString().slice(-6) + i,
+                id:GV.yeniKod('FST-Y'),
                 faturaId: fid, lokasyonId: x.lokasyonId, hizmetId: x.mtb.hizmetId,
                 faturalanabilir: x.mtb.faturalanabilir, oncekiFaturalanan: x.mtb.faturalanan,
                 buFaturaMiktar: m, kalanMiktar: x.mtb.kalan - m,
@@ -446,7 +447,7 @@
             var ad = kap.querySelector('#fyAd').value.trim();
             if (!ad) { gvToast('Grup adı zorunludur.', { ton:'danger' }); return false; }
             var o = kap.querySelector('#fyProje').selectedOptions[0];
-            var no = 'FGR-2026-Y' + String(A.liste('faturaGruplari').length + 1).padStart(2,'0');
+            var no = GV.yeniKod('FGR-2026-Y');
             A.ekle('faturaGruplari', {
               id: no, no: no, projeId: kap.querySelector('#fyProje').value,
               musteriId: o.getAttribute('data-musteri'), ad: ad,

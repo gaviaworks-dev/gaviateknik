@@ -76,6 +76,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -218,7 +219,7 @@
               telefon: kap.querySelector('#ikTel').value.trim(), eposta: kap.querySelector('#ikMail').value.trim(),
               birincil: kap.querySelector('#ikBirincil').checked };
             var islem = mevcut ? A.guncelle('iletisimKisileri', mevcut.id, veri)
-              : A.ekle('iletisimKisileri', Object.assign({ id:'KSI-Y' + String(A.liste('iletisimKisileri').length + 1).padStart(3,'0'), lokasyonId:null }, veri));
+              : A.ekle('iletisimKisileri', Object.assign({ id:GV.yeniKod('KSI-Y'), lokasyonId:null }, veri));
             islem.then(function(){
               gvToast(mevcut ? 'Kişi güncellendi.' : 'Kişi eklendi.', { ton:'ok' });
               setTimeout(function(){ location.reload(); }, 700);
@@ -247,7 +248,7 @@
             var konu = kap.querySelector('#igKonu').value.trim();
             if (!konu) { gvToast('Konu alanı zorunludur.', { ton:'danger' }); return false; }
             A.ekle('iletisimGecmisi', {
-              id:'ILT-Y' + String(A.liste('iletisimGecmisi').length + 1).padStart(3,'0'),
+              id:GV.yeniKod('ILT-Y'),
               musteriId: k ? k.musteriId : null, lokasyonId: k ? k.lokasyonId : null, kisiId: kisiId,
               tur: kap.querySelector('#igTur').value, tarih: kap.querySelector('#igTarih').value + 'T00:00:00',
               kullaniciId: (GV.rolBilgi || {}).personelId, konu: konu,

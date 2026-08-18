@@ -95,6 +95,7 @@
     </section>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -674,7 +675,7 @@
         + GV.esc(mesajlar[n - 1]) + '</div>';
       if (n >= mesajlar.length) {
         clearInterval(zaman);
-        var aid = 'IMP-2026-Y' + String(A.liste('veriAktarimlari').length + 1).padStart(2,'0');
+        var aid = GV.yeniKod('IMP-2026-Y');
         A.ekle('veriAktarimlari', {
           id: aid, tarih: BUGUN, kullaniciId: (GV.rolBilgi || {}).personelId || 'PRS-014',
           tur: d.tur, dosya: d.dosya, satir: v.toplam,

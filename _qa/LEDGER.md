@@ -78,3 +78,14 @@ gerileme değil, hiç başlanmamış bir iştir. Doküman §6 ikinci tablosundak
   ile durum alanı doğrudan yazılıyor)
 - Kimlik üretimi: `length + 1` / `Date.now()` yerine `crypto.randomUUID`
 - Breakpoint tokenları (bugün 8 `@media` ham piksel kullanıyor)
+
+
+---
+
+# GAVIA · Faz 13 — ADIM DEFTERİ
+
+Kapsam: `_docs/REVIZYON.md` §8 (algoritma düzeltmeleri) ve §11 (form standardı).
+Branch: `faz-13-algoritma`.
+
+| Tarih | Adım | Dosyalar | Tarama | Commit | Bilinen kusur |
+|---|---|---|---|---|---|

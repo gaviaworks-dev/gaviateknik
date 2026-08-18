@@ -135,6 +135,7 @@
     </form>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -249,11 +250,11 @@
         veri.ekGider = t.ekGider;
         veri.durum = aksiyon === 'gonder' ? 'gonderildi' : (mevcut ? mevcut.durum : 'hazirlaniyor');
         veri.projeId = veri.projeId || null;
+        var yeniTklNo = GV.yeniKod('TKL-2026-Y');
         var islem = mevcut
           ? A.guncelle('teklifler', mevcut.id, Object.assign({}, veri, { revizyon: (mevcut.revizyon || 0) + 1 }))
           : A.ekle('teklifler', Object.assign({
-              id:'TKL-2026-Y' + String(A.liste('teklifler').length + 1).padStart(2,'0'),
-              no:'TKL-2026-Y' + String(A.liste('teklifler').length + 1).padStart(2,'0'),
+              id: yeniTklNo, no: yeniTklNo,
               revizyon: 0 }, veri));
         islem.then(function(r){
           yardim.taslakSil(); yardim.kirliSifirla();

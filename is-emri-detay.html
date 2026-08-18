@@ -151,6 +151,7 @@
     </div>
   </main>
 </div>
+<script src="assets/js/kimlik.js"></script>
 <script src="assets/js/demo-data.js"></script>
 <script src="assets/js/demo-api.js"></script>
 <script src="assets/js/navigation.js"></script>
@@ -429,7 +430,7 @@
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
         { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
             A.ekle('iletisimGecmisi', {
-              id:'ILT-H' + Date.now().toString().slice(-5),
+              id:GV.yeniKod('ILT-H'),
               musteriId: l ? l.musteriId : null, lokasyonId: ie.lokasyonId,
               kisiId: kap.querySelector('#idAlici').value || null,
               tur:'hatirlatma', tarih: BUGUN + 'T09:00:00',
