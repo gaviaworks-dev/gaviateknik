@@ -89,3 +89,4 @@ Branch: `faz-13-algoritma`.
 
 | Tarih | Adım | Dosyalar | Tarama | Commit | Bilinen kusur |
 |---|---|---|---|---|---|
+| 2026-08-18 | 1 | assets/js/kimlik.js (yeni) · assets/js/demo-api.js · 73 sayfa (script etiketi) · 34 sayfa (kimlik ifadesi) · _qa/test/kimlik.test.js · _qa/durum.js · CLAUDE.md | 0 bulgu / YAPISAL SORUN YOK · 141 test geçti | 6f3aad9 | `ayarlar.html` numaralandırma ekranındaki `length + 1` bilinçli bırakıldı — kalıcı id değil, "sonraki numara" önizlemesi. Tekrar penceresi 8 sn: aynı içerikli kayıt bu süre içinde ikinci kez açılmaz. |
