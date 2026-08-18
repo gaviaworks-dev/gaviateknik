@@ -221,8 +221,12 @@
               aciklama: aciklama || 'Kalibrasyona gönderildi; sertifika bekleniyor.'
             };
             A.ekle('kalibrasyonlar', kayit)
-              .then(function(){ return A.guncelle('olcumCihazlari', cid, { durum:'serviste', kurulus: kurulus }); })
               .then(function(){
+                return GV.gecisUygula('cihaz', 'olcumCihazlari', cid, 'serviste', {
+                  not:'Kalibrasyona gönderildi · ' + kurulus, ekYama: { kurulus: kurulus } });
+              })
+              .then(function(g){
+                if (!g.ok) return;
                 gvResult(true, {
                   baslik:'Cihaz kalibrasyona gönderildi',
                   metin: '<b>' + GV.esc(c ? c.kod : cid) + '</b> için <b>' + GV.esc(kayit.id) + '</b> numaralı kalibrasyon kaydı açıldı. '

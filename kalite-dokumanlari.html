@@ -204,8 +204,13 @@
           notAlani:true, notZorunlu:true, notYer:'Gerekçe (denetim izine yazılır)…'
         }).then(function(r){
           if (!r.onay) return;
-          Promise.all(s.map(function(did){ return A.durumDegistir('kaliteDokumanlari', did, 'durum', 'yururlukten-kalkti', r.not); }))
-            .then(function(){ gvToast(s.length + ' doküman yürürlükten kaldırıldı.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 800); });
+          GV.gecisTopluUygula('kaliteDokuman', 'kaliteDokumanlari', s, 'yururlukten-kalkti', { not: r.not })
+            .then(function(x){
+              var oldu = GV.gecisTopluBildir(x, {
+                basarisizBaslik:'Doküman yürürlükten kaldırılamadı',
+                metin: function(n){ return n + ' doküman yürürlükten kaldırıldı.'; } });
+              if (oldu) setTimeout(function(){ location.reload(); }, 800);
+            });
         });
       } }
   ]});
@@ -324,13 +329,17 @@
     }).then(function(s){
       if (!s.onay) return;
       var yeniV = 'v' + (Number(String(d.versiyon).replace('v','')) + 1);
-      A.guncelle('kaliteDokumanlari', d.id, { durum:'yururlukten-kalkti' }).then(function(){
+      GV.gecisUygula('kaliteDokuman', 'kaliteDokumanlari', d.id, 'yururlukten-kalkti', {
+        not:'Yeni sürüm açıldı: ' + yeniV + '. ' + s.not
+      }).then(function(g){
+        if (!g.ok) return null;
         return A.ekle('kaliteDokumanlari', Object.assign({}, d, {
           id: d.id + '-' + yeniV, versiyon: yeniV, yayin: null, gecerlilik: null,
           durum:'onayda', onaylayanId: null,
           hazirlayanId: (GV.rolBilgi || {}).personelId || d.hazirlayanId
         }));
-      }).then(function(){
+      }).then(function(x){
+        if (!x) return;
         A.kayitAt('revizyon', 'Kalite Dokümanı', d.kod, d.versiyon, yeniV, s.not);
         gvToast('Yeni sürüm oluşturuldu: ' + yeniV + ' (onay bekliyor)', { ton:'ok' });
         setTimeout(function(){ location.reload(); }, 900);
@@ -368,11 +377,14 @@
         { etiket:'Yayımla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
             var y = kap.querySelector('#kdYayin').value;
             if (!y) { gvToast('Yayın tarihi zorunludur.', { ton:'danger' }); return false; }
-            A.guncelle('kaliteDokumanlari', did, {
-              durum:'yayinda', yayin: y, gecerlilik: kap.querySelector('#kdGecer').value || null,
-              onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-002'
-            }).then(function(){
-              A.kayitAt('onay', 'Kalite Dokümanı', d.kod, 'Onayda', 'Yayında', kap.querySelector('#kdOnayNot').value);
+            GV.gecisUygula('kaliteDokuman', 'kaliteDokumanlari', did, 'yayinda', {
+              not: kap.querySelector('#kdOnayNot').value,
+              ekYama: {
+                yayin: y, gecerlilik: kap.querySelector('#kdGecer').value || null,
+                onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-002'
+              }
+            }).then(function(g){
+              if (!g.ok) return;
               gvToast(d.kod + ' yayımlandı.', { ton:'ok' });
               setTimeout(function(){ location.reload(); }, 800);
             });

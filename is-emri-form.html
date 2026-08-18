@@ -340,9 +340,12 @@
 
       islem.then(function(r){
         var iid = mevcut ? mevcut.id : r.kayit.id;
-        return A.guncelle('lokasyonlar', veri.lokasyonId, {
-          operasyonDurum: veri.operasyonDurum,
-          kontrolTarihi: veri.operasyonDurum === 'planlandi' || veri.operasyonDurum === 'sahada' ? veri.tarih : undefined
+        /* Lokasyonun operasyon durumu iş emrinden sürülür; tarih geçişin
+           zorunlu alanıdır ve aynı komutta yazılır. */
+        var ek = {};
+        if (veri.operasyonDurum === 'planlandi' || veri.operasyonDurum === 'sahada') ek.kontrolTarihi = veri.tarih;
+        return GV.gecisUygula('operasyon', 'lokasyonlar', veri.lokasyonId, veri.operasyonDurum, {
+          not:'İş emri ' + iid + ' üzerinden güncellendi.', sessiz: true, ekYama: ek
         }).then(function(){ return iid; });
       }).then(function(iid){
         yardim.taslakSil(); yardim.kirliSifirla();

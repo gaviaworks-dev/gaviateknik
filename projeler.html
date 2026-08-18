@@ -159,9 +159,8 @@
     { k:'gelir', ad:'Gelir', sinif:'num', varsayilanGizli:true, gizli:true, ciz: function(p){ return GV.tl(p.gelir); } },
     { k:'yoneticiAd', ad:'Proje Yöneticisi', ciz: function(p){ return GV.esc(p.yoneticiAd); } },
     { k:'durum', ad:'Durum', ciz: function(p){
-        return p.durum === 'aktif' ? GV.rozetOzel('ok','fa-play','Aktif')
-             : p.durum === 'tamamlandi' ? GV.rozetOzel('info','fa-flag-checkered','Tamamlandı')
-             : GV.rozetOzel('warn','fa-pen-ruler','Planlama'); } },
+        return GV.rozet('proje', p.durum);
+      } },
     { k:'__islem', ad:'İşlem', ciz: function(p){
         return '<div class="row-acts">'
           + '<a class="ia-btn" href="proje-detay.html?id=' + p.id + '" aria-label="' + GV.esc(p.ad) + ' detayı"><i class="fa-solid fa-eye" aria-hidden="true"></i></a>'
@@ -193,10 +192,10 @@
     kaynak: 'projeler',
     veri: function(){ return kaynak; },
     arama: ['kod','ad','musteriAd','markaAd','yoneticiAd','aciklama'],
-    cipler: { alan:'durum', secenekler:[
-      { k:'aktif', ad:'Aktif', ikon:'fa-play' },
-      { k:'planlama', ad:'Planlama', ikon:'fa-pen-ruler' },
-      { k:'tamamlandi', ad:'Tamamlandı', ikon:'fa-flag-checkered' }] },
+    /* Çipler de aynı enumdan gelir; askıya alınan/arşivlenen proje listede
+       süzülebilir kalsın diye tüm durumlar çip olarak açılır. */
+    cipler: { alan:'durum', secenekler: A.durumListesi('proje').map(function(d){
+      return { k:d.k, ad:d.ad, ikon:d.ikon }; }) },
     alanlar: [
       { k:'musteriId', ad:'Müşteri', tur:'coklu', secenekler: A.liste('musteriler').map(function(m){ return { deger:m.id, ad:m.kisaAd }; }) },
       { k:'yil', ad:'Kontrol yılı', tur:'secim', secenekler: Array.from(new Set(kaynak.map(function(p){return p.yil;}))).sort().map(function(y){ return { deger:y, ad:String(y) }; }) },

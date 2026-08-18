@@ -214,13 +214,14 @@
             var tarih = kap.querySelector('#ocKlbTarih').value || null;
             var maliyet = Number(kap.querySelector('#ocKlbMaliyet').value) || 0;
             var not = kap.querySelector('#ocKlbNot').value.trim();
-            Promise.all(idler.map(function(i){
-              return A.guncelle('olcumCihazlari', i, { durum:'serviste', kurulus: kurulus });
-            })).then(function(){
-              A.kayitAt('durum-degisikligi', 'olcumCihazlari', idler.join(','), 'kullanimda', 'serviste',
-                'Kalibrasyona gönderildi · ' + kurulus + ' · tahmini ' + maliyet + ' ₺' + (not ? ' · ' + not : ''));
-              gvToast(idler.length + ' cihaz kalibrasyona gönderildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
+            GV.gecisTopluUygula('cihaz', 'olcumCihazlari', idler, 'serviste', {
+              not:'Kalibrasyona gönderildi · ' + kurulus + ' · tahmini ' + maliyet + ' ₺' + (not ? ' · ' + not : ''),
+              ekYama: { kurulus: kurulus }
+            }).then(function(r){
+              var oldu = GV.gecisTopluBildir(r, {
+                basarisizBaslik:'Cihaz kalibrasyona gönderilemedi',
+                metin: function(n){ return n + ' cihaz kalibrasyona gönderildi.'; } });
+              if (oldu) setTimeout(function(){ location.reload(); }, 800);
             });
           } }]
     });

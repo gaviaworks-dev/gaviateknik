@@ -519,13 +519,17 @@
       notAlani:true, notZorunlu:true, notYer:'Revizyon gerekçesi (rapora işlenir)…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('raporlar', r.id, { durum:'arsiv' }).then(function(){
+      GV.gecisUygula('rapor', 'raporlar', r.id, 'arsiv', {
+        not:'v' + (r.versiyon + 1) + ' revizyonu açıldı. ' + s.not
+      }).then(function(g){
+        if (!g.ok) return null;
         return A.ekle('raporlar', Object.assign({}, r, {
           id: r.id + '-R' + (r.versiyon + 1), versiyon: r.versiyon + 1,
           durum:'taslak', teslimTarihi: null, onaylayanId: null,
           raporTarihi: A.bugun(), revizyonKaynagi: r.id, revizyonNotu: s.not
         }));
       }).then(function(x){
+        if (!x) return;
         gvToast('Yeni revizyon oluşturuldu: v' + (r.versiyon + 1), { ton:'ok' });
         setTimeout(function(){ location.href = GV.href('rapor-detay.html?id=' + x.kayit.id); }, 900);
       });
@@ -575,12 +579,13 @@
       onayEtiket:'Onayla', onayIkon:'fa-check', notAlani:true, notYer:'Onay notu (isteğe bağlı)…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('raporlar', r.id, { durum:'onaylandi', onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-004' })
-        .then(function(){
-          A.kayitAt('onay', 'Teknik Rapor', r.no, 'Teknik incelemede', 'Onaylandı', s.not);
-          gvToast('Rapor teknik olarak onaylandı.', { ton:'ok' });
-          setTimeout(function(){ location.reload(); }, 800);
-        });
+      GV.gecisUygula('rapor', 'raporlar', r.id, 'onaylandi', {
+        not: s.not, ekYama: { onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-004' }
+      }).then(function(g){
+        if (!g.ok) return;
+        gvToast('Rapor teknik olarak onaylandı.', { ton:'ok' });
+        setTimeout(function(){ location.reload(); }, 800);
+      });
     });
   });
 
@@ -593,12 +598,34 @@
       notAlani:true, notZorunlu:true, notYer:'Hangi bölümde ne düzeltilmeli?'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('raporlar', r.id, { durum:'revizyon-istendi', revizyonNotu: s.not }).then(function(){
-        A.kayitAt('revizyon-istendi', 'Teknik Rapor', r.no, 'Teknik incelemede', 'Revizyon istendi', s.not);
+      GV.gecisUygula('rapor', 'raporlar', r.id, 'revizyon-istendi', {
+        not: s.not, ekYama: { revizyonNotu: s.not }
+      }).then(function(g){
+        if (!g.ok) return;
         gvToast('Revizyon talebi gönderildi.', { ton:'warn' });
         setTimeout(function(){ location.reload(); }, 800);
       });
     });
+  });
+
+  /* Doküman §8: geçiş olmayan buton GİZLENMEZ — disabled nedeni açıklanır.
+     Her aksiyonun geçişle birlikte yazacağı alanlar da denetime girer. */
+  var GECIS_VERI = {
+    'onaylandi':   { onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-004' },
+    'teslim-edildi': { teslimTarihi: A.bugun() },
+    'revizyon-istendi': {},
+    'arsiv': {}
+  };
+  [['rdOnayla','onaylandi'], ['rdRevizyonIste','revizyon-istendi'],
+   ['rdGonder','teslim-edildi'], ['rdRevizyon','arsiv'], ['rdRevizyon2','arsiv']]
+  .forEach(function(x){
+    var b = document.getElementById(x[0]);
+    if (!b) return;
+    var kap = document.createElement('div');
+    kap.hidden = true;
+    kap.style.marginTop = '8px';
+    b.parentNode.insertBefore(kap, b.nextSibling);
+    GV.gecisButonu(b, GV.gecisDene('rapor', r, x[1], { koleksiyon:'raporlar', veri: GECIS_VERI[x[1]] }), kap);
   });
 
   var gonder = document.getElementById('rdGonder');
@@ -620,9 +647,16 @@
           + 'Bilgilerinize sunarız.') + '</textarea></div></div>',
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
         { etiket:'Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
-            A.guncelle('raporlar', r.id, { durum:'teslim-edildi', teslimTarihi: A.bugun() }).then(function(){
-              return A.guncelle('lokasyonlar', r.lokasyonId, { raporDurum:'teslim-edildi', raporTeslimTarihi: A.bugun() });
-            }).then(function(){
+            GV.gecisUygula('rapor', 'raporlar', r.id, 'teslim-edildi', {
+              not:'Rapor müşteriye teslim edildi.', ekYama: { teslimTarihi: A.bugun() }
+            }).then(function(g){
+              if (!g.ok) return null;
+              /* Lokasyon aynası aynı rapor akışını sürer, ayrı alan adıyla. */
+              return GV.gecisUygula('rapor', 'lokasyonlar', r.lokasyonId, 'teslim-edildi', {
+                alan:'raporDurum', sessiz:true, ekYama: { raporTeslimTarihi: A.bugun() }
+              });
+            }).then(function(g){
+              if (!g) return null;
               return A.ekle('iletisimGecmisi', {
                 id:GV.yeniKod('ILT-R'),
                 musteriId: l ? l.musteriId : null, lokasyonId: r.lokasyonId,
@@ -632,7 +666,8 @@
                 konu: r.no + ' teknik rapor teslimi',
                 ozet:'Rapor müşteri portalı ve e-posta ile teslim edildi.'
               });
-            }).then(function(){
+            }).then(function(x){
+              if (!x) return;
               gvToast('Rapor müşteriye teslim edildi.', { ton:'ok' });
               setTimeout(function(){ location.reload(); }, 900);
             });

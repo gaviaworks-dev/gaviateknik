@@ -221,8 +221,10 @@
         butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
           { etiket:'Öneriyi Gönder', sinif:'btn-acc', ikon:'fa-paper-plane', tikla: function(kap){
               var t = kap.querySelector('#plTarih').value;
-              A.durumDegistir('lokasyonlar', l.id, 'operasyonDurum', 'tarih-onayi-bekleniyor',
-                GV.d(t) + ' tarihi müşteriye önerildi.').then(function(){
+              GV.gecisUygula('operasyon', 'lokasyonlar', l.id, 'tarih-onayi-bekleniyor', {
+                not: GV.d(t) + ' tarihi müşteriye önerildi.'
+              }).then(function(g){
+                  if (!g.ok) return null;
                   return A.ekle('iletisimGecmisi', {
                     id:GV.yeniKod('ILT-P'),
                     musteriId: l.musteriId, lokasyonId: l.id, kisiId: kap.querySelector('#plKisi').value,
@@ -231,7 +233,8 @@
                     konu:'Kontrol tarihi önerisi — ' + GV.d(t),
                     ozet: kap.querySelector('#plNot').value.substring(0, 200)
                   });
-                }).then(function(){
+                }).then(function(x){
+                  if (!x) return;
                   gvToast('Tarih önerisi gönderildi, onay bekleniyor.', { ton:'ok' });
                   setTimeout(function(){ location.reload(); }, 900);
                 });

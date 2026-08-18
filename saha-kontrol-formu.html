@@ -758,15 +758,26 @@
         if (n >= adimListe.length) {
           clearInterval(zaman);
           durum.senkron = 'tamamlandi'; kaydet(); netCiz();
-          A.guncelle('isEmirleri', ie.id, {
-            operasyonDurum:'kontrol-tamamlandi',
-            raporDurum: incelemeyeGonder ? 'teknik-incelemede' : 'taslak',
-            bitis: BUGUN
+          /* Saha kapanışı üç ayrı akışı ilerletir: iş emri operasyonu,
+             iş emri raporu ve lokasyon aynası. Rapor doğrudan incelemeye
+             ATLAMAZ — önce taslak açılır, sonra incelemeye gönderilir. */
+          function raporIlerlet(kol, id, alan){
+            return GV.gecisUygula('rapor', kol, id, 'taslak', { alan: alan, sessiz:true, not:'Saha kontrolü tamamlandı.' })
+              .then(function(){
+                if (!incelemeyeGonder) return null;
+                return GV.gecisUygula('rapor', kol, id, 'teknik-incelemede',
+                  { alan: alan, sessiz:true, not:'Saha kontrolünden teknik incelemeye gönderildi.' });
+              });
+          }
+          GV.gecisUygula('operasyon', 'isEmirleri', ie.id, 'kontrol-tamamlandi', {
+            not:'Saha kontrol formundan tamamlandı.', sessiz:true, ekYama: { bitis: BUGUN }
           }).then(function(){
-            return A.guncelle('lokasyonlar', ie.lokasyonId, {
-              operasyonDurum:'kontrol-tamamlandi', kontrolTarihi: BUGUN,
-              raporDurum: incelemeyeGonder ? 'teknik-incelemede' : 'taslak'
-            });
+            return raporIlerlet('isEmirleri', ie.id, 'raporDurum');
+          }).then(function(){
+            return GV.gecisUygula('operasyon', 'lokasyonlar', ie.lokasyonId, 'kontrol-tamamlandi', {
+              not:'Saha kontrolü tamamlandı.', sessiz:true, ekYama: { kontrolTarihi: BUGUN } });
+          }).then(function(){
+            return raporIlerlet('lokasyonlar', ie.lokasyonId, 'raporDurum');
           }).then(function(){
             return A.ekle('sahaKontroller', {
               id:GV.yeniKod('SKT-S'), isEmriId: ie.id, lokasyonId: ie.lokasyonId,

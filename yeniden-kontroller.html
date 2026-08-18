@@ -170,10 +170,12 @@
           onayEtiket:'Tamamlandı', onayIkon:'fa-check', notAlani:true, notYer:'Kontrol sonucu…'
         }).then(function(s){
           if (!s.onay) return;
-          A.durumDegistir('yenidenKontroller', y.id, 'durum', 'tamamlandi', s.not).then(function(){
-            gvToast('Yeniden kontrol tamamlandı olarak kaydedildi.', { ton:'ok' });
-            setTimeout(function(){ location.reload(); }, 800);
-          });
+          GV.gecisUygula('yenidenKontrol', 'yenidenKontroller', y.id, 'tamamlandi', { not: s.not })
+            .then(function(g){
+              if (!g.ok) return;
+              gvToast('Yeniden kontrol tamamlandı olarak kaydedildi.', { ton:'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
         });
       });
     });
@@ -202,11 +204,15 @@
         { etiket:'Planla', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
             var t = kap.querySelector('#ykTarih').value;
             if (!t) { gvToast('Kontrol tarihi zorunludur.', { ton:'danger' }); return false; }
-            A.guncelle('yenidenKontroller', yid, {
-              planTarihi: t, durum:'planlandi',
-              ucretli: kap.querySelector('#ykUcret').value === 'ucretli',
-              aciklama: kap.querySelector('#ykNot').value
-            }).then(function(){
+            GV.gecisUygula('yenidenKontrol', 'yenidenKontroller', yid, 'planlandi', {
+              not:'Yeniden kontrol planlandı: ' + GV.d(t),
+              ekYama: {
+                planTarihi: t,
+                ucretli: kap.querySelector('#ykUcret').value === 'ucretli',
+                aciklama: kap.querySelector('#ykNot').value
+              }
+            }).then(function(g){
+              if (!g.ok) return;
               gvToast('Yeniden kontrol ' + GV.d(t) + ' tarihine planlandı.', { ton:'ok' });
               setTimeout(function(){ location.reload(); }, 800);
             });

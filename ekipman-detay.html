@@ -287,7 +287,8 @@
       notAlani:true, notYer:'Gerekçe (isteğe bağlı)…'
     }).then(function(s){
       if (!s.onay) return;
-      A.durumDegistir('ekipmanlar', e.id, 'durum', yeni, s.not).then(function(){
+      GV.gecisUygula('ekipman', 'ekipmanlar', e.id, yeni, { not: s.not }).then(function(g){
+        if (!g.ok) return;
         gvToast('Ekipman durumu güncellendi.', { ton:'ok' });
         setTimeout(function(){ location.reload(); }, 800);
       });

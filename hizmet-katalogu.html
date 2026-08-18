@@ -187,8 +187,13 @@
             + (kullanilan.length ? ' <b>Dikkat:</b> ' + kullanilan.length + ' tanesi hâlen aktif lokasyon kapsamında kullanılıyor; mevcut kayıtlar etkilenmez.' : ''),
           onayEtiket:'Pasife al', onayIkon:'fa-circle-minus' }).then(function(r){
             if (!r.onay) return;
-            Promise.all(s.map(function(hid){ return A.guncelle('hizmetler', hid, { durum:'pasif' }); }))
-              .then(function(){ gvToast(s.length + ' hizmet pasife alındı.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+            GV.gecisTopluUygula('hizmet', 'hizmetler', s, 'pasif', { not:'Toplu pasife alma.' })
+              .then(function(r){
+                var oldu = GV.gecisTopluBildir(r, {
+                  basarisizBaslik:'Hizmet pasife alınamadı',
+                  metin: function(n){ return n + ' hizmet pasife alındı.'; } });
+                if (oldu) setTimeout(function(){ location.reload(); }, 700);
+              });
           });
       } }
   ]});

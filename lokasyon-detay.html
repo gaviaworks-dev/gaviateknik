@@ -496,18 +496,31 @@
       baslik:'Operasyon durumunu değiştir', ikon:'fa-arrows-rotate',
       metin:'<b>' + GV.esc(l.ad) + '</b> lokasyonunun operasyon durumu değiştirilecek. '
         + 'Rapor, fatura, tahsilat ve taşeron ödeme durumları ayrı akışlardır ve bu işlemden etkilenmez.',
+      /* Doküman §8: gidilemeyen durum listeden GİZLENMEZ; devre dışı bırakılır
+         ve nedeni etiketine yazılır. */
       govde:'<div class="gfield"><label for="ldYeniDurum">Yeni operasyon durumu</label><select id="ldYeniDurum">'
         + A.durumListesi('operasyon').map(function(d){
-            return '<option value="' + d.k + '"' + (d.k === l.operasyonDurum ? ' selected' : '') + '>' + GV.esc(d.ad) + '</option>'; }).join('')
-        + '</select></div>'
+            if (d.k === l.operasyonDurum) return '<option value="' + d.k + '" disabled>' + GV.esc(d.ad) + ' — mevcut durum</option>';
+            var g = GV.gecisDene('operasyon', l, d.k, { koleksiyon:'lokasyonlar' });
+            return '<option value="' + d.k + '"' + (g.uygun ? '' : ' disabled')
+              + '>' + GV.esc(d.ad) + (g.uygun ? '' : ' — ' + GV.esc(g.sebep)) + '</option>'; }).join('')
+        + '</select>'
+        + '<span class="gf-hint">Yalnız mevcut durumdan tanımlı geçişler seçilebilir; kapalı seçeneklerin nedeni yanında yazılıdır.</span></div>'
         + '<div class="gfield full" style="margin-top:14px"><label for="ldDurumAcik">Açıklama *</label>'
         + '<textarea id="ldDurumAcik" placeholder="Durum değişikliğinin gerekçesi"></textarea></div>',
       butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
         { etiket:'Güncelle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
             var acik = kap.querySelector('#ldDurumAcik').value.trim();
             if (!acik) { gvToast('Açıklama zorunludur.', { ton:'danger' }); return false; }
-            A.durumDegistir('lokasyonlar', l.id, 'operasyonDurum', kap.querySelector('#ldYeniDurum').value, acik)
-              .then(function(){ gvToast('Operasyon durumu güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+            var hedef = kap.querySelector('#ldYeniDurum').value;
+            var ek = {};
+            if (['planlandi','sahada','kontrol-tamamlandi'].indexOf(hedef) !== -1 && !l.kontrolTarihi) ek.kontrolTarihi = A.bugun();
+            GV.gecisUygula('operasyon', 'lokasyonlar', l.id, hedef, { not: acik, ekYama: ek })
+              .then(function(g){
+                if (!g.ok) return;
+                gvToast('Operasyon durumu güncellendi.', { ton:'ok' });
+                setTimeout(function(){ location.reload(); }, 700);
+              });
           } }]
     });
   });

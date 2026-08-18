@@ -299,13 +299,18 @@
         }, veri));
     islem.then(function(r){
       var pid = mevcut ? mevcut.id : r.kayit.id;
-      return Promise.all(secilenLok.map(function(lid){
+      /* Kapsam ataması ve operasyon geçişi ayrı işlerdir; projede ZATEN
+         olan lokasyonun operasyon durumu korunur. */
+      var yeniler = secilenLok.filter(function(lid){
         var l = A.kayit('lokasyonlar', lid);
-        return A.guncelle('lokasyonlar', lid, {
-          projeId: pid,
-          operasyonDurum: (l && l.projeId === pid) ? l.operasyonDurum : 'iletisime-gecildi'
-        });
-      })).then(function(){ return pid; });
+        return !(l && l.projeId === pid);
+      });
+      return Promise.all(secilenLok.map(function(lid){
+        return A.guncelle('lokasyonlar', lid, { projeId: pid });
+      })).then(function(){
+        return GV.gecisTopluUygula('operasyon', 'lokasyonlar', yeniler, 'iletisime-gecildi',
+          { not:'Proje kapsamına alındı: ' + pid });
+      }).then(function(){ return pid; });
     }).then(function(pid){
       yardim.taslakSil(); yardim.kirliSifirla();
       gvResult(true, {

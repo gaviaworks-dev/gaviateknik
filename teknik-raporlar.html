@@ -195,8 +195,21 @@
           onayEtiket:'Gönder', onayIkon:'fa-paper-plane' }).then(function(r){
             if (!r.onay) return;
             Promise.all(uygun.map(function(rid){
-              return A.guncelle('raporlar', rid, { durum:'teslim-edildi', teslimTarihi: A.bugun() }); }))
-              .then(function(){ gvToast(uygun.length + ' rapor müşteriye teslim edildi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 800); });
+              return GV.gecisUygula('rapor', 'raporlar', rid, 'teslim-edildi', {
+                not:'Toplu teslim.', sessiz:true, ekYama: { teslimTarihi: A.bugun() } });
+            })).then(function(sonuclar){
+              var basarili = sonuclar.filter(function(x){ return x.ok; }).length;
+              var engel = sonuclar.filter(function(x){ return !x.ok; });
+              if (!basarili) {
+                gvResult(false, { baslik:'Hiçbir rapor teslim edilemedi',
+                  metin: GV.esc(engel.length ? engel[0].sebep : 'Geçiş kuralları izin vermedi.') });
+                return;
+              }
+              gvToast(basarili + ' rapor müşteriye teslim edildi.'
+                + (engel.length ? ' ' + engel.length + ' rapor geçiş kuralı nedeniyle atlandı.' : ''),
+                { ton: engel.length ? 'warn' : 'ok' });
+              setTimeout(function(){ location.reload(); }, 800);
+            });
           });
       } }
   ]});

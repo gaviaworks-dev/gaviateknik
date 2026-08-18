@@ -356,8 +356,10 @@
       notYer:'Uygulanan faaliyet ve kapatma gerekçesi…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('duzelticiFaaliyetler', f.id, { durum:'kapandi', kapanis: BUGUN }).then(function(){
-        A.kayitAt('kapatma', 'Düzeltici Faaliyet', f.id, 'Açık', 'Kapandı', s.not);
+      GV.gecisUygula('dof', 'duzelticiFaaliyetler', f.id, 'kapandi', {
+        not: s.not, ekYama: { kapanis: BUGUN }
+      }).then(function(g){
+        if (!g.ok) return;
         gvToast('Düzeltici faaliyet kapatıldı. Etkinlik doğrulaması bekliyor.', { ton:'ok' });
         setTimeout(function(){ location.reload(); }, 900);
       });

@@ -143,12 +143,13 @@
           onayEtiket:'Onayla', onayIkon:'fa-check', notAlani:true, notYer:'Onay notu (isteğe bağlı)…'
         }).then(function(s){
           if (!s.onay) return;
-          A.guncelle('raporlar', r.id, { durum:'onaylandi', onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-004' })
-            .then(function(){
-              A.kayitAt('onay', 'Teknik Rapor', r.no, 'Teknik incelemede', 'Onaylandı', s.not);
-              gvToast(r.no + ' onaylandı.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 800);
-            });
+          GV.gecisUygula('rapor', 'raporlar', r.id, 'onaylandi', {
+            not: s.not, ekYama: { onaylayanId: (GV.rolBilgi || {}).personelId || 'PRS-004' }
+          }).then(function(g){
+            if (!g.ok) return;
+            gvToast(r.no + ' onaylandı.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
         });
       });
     });
@@ -161,8 +162,10 @@
           notAlani:true, notZorunlu:true, notYer:'Hangi bölümde ne düzeltilmeli?'
         }).then(function(s){
           if (!s.onay) return;
-          A.guncelle('raporlar', r.id, { durum:'revizyon-istendi', revizyonNotu: s.not }).then(function(){
-            A.kayitAt('revizyon-istendi', 'Teknik Rapor', r.no, 'Teknik incelemede', 'Revizyon istendi', s.not);
+          GV.gecisUygula('rapor', 'raporlar', r.id, 'revizyon-istendi', {
+            not: s.not, ekYama: { revizyonNotu: s.not }
+          }).then(function(g){
+            if (!g.ok) return;
             gvToast('Revizyon talebi gönderildi.', { ton:'warn' });
             setTimeout(function(){ location.reload(); }, 800);
           });

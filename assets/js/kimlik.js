@@ -73,13 +73,15 @@
 
   /**
    * Kayıt kodu üretir: önek + '-' + rastgele blok.
-   * Örn. GV.yeniKod('MST-Y') → 'MST-Y-4F7K2Q'
+   * Örn. GV.yeniKod('MST-Y') → 'MST-Y-4F7K2QHB'
+   * 8 karakterlik blok 32^8 ≈ 1,1 × 10^12 olasılık verir; demo ölçeğinde
+   * çarpışma pratikte imkânsızdır (demo-api ayrıca çarpışmada yeniden üretir).
    * @param {string} onek  Kayıt öneki (sondaki '-' gereksizdir)
-   * @param {number} [uzunluk=6]
+   * @param {number} [uzunluk=8]
    * @returns {string}
    */
   GV.yeniKod = function (onek, uzunluk) {
-    var n = uzunluk == null ? 6 : Math.max(4, Math.min(12, uzunluk));
+    var n = uzunluk == null ? 8 : Math.max(4, Math.min(16, uzunluk));
     var b = baytlar(n), s = '';
     for (var i = 0; i < n; i++) s += ALFABE.charAt(b[i] % ALFABE.length);
     var o = String(onek == null ? '' : onek).replace(/-+$/, '');

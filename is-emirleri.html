@@ -160,13 +160,19 @@
         gvModal({ baslik:'Operasyon durumunu değiştir', ikon:'fa-arrows-rotate',
           metin: s.length + ' iş emrinin operasyon durumu güncellenecek.',
           govde:'<div class="gfield"><label for="ieDurum">Yeni durum</label><select id="ieDurum">'
-            + A.durumListesi('operasyon').map(function(d){ return '<option value="' + d.k + '">' + GV.esc(d.ad) + '</option>'; }).join('') + '</select></div>'
+            + A.durumListesi('operasyon').map(function(d){ return '<option value="' + d.k + '">' + GV.esc(d.ad) + '</option>'; }).join('') + '</select>'
+            + '<span class="gf-hint">Seçilen durum, her iş emrinin mevcut durumundan tanımlı bir geçiş değilse o kayıt atlanır ve nedeni bildirilir.</span></div>'
             + '<div class="gfield full" style="margin-top:14px"><label for="ieDurumNot">Açıklama</label><textarea id="ieDurumNot"></textarea></div>',
           butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
             { etiket:'Güncelle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
                 var d = kap.querySelector('#ieDurum').value, n = kap.querySelector('#ieDurumNot').value;
-                Promise.all(s.map(function(id){ return A.durumDegistir('isEmirleri', id, 'operasyonDurum', d, n); }))
-                  .then(function(){ gvToast(s.length + ' iş emrinin durumu güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+                GV.gecisTopluUygula('operasyon', 'isEmirleri', s, d, { not: n })
+                  .then(function(r){
+                    var oldu = GV.gecisTopluBildir(r, {
+                      basarisizBaslik:'İş emri durumu değiştirilemedi',
+                      metin: function(x){ return x + ' iş emrinin durumu güncellendi.'; } });
+                    if (oldu) setTimeout(function(){ location.reload(); }, 700);
+                  });
               } }] });
       } }
   ]});

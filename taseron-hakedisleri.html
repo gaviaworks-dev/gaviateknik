@@ -175,13 +175,14 @@
           onayEtiket:'Onayla', onayIkon:'fa-check', notAlani:true, notYer:'Ödeme notu…'
         }).then(function(r){
           if (!r.onay) return;
-          Promise.all(uygun.map(function(hid){
-            return A.durumDegistir('taseronHakedisleri', hid, 'durum', 'tam-odendi', r.not)
-              .then(function(){ return A.guncelle('taseronHakedisleri', hid, { odemeTarihi: BUGUN }); });
-          })).then(function(){
-            gvToast(uygun.length + ' hakediş ödendi olarak işaretlendi.', { ton:'ok' });
-            setTimeout(function(){ location.reload(); }, 800);
-          });
+          GV.gecisTopluUygula('taseronOdeme', 'taseronHakedisleri', uygun, 'tam-odendi',
+            { not: r.not || 'Toplu ödeme onayı.', ekYama: { odemeTarihi: BUGUN } })
+            .then(function(x){
+              var oldu = GV.gecisTopluBildir(x, {
+                basarisizBaslik:'Hakediş ödemesi onaylanamadı',
+                metin: function(n){ return n + ' hakediş ödendi olarak işaretlendi.'; } });
+              if (oldu) setTimeout(function(){ location.reload(); }, 800);
+            });
         });
       } },
     { etiket:'Dışa aktar', ikon:'fa-file-export', sinif:'btn-ghost', tikla: function(s){
@@ -299,10 +300,11 @@
               gvToast('Ödeme tutarı 1 ile ' + GV.tl(azami) + ' arasında olmalıdır.', { ton:'danger' }); return false;
             }
             var tam = tutar >= h.tutar;
-            A.durumDegistir('taseronHakedisleri', hid, 'durum', tam ? 'tam-odendi' : 'kismen-odendi',
-              kap.querySelector('#odAciklama').value || 'Ödeme onaylandı.').then(function(){
-                return A.guncelle('taseronHakedisleri', hid, { odemeTarihi: kap.querySelector('#odTarih').value || BUGUN });
-              }).then(function(){
+            GV.gecisUygula('taseronOdeme', 'taseronHakedisleri', hid, tam ? 'tam-odendi' : 'kismen-odendi', {
+              not: kap.querySelector('#odAciklama').value || 'Ödeme onaylandı.',
+              ekYama: { odemeTarihi: kap.querySelector('#odTarih').value || BUGUN }
+            }).then(function(g){
+                if (!g.ok) return;
                 gvResult(true, { baslik: tam ? 'Ödeme tamamlandı' : 'Kısmi ödeme kaydedildi',
                   metin: GV.tl(tutar) + ' tutarındaki ödeme onaylandı.'
                     + (tam ? '' : ' Kalan ' + GV.tl(h.tutar - tutar) + ' sonraki ödemede işlenecek.'),

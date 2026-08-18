@@ -200,8 +200,14 @@
           onayEtiket:'Arşivle', onayIkon:'fa-box-archive', notAlani:true, notYer:'Arşivleme gerekçesi…'
         }).then(function(r){
           if (!r.onay) return;
-          Promise.all(s.map(function(id){ return A.guncelle('musteriler', id, { durum:'pasif', arsiv:true }); }))
-            .then(function(){ gvToast(s.length + ' müşteri arşivlendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+          GV.gecisTopluUygula('musteri', 'musteriler', s, 'pasif',
+            { not: r.not || 'Toplu arşivleme.', ekYama: { arsiv: true } })
+            .then(function(x){
+              var oldu = GV.gecisTopluBildir(x, {
+                basarisizBaslik:'Müşteri arşivlenemedi',
+                metin: function(n){ return n + ' müşteri arşivlendi.'; } });
+              if (oldu) setTimeout(function(){ location.reload(); }, 700);
+            });
         });
       } }
   ]});

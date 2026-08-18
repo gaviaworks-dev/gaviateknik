@@ -75,7 +75,11 @@
      gecis     : {mevcutDurum: [izinli hedefler]}
      izin      : {hedef: [rol]} — tanımsızsa bütün roller
      zorunlu   : {hedef: [alan]} — kayıtta ya da ctx.veri içinde dolu olmalı
-     onKosul   : {hedef: fn(kayit, ctx) → {uygun, sebep}}
+     zorunluKol: {koleksiyon: {hedef: [alan]}} — aynı akış başka bir
+                 koleksiyonda başka alan adları kullanıyorsa (örn. rapor
+                 akışı `lokasyonlar.raporDurum` üzerinde çalışırken)
+     onKosul   : {hedef: fn(kayit, ctx) → {uygun, sebep}}; ctx.koleksiyon ile
+                 hangi koleksiyon üstünde çalışıldığı bilinir
      etiket    : {hedef: 'Buton metni'}
      --------------------------------------------------------------- */
   var YONETIM = ['sahip', 'gm'];
@@ -119,14 +123,17 @@
         'envanter-bekleniyor':   ['iletisime-gecildi', 'tarih-onayi-bekleniyor', 'kapsam-disi', 'iptal'],
         'iletisime-gecildi':     ['tarih-onayi-bekleniyor', 'envanter-bekleniyor', 'bilgi-bekleniyor', 'kapsam-disi', 'iptal'],
         'tarih-onayi-bekleniyor':['planlandi', 'tadilatta', 'tasiniyor', 'iletisime-gecildi', 'kapsam-disi', 'iptal'],
-        'planlandi':             ['sahada', 'tarih-onayi-bekleniyor', 'tadilatta', 'tasiniyor', 'iptal'],
-        'tadilatta':             ['tarih-onayi-bekleniyor', 'planlandi', 'kapsam-disi', 'iptal'],
-        'tasiniyor':             ['tarih-onayi-bekleniyor', 'planlandi', 'kapsam-disi', 'iptal'],
+        'planlandi':             ['sahada', 'tarih-onayi-bekleniyor', 'tadilatta', 'tasiniyor', 'iletisime-gecildi', 'iptal'],
+        'tadilatta':             ['tarih-onayi-bekleniyor', 'planlandi', 'iletisime-gecildi', 'kapsam-disi', 'iptal'],
+        'tasiniyor':             ['tarih-onayi-bekleniyor', 'planlandi', 'iletisime-gecildi', 'kapsam-disi', 'iptal'],
+        /* Sahadaki kayıt yeni döneme SESSİZCE alınmaz — önce ziyaret kapanır. */
         'sahada':                ['kontrol-tamamlandi', 'yeniden-ziyaret', 'planlandi'],
-        'kontrol-tamamlandi':    ['yeniden-ziyaret'],
-        'yeniden-ziyaret':       ['planlandi', 'sahada', 'kontrol-tamamlandi'],
-        'kapsam-disi':           ['bilgi-bekleniyor'],
-        'iptal':                 ['bilgi-bekleniyor']
+        /* 'iletisime-gecildi': periyodik kontrol yıllık tekrarlanır; kaydın
+           yeni bir kontrol dönemine/projeye alınması döngüyü baştan başlatır. */
+        'kontrol-tamamlandi':    ['yeniden-ziyaret', 'iletisime-gecildi'],
+        'yeniden-ziyaret':       ['planlandi', 'sahada', 'kontrol-tamamlandi', 'iletisime-gecildi'],
+        'kapsam-disi':           ['bilgi-bekleniyor', 'iletisime-gecildi'],
+        'iptal':                 ['bilgi-bekleniyor', 'iletisime-gecildi']
       },
       izin: {
         'kontrol-tamamlandi': YONETIM.concat(['operasyon', 'teknik', 'uzman', 'saha', 'taseron']),
@@ -137,6 +144,10 @@
         'planlandi': ['kontrolTarihi'],
         'sahada': ['kontrolTarihi'],
         'kontrol-tamamlandi': ['kontrolTarihi']
+      },
+      /* İş emrinde kontrol tarihi `tarih` alanında tutulur. */
+      zorunluKol: {
+        isEmirleri: { 'planlandi': ['tarih'], 'sahada': ['tarih'], 'kontrol-tamamlandi': ['tarih'] }
       },
       etiket: {
         'planlandi': 'Planlandı', 'sahada': 'Sahaya çık', 'kontrol-tamamlandi': 'Kontrolü tamamla',
@@ -170,9 +181,19 @@
         'onaylandi': ['onaylayanId', 'raporTarihi'],
         'teslim-edildi': ['teslimTarihi']
       },
+      /* Aynı akış lokasyon ve iş emri kaydında `raporDurum` alanını sürer;
+         oradaki tarih alanlarının adı farklıdır. */
+      zorunluKol: {
+        lokasyonlar: { 'onaylandi': ['raporTarihi'], 'teslim-edildi': ['raporTeslimTarihi'], 'teknik-incelemede': ['kontrolTarihi'] },
+        isEmirleri:  { 'onaylandi': [], 'teslim-edildi': [], 'teknik-incelemede': [] }
+      },
       onKosul: {
-        /* Onaylı rapor düzenlenemez — kural demoApi'de, burada yalnız çağrılır. */
-        'taslak': function (k) { return k && k.id ? kural('raporDuzenlenebilirMi', k.id) : { uygun: true }; }
+        /* Onaylı rapor düzenlenemez — kural demoApi'de, burada yalnız çağrılır.
+           Kural rapor kaydına aittir; lokasyon/iş emri aynasında çalışmaz. */
+        'taslak': function (k, ctx) {
+          if (ctx && ctx.koleksiyon && ctx.koleksiyon !== 'raporlar') return { uygun: true };
+          return k && k.id ? kural('raporDuzenlenebilirMi', k.id) : { uygun: true };
+        }
       },
       etiket: {
         'teknik-incelemede': 'Teknik incelemeye gönder', 'onaylandi': 'Onayla',
@@ -651,8 +672,10 @@
                sebep: rolAdi(rol) + ' rolü bu geçişi yapamaz (' + GV.akisDurum(akisAd, hedef).ad + ').' };
     }
 
-    /* zorunlu alanlar */
-    var zorunlu = (a.zorunlu && a.zorunlu[hedef]) || [];
+    /* zorunlu alanlar — koleksiyona özel liste varsa o kazanır */
+    var kol = ctx.koleksiyon || a.koleksiyon;
+    var kolZorunlu = kol && a.zorunluKol && a.zorunluKol[kol];
+    var zorunlu = (kolZorunlu && kolZorunlu[hedef]) || (a.zorunlu && a.zorunlu[hedef]) || [];
     var eksik = zorunlu.filter(function (x) { return !alanDolu(kayit, ctx, x); });
     if (eksik.length) {
       return { uygun: false, kod: 'zorunlu-alan',
@@ -714,10 +737,15 @@
     }
     var kol = koleksiyon || a.koleksiyon;
     var alan = ctx.alan || a.alan;
+    ctx = Object.assign({}, ctx, { koleksiyon: kol });
     var kayit = A.kayit(kol, id);
     if (!kayit) {
       return Promise.resolve({ ok: false, kod: 'kayit-yok', sebep: 'Kayıt bulunamadı.' });
     }
+
+    /* Geçişle BİRLİKTE yazılan alanlar (onaylayanId, kapanis, teslimTarihi…)
+       zorunlu alan kontrolünde de sayılır — ayrıca ctx.veri yazmaya gerek yok. */
+    if (!ctx.veri && ctx.ekYama) ctx = Object.assign({}, ctx, { veri: ctx.ekYama });
 
     var s = GV.gecisDene(akisAd, kayit, hedef, ctx);
     if (!s.uygun) {
@@ -736,6 +764,51 @@
     }).then(function (r) {
       return { ok: true, onceki: r.onceki, yeni: r.yeni, uyari: s.uyari, istekId: r.istekId };
     });
+  };
+
+  /**
+   * Toplu geçiş — her kayıt TEK TEK denenir. Kural nedeniyle geçemeyenler
+   * sessizce yutulmaz; sebebiyle birlikte döner.
+   * @returns {Promise<{toplam:number, basarili:number, engel:Array<{id:string, sebep:string, kod:string}>}>}
+   */
+  GV.gecisTopluUygula = function (akisAd, koleksiyon, idler, hedef, ctx) {
+    var c = Object.assign({ sessiz: true }, ctx || {});
+    return Promise.all((idler || []).map(function (id) {
+      return GV.gecisUygula(akisAd, koleksiyon, id, hedef, c).then(function (g) {
+        return { id: id, ok: g.ok, sebep: g.sebep, kod: g.kod };
+      });
+    })).then(function (l) {
+      return {
+        toplam: l.length,
+        basarili: l.filter(function (x) { return x.ok; }).length,
+        engel: l.filter(function (x) { return !x.ok; })
+      };
+    });
+  };
+
+  /**
+   * Toplu geçiş sonucunu tek bildirimde toplar. Hiçbiri geçmediyse sonuç
+   * modalı, kısmi geçtiyse uyarı tonlu toast basar.
+   * @returns {boolean} en az bir kayıt geçtiyse true
+   */
+  GV.gecisTopluBildir = function (r, secenek) {
+    secenek = secenek || {};
+    if (!r.basarili) {
+      var sebep = r.engel.length ? r.engel[0].sebep : 'Geçiş kuralları izin vermedi.';
+      if (kok.gvResult) {
+        kok.gvResult(false, {
+          baslik: secenek.basarisizBaslik || 'İşlem yapılamadı',
+          metin: esc(sebep) + (r.engel.length > 1 ? ' (' + r.engel.length + ' kayıt engellendi.)' : '')
+        });
+      } else if (kok.gvToast) { kok.gvToast(sebep, { ton: 'danger' }); }
+      return false;
+    }
+    var m = secenek.metin ? secenek.metin(r.basarili) : (r.basarili + ' kayıt güncellendi.');
+    if (r.engel.length) {
+      m += ' ' + r.engel.length + ' kayıt atlandı: ' + r.engel[0].sebep;
+    }
+    if (kok.gvToast) kok.gvToast(m, { ton: r.engel.length ? 'warn' : 'ok' });
+    return true;
   };
 
   /**

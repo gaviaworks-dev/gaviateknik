@@ -342,14 +342,18 @@
         var bas = s.bitis;
         var bit = A.tariheCevir(bas); bit.setFullYear(bit.getFullYear() + 1);
         var yil = bas.substring(0,4);
-        A.guncelle('sozlesmeler', s.id, { durum:'sona-erdi', yenileme:'yenilendi' }).then(function(){
+        GV.gecisUygula('sozlesme', 'sozlesmeler', s.id, 'sona-erdi', {
+          not:'Sözleşme yenilendi.', ekYama: { yenileme:'yenilendi' }
+        }).then(function(g){
+          if (!g.ok) return null;
           var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
           return A.ekle('sozlesmeler', Object.assign({}, s, {
             id: yeniSzlNo, no: yeniSzlNo,
             baslangic: bas, bitis: A.isoYaz(bit), durum:'yururlukte', yenileme:'otomatik-degil',
             notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
           }));
-        }).then(function(){
+        }).then(function(x){
+          if (!x) return;
           gvToast('Sözleşme yenilendi.', { ton:'ok' });
           setTimeout(function(){ location.href = GV.href('sozlesmeler.html'); }, 900);
         });

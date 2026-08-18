@@ -317,12 +317,14 @@
       notAlani:true, notYer:'Müşteriye iletilecek açıklama (fark gerekçeleri)…'
     }).then(function(s){
       if (!s.onay) return;
-      Promise.all(bekleyenler.map(function(m){
-        return A.durumDegistir('mutabakat', m.id, 'durum', 'onayli', s.not || 'Mutabakat müşteri onayına gönderildi.');
-      })).then(function(){
-        gvToast(bekleyenler.length + ' kalem müşteri onayına gönderildi.', { ton:'ok' });
-        setTimeout(function(){ location.reload(); }, 900);
-      });
+      GV.gecisTopluUygula('mutabakat', 'mutabakat', bekleyenler.map(function(m){ return m.id; }), 'onayli',
+        { not: s.not || 'Mutabakat müşteri onayına gönderildi.' })
+        .then(function(r){
+          var oldu = GV.gecisTopluBildir(r, {
+            basarisizBaslik:'Mutabakat onaya gönderilemedi',
+            metin: function(n){ return n + ' kalem müşteri onayına gönderildi.'; } });
+          if (oldu) setTimeout(function(){ location.reload(); }, 900);
+        });
     });
   });
 

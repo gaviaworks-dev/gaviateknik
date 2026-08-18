@@ -288,15 +288,16 @@
                 || (kap.querySelector('#thRef').value.trim() ? 'Referans: ' + kap.querySelector('#thRef').value.trim() : 'Tahsilat kaydedildi.'),
               tam: yeniKalan <= 0
             }).then(function(){
-              return A.guncelle('faturalar', fid, {
-                tahsilEdilen: yeniTahsil, kalan: Math.max(0, yeniKalan), tahsilatDurum: yeniDurum });
+              return GV.gecisUygula('tahsilat', 'faturalar', fid, yeniDurum, {
+                not:'Tahsilat işlendi: ' + GV.tl(t), sessiz:true,
+                ekYama: { tahsilEdilen: yeniTahsil, kalan: Math.max(0, yeniKalan) } });
             }).then(function(){
               /* taşeron hakedişlerini güncelle */
               return Promise.all(bagli.map(function(h){
                 var yeni = yeniKalan <= 0 ? 'odemeye-uygun'
                   : (h.durum === 'musteri-tahsilati-bekleniyor' ? 'odemeye-uygun' : h.durum);
-                return A.durumDegistir('taseronHakedisleri', h.id, 'durum', yeni,
-                  'Müşteri tahsilatı güncellendi (' + GV.tl(t) + ').');
+                return GV.gecisUygula('taseronOdeme', 'taseronHakedisleri', h.id, yeni, {
+                  sessiz: true, not:'Müşteri tahsilatı güncellendi (' + GV.tl(t) + ').' });
               }));
             }).then(function(){
               gvResult(true, { baslik:'Tahsilat kaydedildi',

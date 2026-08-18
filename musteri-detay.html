@@ -471,7 +471,10 @@
       onayEtiket:'Arşivle', onayIkon:'fa-box-archive', notAlani:true, notZorunlu:true, notYer:'Arşivleme gerekçesi…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('musteriler', m.id, { durum:'pasif', arsiv:true }).then(function(){
+      GV.gecisUygula('musteri', 'musteriler', m.id, 'pasif', {
+        not: s.not, ekYama: { arsiv: true }
+      }).then(function(g){
+        if (!g.ok) return;
         gvToast('Müşteri arşivlendi.', { ton:'ok' });
         setTimeout(function(){ location.href = GV.href('musteriler.html'); }, 900);
       });

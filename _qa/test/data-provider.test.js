@@ -3,7 +3,8 @@ const assert = require('node:assert');
 const { ortam, kayitlar } = require('./yukleyici.js');
 
 function kur(ekOrtam) {
-  const w = ortam(['types.js', 'data-provider.js'], ekOrtam);
+  const w = ortam(['kimlik.js', 'types.js', 'data-provider.js'],
+    Object.assign({ crypto: require('node:crypto').webcrypto }, ekOrtam || {}));
   return { w, DP: w.dataProvider, GV: w.GV };
 }
 

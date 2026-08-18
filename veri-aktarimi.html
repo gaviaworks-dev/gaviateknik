@@ -612,8 +612,10 @@
           onayEtiket:'Geri al', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
           notYer:'Geri alma gerekçesi…' }).then(function(r){
             if (!r.onay) return;
-            A.guncelle('veriAktarimlari', s10.id, { durum:'geri-alindi', geriAlinabilir:false }).then(function(){
-              A.kayitAt('geri-alma', 'Veri Aktarımı', s10.id, 'Tamamlandı', 'Geri alındı', r.not);
+            GV.gecisUygula('veriAktarimi', 'veriAktarimlari', s10.id, 'geri-alindi', {
+              not: r.not, ekYama: { geriAlinabilir: false }
+            }).then(function(g){
+              if (!g.ok) return;
               gvToast('Aktarım geri alındı.', { ton:'warn' });
               d = { adim:1, tur:d.tur, dosya:null, satirSayisi:0, eslesme:{}, dogrulama:null,
                 mukerrer:[], hatali:[], onaylandi:false, sonuc:null };
@@ -839,8 +841,10 @@
           onayEtiket:'Geri al', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true,
           notYer:'Geri alma gerekçesi…' }).then(function(r){
             if (!r.onay) return;
-            A.guncelle('veriAktarimlari', x.id, { durum:'geri-alindi', geriAlinabilir:false }).then(function(){
-              A.kayitAt('geri-alma', 'Veri Aktarımı', x.id, x.durum, 'Geri alındı', r.not);
+            GV.gecisUygula('veriAktarimi', 'veriAktarimlari', x.id, 'geri-alindi', {
+              not: r.not, ekYama: { geriAlinabilir: false }
+            }).then(function(g){
+              if (!g.ok) return;
               gvToast(x.id + ' geri alındı.', { ton:'warn' });
               setTimeout(function(){ location.reload(); }, 800);
             });

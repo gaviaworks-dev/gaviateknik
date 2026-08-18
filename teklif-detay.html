@@ -305,10 +305,12 @@
         + 'Çıktıda taşeron maliyeti kolonu yer almaz.',
       onayEtiket:'Gönder', onayIkon:'fa-paper-plane' }).then(function(s){
         if (!s.onay) return;
-        A.durumDegistir('teklifler', t.id, 'durum', 'gonderildi', 'Teklif müşteriye iletildi.').then(function(){
-          gvToast('Teklif gönderildi.', { ton:'ok' });
-          setTimeout(function(){ location.reload(); }, 800);
-        });
+        GV.gecisUygula('teklif', 'teklifler', t.id, 'gonderildi', { not:'Teklif müşteriye iletildi.' })
+          .then(function(g){
+            if (!g.ok) return;
+            gvToast('Teklif gönderildi.', { ton:'ok' });
+            setTimeout(function(){ location.reload(); }, 800);
+          });
       });
   }
   ['tdGonder','tdGonder2'].forEach(function(b){ var e = document.getElementById(b); if (e) e.addEventListener('click', gonder); });
@@ -319,7 +321,8 @@
       onayEtiket:'Kazanıldı', onayIkon:'fa-trophy', notAlani:true, notYer:'Müşteri geri bildirimi…'
     }).then(function(s){
       if (!s.onay) return;
-      A.durumDegistir('teklifler', t.id, 'durum', 'kazanildi', s.not).then(function(){
+      GV.gecisUygula('teklif', 'teklifler', t.id, 'kazanildi', { not: s.not }).then(function(g){
+        if (!g.ok) return;
         gvToast('Teklif kazanıldı olarak işaretlendi.', { ton:'ok' });
         setTimeout(function(){ location.reload(); }, 800);
       });
@@ -334,7 +337,8 @@
       onayEtiket:'Kaybedildi', onayIkon:'fa-xmark', notAlani:true, notZorunlu:true,
       notYer:'Kayıp nedeni (fiyat, kapsam, rakip, zamanlama…)' }).then(function(s){
         if (!s.onay) return;
-        A.durumDegistir('teklifler', t.id, 'durum', 'kaybedildi', s.not).then(function(){
+        GV.gecisUygula('teklif', 'teklifler', t.id, 'kaybedildi', { not: s.not }).then(function(g){
+          if (!g.ok) return;
           gvToast('Teklif kaybedildi olarak işaretlendi.', { ton:'warn' });
           setTimeout(function(){ location.reload(); }, 800);
         });

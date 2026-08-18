@@ -291,10 +291,13 @@
                 ozet: kayitlar.filter(function(k){ return k.lokasyonId === lid; }).length + ' kalemde miktar farkı bildirildi.'
               });
             })).then(function(){
-              return Promise.all(idler.map(function(eid){ return A.guncelle('eksikEkipmanlar', eid, { durum:'musteri-bildirildi' }); }));
-            }).then(function(){
-              gvToast('Fark bildirimi gönderildi.', { ton:'ok' });
-              setTimeout(function(){ location.reload(); }, 900);
+              return GV.gecisTopluUygula('eksikEkipman', 'eksikEkipmanlar', idler, 'musteri-bildirildi',
+                { not:'Envanter farkı müşteriye bildirildi.' });
+            }).then(function(r){
+              var oldu = GV.gecisTopluBildir(r, {
+                basarisizBaslik:'Bildirim yapılamadı',
+                metin: function(){ return 'Fark bildirimi gönderildi.'; } });
+              if (oldu) setTimeout(function(){ location.reload(); }, 900);
             });
           } }]
     });

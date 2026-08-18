@@ -312,8 +312,10 @@
       notYer:'Düzeltmenin nasıl doğrulandığı (belge, fotoğraf, saha kontrolü)…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('uygunsuzluklar', u.id, { durum:'kapandi', kapanis: BUGUN }).then(function(){
-        A.kayitAt('kapatma', 'Uygunsuzluk', u.id, u.durum, 'Kapandı', s.not);
+      GV.gecisUygula('uygunsuzluk', 'uygunsuzluklar', u.id, 'kapandi', {
+        not: s.not, ekYama: { kapanis: BUGUN }
+      }).then(function(g){
+        if (!g.ok) return;
         gvToast('Uygunsuzluk kapatıldı.', { ton:'ok' });
         setTimeout(function(){ location.reload(); }, 800);
       });
@@ -328,8 +330,10 @@
       onayEtiket:'Yeniden aç', onayIkon:'fa-rotate-left', notAlani:true, notZorunlu:true, notYer:'Yeniden açma gerekçesi…'
     }).then(function(s){
       if (!s.onay) return;
-      A.guncelle('uygunsuzluklar', u.id, { durum:'acik', kapanis: null }).then(function(){
-        A.kayitAt('yeniden-acma', 'Uygunsuzluk', u.id, 'Kapandı', 'Açık', s.not);
+      GV.gecisUygula('uygunsuzluk', 'uygunsuzluklar', u.id, 'acik', {
+        not: s.not, ekYama: { kapanis: null }
+      }).then(function(g){
+        if (!g.ok) return;
         gvToast('Uygunsuzluk yeniden açıldı.', { ton:'warn' });
         setTimeout(function(){ location.reload(); }, 800);
       });

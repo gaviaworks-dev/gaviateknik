@@ -315,16 +315,25 @@
   /** Yeni domain komutu kaydeder. */
   function komut(ad, fn) { komutlar[ad] = fn; return fn; }
 
+  /* Kimlik üretimi tek yerde: kimlik.js (crypto.randomUUID). */
   function istekKimligi() {
-    try { return crypto.randomUUID(); }
-    catch (e) { return 'req-' + Math.random().toString(36).slice(2, 12); }
+    return (kok.GV && kok.GV.istekKimligi) ? kok.GV.istekKimligi() : 'req-yok';
   }
 
   /* Çekirdek komutlar — demoApi yazma yollarına iner, önbelleği düşürür. */
   komut('kayitOlustur', function (p) { return api().ekle(p.resource, p.kayit); });
   komut('kayitGuncelle', function (p) { return api().guncelle(p.resource, p.id, p.yama); });
   komut('kayitSil', function (p) { return api().sil(p.resource, p.id); });
-  komut('durumGecisi', function (p) { return api().durumDegistir(p.resource, p.id, p.alan, p.deger, p.not); });
+  /* Durum yazımının TEK kapısı durum makinesidir; komut katmanı da oradan
+     geçer (doküman §8). Akış adı zorunludur — akışsız durum yazımı yok. */
+  komut('durumGecisi', function (p) {
+    var GV = kok.GV;
+    if (!GV || !GV.gecisUygula) return Promise.reject(new Error('Durum makinesi yüklü değil.'));
+    if (!p.akis) return Promise.reject(new Error('durumGecisi komutu akis alanı ister.'));
+    return GV.gecisUygula(p.akis, p.resource, p.id, p.deger, {
+      alan: p.alan, not: p.not, sessiz: p.sessiz !== false, ekYama: p.ekYama
+    });
+  });
 
   /**
    * @param {string} name

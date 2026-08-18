@@ -235,10 +235,14 @@
                 gvToast('Seçim parti büyüklüğünü aşıyor (' + g.hedefParti + '). Yeni grup açmayı değerlendirin.', { ton:'warn' });
               }
               A.guncelle('faturaGruplari', gid, { lokasyonlar: g.lokasyonlar.concat(sec) }).then(function(){
-                return Promise.all(sec.map(function(lid){ return A.guncelle('lokasyonlar', lid, { faturaDurum:'fatura-grubunda' }); }));
-              }).then(function(){
-                gvToast(sec.length + ' lokasyon gruba eklendi.', { ton:'ok' });
-                setTimeout(function(){ location.reload(); }, 800);
+                /* Mutabakat onaylanmadan faturaya geçilemez kuralı geçiş ön koşuludur. */
+                return GV.gecisTopluUygula('fatura', 'lokasyonlar', sec, 'fatura-grubunda',
+                  { alan:'faturaDurum', not:'Fatura grubuna eklendi: ' + gid });
+              }).then(function(r){
+                var oldu = GV.gecisTopluBildir(r, {
+                  basarisizBaslik:'Lokasyon gruba alınamadı',
+                  metin: function(n){ return n + ' lokasyon gruba eklendi.'; } });
+                if (oldu) setTimeout(function(){ location.reload(); }, 800);
               });
             } }]
         : [{ etiket:'Kapat', sinif:'btn-ghost' }]
@@ -368,14 +372,17 @@
             }));
 
             Promise.all(islemler).then(function(){
-              return A.guncelle('faturaGruplari', gid, {
-                durum: h.kismiVar ? 'kismen-faturalandi' : 'faturalandi',
-                faturaIds: (g.faturaIds || []).concat([fid]) });
+              /* Grup durumu enum'un kendisidir: 'faturalandi' diye bir durum yok. */
+              return GV.gecisUygula('faturaGrubu', 'faturaGruplari', gid,
+                h.kismiVar ? 'kismen-faturalandi' : 'tam-faturalandi', {
+                  not:'Fatura kesildi: ' + no, sessiz: true,
+                  ekYama: { faturaIds: (g.faturaIds || []).concat([fid]) } });
             }).then(function(){
               return Promise.all(uygunLoklar.map(function(lid){
                 var kalanVar = A.mutabakatSatirlari(lid).some(function(m){ return m.kalan > 0; });
-                return A.guncelle('lokasyonlar', lid, {
-                  faturaDurum: kalanVar ? 'kismen-faturalandi' : 'tam-faturalandi' });
+                return GV.gecisUygula('fatura', 'lokasyonlar', lid,
+                  kalanVar ? 'kismen-faturalandi' : 'tam-faturalandi',
+                  { alan:'faturaDurum', sessiz:true, not:'Fatura kesildi: ' + no });
               }));
             }).then(function(){
               gvResult(true, { baslik:'Fatura kesildi',

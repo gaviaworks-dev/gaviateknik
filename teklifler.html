@@ -159,13 +159,19 @@
           metin: s.length + ' teklifin durumu güncellenecek.',
           govde:'<div class="gfield"><label for="tkDurumSec">Yeni durum</label><select id="tkDurumSec">'
             + Object.keys(durumAd).map(function(k){ return '<option value="' + k + '">' + GV.esc(durumAd[k][2]) + '</option>'; }).join('')
-            + '</select></div><div class="gfield full" style="margin-top:14px"><label for="tkDurumNot">Not</label>'
+            + '</select><span class="gf-hint">Seçilen durum, teklifin mevcut durumundan tanımlı bir geçiş değilse o kayıt atlanır ve nedeni bildirilir.</span></div>'
+            + '<div class="gfield full" style="margin-top:14px"><label for="tkDurumNot">Not</label>'
             + '<textarea id="tkDurumNot"></textarea></div>',
           butonlar:[{ etiket:'Vazgeç', sinif:'btn-ghost' },
             { etiket:'Güncelle', sinif:'btn-acc', ikon:'fa-check', tikla: function(kap){
                 var d = kap.querySelector('#tkDurumSec').value, n = kap.querySelector('#tkDurumNot').value;
-                Promise.all(s.map(function(id){ return A.durumDegistir('teklifler', id, 'durum', d, n); }))
-                  .then(function(){ gvToast(s.length + ' teklifin durumu güncellendi.', { ton:'ok' }); setTimeout(function(){ location.reload(); }, 700); });
+                GV.gecisTopluUygula('teklif', 'teklifler', s, d, { not: n })
+                  .then(function(r){
+                    var oldu = GV.gecisTopluBildir(r, {
+                      basarisizBaslik:'Teklif durumu değiştirilemedi',
+                      metin: function(x){ return x + ' teklifin durumu güncellendi.'; } });
+                    if (oldu) setTimeout(function(){ location.reload(); }, 700);
+                  });
               } }] });
       } }
   ]});

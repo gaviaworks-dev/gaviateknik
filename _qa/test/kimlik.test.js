@@ -24,14 +24,16 @@ test('crypto.randomUUID yoksa getRandomValues yedeği yine v4 üretir', () => {
 
 test('crypto hiç yoksa bile kimlik üretilir ve çakışmaz', () => {
   const GV = kur(false).GV;
-  const küme = new Set(Array.from({ length: 5000 }, () => GV.yeniKod('X')));
+  /* Yedek yolda da 16 baytlık uuid tekrarsız olmalı. */
+  const küme = new Set(Array.from({ length: 5000 }, () => GV.uuid()));
   assert.strictEqual(küme.size, 5000);
+  assert.match(GV.yeniKod('X'), /^X-[2-9A-HJ-NP-Z]{8}$/);
 });
 
 test('yeniKod önek + okunur blok verir; 0/1/I/O harfleri kullanılmaz', () => {
   const GV = kur(true).GV;
   const k = GV.yeniKod('MST-Y');
-  assert.match(k, /^MST-Y-[2-9A-HJ-NP-Z]{6}$/);
+  assert.match(k, /^MST-Y-[2-9A-HJ-NP-Z]{8}$/);
   assert.strictEqual(GV.yeniKod('TKL-2026-').split('-').length, 3);   /* sondaki tire yutulur */
   assert.match(GV.yeniKod('KLB', 8), /^KLB-[2-9A-HJ-NP-Z]{8}$/);
 });

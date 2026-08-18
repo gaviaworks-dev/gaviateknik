@@ -193,7 +193,10 @@
                 var bas = kap.querySelector('#szYeniBas').value, bit = kap.querySelector('#szYeniBit').value;
                 if (!bas || !bit || bit <= bas) { gvToast('Geçerli bir dönem girin.', { ton:'danger' }); return false; }
                 var yil = bas.substring(0,4);
-                A.guncelle('sozlesmeler', s.id, { durum:'sona-erdi', yenileme:'yenilendi' }).then(function(){
+                GV.gecisUygula('sozlesme', 'sozlesmeler', s.id, 'sona-erdi', {
+                  not:'Sözleşme yenilendi.', ekYama: { yenileme:'yenilendi' }
+                }).then(function(g){
+                  if (!g.ok) return null;
                   var yeniSzlNo = GV.yeniKod('SZL-' + yil + '-Y');
                   return A.ekle('sozlesmeler', Object.assign({}, s, {
                     id: yeniSzlNo, no: yeniSzlNo,
@@ -203,7 +206,8 @@
                     bedel: Number(kap.querySelector('#szYeniBedel').value),
                     notlar:'Önceki sözleşmenin (' + s.no + ') yenilenmesidir.'
                   }));
-                }).then(function(){
+                }).then(function(x){
+                  if (!x) return;
                   gvToast('Sözleşme yenilendi.', { ton:'ok' });
                   setTimeout(function(){ location.reload(); }, 800);
                 });
