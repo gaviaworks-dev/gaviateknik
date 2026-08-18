@@ -177,3 +177,40 @@ Branch: `faz-12-revizyon` (GitHub Pages `main` yayınlıyor, canlı etkilenmedi)
 - Durum makineleri (tek `transition` fonksiyonu) ve `crypto.randomUUID` kimlik üretimi
 - Breakpoint tokenları ve düz `gtable` tablolarının kart moduna alınması (yerleşim kararı)
 - `pr-tablo` / `rd-kriter` yazdırma ve ölçüm tabloları — kart moduna girmiyorlar
+
+---
+
+## Faz 13 — Algoritma düzeltmeleri ve form standardı
+
+Kapsam: `_docs/REVIZYON.md` §8 (backend öncesi algoritma düzeltmeleri) ve
+§11 (ortak form ve etkileşim standardı). Branch: `faz-13-algoritma`.
+
+| # | Adım | Sonuç |
+|---|---|---|
+| 1 | `kimlik.js` | `crypto.randomUUID` kimlik üretimi + komut tekrar koruması (requestId) |
+| 2 | `durum-makinesi.js` | 25 akış, tek `transition` fonksiyonu, yasak geçiş testleri |
+| 3 | Doğrudan durum yazımlarının taşınması | 48 çağrı yeri (32 `guncelle` + 16 `durumDegistir`), 26 sayfa |
+| 4 | `form-controller.js` | Şema tabanlı doğrulama, ilk hataya odak, üstte özet, submit kilidi, dirty state |
+| 5 | Form yayılımı (6 grup) | 6 sayfa formu + **46 modal form** ortak sözleşmede |
+| 6 | `para-zaman.js` | Kuruş tamsayı aritmetiği, para birimi ayrımı, ClockService |
+| 7 | `kpi.js` | Panel ve liste tek seçiciden; arşiv/kapsam dışı/silinmiş filtresi tanımlı ve görünür |
+
+**Kapanış ölçümleri**
+- Faz 13 ortak katmanı: `kimlik.js` · `para-zaman.js` · `durum-makinesi.js` ·
+  `form-controller.js` · `kpi.js` — **73/73 sayfa** yüklüyor
+- Doğrudan durum yazımı: **0** (kaynak taraması testiyle kilitli)
+- Kayıt yapan modal form: **46/46** `gvModalForm` sözleşmesinde
+- Sayfa formu: **6/6** `gvFormController` sözleşmesinde
+- `length + 1` / `Date.now()` tabanlı kalıcı kimlik: **0**
+- Sayfa kodunda `new Date()`: **0** (hepsi ClockService'ten)
+- Birim test: **238 geçti / 0 kaldı**
+- Rol × sayfa taraması: **0 bulgu** (13 rol × 73 sayfa = 949 kombinasyon)
+- Yapı bütünlüğü ayrıştırıcısı: **73 sayfa, yapısal sorun yok**
+
+**Bu fazın dışında kalanlar (bilinçli)**
+- Responsive standardizasyonu, breakpoint tokenları, filtre drawer, tam ekran
+  modal, 44 px dokunma hedefleri — ayrı tur (CSS'e hiç dokunulmadı)
+- Detay ekranlarının alt koleksiyonları (13 ekran), rol bazlı dashboard,
+  `ApiDataProvider` iskeleti — sonraki fazlar
+- Demo verisinin TL alanları kuruşa **göç ettirilmedi**; kuruş hesap
+  sırasında kullanılır, veri modeli TL kalır
