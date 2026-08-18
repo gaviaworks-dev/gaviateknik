@@ -361,9 +361,17 @@
     +   '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>'
     +   '<label class="gv-sr" for="gvSearchInput">Genel arama</label>'
     +   '<input type="search" id="gvSearchInput" placeholder="' + METIN.ara + '" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="gvSearchPop">'
+    /* Mobil arama katmanının kapat düğmesi — masaüstünde display:none. */
+    +   '<button class="gv-search-close" id="gvSearchClose" type="button" aria-label="Aramayı kapat">'
+    +     '<i class="fa-solid fa-xmark" aria-hidden="true"></i></button>'
     +   '<div class="gv-pop gv-searchpop" id="gvSearchPop" role="listbox" aria-label="Arama sonuçları"></div>'
     + '</div>'
     + '<div class="gv-top-tools">'
+    /* Doküman §9: "Arama: mobilde ikonla açılan tam genişlik katman."
+       Tetikleyici masaüstünde display:none, ≤640'ta görünür. */
+    +   '<button class="gv-iconbtn gv-searchbtn" id="gvSearchOpen" type="button" data-tip="' + METIN.ara + '"'
+    +     ' aria-label="' + METIN.ara + '" aria-expanded="false" aria-controls="gvSearchInput">'
+    +     '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>'
     +   '<button class="gv-iconbtn gv-langbtn" id="gvLang" data-tip="' + METIN.dil + '" aria-label="' + METIN.dil + '">TR</button>'
     +   '<a class="gv-iconbtn" href="' + rolluHref('bildirimler.html') + '" data-tip="' + METIN.bildirim + '" aria-label="' + METIN.bildirim + '">'
     +     '<i class="fa-regular fa-bell" aria-hidden="true"></i><span class="gb-cnt" id="gvBellCount" aria-live="polite" aria-atomic="true">5</span></a>'
@@ -587,7 +595,40 @@
       if (!e.target.closest('.gv-search')) { searchPop.classList.remove('open'); searchInp.setAttribute('aria-expanded', 'false'); }
     });
     searchInp.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { searchPop.classList.remove('open'); searchInp.blur(); }
+      if (e.key === 'Escape') {
+        searchPop.classList.remove('open');
+        searchInp.setAttribute('aria-expanded', 'false');
+        if (document.body.classList.contains('gv-search-open')) aramaKatmani(false);
+        else searchInp.blur();
+      }
+    });
+
+    /* ---- mobil arama katmanı (doküman §9) ----
+       ≤640'ta arama alanı üst barda yer kaplamaz; ikonla tam genişlik
+       katman olarak açılır. Sonuç listesi katmanın genişliğinde kalır,
+       viewport'tan taşmaz (responsive.css). */
+    var aramaAc = document.getElementById('gvSearchOpen');
+    var aramaKapat = document.getElementById('gvSearchClose');
+    function aramaKatmani(ac) {
+      document.body.classList.toggle('gv-search-open', !!ac);
+      if (aramaAc) aramaAc.setAttribute('aria-expanded', ac ? 'true' : 'false');
+      if (ac) { searchInp.focus(); }
+      else {
+        searchPop.classList.remove('open');
+        searchInp.setAttribute('aria-expanded', 'false');
+        if (aramaAc) aramaAc.focus();
+      }
+    }
+    if (aramaAc) aramaAc.addEventListener('click', function () {
+      aramaKatmani(!document.body.classList.contains('gv-search-open'));
+    });
+    if (aramaKapat) aramaKapat.addEventListener('click', function () { aramaKatmani(false); });
+    /* Katman dışına dokunulunca kapanır; sonuç bağlantısına gidildiğinde
+       sayfa değiştiği için ayrıca kapatmaya gerek yok. */
+    document.addEventListener('click', function (e) {
+      if (!document.body.classList.contains('gv-search-open')) return;
+      if (e.target.closest('.gv-search') || e.target.closest('.gv-searchbtn')) return;
+      aramaKatmani(false);
     });
   }
 

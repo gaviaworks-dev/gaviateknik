@@ -329,6 +329,9 @@ body:has([class*="modal-ov"].open, [class*="fpanel-ov"].open) { overflow: hidden
   box-shadow: 0 0 0 3px rgba(var(--mint-rgb), .14);
 }
 
+/* Mobil arama katmanının parçaları masaüstünde YOKTUR (görünüm değişmez);
+   ≤640'ta görünür olurlar (responsive.css). */
+.gv-search-close, .gv-searchbtn { display: none }
 .gv-top-tools { margin-left: auto; display: flex; align-items: center; gap: 10px }
 .gv-iconbtn {
   position: relative; width: 40px; height: 40px; flex: none;

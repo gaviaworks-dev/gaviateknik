@@ -99,7 +99,10 @@
       if (sayfa > adet) sayfa = adet;
       var bas = toplam ? (sayfa - 1) * boyut + 1 : 0;
       var son = Math.min(toplam, sayfa * boyut);
-      var h = '<div class="pg-count">' + (toplam ? (GV.n(bas) + '–' + GV.n(son) + ' / ' + GV.n(toplam) + ' kayıt') : 'Kayıt yok') + '</div>'
+      /* Kayıt aralığı canlı bölgedir: mobilde ikinci satıra düşer ve sayfa
+         değiştikçe ekran okuyucuya duyurulur (doküman §9 + §13). */
+      var h = '<div class="pg-count" role="status" aria-live="polite" aria-atomic="true">'
+            + (toplam ? (GV.n(bas) + '–' + GV.n(son) + ' / ' + GV.n(toplam) + ' kayıt') : 'Kayıt yok') + '</div>'
             + '<div class="pg-btns">' + boyutSeciciHtml()
             + '<button class="pg-btn" data-git="onceki"' + (sayfa <= 1 ? ' disabled' : '') + ' aria-label="Önceki sayfa"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>'
             + '<span class="pg-compact">' + sayfa + ' / ' + adet + '</span>';
