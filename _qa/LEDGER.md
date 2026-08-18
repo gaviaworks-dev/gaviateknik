@@ -22,3 +22,59 @@
 | 2026-08-18 | 7 | assets/js/tooltip.js · assets/css/gavia-ui.css · assets/js/navigation.js · 72 sayfa (script etiketi) · _qa/test/tooltip.test.js | 0 bulgu / YAPISAL SORUN YOK · 100 test geçti | 5207cff | — |
 | 2026-08-18 | 8 | assets/js/app.js · 14 detay sayfası · _qa/test/route-id.test.js | 0 bulgu / YAPISAL SORUN YOK · 121 test geçti | 789869e | — |
 | 2026-08-18 | 9 | 21 sayfa (117 data-lbl) · _qa/test/data-lbl.test.js | 0 bulgu / YAPISAL SORUN YOK · 125 test geçti | 9176426 | rapor-detay `rd-kriter` ve faturalar/rapor-detay `pr-tablo` tabloları kapsam dışı bırakıldı (kart moduna girmiyorlar); düz `gtable` tabloları `gtable-cards`'a alınmadı — yerleşim kararı |
+
+---
+
+## Faz 12 kapanış notları
+
+Aşağıdakiler kusur değil, **bilinçli karardır**. Bir sonraki turda "eksik"
+sanılıp geri alınmasın diye gerekçeleriyle birlikte kayda geçirildi.
+
+### Bilinçli sapmalar
+
+**1. pageSize 15/12 → 20 (satır yoğunluğu değişti)**
+Doküman §7 `pageSize` için yalnız 10/20/50'ye izin veriyor. Migrate edilen
+sayfaların çoğu 15, portal sayfaları 12 kullanıyordu. `GV.sorguNormalize`
+bunları "en yakın izinli değer" kuralıyla **10'a** indirirdi; sayfa yoğunluğu
+düşmesin diye dokümanın varsayılanı olan **20**'ye taşındılar. Zaten 10/20/50
+olan sayfalar (`kalibrasyonlar`, `islem-kayitlari`, `olcum-cihazlari`,
+`sozlesme-pozlari`, `onaylar`, `rapor-onaylari`) kendi değerlerini korudu.
+`gvPager`'ın kendi varsayılanı **15 olarak bırakıldı** — migrate edilmemiş
+kullanımlar bit düzeyinde aynı kalsın diye.
+
+**2. Tek karakterlik aramada çip / sonuç uyuşmazlığı**
+Doküman §7 "q en az 2 karakterde çalışır" diyor; kural `data-provider.js`
+içinde tek yerde uygulanıyor. Kullanıcı tek karakter yazdığında sonuç
+süzülmez ama `gvFilter` "Arama: x" aktif filtre çipini gösterir. Çipi
+bastıran kod `filters.js` içinde ve o dosyaya **bilinçli olarak
+dokunulmadı** (migrate edilmemiş sayfaların davranışı değişmesin).
+Kozmetik ve geçicidir — ikinci karakterde kendiliğinden düzelir.
+
+### Kapsam dışı bırakılanlar
+
+**3. `pr-tablo` ve `rd-kriter` tablolarında data-lbl tamamlanmadı**
+`pr-tablo` yalnız `.pr-doc` içinde, **kâğıt çıktısı** için basılır;
+`rd-kriter` sayfa yerel bir ölçüm tablosudur ve `.gv-tscroll` ile yatay
+kayar. İkisi de `.gtable-cards` değildir, yani mobil kart moduna hiç
+girmezler — `data-lbl` orada hiçbir şey yapmaz. Kalan 57 etiketsiz hücrenin
+tamamı bu iki sınıftadır (`faturalar.html`, `rapor-detay.html`).
+`_qa/test/data-lbl.test.js` bu ayrımı test olarak kilitliyor.
+
+Aynı adımda düz `gtable` tablolarına `gtable-cards` **eklenmedi**: bu bir
+yerleşim kararıdır, adımın kapsamı "data-lbl tamamlama" idi. Tablolar artık
+etiketli, kart moduna geçirilmeye hazır.
+
+**4. Detay ekranlarının alt koleksiyonları sayfalanmadı (13 ekran)**
+`durum.js` bunu `ListController: 0/13` diye **kırmızı** gösterir; bu bir
+gerileme değil, hiç başlanmamış bir iştir. Doküman §6 ikinci tablosundaki
+13 ekran (`musteri-detay`, `proje-detay`, `lokasyon-detay`, `ekipman-detay`,
+`is-emri-detay`, `rapor-detay`, `uygunsuzluk-detay`, `teklif-detay`,
+`sozlesme-detay`, `fatura-grubu-detay`, `taseron-detay`, `personel-detay`,
+`cihaz-detay`) bu koşunun kapsamında değildi — koşu, doküman matrisindeki
+41 liste route'unu hedefliyordu ve o hedef 41/41 kapandı.
+
+### Sonraki fazlara devreden açık başlıklar
+- Durum makineleri: tek `transition` fonksiyonu (bugün 26 yerde `guncelle()`
+  ile durum alanı doğrudan yazılıyor)
+- Kimlik üretimi: `length + 1` / `Date.now()` yerine `crypto.randomUUID`
+- Breakpoint tokenları (bugün 8 `@media` ham piksel kullanıyor)
