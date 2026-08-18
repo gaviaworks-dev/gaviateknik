@@ -138,13 +138,36 @@
     return '<span class="gstat ' + ton + '"><i class="fa-solid ' + ikon + '" aria-hidden="true"></i>' + GV.esc(metin) + '</span>';
   };
 
-  /* URL parametreleri */
+  /* URL parametreleri
+     Varsayılan yazım biçimi replaceState'tir — filtre/arama yazımı tarayıcı
+     geçmişini kirletmesin. pushState YALNIZ açık seçenekle istenir
+     (secenek.push === true), pratikte sayfa değişiminde. */
   GV.q = function (ad) { return new URLSearchParams(location.search).get(ad); };
-  GV.qYaz = function (ad, deger) {
+
+  function urlUygula(u, secenek) {
+    var yeni = u.toString();
+    if (yeni === location.href) return;
+    if (secenek && secenek.push) history.pushState(null, '', yeni);
+    else history.replaceState(null, '', yeni);
+  }
+
+  GV.qYaz = function (ad, deger, secenek) {
     var u = new URL(location.href);
     if (deger == null || deger === '') u.searchParams.delete(ad);
     else u.searchParams.set(ad, deger);
-    history.replaceState(null, '', u.toString());
+    urlUygula(u, secenek);
+  };
+
+  /* Toplu yazım — birden çok parametre TEK geçmiş girdisiyle güncellenir.
+     Tek tek qYaz çağırmak sayfa değişiminde N ayrı pushState üretirdi. */
+  GV.qCok = function (nesne, secenek) {
+    var u = new URL(location.href);
+    Object.keys(nesne || {}).forEach(function (ad) {
+      var deger = nesne[ad];
+      if (deger == null || deger === '') u.searchParams.delete(ad);
+      else u.searchParams.set(ad, deger);
+    });
+    urlUygula(u, secenek);
   };
 
   /* ================= TOAST ================= */
